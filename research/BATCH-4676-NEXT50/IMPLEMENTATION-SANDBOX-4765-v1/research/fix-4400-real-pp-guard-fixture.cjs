@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4400-independent.test.cjs';let s=fs.readFileSync(p,'utf8').replace("s=turn(s,920031,27840);assert.equal(s.fighters[1].pp[mid],m.pp-1);s=turn(s,920030,920042);","s=turn(s,920031,27840);assert.equal(s.fighters[1].pp[mid],m.pp-1);timer(s,0,'PP保护');s=turn(s,920030,920042);");fs.writeFileSync(p,s);

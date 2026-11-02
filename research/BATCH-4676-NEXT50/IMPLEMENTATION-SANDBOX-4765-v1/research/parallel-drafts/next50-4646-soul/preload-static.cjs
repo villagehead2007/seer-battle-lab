@@ -1,0 +1,4 @@
+'use strict';
+// Private future test preload only. No production edit and no test invocation.
+const path=require('path'),Module=require('module'),old=Module.prototype._compile,target=path.resolve(__dirname,'../../../dist/range-souls.js'),souls=path.resolve(__dirname,'../../../dist/souls.js');
+Module.prototype._compile=function(code,file){if(path.resolve(file)===target){const at=code.lastIndexOf('\n});');if(at<0)throw Error('1846 static preload exact closing anchor');code=code.slice(0,at)+'\nregistry[1846]=require('+JSON.stringify(path.join(__dirname,'soul1846.static.draft.cjs'))+');\n'+code.slice(at);}if(path.resolve(file)===souls)for(const p of require('./souls.static-edits.json')){if(code.split(p.old).length!==2)throw Error('1846 static unique seam');code=code.replace(p.old,p.replacement);}return old.call(this,code,file);};

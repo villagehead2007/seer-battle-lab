@@ -1,0 +1,95 @@
+{
+  "patches": [
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "if(ppRules.stateNames.some(k=>ppRules.state(f,k,1))||healthRules.stateNames.some(k=>healthRules.state(f,k,1))||guardStates.state(f,'white',1))throw Error('Q-N20-4489-002：初始清除特殊持续标记待确认');",
+      "insert": "",
+      "why": "dependency4489 publicmarks 1"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "      if((ppRules.stateNames.some(k=>ppRules.state(f,k,r))||healthRules.stateNames.some(k=>healthRules.state(f,k,r)))&&!(!bypass&&(on(f,'protect')||f.soulProtect)))throw Error('Q-N20-4489-002：特殊持续标记是否属于可消回合范围待确认');",
+      "insert": "",
+      "why": "dependency4489 publicmarks 2"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "      if(guardStates.state(f,'white',r)&&!(!bypass&&(on(f,'protect')||f.soulProtect)))throw Error('Q-N20-4489-002：白色龙鳞是否属于可消回合范围待确认');",
+      "insert": "",
+      "why": "dependency4489 publicmarks 3"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "      if(a.hp>0){const rec=healthRules.state(a,'回体Ⅰ',r),loss=healthRules.state(a,'失体Ⅰ',r);if(rec){const blockedSkill=on(a,'技能禁疗')||on(t,'次元领域')||on(a,'技能回复转伤害')||E.SOULS.trait(t,'opponentSkillHealingConversion');if(blockedSkill)throw Error('Q-N20-4489-003：回体标记恢复的来源分类与技能禁疗/转伤交互待确认');heal(a,100,'回体Ⅰ用后回复','state');}if(loss&&a.hp>0){const owner=fs[loss.source.sourceSide??t.side],unclear=[owner,a].some(f=>timedDamageMultiplier(f,'fixed')!==1||on(f,'固定百分比增伤')||on(f,'固定百分比减伤输出')||on(f,'全伤害翻倍')||on(f,'伤害输出降低')||fatalCracks(f)>=2||f.ailments['星哲']>=r||(E.SOULS.trait(f,'damageMultiplier')??1)!==1||(E.SOULS.trait(f,'pinkDamageMultiplier')??1)!==1);if(unclear)throw Error('Q-N20-4489-003：失体固定伤害来源与输出修正归属待确认');inflict(owner,a,100,'失体Ⅰ用后固定','fixed');}}",
+      "insert": "      if(a.hp>0){const rec=healthRules.state(a,'回体Ⅰ',r),loss=healthRules.state(a,'失体Ⅰ',r);if(rec)heal(a,100,'回体Ⅰ用后回复','state');if(loss&&a.hp>0)inflict(a,a,100,'失体Ⅰ用后固定','fixed');}",
+      "why": "dependency4489 publicmarks 4"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "restoreState:(f,n,source)=>{if(skillPPRestoreBlocked(f))throw Error('Q-N20-4489-003：回能标记的PP回复是否属于技能来源尚未确认');return context(a,t,m).restorePP(f,n,'state');}",
+      "insert": "restoreState:(f,n,source)=>context(a,t,m).restorePP(f,n,'state')",
+      "why": "dependency4489 publicmarks 5"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "baseSHA256": "f0de3b0cbdcc6ddf43098e5a8834ed6e206fdaaaf0247aa53f08380b1ec9afd2",
+      "needle": "registry[1715]={name:'普达戈尔',sourceHash:'f91439c9',partial:true,unimplemented:['Q-N20-4472-002：失明/封锁是否算未命中待答'],traits:{},hooks:{afterUse(c){if(c.m.kind==='item'||c.a.hp<=0||c.t.hp<=0)return;c.ailment(c.t,'沉默',c.a,false,false,null,{probabilityPercent:100});if(c.successful)c.hurt(c.t,c.t.stats.maxHp/3,'普达戈尔命中附伤','percent');else if(c.invalidReason?.blind||c.invalidReason?.blocked)throw Error('Q-N20-4472-002：1715失明/整招失效是否算未命中待确认');else if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.t.ailments['沉默']>=c.round)c.addShield(c.a,400,'soul1715:'+c.round);else c.clear(c.t);}}};",
+      "insert": "registry[1715]={name:'普达戈尔',sourceHash:'f91439c9',partial:false,unimplemented:[],traits:{},hooks:{afterUse(c){if(c.m.kind==='item'||c.a.hp<=0||c.t.hp<=0)return;c.ailment(c.t,'沉默',c.a,false,false,null,{probabilityPercent:100});if(c.successful)c.hurt(c.t,c.t.stats.maxHp/3,'普达戈尔命中附伤','percent');else if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.t.ailments['沉默']>=c.round)c.addShield(c.a,400,'soul1715:'+c.round);else c.clear(c.t);}}};",
+      "why": "Q4472-0021715 includesblind/wholeblocked asnonhit;actualuse soul retained"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "b256f01cefb0cda8bfee10a40c57730a9ee07d53181f7d964f66837d3fa8d59c",
+      "needle": "add(1845,'afterAttack',(c,p)=>{if((c.t.roundDamageTaken??0)>c.hpLoss)throw Error('Q-N20-4501-002：1845每损失体力的统计区间待答');if((c.a.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-N20-4438-001：1845每损失计算多段取整/单位待答');if(c.t.hp>0)c.hurt(c.t,Math.floor(c.hpLoss/p[0])*p[1],c.m.name+'损失体力追加','fixed');},[[1,99999],[0,99999]]);",
+      "insert": "add(1845,'afterAttack',(c,p)=>{const x=c.a.soulState.hpSnapshot1845;if(x?.token!==c.effectUseToken())return;if(c.t.hp>0)c.hurt(c.t,Math.floor(x.missing/p[0])*p[1],c.m.name+'损失体力追加','fixed');},[[1,99999],[0,99999]],undefined,undefined,{beforeUse(c){c.a.soulState.hpSnapshot1845={token:c.effectUseToken(),missing:Math.max(0,c.t.stats.maxHp-c.t.hp)};}});",
+      "why": "Q4501-002 targetHPactualuse snapshot,oncewholeattack,notsettledred"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "b256f01cefb0cda8bfee10a40c57730a9ee07d53181f7d964f66837d3fa8d59c",
+      "needle": "add(1486,'beforeDamage',(c,p)=>{if((c.a.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-N20-4438-001：1486概率多段抽取单位待答');if(c.random()<Math.min(100,p[0]*(c.shieldValue(c.a)>0?2:1))/100)c.modifier*=2;},[pct]);",
+      "insert": "add(1486,'beforeDamage',(c,p)=>{const st=c.a.soulState;if(st.damage1486Round!==c.round){st.damage1486Round=c.round;st.damage1486Double=c.random()<Math.min(100,p[0]*(c.shieldValue(c.a)>0?2:1))/100;}if(st.damage1486Double)c.modifier*=2;},[pct]);",
+      "why": "Q4438-001 linked1486 probabilityonceperround"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "b256f01cefb0cda8bfee10a40c57730a9ee07d53181f7d964f66837d3fa8d59c",
+      "needle": "{const old=registry[1617];registry[1617]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28293&&(c.m.hash==='52b74bae'||c.m.revision==='seerapi:52b74bae'))Object.assign(c.a.effects['受攻异常未触发全强'],{pendingZeroAttackQuestion:'Q-N20-4359-003',pendingUnitQuestion:'Q-N20-4438-001'});}});}",
+      "insert": "{const old=registry[1617];registry[1617]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28293&&(c.m.hash==='52b74bae'||c.m.revision==='seerapi:52b74bae'))Object.assign(c.a.effects['受攻异常未触发全强'],{confirmedZeroAttack4501:true});}});}",
+      "why": "Q4359-003 explicitlinked1617 zero hit andQ4438 onceperround"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5",
+      "needle": "      if(!rage&&t.hp>0&&on(t,'辰坤受攻三弱'))stage(a,-1,['def','spd','acc']);if(!rage&&t.hp>0&&on(t,'受攻异常未触发全强')){const e=t.effects['受攻异常未触发全强'];if(e.pendingZeroAttackQuestion&&settledDamage<=0)throw Error(e.pendingZeroAttackQuestion+'：1617零伤受到攻击判据待确认');if(e.pendingUnitQuestion&&t.soulState.corolina1617ReactionRound===r)throw Error(e.pendingUnitQuestion+'：1617同回重复受攻单位待答');}if(!rage&&t.hp>0&&settledDamage>0&&on(t,'受攻异常未触发全强')&&t.soulState.corolina1617ReactionRound!==r){const e=t.effects['受攻异常未触发全强'];t.soulState.corolina1617ReactionRound=r;if(a.hp>0&&!((e.chance>=100||rng(s)<e.chance/100)&&ailment(a,e.ailment,t,false,false,null,{probabilityPercent:e.chance})))stage(t,e.amount);} if(!rage&&t.hp>0)E.SOULS.run('receivedAttack',{...context(t,a,m),dealt,hpLoss:dealt,settledDamage});",
+      "insert": "      if(!rage&&t.hp>0&&on(t,'辰坤受攻三弱'))stage(a,-1,['def','spd','acc']);if(!rage&&t.hp>0&&on(t,'受攻异常未触发全强')){const e=t.effects['受攻异常未触发全强'];if(e.pendingZeroAttackQuestion&&settledDamage<=0)throw Error(e.pendingZeroAttackQuestion+'：1617零伤受到攻击判据待确认');if(e.pendingUnitQuestion&&t.soulState.corolina1617ReactionRound===r)throw Error(e.pendingUnitQuestion+'：1617同回重复受攻单位待答');}if(!rage&&t.hp>0&&(settledDamage>0||t.effects['受攻异常未触发全强']?.confirmedZeroAttack4501)&&on(t,'受攻异常未触发全强')&&t.soulState.corolina1617ReactionRound!==r){const e=t.effects['受攻异常未触发全强'];t.soulState.corolina1617ReactionRound=r;if(a.hp>0&&!((e.chance>=100||rng(s)<e.chance/100)&&ailment(a,e.ailment,t,false,false,null,{probabilityPercent:e.chance})))stage(t,e.amount);} if(!rage&&t.hp>0)E.SOULS.run('receivedAttack',{...context(t,a,m),dealt,hpLoss:dealt,settledDamage});",
+      "why": "4501exact1617 confirmedzero contact retainsoldonceperround andMISS noevent"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "b256f01cefb0cda8bfee10a40c57730a9ee07d53181f7d964f66837d3fa8d59c",
+      "needle": "{const old=registry[1827];registry[1827]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id!==28031||m.hash!=='8e13cc2'||m.revision!=='seerapi:8e13cc2'||m.kind!=='status'||i!==2)throw Error('4400 1827精确来源不匹配');}});}",
+      "insert": "{const old=registry[1827];registry[1827]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id!==28031||m.hash!=='8e13cc2'||m.revision!=='seerapi:8e13cc2'||m.kind!=='status'||i!==2)throw Error('4400 1827精确来源不匹配');}});}\n{const old=registry[1827],exact=(m,i,p,runtime=false)=>[[36289,'e33544d2',0],[36566,'612aed0f',1]].some(([id,h,n])=>(m?.wikiId??m?.id)===id&&(runtime||m.hash===h)&&m.revision==='seerapi:'+h&&m.kind==='special'&&i===n&&JSON.stringify(p)==='[1]');registry[1827]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28031)return old.execute(c,p);},hooks:{...(old.hooks??{}),afterUse(c,p){if(exact(c.m,c.effectInstanceIndex,p,true)&&c.t.hp<=0)c.t.counts.nextStatusInvalid1827=(c.t.counts.nextStatusInvalid1827??0)+1;}},validate(p,m,i){if(exact(m,i,p))return;old.validate(p,m,i);}});}",
+      "why": "Q4501-001 exacttwo realattack sources aftercompleteuse retain4400"
+    },
+    {
+      "file": "completion-policy.cjs",
+      "baseSHA256": "cf13b46e96e933ad7e9875864c95821bc10f10093430a2aeeff6f66be19028d2",
+      "needle": "  return (valid||confirmedReentry||confirmedNightEntry||confirmedHolyEntry||confirmedLeonPreviousAlly||confirmedLachesisSword||confirmedSandTeamInvalid||confirmedYuliNext||confirmedYuliOtherEntry||confirmedYuliBackpack||confirmedSwordTeamLock)?[]:",
+      "insert": "  // Exact4501 publicanswer scope; original4400 source checks remain untouched.\n  const lock4501={'4501:skill:36289:0':['seerapi:e33544d2',0],'4501:skill:36566:1':['seerapi:612aed0f',1]}[entry.key];\n  if(lock4501&&entry.kind==='skill'&&review.scope==='mixed'&&review.userConfirmation==='research/4501-user-confirmed-rules.json'&&entry.source?.snapshot?.revision==='d4895ef3'&&entry.source?.skillRevision===lock4501[0]&&raw.index===lock4501[1]&&raw.instance?.id===1827&&JSON.stringify(raw.instance.args)==='[1]'&&raw.metadata?.revision==='seerapi:8a3d6982'&&digest({key:entry.key,kind:entry.kind,raw,source:entry.source})===entry.sourceDigest&&evidence?.length===1&&evidence[0].kind==='team-state'&&evidence[0].quote==='对手整个队伍都继承；只要对手上场精灵使用了属性就消耗这次次数并无效之'){\n    try{const c=JSON.parse(fs.readFileSync(path.join(root,review.userConfirmation),'utf8')),b=c.instanceBindings?.[entry.key],a=c.scopeAuthorization;confirmedSwordTeamLock=c.answers?.some(x=>x.questionId==='Q-N20-4501-001'&&x.originalAnswer==='对手整个队伍都继承；只要对手上场精灵使用了属性就消耗这次次数并无效之')&&b?.questionId==='Q-N20-4501-001'&&b.sourceDigest===entry.sourceDigest&&b.rawDigest===digest(raw)&&b.petRevision==='d4895ef3'&&b.skillRevision===lock4501[0]&&b.effectRevision==='seerapi:8a3d6982'&&b.index===lock4501[1]&&JSON.stringify(b.args)==='[1]'&&a?.file==='research/FIXED50-SCOPED-PREAUTHORIZATION.2026-10-23.txt'&&a.sha256==='ddbaf0b109478e45d1ad3263f87fafcd0a62640863609d648aa1d031a1a2142d'&&crypto.createHash('sha256').update(fs.readFileSync(path.join(root,a.file))).digest('hex')===a.sha256;}catch{}\n  }\n  return (valid||confirmedReentry||confirmedNightEntry||confirmedHolyEntry||confirmedLeonPreviousAlly||confirmedLachesisSword||confirmedSandTeamInvalid||confirmedYuliNext||confirmedYuliOtherEntry||confirmedYuliBackpack||confirmedSwordTeamLock)?[]:",
+      "why": "exact4501 answeredwholeteam compatibility"
+    },
+    {
+      "file": "completion-policy.cjs",
+      "baseSHA256": "cf13b46e96e933ad7e9875864c95821bc10f10093430a2aeeff6f66be19028d2",
+      "needle": "'4400:skill:28031:2'].includes(entry.key)",
+      "insert": "'4400:skill:28031:2','4501:skill:36289:0','4501:skill:36566:1'].includes(entry.key)",
+      "why": "4501force exactdependency audit"
+    }
+  ]
+}

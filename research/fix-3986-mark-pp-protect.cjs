@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/range-effects.js';let s=fs.readFileSync(p,'utf8').replace("afterHit(c){const pool=c.t.moves.slice();for(let i=0;i<(c.t.soulState.holyMarks??0)","afterHit(c){if(c.ppReductionBlocked(c.t))return;const pool=c.t.moves.slice();for(let i=0;i<(c.t.soulState.holyMarks??0)");fs.writeFileSync(p,s);

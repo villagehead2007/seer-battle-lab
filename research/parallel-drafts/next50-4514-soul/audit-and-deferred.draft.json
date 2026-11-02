@@ -1,0 +1,225 @@
+{
+  "petId": 4514,
+  "soulId": 1726,
+  "status": "partial-awaiting-confirmation",
+  "questionIds": [
+    "Q-N50-4514-003"
+  ],
+  "sourceHashes": {
+    "pet": "d6221a0d",
+    "soul": "c406c6e1",
+    "factor": "28c45a2"
+  },
+  "versionAudit": {
+    "petAdvance": null,
+    "soulFrom": null,
+    "soulAdvance": null,
+    "soulIntensifiedTo": null,
+    "sourceSoulIds": [
+      1726
+    ],
+    "factorSoul": 1726,
+    "factorSkill": 36652,
+    "conclusion": "唯一原版1726；强化/觉醒未返回额外分支，因子指向相同魂印及第五"
+  },
+  "skillsInventory": {
+    "sourceIds": [
+      10079,
+      20679,
+      10262,
+      21084,
+      10473,
+      36648,
+      20955,
+      11882,
+      20259,
+      33256,
+      28331,
+      36649,
+      28332,
+      36650,
+      28333,
+      36651,
+      37024,
+      36652
+    ],
+    "snapshotIds": [
+      10079,
+      20679,
+      10262,
+      21084,
+      10473,
+      36648,
+      20955,
+      11882,
+      20259,
+      33256,
+      28331,
+      36649,
+      28332,
+      36650,
+      28333,
+      36651,
+      37024,
+      36652
+    ],
+    "exactOrder": true,
+    "fifth": [
+      {
+        "learning_level": 76,
+        "is_special": false,
+        "is_advanced": false,
+        "is_fifth": true,
+        "skill": {
+          "id": 36652,
+          "url": "https://api.seerapi.com/v1/skill/36652"
+        },
+        "skill_activation_item": null
+      }
+    ],
+    "additional": [
+      {
+        "learning_level": 0,
+        "is_special": true,
+        "is_advanced": false,
+        "is_fifth": false,
+        "skill": {
+          "id": 37024,
+          "url": "https://api.seerapi.com/v1/skill/37024"
+        },
+        "skill_activation_item": {
+          "id": 1725863,
+          "url": "https://api.seerapi.com/v1/skill_activation_item/1725863"
+        }
+      }
+    ],
+    "skillsBehaviorAudit": "分配skills代理，本文不冒称审核完成"
+  },
+  "singleBranches": [
+    {
+      "branch": "回合开始无烧伤快照→攻击命中前混乱→施加失败无视攻击免疫",
+      "tests": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        11
+      ],
+      "status": "implemented-state-tested"
+    },
+    {
+      "branch": "战阶结束烧伤→最大HP1/3百分比吸取与理论回复",
+      "tests": [
+        6,
+        7,
+        10,
+        11
+      ],
+      "status": "implemented-state-tested"
+    },
+    {
+      "branch": "吸取后存活且真实使用技能→确定同kind槽PP归零",
+      "tests": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "status": "implemented-state-tested"
+    },
+    {
+      "branch": "物理/特殊跨kind归零",
+      "questionId": "Q-N50-4514-003",
+      "status": "explicit-pending-marker-no-guessed-execution"
+    }
+  ],
+  "multiPetDeferred": [],
+  "multiPetReason": "魂印全部分支仅涉及当前在场双方，无队伍/换宠/下一只等原文依赖。",
+  "tests": {
+    "command": "node --test --test-concurrency=1 research/parallel-drafts/next50-4514-soul/soul1726.test.cjs",
+    "log": "research/parallel-drafts/next50-4514-soul/test-v2.log",
+    "exitCode": 0,
+    "pass": 11,
+    "fail": 0,
+    "failedAttempt": {
+      "log": "research/parallel-drafts/next50-4514-soul/test-v1.log",
+      "exitCode": 1,
+      "pass": 10,
+      "fail": 1,
+      "reason": "免伤且无伤害事件时damageEvents未创建；测试改为空数组检查，保留正伤害事件不得存在的原断言"
+    },
+    "limitations": "通过注入魂印到隔离真实技能基础资料测试独立分支；不是正式完整技能加载/配招/版本验收。"
+  },
+  "remainingIndependentWork": "主代理核对整合、与完整技能交互及完整回归；本草稿魂印已知独立分支完成。待答003不能正式认证。",
+  "question": {
+    "id": "Q-N50-4514-003",
+    "pet": 4514,
+    "soul": 1726,
+    "effectId": 2117,
+    "args": [
+      100,
+      3,
+      1
+    ],
+    "source": {
+      "url": "https://api.seerapi.com/v1/soulmark/1726",
+      "data": {
+        "id": 1726,
+        "desc": "回合开始时若对手不处于烧伤状态则当回合自身攻击技能命中前100%令对手混乱，未触发则无视攻击免疫效果；|战斗阶段结束时若对手处于烧伤状态则{吸取}对手最大{体力}的1/3，之后若未击败对手则额外令对手当回合使用类型的技能PP值归零|（boss无效）",
+        "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时若对手不处于烧伤状态则当回合自身攻击技能命中前100%<color=#64F9FA>令对手混乱</color>\r\n<indent=32><sprite=4><indent=48>未触发则<color=#64F9FA>无视</color><b>攻击免疫效果</b>\r\n\r\n<indent=0><sprite=0><indent=16>战阶结束效果：\r\n<indent=16><sprite=3><indent=32>战斗阶段结束时若对手处于烧伤状态则<color=#64F9FA>吸取</color>对手最大体力的1/3\r\n<indent=32><sprite=4><indent=48>然后若未击败对手则额外令对手当回合所使用技能同类型的技能<b>PP值</b><color=#64F9FA>归零</color>",
+        "analyze_desc": "",
+        "pve_effective": false,
+        "intensified": false,
+        "is_adv": false,
+        "pet": [
+          {
+            "id": 4514,
+            "url": "https://api.seerapi.com/v1/pet/4514"
+          }
+        ],
+        "effect": {
+          "effect_args": [
+            100,
+            3,
+            1
+          ],
+          "effect": {
+            "id": 2117,
+            "url": "https://api.seerapi.com/v1/eid_effect/2117"
+          }
+        },
+        "effect_alias": "alias_2117_100_3_1",
+        "tag": [
+          {
+            "id": 2,
+            "url": "https://api.seerapi.com/v1/soulmark_tag/2"
+          },
+          {
+            "id": 15,
+            "url": "https://api.seerapi.com/v1/soulmark_tag/15"
+          },
+          {
+            "id": 16,
+            "url": "https://api.seerapi.com/v1/soulmark_tag/16"
+          }
+        ],
+        "intensified_to": null,
+        "from": null,
+        "advance": null,
+        "hash": "c406c6e1"
+      },
+      "loadedAt": "2026-10-24T04:45:57.678Z",
+      "storage": "refreshed"
+    },
+    "checked": [
+      "SeerAPI desc及formatted均未明确物理/特殊是否归同类",
+      "BWIKI魂印1726 revision320263未补充分型",
+      "Q-N20-4354-002答复三类，其题干限定4354魂印1578/2079，不能扩大为1726通则"
+    ],
+    "gap": "实际使用物理招时，特殊槽是否一同PP归零（反向同理）",
+    "difference": "三类口径只清物理槽，二类口径同时清物理与特殊槽；属性槽两种口径均独立清零。",
+    "question": "灼云魂印1726的“同类型技能PP归零”按物理、特殊、属性三类，还是攻击、属性两类？",
+    "myAnswer": ""
+  }
+}

@@ -1,0 +1,3 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),rows=require('../research/1239-INSTANCE-INVENTORY.json');
+test('1239全部8个旧真实实例原子回复附伤，不混入后续蛊损失，满血禁疗和溢出',()=>{assert.equal(rows.length,8);for(const {id}of rows){const o=require('./helpers/assert-1239-atomic-heal.cjs')(id);assert.equal(o.fighters[0].hp,8960);}});
+test('4186两个真实1239回复8000后蛊扣80，附加仍为8000百分比而非净增7920',()=>{const H=require('./helpers/4186-battle.cjs');for(const entry of H.pick(1239)){const s=H.make(entry,{hp:1000});s.fighters[0].soulState.soulGu=[{sourceSide:1,usedRound:0},{sourceSide:1,usedRound:0}];const o=H.turn(s);assert.equal(o.fighters[0].hp,8920);assert.equal(o.damageEvents.filter(e=>e.type==='percent').at(-1).settledDamage,8000);}});

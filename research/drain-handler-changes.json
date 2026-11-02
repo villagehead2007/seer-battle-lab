@@ -1,0 +1,202 @@
+[
+  {
+    "file": "dist/range-effects.js",
+    "line": 133,
+    "before": "add(977,'afterHit',(c,p)=>c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.name,'percent'),c.m.name),[[1,9999],[1,9999]]);",
+    "after": "add(977,'afterHit',(c,p)=>healthRules.drainPercent(c,c.t.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.name,c.m.name),[[1,9999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 135,
+    "before": "add(1867,'afterAttack',(c,p)=>{if(c.a.side===c.first&&c.t.hp>0){c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent'),c.m.name);c.timed(c.t,'无法造成攻击伤害',1,{});}},[[1,9999]]);",
+    "after": "add(1867,'afterAttack',(c,p)=>{if(c.a.side===c.first&&c.t.hp>0){healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name,c.m.name);c.timed(c.t,'无法造成攻击伤害',1,{});}},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 136,
+    "before": "add(2123,'afterHit',(c,p)=>{if(c.clear(c.t)){const hit=c.ailment(c.t,'感染',c.a);for(const k of ['中毒','睡眠','寄生'].slice(0,c.a.soulState.jasmineCore??0))c.ailment(c.t,k,c.a);if(!hit)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent'),c.m.name);}},[[1,9999]]);",
+    "after": "add(2123,'afterHit',(c,p)=>{if(c.clear(c.t)){const hit=c.ailment(c.t,'感染',c.a);for(const k of ['中毒','睡眠','寄生'].slice(0,c.a.soulState.jasmineCore??0))c.ailment(c.t,k,c.a);if(!hit)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name,c.m.name);}},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 196,
+    "before": "add(833,'afterHit',(c,p)=>{if(c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent'),c.m.name);},[[1,9999]]);",
+    "after": "add(833,'afterHit',(c,p)=>{if(c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name,c.m.name);},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 537,
+    "before": "add(1104,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取','percent'),c.m.name+'低伤吸取');},[[0,99999],[1,9999]]);",
+    "after": "add(1104,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取',c.m.name+'低伤吸取');},[[0,99999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 554,
+    "before": "add(1263,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const divisor=c.a.hp<c.t.hp?p[1]:p[0];c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/divisor,c.m.name+'比例吸取','percent'),c.m.name+'比例吸取');},[[1,9999],[1,9999]]);",
+    "after": "add(1263,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const divisor=c.a.hp<c.t.hp?p[1]:p[0];healthRules.drainPercent(c,c.t.stats.maxHp/divisor,c.m.name+'比例吸取',c.m.name+'比例吸取');},[[1,9999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 588,
+    "before": "add(1062,'afterHit',(c,p)=>{const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length||c.on(c.a,'禁强化'))return;c.steal(c.a,c.t,'技能');if(!pos.some(([k,n])=>c.t.stages[k]<n))return;const n=c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'吸取','percent');c.heal(c.a,n,c.m.name+'吸取');},[[1,9999]]);",
+    "after": "add(1062,'afterHit',(c,p)=>{const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length||c.on(c.a,'禁强化'))return;c.steal(c.a,c.t,'技能');if(!pos.some(([k,n])=>c.t.stages[k]<n))return;const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 684,
+    "before": "add(963,'afterHit',(c,p)=>{if(Object.values(c.a.stages).some(n=>n>0)&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'强化吸取','percent'),c.m.name+'强化吸取');},[[1,9999]]);",
+    "after": "add(963,'afterHit',(c,p)=>{if(Object.values(c.a.stages).some(n=>n>0)&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'强化吸取',c.m.name+'强化吸取');},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 694,
+    "before": "add(1047,'afterHit',(c,p)=>{if(![6,8,19,23].includes(p[1]))throw Error('1047 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[2],c.m.name+'未控吸取','percent'),c.m.name+'未控吸取');},[pct,[6,23],[1,9999]]);",
+    "after": "add(1047,'afterHit',(c,p)=>{if(![6,8,19,23].includes(p[1]))throw Error('1047 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))healthRules.drainPercent(c,c.t.stats.maxHp/p[2],c.m.name+'未控吸取',c.m.name+'未控吸取');},[pct,[6,23],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 737,
+    "before": "add(1137,'afterHit',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0]&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'低体吸取','percent'),c.m.name+'低体吸取');},[[1,9999],[1,9999]]);",
+    "after": "add(1137,'afterHit',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0]&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'低体吸取',c.m.name+'低体吸取');},[[1,9999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 786,
+    "before": "add(947,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0){const n=c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取','percent');c.heal(c.a,n,c.m.name+'低伤吸取');}},[[0,99999],[1,9999]]);",
+    "after": "add(947,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取',c.m.name+'低伤吸取');}},[[0,99999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 795,
+    "before": "add(942,'afterHit',(c,p)=>{if(c.clear(c.t)){const dealt=c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'吸取','percent');c.heal(c.a,dealt,c.m.name+'吸取');}},[[1,9999]]);",
+    "after": "add(942,'afterHit',(c,p)=>{if(c.clear(c.t)){const dealt=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');}},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 843,
+    "before": "add(1233,'afterHit',(c,p)=>{const uses=c.a.soulState.skillUses?.[c.m.id]??1,n=Math.min(p[2],p[0]+(uses-1)*p[1]);if(c.t.hp>0){const dealt=c.hurt(c.t,c.t.stats.maxHp*n/100,c.m.name+'递增吸取','percent');c.heal(c.a,dealt,c.m.name+'递增吸取');}},[pct,pct,pct]);",
+    "after": "add(1233,'afterHit',(c,p)=>{const uses=c.a.soulState.skillUses?.[c.m.id]??1,n=Math.min(p[2],p[0]+(uses-1)*p[1]);if(c.t.hp>0){const dealt=healthRules.drainPercent(c,c.t.stats.maxHp*n/100,c.m.name+'递增吸取',c.m.name+'递增吸取');}},[pct,pct,pct]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 852,
+    "before": "add(995,'afterHit',(c,p)=>{if(c.clearBoost(c.t)&&c.t.hp>0){const n=c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'消强吸取','percent');c.heal(c.a,n,c.m.name+'消强吸取');}},[[1,9999]]);",
+    "after": "add(995,'afterHit',(c,p)=>{if(c.clearBoost(c.t)&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'消强吸取',c.m.name+'消强吸取');}},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 923,
+    "before": "add(1297,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[0]))throw Error('1297 异常枚举尚未核对');const cleared=c.clear(c.t);if(p[0]===23){if(cleared&&!c.ailment(c.t,'诅咒',c.a)){const n=c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'诅咒未触发吸取','percent');c.heal(c.a,n,c.m.name+'诅咒未触发吸取');}}else if(cleared)c.ailment(c.t,ailments[p[0]],c.a);else{const n=c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'未消回合吸取','percent');c.heal(c.a,n,c.m.name+'未消回合吸取');}},[[0,23],[1,99]]);",
+    "after": "add(1297,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[0]))throw Error('1297 异常枚举尚未核对');const cleared=c.clear(c.t);if(p[0]===23){if(cleared&&!c.ailment(c.t,'诅咒',c.a)){const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'诅咒未触发吸取',c.m.name+'诅咒未触发吸取');}}else if(cleared)c.ailment(c.t,ailments[p[0]],c.a);else{const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'未消回合吸取',c.m.name+'未消回合吸取');}},[[0,23],[1,99]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 1157,
+    "before": "add(1257,'afterHit',(c,p)=>{if(!Object.values(c.t.ailments).some(end=>end>=c.round))c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'吸取','percent'),c.m.name+'吸取');},[[1,9999]]);",
+    "after": "add(1257,'afterHit',(c,p)=>{if(!Object.values(c.t.ailments).some(end=>end>=c.round))healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 1172,
+    "before": "add(2386,'afterHit',(c,p)=>c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'吸取','percent'),c.m.name+'吸取'),[[1,9999],[0,1000]],undefined,undefined,{beforeDamage(c,p){if(c.damageImmune(c.t,'percent'))c.modifier*=1+p[1]/100;}});",
+    "after": "add(2386,'afterHit',(c,p)=>healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取'),[[1,9999],[0,1000]],undefined,undefined,{beforeDamage(c,p){if(c.damageImmune(c.t,'percent'))c.modifier*=1+p[1]/100;}});"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 1248,
+    "before": "add(1225,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n<0)&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'弱化吸取','percent'),c.m.name+'弱化吸取');},[[1,9999]]);",
+    "after": "add(1225,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n<0)&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'弱化吸取',c.m.name+'弱化吸取');},[[1,9999]]);"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "line": 1263,
+    "before": "add(1088,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'高伤吸取','percent'),c.m.name+'高伤吸取');},[[0,99999],[1,9999]]);",
+    "after": "add(1088,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'高伤吸取',c.m.name+'高伤吸取');},[[0,99999],[1,9999]]);"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 50,
+    "before": "registry[425]={name:'圣甲雷',sourceHash:'ba3a5753',traits:{},hooks:{beforeUse(c){if(c.a.hp>c.a.stats.maxHp/2&&c.random()<.5)c.ailment(c.t,'麻痹',c.a);},afterAttack(c){if(c.a.hp>0&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp*(c.a.hp<c.a.stats.maxHp/2?.4:.2),'圣甲雷伊吸取','percent'),'圣甲雷伊吸取');}}};\r",
+    "after": "registry[425]={name:'圣甲雷',sourceHash:'ba3a5753',traits:{},hooks:{beforeUse(c){if(c.a.hp>c.a.stats.maxHp/2&&c.random()<.5)c.ailment(c.t,'麻痹',c.a);},afterAttack(c){if(c.a.hp>0&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp*(c.a.hp<c.a.stats.maxHp/2?.4:.2),'圣甲雷伊吸取','圣甲雷伊吸取');}}};\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 78,
+    "before": "  afterAttack(c){if(c.a.hp>0&&c.a.hp<c.a.stats.maxHp/2&&c.t.hp>0){const n=c.hurt(c.t,c.t.stats.maxHp/3,'海瑟薇魂印吸取','percent');c.heal(c.a,n,'海瑟薇魂印吸取');}}\r",
+    "after": "  afterAttack(c){if(c.a.hp>0&&c.a.hp<c.a.stats.maxHp/2&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'海瑟薇魂印吸取','海瑟薇魂印吸取');}}\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 160,
+    "before": "  afterUse(c){if(!['25555','wiki:25555'].includes(String(c.m.id))||!c.successful||c.a.hp<=0)return;const s=c.a.soulState;if(s.marsForm==='speed'){if(c.t.hp>0){const amount=c.t.hp<c.t.stats.maxHp/2?c.t.hp/2:c.t.stats.maxHp/3;c.hurt(c.t,amount,'王·异甲同心追加','percent');}s.marsNextForm='destruction';}else{if(c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/3,'王·异甲同心吸取','percent'),'王·异甲同心吸取');s.marsNextForm='speed';}c.emit(c.name(c.a)+' 马尔修斯将在下回合切换为'+(s.marsNextForm==='speed'?'极速':'毁灭')+'形态。');},\r",
+    "after": "  afterUse(c){if(!['25555','wiki:25555'].includes(String(c.m.id))||!c.successful||c.a.hp<=0)return;const s=c.a.soulState;if(s.marsForm==='speed'){if(c.t.hp>0){const amount=c.t.hp<c.t.stats.maxHp/2?c.t.hp/2:c.t.stats.maxHp/3;c.hurt(c.t,amount,'王·异甲同心追加','percent');}s.marsNextForm='destruction';}else{if(c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'王·异甲同心吸取','王·异甲同心吸取');s.marsNextForm='speed';}c.emit(c.name(c.a)+' 马尔修斯将在下回合切换为'+(s.marsNextForm==='speed'?'极速':'毁灭')+'形态。');},\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 227,
+    "before": "  opponentAfterUse(c){if(c.m.kind==='status'||c.a.hp<=0||c.t.hp<=0)return;if(c.random()<.5){if(c.ailment(c.t,'睡眠',c.a))return;}const n=c.hurt(c.t,c.t.stats.maxHp/3,'圣瞳缪斯魂印吸取','percent');c.heal(c.a,n,'圣瞳缪斯魂印吸取');},\r",
+    "after": "  opponentAfterUse(c){if(c.m.kind==='status'||c.a.hp<=0||c.t.hp<=0)return;if(c.random()<.5){if(c.ailment(c.t,'睡眠',c.a))return;}const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'圣瞳缪斯魂印吸取','圣瞳缪斯魂印吸取');},\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 269,
+    "before": "  afterUse(c){if(c.a.hp>0&&c.t.hp>0&&c.a.soulState.poseidonLowRound===c.round){const n=c.hurt(c.t,c.t.stats.maxHp/3,'波塞冬魂印吸取','percent');c.heal(c.a,n,'波塞冬魂印吸取');}}\r",
+    "after": "  afterUse(c){if(c.a.hp>0&&c.t.hp>0&&c.a.soulState.poseidonLowRound===c.round){const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'波塞冬魂印吸取','波塞冬魂印吸取');}}\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 274,
+    "before": "  afterAttack(c){if(c.a.hp>0&&c.t.hp>0&&c.a.soulState.hathawayLowRound===c.round){const n=c.hurt(c.t,c.t.stats.maxHp/3,'海瑟薇魂印吸取','percent');c.heal(c.a,n,'海瑟薇魂印吸取');}},\r",
+    "after": "  afterAttack(c){if(c.a.hp>0&&c.t.hp>0&&c.a.soulState.hathawayLowRound===c.round){const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'海瑟薇魂印吸取','海瑟薇魂印吸取');}},\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 285,
+    "before": "  roundEnd(c){if(c.a.soulState.hunterLowRound===c.round&&c.t.hp>0){const n=c.hurt(c.t,c.t.stats.maxHp/3,'弑神猎皇魂印吸取','percent');c.heal(c.a,n,'弑神猎皇魂印吸取');}}\r",
+    "after": "  roundEnd(c){if(c.a.soulState.hunterLowRound===c.round&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'弑神猎皇魂印吸取','弑神猎皇魂印吸取');}}\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 305,
+    "before": " afterUse(c){if(c.a.side===c.first&&c.t.hp>0){const n=c.hurt(c.t,c.a.stats.spe*.5,'守护者强化魂印','percent');c.heal(c.a,n,'守护者强化魂印');}else if(c.a.side!==c.first)c.timed(c.a,'id984',1,{amount:2},c.round+1);if(c.t.hp>0&&c.a.soulState.thunderWings?.round===c.round&&c.a.soulState.thunderWings.fear)c.ailment(c.t,'害怕',c.a);}",
+    "after": " afterUse(c){if(c.a.side===c.first&&c.t.hp>0){const n=healthRules.drainPercent(c,c.a.stats.spe*.5,'守护者强化魂印','守护者强化魂印');}else if(c.a.side!==c.first)c.timed(c.a,'id984',1,{amount:2},c.round+1);if(c.t.hp>0&&c.a.soulState.thunderWings?.round===c.round&&c.a.soulState.thunderWings.fear)c.ailment(c.t,'害怕',c.a);}",
+    "excluded": true,
+    "reason": "速度比例吸取不是最大体力比例，本轮不修改"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 333,
+    "before": "  roundEnd(c){if(c.a.hp<=0||c.a.hp>=c.a.stats.maxHp/2)return;c.timed(c.a,'id984',1,{amount:2},c.round+1);if(c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/3,'普拉曼达魂印低体吸取','percent'),'普拉曼达魂印低体吸取');}\r",
+    "after": "  roundEnd(c){if(c.a.hp<=0||c.a.hp>=c.a.stats.maxHp/2)return;c.timed(c.a,'id984',1,{amount:2},c.round+1);if(c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'普拉曼达魂印低体吸取','普拉曼达魂印低体吸取');}\r"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "line": 377,
+    "before": " afterUse(c){if(c.m.kind==='status'||c.a.hp<=0)return;const damage=c.a.soulState.leopardDamage??0;if(damage>300){if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp/3,'豹尊高伤追加','percent');c.heal(c.a,c.a.stats.maxHp/3,'豹尊高伤回复');}else if(damage<300&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/3,'豹尊低伤吸取','percent'),'豹尊低伤吸取');}",
+    "after": " afterUse(c){if(c.m.kind==='status'||c.a.hp<=0)return;const damage=c.a.soulState.leopardDamage??0;if(damage>300){if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp/3,'豹尊高伤追加','percent');c.heal(c.a,c.a.stats.maxHp/3,'豹尊高伤回复');}else if(damage<300&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'豹尊低伤吸取','豹尊低伤吸取');}"
+  },
+  {
+    "file": "dist/soul-registry.js",
+    "line": 66,
+    "before": "  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/4,'赛伯魂印吸取','percent'),'赛伯魂印吸取');}\r",
+    "after": "  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/4,'赛伯魂印吸取','赛伯魂印吸取');}\r"
+  },
+  {
+    "file": "dist/soul-registry.js",
+    "line": 70,
+    "before": "  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/3,'赛伯魂印吸取','percent'),'赛伯魂印吸取');}\r",
+    "after": "  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'赛伯魂印吸取','赛伯魂印吸取');}\r"
+  },
+  {
+    "file": "dist/soul-registry.js",
+    "line": 96,
+    "before": "  beforeUse(c){if(c.m.kind!=='status'&&c.a.soulState.lancelotBoosted&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/3,'兰斯强化魂印吸取','percent'),'兰斯强化魂印吸取');}\r",
+    "after": "  beforeUse(c){if(c.m.kind!=='status'&&c.a.soulState.lancelotBoosted&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'兰斯强化魂印吸取','兰斯强化魂印吸取');}\r"
+  },
+  {
+    "file": "dist/soul-registry.js",
+    "line": 163,
+    "before": "   else if(c.dealt<280){const n=c.hurt(c.t,c.t.stats.maxHp/3,'魂印光之惩戒吸取','percent');c.heal(c.a,n,'魂印光之惩戒吸取');c.timed(c.a,'必定暴击',1,{},c.round+1);}\r",
+    "after": "   else if(c.dealt<280){const n=healthRules.drainPercent(c,c.t.stats.maxHp/3,'魂印光之惩戒吸取','魂印光之惩戒吸取');c.timed(c.a,'必定暴击',1,{},c.round+1);}\r"
+  }
+]

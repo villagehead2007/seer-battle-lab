@@ -1,0 +1,1 @@
+const fs=require('fs');for(const p of ['research/fix-4430-local-review-bindings.cjs','tests/deployed-4430.test.cjs']){let s=fs.readFileSync(p,'utf8').replace("require('../local-species.cjs').load(4430)","{snapshot:require('../local-species.cjs').species(4430)}");fs.writeFileSync(p,s);}

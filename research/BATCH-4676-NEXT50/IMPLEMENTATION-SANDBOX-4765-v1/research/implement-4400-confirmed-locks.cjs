@@ -1,0 +1,18 @@
+const fs=require('fs'),crypto=require('crypto'),assert=require('node:assert/strict');
+const at=new Date().toISOString(),dir='research/4400-before-answers-'+at.replace(/[:.]/g,'-');fs.mkdirSync(dir);
+const files=['research/BATCH-4329-NEXT20-QUESTIONS.md','research/4400-reviewed-snapshot.json','dist/range-effects.js','dist/souls.js','completion-policy.cjs','tests/helpers/4400-battle.cjs','tests/deployed-4400-independent.test.cjs'];
+const archive=files.map(path=>{const bytes=fs.readFileSync(path),archive=dir+'/'+path.replace(/[\\/]/g,'__');fs.writeFileSync(archive,bytes);return {path,archive,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};});fs.writeFileSync(dir+'/manifest.json',JSON.stringify({at,archive},null,2)+'\n');
+let path='dist/range-effects.js',code=fs.readFileSync(path,'utf8');const offset=code.lastIndexOf('\n});');assert.ok(offset>0);
+const snapshot=require('./4400-reviewed-snapshot.json'),meta=snapshot.effects.find(e=>e.id===1827);assert.equal(meta.revision,'seerapi:8a3d6982');
+code=code.slice(0,offset)+`
+// Exact status moves: original typed damage precedes the kill-dependent lock at index 2.
+// Q-N20-4354-008 and Q-N20-4501-001; actual other-team-member transfer remains deferred.
+{const old=registry[1128];registry[1128]=Object.freeze({...old,hooks:{...old.hooks,afterUse(c,p){if((c.m.wikiId??c.m.id)===28030&&c.m.revision==='seerapi:e5af0d7d'&&c.effectInstanceIndex===2&&p[0]===1&&c.t.hp<=0)c.t.counts.nextAttackInvalid1128=(c.t.counts.nextAttackInvalid1128??0)+1;}},validate(p,m,i){old.validate(p,m,i);if(m?.id===28030&&(m.hash!=='e5af0d7d'||m.revision!=='seerapi:e5af0d7d'||m.kind!=='status'||i!==2||JSON.stringify(p)!=='[1]'))throw Error('4400 1128精确来源不匹配');}});}
+metadata[1827]=${JSON.stringify({info:meta.template,args_num:meta.argsNum})};
+add(1827,'afterHit',(c,p)=>{if((c.m.wikiId??c.m.id)!==28031||c.m.revision!=='seerapi:8e13cc2'||c.effectInstanceIndex!==2||p[0]!==1)throw Error('4400 1827精确来源不匹配');if(c.t.hp<=0)c.t.counts.nextStatusInvalid1827=(c.t.counts.nextStatusInvalid1827??0)+1;},[[1,1]],'对手整个队伍继承；首次实际使用属性技能时消费并无效，真实其他队员共享与换宠传递延期');
+{const old=registry[1827];registry[1827]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id!==28031||m.hash!=='8e13cc2'||m.revision!=='seerapi:8e13cc2'||m.kind!=='status'||i!==2)throw Error('4400 1827精确来源不匹配');}});}
+`+code.slice(offset);fs.writeFileSync(path,code);
+path='dist/souls.js';code=fs.readFileSync(path,'utf8');const anchor="      const nextAttackInvalid=m.kind!=='status'&&a.counts.nextAttackInvalid>0;";assert.ok(code.includes(anchor));code=code.replace(anchor,"      const confirmedTeamStatusInvalid=m.kind==='status'&&a.counts.nextStatusInvalid1827>0;if(confirmedTeamStatusInvalid)a.counts.nextStatusInvalid1827--;\n"+anchor).replace('||confirmedTeamAttackInvalid||nextHighPowerInvalid','||confirmedTeamAttackInvalid||confirmedTeamStatusInvalid||nextHighPowerInvalid').replace('const invalid=confirmedTeamAttackInvalid||!forceCriticalHit','const invalid=confirmedTeamAttackInvalid||confirmedTeamStatusInvalid||!forceCriticalHit');fs.writeFileSync(path,code);
+path='tests/helpers/4400-battle.cjs';code=fs.readFileSync(path,'utf8').replace('unknown=[1827,1128]','unknown=[]');fs.writeFileSync(path,code);
+path='tests/deployed-4400-independent.test.cjs';code=fs.readFileSync(path,'utf8').replace('且未知1827/1128不执行','且全部已确认实例可编译').replace("for(const id of [1827,1128])assert.throws(()=>make(pick(id)[0]),/未知单精灵/);","for(const id of [1827,1128])assert.ok(make(pick(id)[0]));");fs.writeFileSync(path,code);
+console.log(JSON.stringify({archive:dir,metadata:meta,assessment:require('../dist/engine.js').WIKI.assess(snapshot).issues}));

@@ -1,0 +1,9 @@
+'use strict';const fs=require('fs');function insert(p,x){let t=fs.readFileSync(p,'utf8'),i=t.lastIndexOf('});');fs.writeFileSync(p,t.slice(0,i)+x+'\n'+t.slice(i));}
+insert('dist/range-effects.js',`
+{const old=registry[912];registry[912]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37788&&c.m.revision==='seerapi:1fdf9ba5'){if(Object.values(c.t.stages).some(n=>n<0)&&!c.ppReductionBlocked(c.t))randomEmptyNext50(c,p[0]);return;}return old.execute(c,p);}});}
+{const old=registry[521];registry[521]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===30522&&c.m.revision==='seerapi:4f511776'){if(c.canRemoveNegative(c.a)===false)return;const values=Object.fromEntries(stats.filter(k=>c.a.stages[k]<0).map(k=>[k,-c.a.stages[k]]));c.rewriteStageValues(c.a,values,'reverse');return;}return old.execute(c,p);}});}
+function killed4725(c){const e=c.a.soulState.lanternKo4725;return e?.round===c.round&&e.move===c.m.id&&e.use===c.a.soulState.skillUses?.[c.m.id];}
+{const old=registry[1821];registry[1821]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37789&&c.m.revision==='seerapi:fa901d25'){if(c.t.hp>0&&!killed4725(c))c.restorePP(c.a,p[0]);return;}return old.execute(c,p);}});}
+{const old=registry[933];registry[933]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37790&&c.m.revision==='seerapi:4d2407f1'){if(!killed4725(c))return old.execute(c,p);return;}return old.execute(c,p);}});}
+`);
+const p='dist/souls.js';let t=fs.readFileSync(p,'utf8'),a="const m=battleMoves[choices[defeater.side]],raw=m?.wikiId??m?.id;";if(!t.includes(a))throw Error('KO anchor');t=t.replace(a,a+"if(raw===37789&&m.revision==='seerapi:fa901d25'||raw===37790&&m.revision==='seerapi:4d2407f1')defeater.soulState.lanternKo4725={round:r,move:m.id,use:defeater.soulState.skillUses?.[m.id]};");fs.writeFileSync(p,t);

@@ -1,0 +1,32 @@
+
+// 外部授予仅作隔离交互对照：保留真实技能ID、版本和原实例参数；不加入4347正式配招。
+function sourcedInteractionFixture(s,side,owner,moveId,effectId){
+ const src=require('../local-species.cjs').species(owner),m=src.moves.find(x=>x.id===moveId),compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,src.effects,m),old=s.fighters[side].moves[1],slot=key(moveId);
+ const operations=compiled.operations.filter(x=>x.effectId===effectId);assert.ok(operations.length>0);
+ // 仅675原始参数隔离夹具：既有编译器params={}缺口另记，不宣称3564原生接入已修。
+ if(owner===3564&&moveId===24231&&effectId===675){assert.equal(m.revision,'seerapi:bab36dda');const x=m.effectInstances.find(x=>x.id===675);assert.deepEqual(x.args,[2]);for(const op of operations)op.params=x.args.slice();}
+ s.moveDefinitions[slot]={...s.moveDefinitions[old],...structuredClone(m),id:slot,wikiId:moveId,operations};
+ s.fighters[side].moves[1]=slot;s.fighters[side].pp[slot]=m.pp;return m;
+}
+test('4347已答实际使用攻击包括失明和整招封锁，控制未用不触发且原版仍仅命中',()=>{
+ for(const soul of [1571,1786])for(const mode of ['blind','blocked','control']){
+  const s=make({moveId:10006,index:null},{soul});if(mode==='blind')s.fighters[0].ailments['失明']=2;if(mode==='blocked')timer(s,0,'attackBlock');if(mode==='control')s.fighters[0].ailments['疲惫']=2;
+  const o=turn(s),used=mode!=='control';assert.equal(o.fighters[0].pp[key(10006)],used?34:35);assert.equal(o.fighters[0].soulState.skillUses?.[key(10006)]??0,used?1:0);assert.equal(damage(o),0);assert.equal(damage(o,'percent'),soul===1786&&used?3000:0);assert.equal(!!o.fighters[0].effects['属性技能先制'],soul===1786&&used);
+ }
+});
+test('4347真实2380暴击必中修正原MISS后仅追加一次，不按旧MISS标志重复执行',()=>{
+ for(const soul of [1571,1786]){
+  let s=make({moveId:10006,index:null},{soul,criticals:true});const m=sourcedInteractionFixture(s,0,3711,29299,2380);assert.equal(m.revision,'seerapi:a9aa55f6');s=turn(s,29299);assert.equal(s.fighters[0].counts.criticalForceHit,2);assert.equal(s.fighters[0].pp[key(29299)],4);
+  delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(10006)].alwaysHit=false;s.moveDefinitions[key(10006)].accuracy=0;timer(s,0,'必定暴击');const o=turn(s,10006);assert.ok(damage(o)>0);assert.equal(o.fighters[0].counts.criticalForceHit,1);assert.equal(damage(o,'percent'),3000);assert.equal(o.damageEvents.filter(e=>e.round===o.round-1&&e.type==='percent'&&e.targetSide===1).length,1);assert.equal(o.fighters[0].pp[key(10006)],34);
+ }
+});
+test('4347真实675令非必中暴击全段无效仍属实际攻击，强化仅补一次且原版不追加',()=>{
+ for(const soul of [1571,1786]){
+  let s=make({moveId:10006,index:null},{soul,criticals:true});const m=sourcedInteractionFixture(s,1,3564,24231,675);assert.equal(m.revision,'seerapi:bab36dda');s=turn(s,920031,24231);assert.equal(s.fighters[1].pp[key(24231)],4);assert.ok(s.fighters[1].effects['非必中暴击无效']);
+  delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(10006)].alwaysHit=false;timer(s,0,'必定暴击');const o=turn(s,10006,920043);assert.equal(damage(o),0);assert.equal(damage(o,'percent'),soul===1786?3000:0);assert.equal(o.fighters[0].pp[key(10006)],34);assert.equal(!!o.fighters[0].effects['属性技能先制'],soul===1786);
+ }
+});
+
+test('4347强化魂印正常命中保留原技能吸取先于魂印回复的既有结算位置',()=>{
+ const s=make({moveId:36519,index:null},{soul:1786,hp:8500,aStats:{atk:1000}}),o=turn(s),events=o.damageEvents.filter(e=>e.round===o.round-1&&e.type==='percent'&&e.targetSide===1);assert.ok(damage(o)>350);assert.deepEqual(events.map(e=>e.settledDamage),[3000]);assert.equal(o.turns.at(-1).events.filter(e=>e.kind==='heal').map(e=>e.text).join('|').includes('裁罪高伤回复：回复 0'),true);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].effects['攻击先制'].start,2);assert.equal(o.fighters[0].effects['属性技能先制'],undefined);
+});

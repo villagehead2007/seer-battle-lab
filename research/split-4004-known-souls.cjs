@@ -1,0 +1,1 @@
+const fs=require('fs'),s=fs.readFileSync('research/implement-4004-known-souls.cjs','utf8'),at=s.indexOf("p='dist/range-souls.js'");if(at<0)throw Error('split');fs.writeFileSync('research/implement-4004-known-souls-remainder.cjs',"const fs=require('fs');let p,s;\n"+s.slice(at));

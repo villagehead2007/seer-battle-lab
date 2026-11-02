@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-3964.test.cjs';let s=fs.readFileSync(p,'utf8').replace('selectedSkillVersionId','selectedSkillVersion').replace('const p=E.WIKI.prepare([s,s]);assert.equal(p.issues.length,0)','const p=E.WIKI.assess(s);assert.equal(p.issues.length,0)').replace('E.WIKI.prepare([s,s]).issues.length','E.WIKI.assess(s).issues.length');fs.writeFileSync(p,s);

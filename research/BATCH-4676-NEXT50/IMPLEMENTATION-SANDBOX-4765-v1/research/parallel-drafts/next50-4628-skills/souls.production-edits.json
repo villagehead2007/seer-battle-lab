@@ -1,0 +1,34 @@
+[
+  {
+    "old": "    function hurt(f,n,source,type='true',bypass=false,reflected=false,origin=null,minimumHp=0,resolution=null) {",
+    "replacement": "    function sanguine576(t,amount,c,rage=false,observe=false){const e=t.effects['小额攻击免疫'];if(!e?.sanguine576)return amount<e.threshold;const shield=!rage&&!c.ignoreShield?shieldValue(t):0,policy=t.soulState.qualified576Shield4628;if(amount>0&&shield>0&&!['before-shield','after-shield'].includes(policy))throw Error('Q-N50-4608-001：576小额攻击阈值与实际参与护盾先后待确认');let n=policy==='after-shield'?Math.max(0,amount-shield):amount;const prev=t.soulState.sanguine576Round?.round===r?t.soulState.sanguine576Round.total:0,unit=t.soulState.qualified576Unit4628;if(n>0&&prev>0&&((n<e.threshold)!==(prev+n<e.threshold))&&!['event','round'].includes(unit))throw Error('Q-N50-4608-001：576同回合多事件小额阈值统计单位待确认');if(observe)t.soulState.sanguine576Round={round:r,total:prev+n};return (unit==='round'?prev+n:n)<e.threshold;}\n    function sanguine545(f,origin,amount,type){if(amount<=0||!on(f,'赫布高伤害怕'))return;const e=f.effects['赫布高伤害怕'];const previous=f.soulState.sanguine545Seen?.round===r?f.soulState.sanguine545Seen:null;const total=(previous?.total??0)+amount;f.soulState.sanguine545Seen={round:r,total};const policy=f.soulState.qualified545Unit4628;if(previous&&!policy&&(amount>e.threshold||total>e.threshold))throw Error('Q-N50-4628-010：545同回合多事件阈值统计及触发次数待确认');const n=policy==='round'?total:amount;if(n>e.threshold&&(!previous||policy!=='round'||previous.total<=e.threshold)){const opponent=fs[1-f.side],applied=ailment(opponent,e.ailment,f,false,false,null,{origin:'skill'});if(applied&&skillPhase&&origin===opponent&&(opponent.soulState.currentAttackSegment??0)+1<(opponent.soulState.attackSegmentsThisUse??1))throw Error('Q-N50-4521-001：545害怕是否取消当前已用多段剩余段待确认');}}\n    function hurt(f,n,source,type='true',bypass=false,reflected=false,origin=null,minimumHp=0,resolution=null) {"
+  },
+  {
+    "old": "if(f.hp>0&&on(f,'高伤回满反击')",
+    "replacement": "sanguine545(f,origin,settledDamage,type);if(f.hp>0&&on(f,'高伤回满反击')"
+  },
+  {
+    "old": "triggerLowCurse(t,a,settledDamage);damageDealt(a,t,dealt,settledDamage);",
+    "replacement": "sanguine545(t,a,settledDamage,'attack');triggerLowCurse(t,a,settledDamage);damageDealt(a,t,dealt,settledDamage);"
+  },
+  {
+    "old": "      if(actionPayloadAllowed&&a.hp>0&&on(a,'用招低体固定吸取'))",
+    "replacement": "      if(a.hp>0&&on(a,'赫布用招低体吸取')){const e=a.effects['赫布用招低体吸取'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount();const first=a.soulState.qualified1842First4628;if(same&&!['immediate','next-use'].includes(first))throw Error('Q-N50-4625-011：1842持续吸取授予当次用招首触时点待确认');if(!same||first==='immediate'){const n=a.hp<t.hp?e.lowAmount:e.amount,type=a.soulState.qualified1842Type4628;if(!['fixed','percent','true'].includes(type))throw Error('Q-BATCH-004：1842固定数值吸取伤害类型待确认');if(t.hp>0)inflict(a,t,n,'赫布用招低体吸取',type);heal(a,n,'赫布用招低体理论吸取','skill');}}\n      if(actionPayloadAllowed&&a.hp>0&&on(a,'用招低体固定吸取'))"
+  },
+  {
+    "old": "on(t,'小额攻击免疫')&&amount<t.effects['小额攻击免疫'].threshold",
+    "replacement": "on(t,'小额攻击免疫')&&sanguine576(t,amount,c,rage)"
+  },
+  {
+    "old": "if(!effectContext.ignoreImmunity&&!warImmunity&&on(t,'小额攻击免疫')&&remaining<t.effects['小额攻击免疫'].threshold)remaining=(hitImmune=true,minimumSuppressed=true,0);",
+    "replacement": "if(!effectContext.ignoreImmunity&&!warImmunity&&on(t,'小额攻击免疫')&&sanguine576(t,remaining,effectContext,rage,true)&&!(t.effects['小额攻击免疫'].sanguine576&&t.soulState.qualified576Shield4628==='after-shield'))remaining=(hitImmune=true,minimumSuppressed=true,0);"
+  },
+  {
+    "old": "      if(power>0)remaining=Math.max(remaining,statusRules.minimumAttackDamage(t,r,crit));",
+    "replacement": "      if(!effectContext.ignoreImmunity&&!warImmunity&&on(t,'小额攻击免疫')&&t.effects['小额攻击免疫'].sanguine576&&t.soulState.qualified576Shield4628==='after-shield'&&remaining<t.effects['小额攻击免疫'].threshold)remaining=(hitImmune=true,minimumSuppressed=true,0);\n      if(power>0)remaining=Math.max(remaining,statusRules.minimumAttackDamage(t,r,crit));"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=(kind='other')=>{",
+    "replacement": "if(on(t,'reflect')&&t.effects.reflect.sanguine191&&(t.counts.immune>0||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：4628反弹与实际其他次数/控制反弹消费待确认');let explicitImmunity=false;const immuneGate=(kind='other')=>{"
+  }
+]

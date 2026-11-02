@@ -1,0 +1,6 @@
+'use strict';
+const fs=require('fs'),{spawnSync}=require('child_process'),{createClient}=require('../wiki-client.cjs');const report={checkedAt:new Date().toISOString(),records:[],failures:[]};
+const client=createClient(async url=>{const p=spawnSync('curl.exe',['--silent','--show-error','--max-time','25','--write-out','\n%{http_code}',url],{encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024});if(p.status!==0)throw Error('curl exit '+p.status+': '+p.stderr);const i=p.stdout.lastIndexOf('\n'),status=Number(p.stdout.slice(i+1));return {status,body:JSON.parse(p.stdout.slice(0,i))};},{interval:10000,label:'BWIKI'});
+const url='https://wiki.biligame.com/seer/api.php?action=query&format=json&prop=revisions&rvprop=ids%7Ctimestamp%7Ccontent&rvslots=main&titles='+encodeURIComponent('精灵:3432|魂印:748|魂印:2150|技能:29465|技能:38551|技能:38552|技能:38553|效果:2577|效果:2578|效果:2579|效果:2590|没夜之月|弥沦之镜|月类星体');
+(async()=>{try{const data=await client.request(url);report.records.push({url,loadedAt:new Date().toISOString(),data});console.log(JSON.stringify(data));}catch(e){report.failures.push({url,error:e.message});console.error(e.message);process.exitCode=1;}finally{fs.writeFileSync('research/3432-wiki-source.json',JSON.stringify(report,null,2)+'\n');}})();
+

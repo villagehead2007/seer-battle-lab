@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4032-partial.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("timer(s,0,'hypnosBoostProtect')","timer(s,0,'强化保护')").replaceAll('counts.attackBlock','counts.attackNullify');fs.writeFileSync(p,s);

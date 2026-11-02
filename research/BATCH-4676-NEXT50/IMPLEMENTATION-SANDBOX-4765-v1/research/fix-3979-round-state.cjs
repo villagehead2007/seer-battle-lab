@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/range-souls.js';let s=fs.readFileSync(p,'utf8').replace("roundStart(c){c.a.soulState.evilBurnSnapshot=","roundStart(c){c.a.soulState.currentRound=c.round;c.a.soulState.evilBurnSnapshot=");fs.writeFileSync(p,s);

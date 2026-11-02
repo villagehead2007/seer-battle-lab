@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict'),P=require('../completion-policy.cjs'),source=require('./3550-reviewed-snapshot.json');
+const saved=require('../local-species.cjs').save(source);assert.equal(saved.saved,true,JSON.stringify(saved.issues));const s=saved.snapshot,r=require('../SINGLE-STAGE-REVIEWS.json');
+const file='tests/deployed-3550.test.cjs',names=[...fs.readFileSync(file,'utf8').matchAll(/test\('([^']+)'/g)].map(x=>x[1]);const refs=part=>{const name=names.find(x=>x.includes(part));assert.ok(name,part);return {file,name,assertion:name};};
+const map={4:'4与5',5:'4与5',29:'29固伤',30:'29固伤',1297:'1297害怕',1298:'1298消强',749:'749全弱',585:'749全弱',1315:'1315最终',505:'1315最终',821:'821免断',1300:'1300减伤',1316:'1316先手',1317:'1316先手',1302:'1302概率',1303:'1303持续',843:'1303持续',1304:'1303持续',1208:'1208实际'};
+const pure={1299:['3回合攻击低于300扣敌方场下精灵100体力、对手属性招回己方场下100体力，致死保留1点','对手行动且存在双方不在场精灵'],1305:['按己方队伍存活/死亡数量回复及追加固定伤害','技能命中时读取队伍存活与死亡数量'],1306:['低于350伤害扣敌方未出场精灵100体力，致死保留1点','攻击后有敌方未出场精灵'],1307:['未击败对手回复己方不在场精灵100体力','攻击后未击败且存在己方场下队员'],1308:['击败后下次登场保留未削弱的帝君之罚和帝君之赐','当前击败后发生下一次登场']};
+for(const i of P.inventory(s)){const entry={sourceDigest:i.sourceDigest,scope:'single',reviewedBy:'Codex',reviewedAt:new Date().toISOString(),rationale:'真实SeerAPI与BWIKI来源一致；当前双方可触发部分验证，明示队伍数量、场下或后继登场分支独立延期。临时导入不推进正式队列。',implementation:['dist/range-effects.js','dist/range-souls.js','dist/souls.js'],userConfirmation:'research/3550-user-confirmed-rules.json'};let evidence;
+ if(i.kind==='move'){entry.singleBehavior=i.raw.name+'真实威力、物特分类、命中、暴击、先制、PP消耗及控制封招';evidence=[refs('基础17招伤害'),refs('基础17招先制')];}
+ else if(i.kind==='soul'){entry.scope='mixed';entry.singleBehavior='帝君之御免粉免异常、固定百分比抗性视为100%；帝君之援包含自身满体力初次入场首回合先制+1';entry.deferredBehavior='帝君之罚赐场下扣血与回复及再次入场削弱；其他队员帝君之援；死亡/场下存活数量的阵；最后存活队员的威；死亡后场下随机死亡';entry.trigger='双方队伍、场下成员、最后存活数量、后续入场和死亡';entry.futureMechanisms=['队伍和场下精灵集合','入场次数与最后存活判定','队伍光环和死亡响应'];evidence=[refs('魂印849')];}
+ else{const id=i.raw.instance.id;if(pure[id]){entry.scope='multiplayer';entry.deferredBehavior=pure[id][0];entry.trigger=pure[id][1];entry.futureMechanisms=['双方队伍场下存活/死亡集合','换宠与后续入场事件'];}
+ else{entry.singleBehavior=i.raw.instance.description;evidence=[refs(map[id])];if(id===1298){entry.scope='mixed';entry.singleBehavior='消除当前对手能力提升，遵守强化保护';entry.deferredBehavior='消强成功后扣敌方场下随机精灵最大体力1/4，致死保留1点';entry.trigger='消强成功且敌方存在场下精灵';entry.futureMechanisms=['敌方场下目标抽取和保留1点伤害'];}if(id===1303){entry.scope='mixed';entry.singleBehavior='4回合用招吸取对手最大体力1/3，低于半血吸取翻倍';entry.deferredBehavior='吸取时满体力为己方场下所有精灵回复100';entry.trigger='用招吸取时自身满体力且有己方场下精灵';entry.futureMechanisms=['己方场下集合回复'];}}
+ }
+ if(entry.scope!=='multiplayer')entry.tests=Object.fromEntries(['success','failure','boundary','interaction'].map(k=>[k,evidence]));r.entries[i.key]=entry;
+}
+fs.writeFileSync('SINGLE-STAGE-REVIEWS.json',JSON.stringify(r,null,2)+'\n');console.log(P.reviewCoverage(s,r));fs.writeFileSync('research/3550-review-audit.json',JSON.stringify({status:'awaiting-gate',temporary:true,formalQueue:false,coverage:P.reviewCoverage(s,r),source:'research/3550-source-manifest.json',confirmation:'research/3550-user-confirmed-rules.json'},null,2)+'\n');

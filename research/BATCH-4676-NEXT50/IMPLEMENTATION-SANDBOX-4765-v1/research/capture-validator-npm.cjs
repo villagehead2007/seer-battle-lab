@@ -1,0 +1,3 @@
+'use strict';// Observe the validator's unmodified npm child result; never alter arguments, output, status or assertions.
+const cp=require('node:child_process'),fs=require('fs'),original=cp.spawnSync;
+cp.spawnSync=function(file,args,options){const result=original.call(this,file,args,options);if(process.env.SEER_NPM_CAPTURE&&/^(npm(?:\.cmd)?|cmd\.exe)$/i.test(String(file))&&((args??[]).includes('npm test')||String(file).startsWith('npm')&&(args??[]).includes('test'))){const p=process.env.SEER_NPM_CAPTURE,text=String(result.stdout??'')+'\n'+String(result.stderr??'');fs.writeFileSync(p,text,{flag:'wx'});fs.writeFileSync(p+'.json',JSON.stringify({exitCode:result.status,signal:result.signal,error:result.error?.message??null,captureOnly:true},null,2));}return result;};

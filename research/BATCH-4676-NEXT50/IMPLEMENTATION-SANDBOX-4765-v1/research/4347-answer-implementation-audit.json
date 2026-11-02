@@ -1,0 +1,208 @@
+{
+  "at": "2026-10-22T23:04:19.259Z",
+  "source": {
+    "pet": "6297de96",
+    "souls": [
+      {
+        "id": 1571,
+        "hash": "dad708c7",
+        "effect": 1930,
+        "args": [
+          1,
+          2,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 1786,
+        "hash": "d0e7ec19",
+        "effect": 2179,
+        "args": [
+          1,
+          0
+        ]
+      }
+    ],
+    "skills": 23,
+    "reviewItems": 71
+  },
+  "answers": {
+    "Q-N20-4347-001": {
+      "original": "按格式化",
+      "change": "原魂印低伤下回合属性先制1"
+    },
+    "Q-N20-4347-002": {
+      "original": "自身攻击后则miss也计入",
+      "change": "按最终successful补未成功实际攻击，覆盖blind/blocked及全段invalid，暴击必中修正MISS后不重复；正常afterAttack与原版仅命中口径保持",
+      "implementationGap": {
+        "status": "resolved-targeted-and-full-passed",
+        "evidence": "research/4347-answered-use-observer-before-fix.json",
+        "existingAnswerSufficient": true,
+        "reason": "原题选择实际使用攻击后；失明和整招封锁已消耗PP并计入使用，当前额外排除缺乏依据。正常命中保留afterAttack时序，仅afterUse补未成功实际攻击。",
+        "newQuestionRequired": false,
+        "callChainReview": {
+          "successful": "!invalid && actionLanded",
+          "normalAttack": "任一非invalid段会进入afterAttack；正常0伤命中及效果封锁仍为成功，不在afterUse补触发",
+          "failedActualUse": "MISS/blind/blocked及全段invalid未进入afterAttack，afterUse按最终successful补一次",
+          "duplicateRisk": "暴击必中可能修正原MISS使动作成功，但旧原始MISS标志仍在；应以最终successful避免重复",
+          "sourceLines": [
+            "dist/souls.js:647",
+            "dist/souls.js:648",
+            "dist/souls.js:823"
+          ],
+          "independentlyRechecked": true
+        }
+      },
+      "plannedInteractionSources": [
+        {
+          "owner": 3711,
+          "moveId": 29299,
+          "revision": "seerapi:a9aa55f6",
+          "instance": {
+            "id": 2380,
+            "args": [
+              2
+            ],
+            "description": "自身下2次致命一击视为命中并强制执行命中效果",
+            "index": 4
+          },
+          "effect": {
+            "id": 2380,
+            "argsNum": 1,
+            "template": "自身下{0}次致命一击视为命中并强制执行命中效果",
+            "revision": "seerapi:6224452f"
+          }
+        },
+        {
+          "owner": 3564,
+          "moveId": 24231,
+          "revision": "seerapi:bab36dda",
+          "instance": {
+            "id": 675,
+            "args": [
+              2
+            ],
+            "description": "下2回合对手打出致命一击的非必中技能无效",
+            "index": 0
+          },
+          "effect": {
+            "id": 675,
+            "argsNum": 1,
+            "template": "下{0}回合对手打出致命一击的非必中技能无效",
+            "revision": "seerapi:f53c92f3"
+          }
+        }
+      ],
+      "plannedInteractionSourcesAreFixtureOnly": true
+    },
+    "Q-N20-4329-006": {
+      "change": "真实34503/49651a47的456[260]直接归零，免死1HP，无伤害事件；公共456同义分支复用"
+    }
+  },
+  "versionAuthorization": {
+    "question": "Q-N20-4347-003",
+    "status": "pending-human-only-current-block",
+    "proposal": "research/4347-exact-additional-fifth-proposal.json",
+    "whitelistChanged": false,
+    "deployed": false
+  },
+  "tests": {
+    "targeted": "research/4347-answer-targeted-v5.log",
+    "latestAdditionalEvasionCaseNotYetRun": false,
+    "correctedNewFixture": "36519攻击穿盾不表示后续百分比吸取也穿盾；5000盾被吸取名义3000抵扣至2000，攻击109直接扣HP，吸取仍名义回复3000",
+    "publicOldAssertionMigration": "research/4347-public456-test-migration.json",
+    "latestTargeted": {
+      "log": "research/4347-final-success-targeted-v1.log",
+      "tests": 37,
+      "pass": 37,
+      "exit": 0
+    },
+    "preparedVersionRuntime": {
+      "file": "tests/helpers/4347-full-versions.cjs",
+      "executed": false,
+      "reason": "待4347精确追加第五审核授权后才能作为四个真实互斥版本接入检查"
+    },
+    "preparedFinalSuccessCasesNowExecuted": true,
+    "extraLegacyIssue": "research/4347-675-raw-parameters-before-fix.json",
+    "latestFullRegression": {
+      "tests": 6487,
+      "passed": 6487,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "research/4347-final-success-npm-v1.log",
+      "result": "research/4347-final-success-npm-v1-result.json",
+      "executedInsideValidator": false,
+      "actualExecutionCount": 1,
+      "scope": "4347 final-success owner-only change independent full regression; not formal acceptance"
+    }
+  },
+  "publicImpact": "research/4347-public456-affected-existing.json",
+  "accepted": false,
+  "multiplayerDeferred": [
+    {
+      "skillId": 27304,
+      "skillHash": "b73ad416",
+      "index": 2,
+      "instance": {
+        "id": 1319,
+        "args": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "description": "自身下次被击败后下一只出场的精灵攻击+1，速度+1"
+      },
+      "scope": "multiplayer",
+      "deferredBehavior": "自身下次被击败后下一只出场的精灵攻击+1，速度+1",
+      "trigger": "自身被击败，己方下一只真实出场",
+      "dependencyEvidence": [
+        {
+          "kind": "next-entry",
+          "quote": "自身下次被击败后下一只出场的精灵"
+        }
+      ],
+      "futureMechanisms": [
+        "队伍死亡状态",
+        "下一只登场事件"
+      ]
+    },
+    {
+      "skillId": 27907,
+      "skillHash": "2568d573",
+      "index": 1,
+      "instance": {
+        "id": 1785,
+        "args": [
+          4,
+          3,
+          100
+        ],
+        "description": "4回合内每回合使用技能吸取对手最大体力的1/3，吸取体力时若自身为满体力则恢复己方所有不在场精灵100点体力"
+      },
+      "scope": "mixed",
+      "deferredBehavior": "吸取体力时若自身为满体力则恢复己方所有不在场精灵100点体力",
+      "trigger": "本效果吸取时自身满HP，己方存在不在场精灵",
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "恢复己方所有不在场精灵100点体力"
+        }
+      ],
+      "futureMechanisms": [
+        "队伍不在场精灵枚举",
+        "场下HP回复"
+      ]
+    }
+  ],
+  "mainSourceRecheck": "research/4347-main-source-recheck.json",
+  "normalHitTimingEvidence": "research/4347-final-success-interaction-before-fix.json",
+  "formallyAccepted": false
+}

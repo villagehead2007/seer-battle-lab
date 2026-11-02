@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('fs'),crypto=require('crypto'),assert=require('assert/strict');
+const old=JSON.parse(fs.readFileSync('research/BATCH-4509-NEXT50-STATUS.json'));
+const raw=fs.readFileSync('seer_id.txt'),lines=raw.toString('utf8').split(/\r?\n/),queue=lines.map((s,i)=>({id:Number(s.trim()),line:i+1})).filter(x=>x.id);
+const boundary=old.ids.at(-1),at=queue.findIndex(x=>x.id===boundary),targets=queue.slice(at+1,at+51);
+assert.equal(old.formalCompletedCount,50);assert.equal(boundary,4674);assert.equal(targets.length,50);assert.equal(targets[0].id,4676);assert.ok(targets.every(x=>!old.ids.includes(x.id)));
+const statusFile='research/BATCH-4676-NEXT50-STATUS.json',now=new Date().toISOString();
+if(fs.existsSync(statusFile)){assert.deepEqual(JSON.parse(fs.readFileSync(statusFile)).ids,targets.map(x=>x.id));console.log('Resuming fixed range');process.exit(0);}
+const s={schema:1,createdAt:now,updatedAt:now,status:'in-progress',ids:targets.map(x=>x.id),targets:targets.map(x=>({...x,status:'not-started',independentWorkComplete:false,deployed:false,accepted:false,questions:[],pendingIndependentWork:['完整来源与版本核对','逐项魂印/技能行为实现与状态测试','本地接入与验收'],pendingAnswerDependentWork:[]})),queueSha256:crypto.createHash('sha256').update(raw).digest('hex'),startLine:targets[0].line,endLine:targets.at(-1).line,previousBatch:{statusFile:'research/BATCH-4509-NEXT50-STATUS.json',lastId:boundary,formalCompletedCount:50,proof:'research/next50-batch5-formal-2026-10-29T15-11-21-660Z-result.json',regression:{tests:8913,pass:8913,exitCode:0},thread:'01a1784d-f925-7db3-82b8-8cfce54f5c97',threadState:'idle/completed'},scan:{current:targets[0],completed:0},formalCursor:{current:targets[0],completed:0},nextAfterRange:queue[at+51],regressions:[],activeProcesses:[],testConcurrency:4,questionFile:'research/BATCH-4676-NEXT50/待答问题精简版.md',technicalDirectory:'research/BATCH-4676-NEXT50',constraints:{noGit:true,noSubagents:true,noBackgroundJobs:true,serialProductionWrites:true,doNotImplementUnannouncedNewAnswers:true}};
+fs.mkdirSync(s.technicalDirectory,{recursive:true});fs.writeFileSync(statusFile,JSON.stringify(s,null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(s.technicalDirectory+'/CHECKPOINT.json',JSON.stringify({at:now,current:targets[0],action:'fetch-source',independentComplete:0,accepted:0},null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(s.questionFile,'# 待答问题精简版\n\n范围：正式队列第277–326行，4676至4814，共50只。\n\n正在逐只审核；此文件尚未交付，暂未列出已确认需要您决定的问题。不代表全部机制已明确或全部工作已完成。\n\n技术证据保存在同目录，正文不复制来源全文。\n',{flag:'wx'});
+fs.appendFileSync('PROGRESS.md',`\n\n${now} 新固定50预部署启动：按上一批实际末位4674之后锁定第${s.startLine}–${s.endLine}行，${s.ids[0]}至${s.ids.at(-1)}；范围后${s.nextAfterRange.id}（第${s.nextAfterRange.line}行）。名单及队列hash见${statusFile}。独立完成0/50，正式验收0/50，扫描及正式当前均4676；自动开发保持暂停，不使用Git。\n`);
+console.log(JSON.stringify({ids:s.ids,range:[s.startLine,s.endLine],queueSha256:s.queueSha256,next:s.nextAfterRange}));

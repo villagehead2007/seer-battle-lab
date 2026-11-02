@@ -1,0 +1,103 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4189-battle.cjs'),{E,make,pick,turn,timer,key,keys}=H,shields=require('../dist/shield-rules.js');
+test('4189 魂印同一原始类型随机200~400固定伤害、低半体理论吸取及严格半血',()=>{
+ const cases=[];for(const hp of [9000,4500,4499,1000]){const s=make({moveId:10004,index:null},{soul:1411,hp}),first=turn(s,920031),o=turn(first,920031),n=9000-o.fighters[1].hp;assert.ok(n>=200&&n<=400);assert.equal(o.fighters[0].hp,hp+(hp<4500?n:0));cases.push(n);}assert.ok(cases.every(n=>n===cases[0]));
+ const z=turn(make({moveId:10004,index:null},{soul:1411,hp:1000}),920031);timer(z,1,'固定百分比免疫');const o=turn(z,920031);assert.equal(o.fighters[1].hp,9000);assert.ok(o.fighters[0].hp>=1200&&o.fighters[0].hp<=1400);
+});
+test('4189 魂印明确攻击和属性互换50%冰封、失败次回合先制及免疫失败补偿',()=>{
+ let yes=false,no=false;for(let seed=0;seed<40;seed++){const s=turn(make({moveId:10004,index:null},{soul:1411,seed}));const o=turn(s,920031);if(o.fighters[1].ailments['冰封'])yes=true;else{no=true;assert.equal(o.fighters[0].effects.id984.start,3);assert.equal(o.fighters[0].effects.id984.amount,1);}}assert.ok(yes&&no);
+ const s=turn(make({moveId:10004,index:null},{soul:1411}));timer(s,1,'免异常');assert.equal(turn(s,920031).fighters[0].effects.id984.start,3);
+});
+test('4189 魂印首次不触发、物特算异类，控制与药剂不改变技能历史',()=>{
+ const s=make({moveId:10004,index:null},{soul:1411}),first=turn(s);assert.equal(first.fighters[0].soulState.sakuraComparisonPending,undefined);assert.equal(first.fighters[1].hp,9000-(first.damageEvents??[]).filter(x=>x.sourceSide===0&&x.type==='attack').reduce((n,x)=>n+x.hpLoss,0));assert.equal(first.fighters[0].soulState.sakuraLastRawKind,'physical');const z=make({moveId:10564,index:null},{soul:1411});z.fighters[0].soulState.sakuraLastRawKind='physical';const a=turn(z);assert.equal(a.fighters[0].soulState.sakuraLastRawKind,'special');assert.ok(a.fighters[1].ailments['冰封']||a.fighters[0].effects.id984);
+ const sleep=make({moveId:10004,index:null},{soul:1411});sleep.fighters[0].ailments['睡眠']=9;assert.equal(turn(sleep).fighters[0].soulState.sakuraLastRawKind,undefined);const potion=E.resolveTurn(s,['potion:hp',key(920041)]);assert.equal(potion.fighters[0].soulState.sakuraLastRawKind,undefined);
+});
+test('4189 寒晶保命固定/百分比/真实伤害800完整记录与实际199，清异常清负面后1加300',()=>{
+ for(const [id,args,type,maxHp]of [[29,[800],'fixed',9000],[831,[10],'percent',8000],[1528,[800],'true',9000]]){const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300,bStats:{maxHp}});s.fighters[0].ailments['失明']=9;s.fighters[0].stages.def=-2;H.op(s,id,args,920042);const o=turn(s,920031,920042),d=o.damageEvents.find(d=>d.targetSide===0&&d.type===type);assert.equal(d.settledDamage,800);assert.equal(d.hpLoss,199);assert.equal(o.fighters[0].hp,301);assert.equal(o.fighters[0].ailments['失明'],undefined);assert.equal(o.fighters[0].stages.def,0);}
+});
+test('4189 寒晶1HP正结算实际零损失仍触发，敌301HP不保护，完全免疫不触发',()=>{
+ const s=make({moveId:10004,index:null},{soul:1411,hp:1,targetHp:300});s.fighters[0].stages.def=-1;H.op(s,29,[800],920042);const o=turn(s,920031,920042);assert.equal(o.damageEvents.at(-1).settledDamage,800);assert.equal(o.damageEvents.at(-1).hpLoss,0);assert.equal(o.fighters[0].hp,301);assert.equal(o.fighters[0].stages.def,0);
+ const z=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:301});H.op(z,29,[800],920042);assert.equal(turn(z,920031,920042).fighters[0].hp,0);
+ const immune=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});timer(immune,0,'当回合免伤');immune.fighters[0].stages.def=-1;H.op(immune,29,[800],920042);const a=turn(immune,920031,920042);assert.equal(a.fighters[0].hp,200);assert.equal(a.fighters[0].stages.def,-1);
+});
+test('4189 寒晶正常攻击/护盾/减免及逐段重新触发，不将原始800冒充护盾后结算',()=>{
+ const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});s.moveDefinitions[key(920040)].power=9999;const o=turn(s,920031,920040);assert.equal(o.fighters[0].hp,301);assert.ok(o.damageEvents[0].settledDamage>200);assert.equal(o.damageEvents[0].hpLoss,199);
+ const shield=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});shields.add(shield.fighters[0],600);H.op(shield,29,[800],920042);const b=turn(shield,920031,920042);assert.equal(b.damageEvents.at(-1).settledDamage,200);assert.equal(b.fighters[0].hp,301);
+ const reduced=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});shields.add(reduced.fighters[0],300);timer(reduced,0,'全伤害减半');H.op(reduced,29,[800],920042);const r=turn(reduced,920031,920042);assert.equal(r.damageEvents.at(-1).settledDamage,100);assert.equal(r.fighters[0].hp,100);
+ const multi=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});multi.moveDefinitions[key(920040)].power=9999;H.op(multi,31,[3,3],920040);const m=turn(multi,920031,920040);assert.equal(m.fighters[0].hp,301);assert.equal(m.damageEvents.filter(e=>e.targetSide===0).length,3);assert.deepEqual(m.damageEvents.map(e=>e.hpLoss),[199,300,300]);
+});
+test('4189 寒晶非标准秒杀按047保留1后回复，实际对手301HP不保护自身消耗',()=>{
+ const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});H.op(s,36,[100],920042);const saved=turn(s,920031,920042);assert.equal(saved.fighters[0].hp,301);assert.equal(saved.damageEvents.at(-1).hpLoss,199);
+ const own=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:301});H.op(own,1276,[2],920032);const o=turn(own,920032);assert.equal(o.fighters[0].hp,0);assert.equal(o.fighters[1].hp,201,'直接自耗时比较真实对手301HP，不能把来源自己0HP当对手');
+});
+test('4189 613真实火系整技能失效5回合，非火系和属性技能不误阻断',()=>{
+ const e=pick(613)[0],s=make(e);s.moveDefinitions[key(920040)].type='火';H.op(s,29,[300],920040);const a=turn(s,s.auditMoveId,920040);assert.equal(a.fighters[0].hp,9000);assert.equal(a.fighters[0].effects['指定系别攻击无效'].end,5);const other=make(e);other.moveDefinitions[key(920040)].type='冰';assert.ok(turn(other,other.auditMoveId,920040).fighters[0].hp<9000);
+ const status=make(e);status.moveDefinitions[key(920042)].type='火';H.op(status,29,[300],920042);assert.equal(turn(status,status.auditMoveId,920042).fighters[0].hp,8700);
+});
+test('4189 556命中自身降1HP为直接损失，不凭空发受伤事件或自杀',()=>{
+ const e=pick(556)[0],o=turn(make(e));assert.equal(o.fighters[0].hp,1);assert.equal(o.fighters[0].roundDamageTaken,8999);assert.ok(!o.damageEvents.some(e=>e.targetSide===0));const s=make(e);timer(s,0,'skillBlock');assert.equal(turn(s).fighters[0].hp,9000);
+});
+test('4189 584两回合攻击附秒杀概率，状态无秒杀且免疫攻击伤害仍可命中秒杀',()=>{
+ let yes=false,no=false;for(let seed=0;seed<55;seed++){let s=turn(make(pick(584)[0],{seed}));assert.equal(s.fighters[0].effects['攻击附加秒杀概率'].end,2);timer(s,1,'攻击伤害免疫');const o=turn(s,920030);yes ||=o.fighters[1].hp===0;no ||=o.fighters[1].hp===9000;}assert.ok(yes&&no);
+ let s=turn(make(pick(584)[0]));s=turn(s,920031);assert.equal(s.fighters[1].hp,9000);assert.equal(s.fighters[0].effects['攻击附加秒杀概率'],undefined);
+});
+test('4189 1347反转成功害怕、无强化失败不乱加异常、免弱时实际清强',()=>{
+ const e=pick(1347)[0],s=make(e);s.fighters[1].stages.atk=2;const o=turn(s);assert.equal(o.fighters[1].stages.atk,-2);assert.ok(o.fighters[1].ailments['害怕']>=1);assert.equal(turn(make(e)).fighters[1].ailments['害怕'],undefined);
+ const z=make(e);z.fighters[1].stages.atk=2;timer(z,1,'免弱');const b=turn(z);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);
+});
+test('4189 1673命中10%秒杀与失败280保底，免伤/护盾仍按公共伤害规则处理',()=>{
+ const e=pick(1673)[0];let kill=false,minimum=false;for(let seed=0;seed<60;seed++){const o=turn(make(e,{seed}));if(o.fighters[1].hp===0)kill=true;else{minimum=true;assert.equal(o.fighters[1].hp,8720);}}assert.ok(kill&&minimum);
+ for(let seed=0;seed<10;seed++){const z=make(e,{seed});timer(z,1,'攻击伤害免疫');const o=turn(z);assert.ok(o.fighters[1].hp===0||o.fighters[1].hp===9000);}
+ const shield=make(e,{seed:0});shields.add(shield.fighters[1],100);const b=turn(shield);if(b.fighters[1].hp>0)assert.equal(b.fighters[1].hp,8820);
+});
+test('4189 803冰封失败回复三分之一及伤害300封顶，966失败全强，449指定冰封不扩大旧参数',()=>{
+ const e=pick(803)[0],s=make(e,{hp:1000});s.fighters[1].counts.immune=1;const o=turn(s);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[0].effects['伤害上限'].amount,300);assert.equal(o.fighters[0].effects['伤害上限'].end,3);
+ const z=make(pick(966)[0]);timer(z,1,'免异常');const b=turn(z);for(const k of keys)assert.equal(b.fighters[0].stages[k],1);
+ const a=make(pick(449)[0]);a.fighters[1].stages.acc=-1;assert.ok(turn(a).fighters[1].ailments['冰封']>=1);assert.equal(turn(make(pick(449)[0])).fighters[1].ailments['冰封'],undefined);
+ for(const [id,move,index,args]of [[803,27273,0,[80,15,3,3,300]],[966,27503,0,[80,15,1]],[449,37621,1,[100,15]]]){const r=E.WIKI.effectsEngine.registry[id],m=H.source.moves.find(m=>m.id===move);assert.doesNotThrow(()=>r.validate(args,m,index));assert.throws(()=>r.validate(args,{...m,hash:'bad'},index));assert.throws(()=>r.validate(args,m,9));}
+});
+test('4189 4与5真实重复实例等级、免弱/禁强化及冻伤10%的成功失败',()=>{
+ for(const e of [...pick(4),...pick(5).filter(e=>e.params[1]===100)]){const s=turn(make(e)),side=e.id===4?0:1;assert.equal(s.fighters[side].stages[keys[e.params[0]]],e.params[2]);const z=make(e);timer(z,side,side?'免弱':'禁强化');assert.equal(turn(z).fighters[side].stages[keys[e.params[0]]],0);}
+ let yes=false,no=false;for(let seed=0;seed<60;seed++){const o=turn(make(pick(14)[0],{seed}));yes ||=!!o.fighters[1].ailments['冻伤'];no ||=!o.fighters[1].ailments['冻伤'];}assert.ok(yes&&no);
+});
+test('4189 1164反强成功和失败清回合、1454逐段附100固定伤害',()=>{
+ for(const e of pick(1164)){const s=make(e);s.fighters[1].stages.atk=2;assert.equal(turn(s).fighters[1].stages.atk,-2);const z=make(e);timer(z,1,'免弱');assert.equal(turn(z).fighters[1].effects['免弱'],undefined);}
+ const counts=new Set();let fixed=false;for(let seed=0;seed<35;seed++){const o=turn(make(pick(1454)[0],{seed})),attacks=o.damageEvents.filter(e=>e.type==='attack');assert.ok(attacks.length>=2&&attacks.length<=5);counts.add(attacks.length);for(const d of o.damageEvents.filter(e=>e.type==='fixed')){assert.equal(d.settledDamage,100);fixed=true;}}assert.ok(counts.size>1&&fixed);
+});
+test('4189 164受攻击冻伤、552异常才30%附200、599两种期限真实50%减伤',()=>{
+ const s=turn(make(pick(164)[0])),o=turn(s,920031,920040);assert.ok(o.fighters[1].ailments['冻伤']>=2);let hit=false,miss=false;for(let seed=0;seed<35;seed++){const e=pick(552)[0],a=make(e,{seed}),base=make(e,{seed,omit:true});a.fighters[1].ailments['失明']=9;base.fighters[1].ailments['失明']=9;const x=turn(a),y=turn(base),extra=y.fighters[1].hp-x.fighters[1].hp;assert.ok(extra===0||extra===200);hit ||=extra===200;miss ||=extra===0;}assert.ok(hit&&miss);
+ for(const e of pick(599)){const a=turn(make(e),e.moveId,920040),b=turn(make(e,{omit:true}),e.moveId,920040);assert.ok(Math.abs((9000-a.fighters[0].hp)*2-(9000-b.fighters[0].hp))<=1);}
+});
+test('4189 597理论百分比吸取、681次两回合必中暴击、1397低半体翻倍及48免异常',()=>{
+ const s=make(pick(597)[0],{hp:1000});timer(s,1,'固定百分比免疫');const o=turn(s);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[1].hp,9000);
+ const a=turn(make(pick(681)[0]));assert.equal(a.fighters[0].effects['必定暴击'].start,2);assert.equal(a.fighters[0].effects['必定暴击'].end,3);
+ const low=turn(make(pick(1397)[0],{hp:4499})),half=turn(make(pick(1397)[0],{hp:4500}));for(const k of keys){assert.equal(low.fighters[0].stages[k],2);assert.equal(half.fighters[0].stages[k],1);}assert.equal(turn(make(pick(48)[0])).fighters[0].effects['免异常'].end,4);
+});
+test('4189 135最低280不绕过攻击免疫与720先手当回合闪避，1674未受百分比则补真',()=>{
+ const e=pick(135)[0],s=turn(make(e));assert.equal(s.fighters[1].hp,8720);const z=make(e);timer(z,1,'攻击伤害免疫');assert.equal(turn(z).fighters[1].hp,9000);
+ const dodge=make(pick(720)[0]);dodge.moveDefinitions[key(920040)].alwaysHit=false;assert.equal(turn(dodge,dodge.auditMoveId,920040).fighters[0].hp,9000);
+ const p=pick(1674)[0],a=make(p,{hp:1000});timer(a,1,'固定百分比免疫');const b=turn(a);assert.equal(b.fighters[0].hp,4000);assert.equal(b.fighters[1].hp,8720);assert.equal(b.damageEvents.find(e=>e.type==='true').settledDamage,280);
+});
+test('4189 854高于120整招无效边界、1167清负回血、1001敌异常全强翻倍与191反弹',()=>{
+ const e=pick(854)[0],s=turn(make(e));s.moveDefinitions[key(920040)].power=121;assert.equal(turn(s,920031,920040).fighters[0].hp,9000);const z=turn(make(e));z.moveDefinitions[key(920040)].power=120;assert.ok(turn(z,920031,920040).fighters[0].hp<9000);
+ const p=pick(1167)[0],w=make(p,{hp:1000});w.fighters[0].stages.atk=-1;assert.equal(turn(w).fighters[0].hp,9000);assert.equal(turn(make(p,{hp:1000})).fighters[0].hp,1000);
+ const t=make(pick(1001)[0]);t.fighters[1].ailments['失明']=9;const a=turn(t);for(const k of keys)assert.equal(a.fighters[0].stages[k],2);
+ const r=make(pick(191)[0]);H.op(r,12,[100],920042);const b=turn(r,r.auditMoveId,920042);assert.equal(b.fighters[0].ailments['烧伤'],undefined);assert.ok(b.fighters[1].ailments['烧伤']>=1);
+});
+test('4189 776/843两实例次回合期限，604随机150~300且连续增威封顶，1019/1202完整伤害阈值',()=>{
+ assert.equal(turn(make(pick(776)[0])).fighters[0].effects.doubleDamage.start,2);for(const e of pick(843)){const a=turn(make(e));assert.equal(a.fighters[0].effects.id984.start,2);assert.equal(a.fighters[0].effects.id984.end,3);}
+ const e=pick(604)[0];let a=make(e);const damage=[];for(let i=0;i<5;i++){a.rng=0;a=turn(a);damage.push(a.fighters[0].lastSettledAttackDamage);}assert.ok(damage[1]>damage[0]);assert.ok(damage[4]>=damage[3]);
+ const high=turn(make({moveId:34913,index:null},{aStats:{atk:900}}));assert.ok(high.fighters[0].lastSettledAttackDamage>300);assert.equal(high.fighters[1].effects.statusBlock.end,2);const low=turn(make({moveId:34913,index:null}));assert.ok(low.fighters[0].lastSettledAttackDamage<300);assert.equal(low.fighters[0].counts.nextAttackFlatReductionUses,1);assert.equal(low.fighters[0].soulState.nextAttackFlatReductionAmount,300);
+});
+test('4189 679两回合技能禁疗、789消回合后受伤翻倍、1395先手必暴与1549后手次回合先制',()=>{
+ assert.equal(turn(make(pick(679)[0])).fighters[1].effects['技能禁疗'].end,2);
+ const s=make(pick(789)[0]);timer(s,1,'免弱');assert.equal(turn(s).fighters[1].effects['所受伤害倍增'].multiple,2);
+ const e=pick(1395)[0],a=turn(make(e)),b=turn(make(e,{omit:true}));assert.ok(Math.abs((9000-a.fighters[1].hp)-2*(9000-b.fighters[1].hp))<=1);
+ const late=turn(make(pick(1549)[0],{aStats:{spe:10},bStats:{spe:900}}));assert.equal(late.fighters[0].effects['攻击先制'].start,2);assert.equal(late.fighters[0].effects['攻击先制'].amount,1);
+});
+test('4189 1249沿用已核实按实际攻击损失一半吸血和独立异常百分伤，禁疗不吞独立附伤',()=>{
+ const e=pick(1249)[0],s=make(e,{hp:1000});s.fighters[1].ailments['失明']=9;const a=turn(s),n=Math.floor(a.fighters[0].lastAttackDamage/2);assert.equal(a.fighters[0].hp,1000+n);assert.equal(a.fighters[1].hp,9000-a.fighters[0].lastAttackDamage-n);
+ const z=make(e,{hp:1000});z.fighters[1].ailments['失明']=9;timer(z,0,'技能禁疗');const b=turn(z);assert.equal(b.fighters[0].hp,1000);assert.equal(b.fighters[1].hp,9000-b.fighters[0].lastAttackDamage-Math.floor(b.fighters[0].lastAttackDamage/2));
+});
+test('4189 23真实技能、单原版魂印与普通伙伴技能完整保留，本地配招初始化和实际耗PP',()=>{
+ assert.equal(H.source.moves.length,23);assert.deepEqual(H.source.souls.map(x=>x.id),[1411]);assert.equal(H.source.moves.find(m=>m.id===37621).fifth,false);assert.deepEqual(H.source.moves.filter(m=>m.fifth).map(m=>m.id),[34914]);for(const m of H.source.moves){const s=make({moveId:m.id,index:null},{omit:true}),o=turn(s);assert.ok(s.fighters[0].moves.includes(key(m.id)));assert.ok(o.fighters[0].pp[key(m.id)]<s.fighters[0].pp[key(m.id)]);}
+});

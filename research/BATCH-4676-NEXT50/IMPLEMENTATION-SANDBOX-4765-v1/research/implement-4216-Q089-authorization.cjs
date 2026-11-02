@@ -1,0 +1,8 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),P=require('../completion-policy.cjs'),s=require('../local-species.cjs').species(4216),e=P.inventory(s).find(x=>x.key==='4216:skill:38454:4'),rf='SINGLE-STAGE-REVIEWS.json',r=JSON.parse(fs.readFileSync(rf)),v=r.entries[e.key],cf='research/FIXED60-ANSWER-USER-CONFIRMATIONS.json',c=JSON.parse(fs.readFileSync(cf)),q=c.confirmations.find(x=>x.questionId==='Q-A60-4216-089');
+assert.ok(q.answerLines.some(x=>x.line==='我的回答：授权'));assert.equal(e.sourceDigest,'3a1c98ee6e8385bc1eae318ca82035a2d0752c7c3ef48535a7b8c46e12806e48');
+fs.writeFileSync('research/4216-review-before-Q089-implementation.json',JSON.stringify(v,null,2)+'\n');
+c.instanceBindings[e.key]={questionId:q.questionId,sourceDigest:e.sourceDigest,rawDigest:P.digest(e.raw),source:e.source,raw:e.raw,resourceEvidenceDigest:P.digest(require('./4321-SHARED-SWORDS-SOURCE-ADDENDUM.json')),ownerEvidenceDigest:P.digest(require('./4216-sword-owner-api-source.json')),dependencyEvidenceDigest:P.digest(v.dependencyEvidence),scope:'仅此真实伙伴实例跨来源共享资源延期；其余自身强化不豁免',status:'authorized-implemented-awaiting-recertification'};
+q.implementationBySpecies??={};q.implementationBySpecies[4216]={state:'authorized-implemented-awaiting-recertification',accepted:false};
+v.userConfirmation=cf;v.trigger='对手有真实处决印记且己方经真实至序圣华圣铸或1758/1763效果拥有共享圣剑，使用当前技能附着己方序数最高的真实圣剑';v.reviewedAt=new Date().toISOString();v.reviewStatus='reviewed';
+fs.writeFileSync(cf,JSON.stringify(c,null,2)+'\n');fs.writeFileSync(rf,JSON.stringify(r,null,2)+'\n');
+console.log(JSON.stringify({id:4216,coverage:P.reviewCoverage(s,r),failures:P.validateCoverage(s,r,require('./build-multiplayer-todo.cjs').build([s],r),process.cwd(),false)}));

@@ -1,0 +1,3574 @@
+{
+  "4554:soul:1764": {
+    "sourceDigest": "2fff218d1bb37075edcaaaa77ab5a25a659b984593f4939e3f183b706d067af8",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏来源分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "自身拥有圣谕形态、邪魇形态，战斗开始时进入圣谕；圣谕免疫异常/固定，邪魇免疫能力下降/百分比：battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。；每次登场或切换形态时，下次攻击先制+1、必中且无视攻击免疫：动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。；自身选择技能的回合攻击命中时附加1层自身形态相应圣诰/邪诲：选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；对手未选择技能的回合免疫对能力提升状态、回合类效果的消除、吸取；免疫成功附加反形态1层：roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。；圣告/邪诲上限3层、受到攻击后每层生效1次；受攻击伤害高于技能威力减少1层：独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。；邪诲受到攻击后被对手吸取伤害值70%的体力，每层生效1次：当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。；双方标记各有至少1层特定技能触发湮灭：238真伤且当回合不能行动与回复；结束各减1层，每层只响应1次：annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。",
+    "implementation": [
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764战斗开始真实初始化圣谕形态与一次攻击强化，已有邪魇状态不保留",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实B方战斗初始化前A方登场异常仍按初始圣谕免疫，不因battleStart先后漏免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764B方未初始化形态的真实公共入口免异常免固伤但不免百分比，不误当邪魇",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣谕免异常和固定、邪魇免弱和百分比；其他伤害类型和强化不扩大免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764切形改变当前免疫并重新赋下次强化；同形态重复不伪造切换",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击真实先制+1、必中且穿攻击免疫，仅本次使用消费；属性不消费",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击控制未用保持，MISS使用仍消费，后续真实切形重置",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中授予当前形态标记的已明确时点载荷，普通使用/MISS不授予",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764标记各自最多3层、独立身份与一次响应状态，超上限无新增",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764对手未选择技能保护真实消强/吸强/清回合且加反形态层，对手选择却控制仍不保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764无正级/无可清回合不是免疫成功，无凭空加反形态层；自身主动清理不被自身保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确单层圣诰真实70%疲惫一次，免疫仍消费一次响应；阈值伤害大于威力才减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰70%随机失败照常标记已响应，无补偿或重抽；后续明确阈值可移除耗用层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中受攻事件0结算仍响应圣诰，MISS不响应；标记对非1764持有者生效",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰阈值比较完整结算伤害，保1实际HP未减少仍按高于技能威力减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确伤害/回复负载真实扣HP并回HP、各层一次；类型未知不擅自按汲取真伤",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确载荷接受真实免疫/禁疗/倍回/溢出，理论回复数由已确定负载提供",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确多层选择分别响应但不额外替换未选层，严格大于阈值移除指定层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭须两类均有未响应层，238真实伤害/当轮禁行动禁回血，结束各减一层且下轮正常",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭禁药剂行动与跨后期回复、真伤可被真实伤害免疫但状态效果不随免伤省略",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764多层天然响应/同轮多次湮灭/新层受攻时序均显式诊断，明确分支不伪称整魂印完成",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。；annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764战斗开始真实初始化圣谕形态与一次攻击强化，已有邪魇状态不保留",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实B方战斗初始化前A方登场异常仍按初始圣谕免疫，不因battleStart先后漏免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764B方未初始化形态的真实公共入口免异常免固伤但不免百分比，不误当邪魇",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣谕免异常和固定、邪魇免弱和百分比；其他伤害类型和强化不扩大免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764切形改变当前免疫并重新赋下次强化；同形态重复不伪造切换",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击真实先制+1、必中且穿攻击免疫，仅本次使用消费；属性不消费",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击控制未用保持，MISS使用仍消费，后续真实切形重置",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中授予当前形态标记的已明确时点载荷，普通使用/MISS不授予",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764标记各自最多3层、独立身份与一次响应状态，超上限无新增",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764对手未选择技能保护真实消强/吸强/清回合且加反形态层，对手选择却控制仍不保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764无正级/无可清回合不是免疫成功，无凭空加反形态层；自身主动清理不被自身保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确单层圣诰真实70%疲惫一次，免疫仍消费一次响应；阈值伤害大于威力才减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰70%随机失败照常标记已响应，无补偿或重抽；后续明确阈值可移除耗用层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中受攻事件0结算仍响应圣诰，MISS不响应；标记对非1764持有者生效",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰阈值比较完整结算伤害，保1实际HP未减少仍按高于技能威力减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确伤害/回复负载真实扣HP并回HP、各层一次；类型未知不擅自按汲取真伤",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确载荷接受真实免疫/禁疗/倍回/溢出，理论回复数由已确定负载提供",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确多层选择分别响应但不额外替换未选层，严格大于阈值移除指定层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭须两类均有未响应层，238真实伤害/当轮禁行动禁回血，结束各减一层且下轮正常",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭禁药剂行动与跨后期回复、真伤可被真实伤害免疫但状态效果不随免伤省略",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764多层天然响应/同轮多次湮灭/新层受攻时序均显式诊断，明确分支不伪称整魂印完成",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。；annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764战斗开始真实初始化圣谕形态与一次攻击强化，已有邪魇状态不保留",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实B方战斗初始化前A方登场异常仍按初始圣谕免疫，不因battleStart先后漏免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764B方未初始化形态的真实公共入口免异常免固伤但不免百分比，不误当邪魇",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣谕免异常和固定、邪魇免弱和百分比；其他伤害类型和强化不扩大免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764切形改变当前免疫并重新赋下次强化；同形态重复不伪造切换",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击真实先制+1、必中且穿攻击免疫，仅本次使用消费；属性不消费",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击控制未用保持，MISS使用仍消费，后续真实切形重置",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中授予当前形态标记的已明确时点载荷，普通使用/MISS不授予",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764标记各自最多3层、独立身份与一次响应状态，超上限无新增",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764对手未选择技能保护真实消强/吸强/清回合且加反形态层，对手选择却控制仍不保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764无正级/无可清回合不是免疫成功，无凭空加反形态层；自身主动清理不被自身保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确单层圣诰真实70%疲惫一次，免疫仍消费一次响应；阈值伤害大于威力才减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰70%随机失败照常标记已响应，无补偿或重抽；后续明确阈值可移除耗用层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中受攻事件0结算仍响应圣诰，MISS不响应；标记对非1764持有者生效",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰阈值比较完整结算伤害，保1实际HP未减少仍按高于技能威力减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确伤害/回复负载真实扣HP并回HP、各层一次；类型未知不擅自按汲取真伤",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确载荷接受真实免疫/禁疗/倍回/溢出，理论回复数由已确定负载提供",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确多层选择分别响应但不额外替换未选层，严格大于阈值移除指定层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭须两类均有未响应层，238真实伤害/当轮禁行动禁回血，结束各减一层且下轮正常",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭禁药剂行动与跨后期回复、真伤可被真实伤害免疫但状态效果不随免伤省略",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764多层天然响应/同轮多次湮灭/新层受攻时序均显式诊断，明确分支不伪称整魂印完成",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。；annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764战斗开始真实初始化圣谕形态与一次攻击强化，已有邪魇状态不保留",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实B方战斗初始化前A方登场异常仍按初始圣谕免疫，不因battleStart先后漏免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764B方未初始化形态的真实公共入口免异常免固伤但不免百分比，不误当邪魇",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣谕免异常和固定、邪魇免弱和百分比；其他伤害类型和强化不扩大免疫",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764切形改变当前免疫并重新赋下次强化；同形态重复不伪造切换",
+          "assertion": "battleStart初始化holy及下次攻击状态；setForm实际状态改变才重新授下次强化，重复同形不当切换。动态ailmentImmune/weaknessImmune；beforeIncomingDamage按当前形态阻止固定或百分比；其他类型不扩免疫。 B方在自身battleStart初始化前按明确初始holy默认，防对手先进入场异常漏免，也防未初始化分支误免percent。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击真实先制+1、必中且穿攻击免疫，仅本次使用消费；属性不消费",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764下一攻击控制未用保持，MISS使用仍消费，后续真实切形重置",
+          "assertion": "动态attackPriority/attackAlwaysHit；beforeUse保留此次快照并消费，下次状态；beforeDamage穿攻击免疫。属性不消费、控制未实际用不消费、MISS实际使用消费。技能中切形重新授予的是之后攻击，不改本次已取快照。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中授予当前形态标记的已明确时点载荷，普通使用/MISS不授予",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764标记各自最多3层、独立身份与一次响应状态，超上限无新增",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764对手未选择技能保护真实消强/吸强/清回合且加反形态层，对手选择却控制仍不保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764无正级/无可清回合不是免疫成功，无凭空加反形态层；自身主动清理不被自身保护",
+          "assertion": "roundStart仅对手选择item才满足noSkill，不把控制未用当未选择。公共clear/clearSelectedBoost/clearBoost/steal路由前保护，保留真实正级/回合状态；有实际可清对象才免疫成功。公开protectRemoval能力亦可供将来真实吸取回合载荷复用；自身主动清理不误挡。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确单层圣诰真实70%疲惫一次，免疫仍消费一次响应；阈值伤害大于威力才减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰70%随机失败照常标记已响应，无补偿或重抽；后续明确阈值可移除耗用层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764真实命中受攻事件0结算仍响应圣诰，MISS不响应；标记对非1764持有者生效",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764圣诰阈值比较完整结算伤害，保1实际HP未减少仍按高于技能威力减层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确伤害/回复负载真实扣HP并回HP、各层一次；类型未知不擅自按汲取真伤",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764邪诲明确载荷接受真实免疫/禁疗/倍回/溢出，理论回复数由已确定负载提供",
+          "assertion": "当前已确定邪诲type/amount/healAmount负载通过公共hurt/heal真实执行，标记仅响应一次，免伤/禁疗/回复倍率/上限真实生效；自然未确认类型及回复基数用002保护，吸取不机械改汲取真伤。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764明确多层选择分别响应但不额外替换未选层，严格大于阈值移除指定层",
+          "assertion": "独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭须两类均有未响应层，238真实伤害/当轮禁行动禁回血，结束各减一层且下轮正常",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764湮灭禁药剂行动与跨后期回复、真伤可被真实伤害免疫但状态效果不随免伤省略",
+          "assertion": "annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        },
+        {
+          "file": "tests/next50-4554-soul.test.cjs",
+          "name": "1764多层天然响应/同轮多次湮灭/新层受攻时序均显式诊断，明确分支不伪称整魂印完成",
+          "assertion": "选择技能按chosen kind，控制未用仍选技能但没有命中不加层；实际afterHit授予。新层是否同次响应/减层未知时001保护，不把现有事件顺序当答案；qualifiedGrantTiming输入的真实加层载荷已测。；独立层对象{id,triggerUsed,annihilationUsed}，holy/evil各cap3。当前单一明确圣诰受命中attack事件70%疲惫并只响应一次；随机失败/异常免疫都不重抽。已耗用层仍可被正完整结算>技能威力移除。0命中仍是受攻，MISS不是；正伤含保1实际HP0。多未响应层或混合减层选择等001精确诊断，qualified层索引载荷可真实执行。；annihilate要求两类各有未响应湮灭层，立即标记各自已响应该次、238true、整轮封锁行动含药剂与回复。解除普通回合效果不解除湮灭；下一回合恢复。层结束时点源未知，普通releasePolicy unknown在后续观察/结束释放时001诊断；qualifiedAnnihilate提供明确roundEnd结束输入，按独立层ID只删除一对，保留整轮禁回stamp直到round改变。自然2066重复不猜释放时点。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-001",
+      "Q-N50-4554-002"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-001, Q-N50-4554-002",
+    "deferredBehavior": "每次登场或切换形态时，下次攻击先制+1、必定命中且无视攻击免疫效果；真实再次登场事件；当前初登场及切形均已实现，不延期自身形态。；圣告（上限3层，下场保留）；邪诲（上限3层，下场保留）；持标记精灵真实下场/回场，保留各层身份、每层受攻响应与湮灭响应次数；当前在场cap、受攻与湮灭载荷不延期。",
+    "trigger": "真实再次登场、持标记精灵离场与回场",
+    "futureMechanisms": [
+      "真实entry事件、离场/再入场资源生命周期",
+      "队伍精灵实例持久化与换宠前后状态迁移"
+    ]
+  },
+  "4554:move:36848": {
+    "sourceDigest": "e62858f9561a340a397ee8d92ecd05f6008fb121479e9be45a5b430a244c8225",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:28437": {
+    "sourceDigest": "a60c67c54cb5c1e0471a2c0f07ff8b449543790c94bdbae3be39f05b6b35e73a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28437:0": {
+    "sourceDigest": "ac8fdeb7894c335b3d044ba9af2537f52ff6c61ec48b3931a60fcde3be483fd9",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "损失1/2的体力，提升自身的能力；基数/类型及具体强化项目、级数均不明，独立已做全部真实基础；源注册不吞未知、不自行扣血/猜强化。自动效果显式待003；不能宣称该条行为已实现。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "损失1/2的体力，提升自身的能力；基数/类型及具体强化项目、级数均不明，独立已做全部真实基础；源注册不吞未知、不自行扣血/猜强化。自动效果显式待003；不能宣称该条行为已实现。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "损失1/2的体力，提升自身的能力；基数/类型及具体强化项目、级数均不明，独立已做全部真实基础；源注册不吞未知、不自行扣血/猜强化。自动效果显式待003；不能宣称该条行为已实现。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "损失1/2的体力，提升自身的能力；基数/类型及具体强化项目、级数均不明，独立已做全部真实基础；源注册不吞未知、不自行扣血/猜强化。自动效果显式待003；不能宣称该条行为已实现。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "损失1/2的体力，提升自身的能力；基数/类型及具体强化项目、级数均不明，独立已做全部真实基础；源注册不吞未知、不自行扣血/猜强化。自动效果显式待003；不能宣称该条行为已实现。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-003"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-003"
+  },
+  "4554:move:36849": {
+    "sourceDigest": "4e4f320a589b4ff33ab5d666098495b7c7a316e5cad7536c4fda7541baae1e43",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36849:0": {
+    "sourceDigest": "3fdfdec34a4395c10fb42291c8acf6f5f9a577838f90f0f706ece0401e338c9f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1477双方消强任一成功吸取、双无/双保护失败/粉免/理论回复与禁疗",
+          "assertion": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1477双方消强任一成功吸取、双无/双保护失败/粉免/理论回复与禁疗",
+          "assertion": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1477双方消强任一成功吸取、双无/双保护失败/粉免/理论回复与禁疗",
+          "assertion": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1477双方消强任一成功吸取、双无/双保护失败/粉免/理论回复与禁疗",
+          "assertion": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:28438": {
+    "sourceDigest": "c6eaaff2b41e7c48af5b57f97026a91fec97f05b91169f24afaa84b9a1989430",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28438:0": {
+    "sourceDigest": "7440a6ef0e8e5c86a3dcb7f708e7d577360a51959dec2b1c0516ca4dbb57b4e8",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 120真实公共随机接口等概率一方选择和明确基数类型的四分一HP载荷",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 120真实公共随机接口等概率一方选择和明确基数类型的四分一HP载荷",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 120真实公共随机接口等概率一方选择和明确基数类型的四分一HP载荷",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 79/120真实来源编译后未知行为显式阻塞且不暗扣HP",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 120真实公共随机接口等概率一方选择和明确基数类型的四分一HP载荷",
+          "assertion": "50%概率对方减血1/4，50%概率自己减血1/4；两侧50%随机选择用公共随机接口具名验证；明确给定基数与类型载荷四分一HP/免疫验证独立执行，不以该条件载荷替代真实基数/类型，自动路径004保护。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-004"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-004"
+  },
+  "4554:move:36850": {
+    "sourceDigest": "6d1c9e93ac0639089c4b697c1cb9b785e21a5217a61e25436a31461f777543df",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36850:0": {
+    "sourceDigest": "d428d38f88fab4d528ee88f43b1230b550def9724a2cfec9425c831c3de1f43e",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031低变化值双方PP实际对齐，达到阈值触发范围待确认",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确两侧阈值条件的异常载荷和免疫",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确对齐值大变化载荷真实增加与减少双方PP，不决定异常阈值",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031小变化下PP保护仅挡削减，低PP仍实际提升",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031低变化值双方PP实际对齐，达到阈值触发范围待确认",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确两侧阈值条件的异常载荷和免疫",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确对齐值大变化载荷真实增加与减少双方PP，不决定异常阈值",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031小变化下PP保护仅挡削减，低PP仍实际提升",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031低变化值双方PP实际对齐，达到阈值触发范围待确认",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确两侧阈值条件的异常载荷和免疫",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确对齐值大变化载荷真实增加与减少双方PP，不决定异常阈值",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031小变化下PP保护仅挡削减，低PP仍实际提升",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031低变化值双方PP实际对齐，达到阈值触发范围待确认",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确两侧阈值条件的异常载荷和免疫",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031明确对齐值大变化载荷真实增加与减少双方PP，不决定异常阈值",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2031小变化下PP保护仅挡削减，低PP仍实际提升",
+          "assertion": "令双方所有技能PP值等于此技能剩余PP值，若对手变化值达到10则令对手失明，若自身变化值达到10则令对手失神；用招扣PP后剩余为对齐值；小于所有可能阈值的共同明确情况真实对齐，明确给定阈值条件的失明/失神载荷独立施加；大变化统计仍005。明确等于允许提升低上限PP；已知PP保护只挡削减，实际PP禁回依既有来源机制。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-005"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-005"
+  },
+  "4554:move:36851": {
+    "sourceDigest": "2d20913b38cf3db4e5f1981e5c966b99135440699718551800c2b483a1ebf59d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36851:0": {
+    "sourceDigest": "f109328e36e0ed3b79bd9966a66f5254495d17e23f2b4b1feadcddb38edbb332",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062无条件无事/单独清回合授圣诰/反转授邪诲、免断失败仍按条件授层",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062双前置均满足真实授两类并湮灭238，当前行动与回复封锁而结束时点待答",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062无条件无事/单独清回合授圣诰/反转授邪诲、免断失败仍按条件授层",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062双前置均满足真实授两类并湮灭238，当前行动与回复封锁而结束时点待答",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062无条件无事/单独清回合授圣诰/反转授邪诲、免断失败仍按条件授层",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062双前置均满足真实授两类并湮灭238，当前行动与回复封锁而结束时点待答",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062无条件无事/单独清回合授圣诰/反转授邪诲、免断失败仍按条件授层",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2062双前置均满足真实授两类并湮灭238，当前行动与回复封锁而结束时点待答",
+          "assertion": "对手处于回合类效果时消除之并附加给对手1层圣诰，对手处于能力提升状态时反转之并附加给对手1层邪诲，二者同时满足或消除、反转其一失败时，若对手同时拥有圣诰、邪诲则触发1次湮灭；有回合/强化前置各自成立即执行消除/反转并授对应标记，不另加成功条件；消除失败亦授圣诰，尾句检查湮灭。普通反转与清回合已测；特殊保护反转公共002，湮灭结束/再次触发001。真实双前置场景已观察238真伤、敌方本次PP未扣/未行动、回复被阻后保留结束时点诊断。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-001",
+      "Q-N50-4511-002"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-001, Q-N50-4511-002"
+  },
+  "4554:move:34136": {
+    "sourceDigest": "22c0915d5f2eabd62e12ca4570330b551c90c2b4db9aca4ed3f83db9c1f8bdf4",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:34136:0": {
+    "sourceDigest": "5308a1d45f790511423e9cf14b7e0331f66e9ed59400f0dce6decc31e6a39232",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "随机附加150~250点固定伤害；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 683随机固定150至250包含上下界、免固失败，不改真实红伤",
+          "assertion": "随机附加150~250点固定伤害；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 683随机固定150至250包含上下界、免固失败，不改真实红伤",
+          "assertion": "随机附加150~250点固定伤害；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 683随机固定150至250包含上下界、免固失败，不改真实红伤",
+          "assertion": "随机附加150~250点固定伤害；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 683随机固定150至250包含上下界、免固失败，不改真实红伤",
+          "assertion": "随机附加150~250点固定伤害；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:28439": {
+    "sourceDigest": "00fb8ea4075c3dd2a7f0562b6fe8f58d7a4c0682892a9cd78e9e800a947dcaa1",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28439:0": {
+    "sourceDigest": "3a102dd6de7156fe879dcc7b4e3c901e333c0f5a2394a43528837460a3ada24c",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "5回合内若自身回合类效果被消除则对手下2回合造成的攻击伤害额外减少50%；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1886五回合清除监听成功后下两回合对手红伤减半、免断失败与自然到期",
+          "assertion": "5回合内若自身回合类效果被消除则对手下2回合造成的攻击伤害额外减少50%；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1886五回合清除监听成功后下两回合对手红伤减半、免断失败与自然到期",
+          "assertion": "5回合内若自身回合类效果被消除则对手下2回合造成的攻击伤害额外减少50%；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1886五回合清除监听成功后下两回合对手红伤减半、免断失败与自然到期",
+          "assertion": "5回合内若自身回合类效果被消除则对手下2回合造成的攻击伤害额外减少50%；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1886五回合清除监听成功后下两回合对手红伤减半、免断失败与自然到期",
+          "assertion": "5回合内若自身回合类效果被消除则对手下2回合造成的攻击伤害额外减少50%；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:36852": {
+    "sourceDigest": "d356aa86c5cae7c8fc208a61ecbb511cd4fea71a0b4df877a868fcefa595c67b",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36852:0": {
+    "sourceDigest": "5b997c68b71dd57f29f30f650c853c84889c9836dc72c697cbd69711a53e4f68",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "恢复自身所有PP值；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 87真实恢复全部PP/满PP边界/技能回复封锁",
+          "assertion": "恢复自身所有PP值；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 87真实恢复全部PP/满PP边界/技能回复封锁",
+          "assertion": "恢复自身所有PP值；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 87真实恢复全部PP/满PP边界/技能回复封锁",
+          "assertion": "恢复自身所有PP值；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 87真实恢复全部PP/满PP边界/技能回复封锁",
+          "assertion": "恢复自身所有PP值；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:36853": {
+    "sourceDigest": "62d5e1aad3b2d26bf1515dd33c381fef309c7b729af298762def14509fe80fc6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36853:0": {
+    "sourceDigest": "790c0d554ee52da88bd7c5b540ec19bd5dbd391891251d09b134079606ef1ffd",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "2回合内每回合使用技能吸取对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 677两回合用招吸强成功/无强化/保护/禁强与到期",
+          "assertion": "2回合内每回合使用技能吸取对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 677两回合用招吸强成功/无强化/保护/禁强与到期",
+          "assertion": "2回合内每回合使用技能吸取对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 677两回合用招吸强成功/无强化/保护/禁强与到期",
+          "assertion": "2回合内每回合使用技能吸取对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 677两回合用招吸强成功/无强化/保护/禁强与到期",
+          "assertion": "2回合内每回合使用技能吸取对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:28440": {
+    "sourceDigest": "3a585d77bfd804139865c88fe7004109c08678f5af75af33cdc3299cbb168366",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28440:0": {
+    "sourceDigest": "a4c3f234940d982a5de9b1e117c539488e58bb70305fe2d1a729f53fda193d3c",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "下3回合自身攻击技能必定致命、必定命中；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 681下三回合必中必暴与到期/属性无暴击",
+          "assertion": "下3回合自身攻击技能必定致命、必定命中；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 681下三回合必中必暴与到期/属性无暴击",
+          "assertion": "下3回合自身攻击技能必定致命、必定命中；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 681下三回合必中必暴与到期/属性无暴击",
+          "assertion": "下3回合自身攻击技能必定致命、必定命中；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 681下三回合必中必暴与到期/属性无暴击",
+          "assertion": "下3回合自身攻击技能必定致命、必定命中；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:36854": {
+    "sourceDigest": "52ba2424924553c21c35e0f97d5e15fc0ec0792586617806543fe736e9961791",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36854:0": {
+    "sourceDigest": "c87ec1f412c88750a97d08c41be084b7aad37c8e0d9ab6598a07c0cfcea01b55",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "恢复自身最大体力的1/1；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 43全部HP回复/上限/禁疗/倍率",
+          "assertion": "恢复自身最大体力的1/1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 43全部HP回复/上限/禁疗/倍率",
+          "assertion": "恢复自身最大体力的1/1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 43全部HP回复/上限/禁疗/倍率",
+          "assertion": "恢复自身最大体力的1/1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 43全部HP回复/上限/禁疗/倍率",
+          "assertion": "恢复自身最大体力的1/1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:28441": {
+    "sourceDigest": "e1b7ecec51a2658f1fc2611165ada24f0a02b824eebcd9807cfce66f02bfd03f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28441:0": {
+    "sourceDigest": "caac1c9d86a03cfadb80a8301013a1cee171f578a91761b3218d994ae3f65b08",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为圣谕形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28441:1": {
+    "sourceDigest": "6d3e3c6f5eea22bf3f4beb1f8c304ac6db3a9776936f74dbdca0d9b9d293e3d6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059两次异常免疫成功各吸取200理论回复、消费与第三次正常异常",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059免固/禁疗不改变另一半，其他次数与其他免疫共存明确待确认",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059后授真实1440混源次数在施加异常前保护不静默消费",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059真实holy授次数不阻塞，切evil后独立消费；holy实际免疫冲突保护",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059专用1757队列共存与928同值覆盖在后授前诊断，非授予条件不误阻",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059两次异常免疫成功各吸取200理论回复、消费与第三次正常异常",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059免固/禁疗不改变另一半，其他次数与其他免疫共存明确待确认",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059后授真实1440混源次数在施加异常前保护不静默消费",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059真实holy授次数不阻塞，切evil后独立消费；holy实际免疫冲突保护",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059专用1757队列共存与928同值覆盖在后授前诊断，非授予条件不误阻",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059两次异常免疫成功各吸取200理论回复、消费与第三次正常异常",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059免固/禁疗不改变另一半，其他次数与其他免疫共存明确待确认",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059后授真实1440混源次数在施加异常前保护不静默消费",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059真实holy授次数不阻塞，切evil后独立消费；holy实际免疫冲突保护",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059专用1757队列共存与928同值覆盖在后授前诊断，非授予条件不误阻",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059两次异常免疫成功各吸取200理论回复、消费与第三次正常异常",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059免固/禁疗不改变另一半，其他次数与其他免疫共存明确待确认",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059后授真实1440混源次数在施加异常前保护不静默消费",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059真实holy授次数不阻塞，切evil后独立消费；holy实际免疫冲突保护",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2059专用1757队列共存与928同值覆盖在后授前诊断，非授予条件不误阻",
+          "assertion": "自身免疫下2次受到的异常状态，每次免疫成功吸取对手200点体力；正常次数免疫每成功固定吸取200、理论回复、禁疗/免固与消费已测；holy可正常授次数再切evil独立消费。其他永久/回合免疫实际参与时及其它来源混入公共006；新队列与1757专用向量共存、928同值覆盖在后授入口保护，无新marker旧路径原样。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4511-006"
+    ],
+    "pendingSingleBehavior": "Q-N50-4511-006"
+  },
+  "4554:skill:28441:2": {
+    "sourceDigest": "3b6a5215f90955127a4f7755c5764a444af186107b5dc76d3906674849ac1602",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "100%令对手害怕，未触发则回合结束后消除对手回合类效果；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2068害怕成功无补偿、免控失败才战阶末清回合、免断失败",
+          "assertion": "100%令对手害怕，未触发则回合结束后消除对手回合类效果；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2068害怕成功无补偿、免控失败才战阶末清回合、免断失败",
+          "assertion": "100%令对手害怕，未触发则回合结束后消除对手回合类效果；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2068害怕成功无补偿、免控失败才战阶末清回合、免断失败",
+          "assertion": "100%令对手害怕，未触发则回合结束后消除对手回合类效果；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2068害怕成功无补偿、免控失败才战阶末清回合、免断失败",
+          "assertion": "100%令对手害怕，未触发则回合结束后消除对手回合类效果；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28441:3": {
+    "sourceDigest": "a09002cea7b5cbcdf7d27b35fa9fd10064946bd58edf40529a125b3985edef8f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067三回合100闪避自然到期全HP/PP/禁疗、提前清除待确认",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067自然到期技能PP禁回不影响HP回复，原始40参数不截成40点",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067三回合100闪避自然到期全HP/PP/禁疗、提前清除待确认",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067自然到期技能PP禁回不影响HP回复，原始40参数不截成40点",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067三回合100闪避自然到期全HP/PP/禁疗、提前清除待确认",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067自然到期技能PP禁回不影响HP回复，原始40参数不截成40点",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067三回合100闪避自然到期全HP/PP/禁疗、提前清除待确认",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2067自然到期技能PP禁回不影响HP回复，原始40参数不截成40点",
+          "assertion": "3回合内100%闪避对手的攻击，效果结束后恢复自身所有技能PP值与全部体力；自然三回合闪避和全部HP/PP恢复真实实现；API param20/21与实例完整文案证实全部，40不当固定回复点数。状态只保存原40参数，到期执行全量恢复，避免把Infinity经战斗克隆变null。提前清除仍007。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-007"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-007"
+  },
+  "4554:move:36855": {
+    "sourceDigest": "b15261841d48c5deb239f6e334d58ead686f3fa709e93005ddceadf8c1c9336c",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36855:0": {
+    "sourceDigest": "8189258a0fb134031f1714498d3e8e34ae75b6fc0353956f8d05fbdc89d374dc",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "威力根据自身体力变化，当前剩余体力越少则威力越大；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "36855真实基础PP、控制未用/零PP拒绝、速度先制及普通红伤已测试；1444的具体威力增益公式仍明确Q-N50-4554-006待确认，不以基础断言代表公式完成"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "36855真实基础PP、控制未用/零PP拒绝、速度先制及普通红伤已测试；1444的具体威力增益公式仍明确Q-N50-4554-006待确认，不以基础断言代表公式完成"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "36855真实基础PP、控制未用/零PP拒绝、速度先制及普通红伤已测试；1444的具体威力增益公式仍明确Q-N50-4554-006待确认，不以基础断言代表公式完成"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "36855真实基础PP、控制未用/零PP拒绝、速度先制及普通红伤已测试；1444的具体威力增益公式仍明确Q-N50-4554-006待确认，不以基础断言代表公式完成"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-006"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-006"
+  },
+  "4554:move:28442": {
+    "sourceDigest": "25acc21bdfb91b374e18e98879c77f235f72c849da915732bd4f37198370b48f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28442:0": {
+    "sourceDigest": "a27f0ed88970f5e74a99f64ac2d0a403b7f525c891afa9df8ed08f056a75e133",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2063/2064真实形态切换与重复相同形态边界、下次攻击赋予",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554原版1764真实初始化与两形态技能联合，原生命中时序保持待确认",
+          "assertion": "切换为邪魇形态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28442:1": {
+    "sourceDigest": "d6d54ce912bf1fcce4865e50f7ff223bb233bc4fb481b716d6ebff6b3bc4d3f3",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378普通概率成功全2/失败全1加逐回合攻速命、到期",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378全5前置成功倍增受上限补偿、全6和禁强前置失败不补、部分可变成功",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378普通概率成功全2/失败全1加逐回合攻速命、到期",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378全5前置成功倍增受上限补偿、全6和禁强前置失败不补、部分可变成功",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378普通概率成功全2/失败全1加逐回合攻速命、到期",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378全5前置成功倍增受上限补偿、全6和禁强前置失败不补、部分可变成功",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378普通概率成功全2/失败全1加逐回合攻速命、到期",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1378全5前置成功倍增受上限补偿、全6和禁强前置失败不补、部分可变成功",
+          "assertion": "全属性+1，50%概率强化效果翻倍，未触发则3回合内每回合攻击+1，速度+1，命中+1；按2026-10-16全局未触发确认：全+1实际生效前置失败不补偿；其后额外+1倍增概率失败或无实际变化才三回合攻速命+1。普通成功/失败、全5/全6/禁强/部分可变和时效已测，无新增008。"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:28442:2": {
+    "sourceDigest": "515313e2152449968c70de3f82661b53476ae9209629f40d0dca7afd2aeca00f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077用招固定280低半翻倍，免固追加180真与当前形态标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077已激活MISS/整招无效/属性也触发，控制不触发，先击败理论回复保留",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077实际损失180等号无追加、保1仅179触发追加完整真伤与标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077五回合用招吸取到期，技能禁疗不改变实际280固定吸取",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077用招固定280低半翻倍，免固追加180真与当前形态标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077已激活MISS/整招无效/属性也触发，控制不触发，先击败理论回复保留",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077实际损失180等号无追加、保1仅179触发追加完整真伤与标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077五回合用招吸取到期，技能禁疗不改变实际280固定吸取",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077用招固定280低半翻倍，免固追加180真与当前形态标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077已激活MISS/整招无效/属性也触发，控制不触发，先击败理论回复保留",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077实际损失180等号无追加、保1仅179触发追加完整真伤与标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077五回合用招吸取到期，技能禁疗不改变实际280固定吸取",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077用招固定280低半翻倍，免固追加180真与当前形态标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077已激活MISS/整招无效/属性也触发，控制不触发，先击败理论回复保留",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077实际损失180等号无追加、保1仅179触发追加完整真伤与标记",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077五回合用招吸取到期，技能禁疗不改变实际280固定吸取",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "5回合内使用技能吸取对手280点体力，自身体力低于1/2时效果翻倍，吸取后若对手体力减少值低于180则附加180点真实伤害与1层自身所处形态相应的圣诰/邪诲；5回合实际用招固定280，低半严格翻倍；使用标记而非命中载荷许可，MISS/整招无效/属性可触发，控制未用不触发；先击败后仍理论回复。阈值使用drainFixed返回的实际HP损失，免固/保1/179及180/受伤回满净HP正差均测；追加180真+当前形态标记。湮灭后加层容量继承魂印001。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-001"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-001"
+  },
+  "4554:skill:28442:3": {
+    "sourceDigest": "226f2205b1cbb8a6723eb3376123478d90d841a1aa0d821cc9c73364e2169c14",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "下2回合令自身所有技能先制+2；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 843下两回合先制2，到期原速度",
+          "assertion": "下2回合令自身所有技能先制+2；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 843下两回合先制2，到期原速度",
+          "assertion": "下2回合令自身所有技能先制+2；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 843下两回合先制2，到期原速度",
+          "assertion": "下2回合令自身所有技能先制+2；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 843下两回合先制2，到期原速度",
+          "assertion": "下2回合令自身所有技能先制+2；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:move:36856": {
+    "sourceDigest": "55ab152ae49043bcc52a44765ba6924f306cffb39c79a365a2cd5960d5c83bc4",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36856:0": {
+    "sourceDigest": "7f231169a3ce01ea74d7446eae12bfabdbd5e9b15dae219a130b465a05919b59",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "圣谕形态下令对手随机2个技能的PP值归零，邪魇形态下令对手2回合内属性技能无效；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2065圣谕随机两PP零无重复、PP保护；邪魇2回合属性无效与到期",
+          "assertion": "圣谕形态下令对手随机2个技能的PP值归零，邪魇形态下令对手2回合内属性技能无效；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2065圣谕随机两PP零无重复、PP保护；邪魇2回合属性无效与到期",
+          "assertion": "圣谕形态下令对手随机2个技能的PP值归零，邪魇形态下令对手2回合内属性技能无效；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2065圣谕随机两PP零无重复、PP保护；邪魇2回合属性无效与到期",
+          "assertion": "圣谕形态下令对手随机2个技能的PP值归零，邪魇形态下令对手2回合内属性技能无效；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2065圣谕随机两PP零无重复、PP保护；邪魇2回合属性无效与到期",
+          "assertion": "圣谕形态下令对手随机2个技能的PP值归零，邪魇形态下令对手2回合内属性技能无效；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36856:1": {
+    "sourceDigest": "8ef2f4a789833238b612ec419b91f37d43797933af3b1f82abc626e6e649e80b",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "解除自身的能力下降状态；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "解除自身的能力下降状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "解除自身的能力下降状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "解除自身的能力下降状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "解除自身的能力下降状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36856:2": {
+    "sourceDigest": "9c91eac8844e1dce14c1291e7a1fb5eec8c69ffeda191fe621c72ae01c5e510f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "消除对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "消除对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "消除对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "消除对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 3/33真实清弱与消强，无条件/保护失败",
+          "assertion": "消除对手能力提升状态；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36856:3": {
+    "sourceDigest": "1be2153f6c144a6a0237625642959c4c0cb3c813b10115c28545c26ac4adc5da",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2078固定280吸取理论回复，实际HP损失低180才相反标记/180等号不授",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2078固定280吸取理论回复，实际HP损失低180才相反标记/180等号不授",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2078固定280吸取理论回复，实际HP损失低180才相反标记/180等号不授",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2078固定280吸取理论回复，实际HP损失低180才相反标记/180等号不授",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2077/2078按实际HP损失280而非受伤立即回复后的净差判断180阈值",
+          "assertion": "吸取对手280点体力，吸取后若对手体力减少值低于180则为对手附加1层自身所处形态相反的圣诰/邪诲；固定吸取280理论回复，按独立实际HP损失<180授相反形态一层；等号不授，免固/禁疗/保1/立即回复不误判已测；湮灭后加层容量继承001。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-001"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-001"
+  },
+  "4554:move:36857": {
+    "sourceDigest": "2ab694d746ae3ddc8e9bd2222b5fda420d882dbbeda64356fd8835d7f5186459",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部17招真实基础PP/控制拒绝/零PP拒绝/先制高低速度/红伤",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部真实原生命中/失明耗PP/必中/自然暴击基础",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554全部无独立新问题的真实技能合并执行及原版魂印初始化",
+          "assertion": "真实来源基础PP、控制未用/零PP拒绝、速度先制、原生命中/必中、暴击与红伤；已确定实例组合"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36857:0": {
+    "sourceDigest": "19f35eca310e5d2784d94c0be02f4552121f46e19eccef0e76de59b19fca568e",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "50%使对手全属性-1，若先出手则100%使对手全属性-1；成功、失败、边界和交互状态变化见逐项具名断言",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 857先手100弱化后手50概率、免弱与负六边界",
+          "assertion": "50%使对手全属性-1，若先出手则100%使对手全属性-1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 857先手100弱化后手50概率、免弱与负六边界",
+          "assertion": "50%使对手全属性-1，若先出手则100%使对手全属性-1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 857先手100弱化后手50概率、免弱与负六边界",
+          "assertion": "50%使对手全属性-1，若先出手则100%使对手全属性-1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 857先手100弱化后手50概率、免弱与负六边界",
+          "assertion": "50%使对手全属性-1，若先出手则100%使对手全属性-1；成功、失败、边界和交互状态变化见逐项具名断言"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36857:1": {
+    "sourceDigest": "741032209725ad61494f4af44adfe3735c0f626f64c5e3e94e95892b64871935",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725实际上回合完整攻击伤害反馈、后手1.5/当回合不混入/免粉",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725上回合完整红伤不因保1实际HP损失零截断",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725实际上回合完整攻击伤害反馈、后手1.5/当回合不混入/免粉",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725上回合完整红伤不因保1实际HP损失零截断",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725实际上回合完整攻击伤害反馈、后手1.5/当回合不混入/免粉",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725上回合完整红伤不因保1实际HP损失零截断",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725实际上回合完整攻击伤害反馈、后手1.5/当回合不混入/免粉",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1725上回合完整红伤不因保1实际HP损失零截断",
+          "assertion": "附加对手上回合造成攻击伤害100%的百分比伤害，后出手时效果提升50%；上一回合damageEvents的攻击类型且来源为对手之完整结算总量；当前回合不混入，后手1.5，数字先手side=0正确比较；保1实际HP损失零仍反馈完整值。"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36857:2": {
+    "sourceDigest": "7c98c7a1536d8b43b90177f6d125409dd0b73a1cd6d62a6abed80d860b353272",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066无标记/只有一类不湮灭，缺两类不虚构伤害",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066明确已有两类各两层时先执行一次真实238、第二次分支明确诊断",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066无标记/只有一类不湮灭，缺两类不虚构伤害",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066明确已有两类各两层时先执行一次真实238、第二次分支明确诊断",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066无标记/只有一类不湮灭，缺两类不虚构伤害",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066明确已有两类各两层时先执行一次真实238、第二次分支明确诊断",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066无标记/只有一类不湮灭，缺两类不虚构伤害",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 2066明确已有两类各两层时先执行一次真实238、第二次分支明确诊断",
+          "assertion": "尽可能触发湮灭直至对手的圣诰、邪诲其中之一消失；缺类不触发；明确前提载荷已真实执行首次238与单层一次响应，第二次/结束减层001，不用qualifiedAnnihilate替真实技能选择结束时点。for上限真实参数3以最大三层限制防死循环；任何未知由能力显式诊断。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4554-001"
+    ],
+    "pendingSingleBehavior": "Q-N50-4554-001"
+  },
+  "4554:skill:36857:3": {
+    "sourceDigest": "199bf7605f78c2f51611407f5afb6baf958eae395bbbc6b3efafa031268ff7c2",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "state-tested-awaiting-batch-regression",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833按既有明确确认战阶末才判定未击败，致死保1和理论回复",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833禁疗与粉免分别保留另一半，仍按战阶末理论3000",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833按既有明确确认战阶末才判定未击败，致死保1和理论回复",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833禁疗与粉免分别保留另一半，仍按战阶末理论3000",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833按既有明确确认战阶末才判定未击败，致死保1和理论回复",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833禁疗与粉免分别保留另一半，仍按战阶末理论3000",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833按既有明确确认战阶末才判定未击败，致死保1和理论回复",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 833禁疗与粉免分别保留另一半，仍按战阶末理论3000",
+          "assertion": "当回合若未击败对手则吸取对手最大体力的1/3；复用research/4373-user-confirmed-rules.json Q-N20-4373-004同效果833/d68ad255原答：战斗阶段结束确认未击败才吸取，833致死残留1。新源真实敌方先回复再吸取、后续死亡不吸、保1/理论回复/粉免/禁疗已测，不把该回答扩大到579/1040。"
+        }
+      ]
+    },
+    "questions": []
+  },
+  "4554:skill:36857:4": {
+    "sourceDigest": "5172d45da464aa0de7250f0fa95c62af1c6aa703d7b2f332cb3e7bf8201d40ff",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-25T11:16:11.711Z",
+    "reviewStatus": "partial-awaiting-user-confirmation",
+    "rationale": "90项真实来源一致性核对；原版单魂印无advance/factor/激活/隐藏伙伴分支；全部独立状态测试生产通过；未知机制保留，不宣称正式验收",
+    "singleBehavior": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128新源未击败正常、击败目标范围待核实",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128给定当前真实目标的下一攻击无效载荷、PP/控制保留/属性不消费",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128精确新实例不误编译/登记多宠，旧3311真实源延期保留",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128新源未击败正常、击败目标范围待核实",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128给定当前真实目标的下一攻击无效载荷、PP/控制保留/属性不消费",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128精确新实例不误编译/登记多宠，旧3311真实源延期保留",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128新源未击败正常、击败目标范围待核实",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128给定当前真实目标的下一攻击无效载荷、PP/控制保留/属性不消费",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128精确新实例不误编译/登记多宠，旧3311真实源延期保留",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128新源未击败正常、击败目标范围待核实",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128给定当前真实目标的下一攻击无效载荷、PP/控制保留/属性不消费",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        },
+        {
+          "file": "tests/next50-4554-skills.test.cjs",
+          "name": "4554 1128精确新实例不误编译/登记多宠，旧3311真实源延期保留",
+          "assertion": "击败对手则令对手下1次使用的攻击技能无效；新的击败后目标范围/接续作用尚未确认，共同归4535-002；给定当前真实目标载荷按下一次使用攻击整招无效，PP消费、控制保留、属性不消费、一次消费后恢复已测。不把旧精确实例的下一只回答扩大，不伪登记纯多宠。"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N50-4535-002"
+    ],
+    "pendingSingleBehavior": "Q-N50-4535-002"
+  }
+}

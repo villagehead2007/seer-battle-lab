@@ -1,0 +1,11 @@
+'use strict';const fs=require('fs'),s=require('./snapshot.json');function insert(file,text){const old=fs.readFileSync(file,'utf8'),i=old.lastIndexOf('});');if(i<0)throw Error('module closure absent');fs.writeFileSync(file,old.slice(0,i)+text+'\n'+old.slice(i));}
+insert('dist/range-souls.js',`
+function resetKata1910(f){const st=f.soulState.kata1910??(f.soulState.kata1910={epoch:0});st.epoch++;st.attackReady=true;st.statusReady=true;}
+registry[1910]={name:'卡塔·武装型',sourceHash:'4b86ec8f',partial:true,unimplemented:['Q-4707-001：首次攻击MISS/零红是否消费首攻增伤','真实再次出场重置依赖换宠，击败当场重置另已实现'],abilities:{reset:resetKata1910},traits:{},hooks:{battleStart(c){resetKata1910(c.a);},beforeUse(c){const st=c.a.soulState.kata1910;st.useEpoch=st.epoch;st.hit=false;st.positive=false;},beforeDamage(c){if(c.a.soulState.kata1910.attackReady)c.modifier*=2;},afterAttack(c){const st=c.a.soulState.kata1910;st.hit=true;st.positive ||= (c.settledDamage??c.dealt)>0;},afterUse(c){if(!c.actualUsed||c.m.kind==='item')return;const st=c.a.soulState.kata1910;if(st.useEpoch!==st.epoch)return;if(c.m.kind==='status'){if(!st.statusReady)return;st.statusReady=false;if(c.t.hp>0&&c.random()<.7)c.ailment(c.t,'瘫痪',c.a);}else if(st.attackReady){if(st.positive){st.attackReady=false;return;}const q=c.a.soulState.firstAttack1910;if(!['use','hit','positive'].includes(q))throw Error('Q-4707-001：首次攻击MISS或零红是否消费待确认');if(q==='use'||q==='hit'&&st.hit)st.attackReady=false;}},opponentDefeated(c){resetKata1910(c.a);}}};
+`);
+const meta=s.effects.find(x=>x.id===1540);insert('dist/range-effects.js',`
+metadata[1540]={info:${JSON.stringify(meta.template)},args_num:2};
+add(1540,'afterHit',(c,p)=>{if(c.a.hp>c.a.stats.maxHp/p[0])healthRules.drainFixed(c,p[1],c.m.name+'条件吸取',c.m.name+'理论回复');},[[1,999],[0,99999]]);
+{const old=registry[999];registry[999]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===37718&&c.m.revision==='seerapi:a0d0993d')c.a.soulState.output9994707={round:c.round,move:c.m.id,bonus:stats.filter(k=>c.a.stages[k]>0).length*p[1]/100};}});}
+`);
+let f=fs.readFileSync('dist/souls.js','utf8');const needle='[1886,1892,1901,1940]';if(!f.includes(needle))throw Error('KO dispatch anchor missing');f=f.replace(needle,'[1886,1892,1901,1940,1910]');fs.writeFileSync('dist/souls.js',f);console.log('4707 source-bound soul and 1540 implemented; 999 scope pending');

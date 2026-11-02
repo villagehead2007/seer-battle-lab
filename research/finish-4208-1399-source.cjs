@@ -1,0 +1,3 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),p='dist/range-effects.js',s=fs.readFileSync(p,'utf8'),at=s.lastIndexOf('\n});');assert.ok(!s.includes('1399Sleep4208'));const code=`
+{const old=registry[1399];registry[1399]=Object.freeze({...old,validate(p,m,i){if(p[0]===8){if(m?.id===35012&&m.hash==='966ea65a'&&i===1&&JSON.stringify(p)==='[8,1]')return;throw Error('1399Sleep4208：睡眠参数仅核实当前真实实例');}old.validate(p,m,i);},execute(c,p){if(p[0]!==8)return old.execute(c,p);if(c.clear(c.t)&&!c.ailment(c.t,'睡眠',c.a))c.a.counts.immune=(c.a.counts.immune??0)+p[1];}});}
+`;fs.writeFileSync(p,s.slice(0,at)+code+s.slice(at));

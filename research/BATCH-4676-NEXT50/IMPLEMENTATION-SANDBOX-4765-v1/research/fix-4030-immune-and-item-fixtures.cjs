@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4030-partial.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("timer(s,1,'免固伤')","s.fighters[1].soulId=622").replace("o=turn(o,900031,'potion:hp')","o=E.resolveTurn(o,[key(900031),'potion:hp'])");fs.writeFileSync(p,s);

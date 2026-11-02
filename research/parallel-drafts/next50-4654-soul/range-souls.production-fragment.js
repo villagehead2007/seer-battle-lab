@@ -1,0 +1,18 @@
+
+(()=>{
+'use strict';
+const focus1856=f=>f.soulState.tideFocus1856?.sourceHash==='a7d6d9a0'?f.soulState.tideFocus1856:null;
+function grant1856(c,target=c.t){if(focus1856(target)){c.timed(target,'技能命中效果失效',1,{});return{added:false,invalid:true};}target.soulState.tideFocus1856={sourceHash:'a7d6d9a0',sourceSide:c.a.side,round:c.round};return{added:true,invalid:false};}
+function consumed1856(c){if(!focus1856(c.t)||!c.crit)return;let consume=c.settledDamage>0,policy=c.a.soulState.qualifiedTideZeroCrit1856;if(!consume){if(policy==='consume')consume=true;else if(policy!=='retain'){const e=Error('Q-N50-4618-002：浪潮聚焦受到致命一击但完整结算0的消耗待确认');e.tideZeroCrit1856={round:c.round,move:c.m.id,settledDamage:c.settledDamage,hpLoss:c.hpLoss,hp:c.t.hp,pp:c.a.pp[c.m.id],critical:c.crit,mark:{...focus1856(c.t)}};throw e;}}if(consume)delete c.t.soulState.tideFocus1856;(c.a.soulState.tideConsumeEvents1856??=[]).push({round:c.round,move:c.m.id,settledDamage:c.settledDamage,hpLoss:c.hpLoss,consumed:consume,policy:policy??'positive-common'});}
+function absorb1856(c){const candidates=c.t.moves.map(key=>({key,power:c.moveDefinition(key).power,pp:c.t.pp[key]})),max=Math.max(...candidates.map(x=>x.power)),top=candidates.filter(x=>x.power===max),policy=c.a.soulState.qualifiedTideHighest1856;let selected=top;
+ if(top.length>1){if(policy==='first')selected=[top[0]];else if(policy==='last')selected=[top.at(-1)];else if(policy!=='all'){const e=Error('Q-N50-4654-001：最高威力技能并列时吸取PP目标选择待确认');e.tideHighest1856={round:c.round,move:c.m.id,candidates:top.map(x=>({...x})),ownPP:c.a.pp[c.m.id],enemyPP:{...c.t.pp}};throw e;}}
+ const results=selected.map(x=>c.absorbSelectedPP1856(x.key));(c.a.soulState.tidePPEvents1856??=[]).push({round:c.round,move:c.m.id,highestPower:max,policy:policy??'unique',results});return results;
+}
+registry[1856]={name:'鲸沫',sourceHash:'a7d6d9a0',partial:true,unimplemented:['Q-N50-4654-001：最高威力并列PP目标','Q-N50-4618-002：0结算致命一击的聚焦消耗'],deferred:['真实换宠再次登场时重施浪潮/既有浪潮改封命中；浪潮下场保留与跨出场目标，当前初次登场及被击败均已实现'],traits:{skillPriority:f=>f.soulState.tidePriority1856===f.soulState.calculationRound?1:0},abilities:{grantFocus:grant1856,hasFocus:(c,target=c.t)=>!!focus1856(target),receivedCritical:consumed1856,forceCritical(c){if(focus1856(c.t)&&(c.isWhale1856(c.a)||c.typeEffectiveness(c.a.type,c.t.type)>1))c.forceCrit=true;}},hooks:{
+ battleStart:grant1856,
+ death:grant1856,
+ afterAttack(c){c.a.soulState.tideLastAttack1856={round:c.round,move:c.m.id,use:c.effectUseCount(),crit:!!c.crit};},
+ afterUse(c){if(c.m.kind==='item')return;const last=c.a.soulState.tideLastAttack1856,critical=last?.round===c.round&&last.move===c.m.id&&last.use===c.effectUseCount()&&last.crit;if(critical){absorb1856(c);return;}const nominal=c.t.stats.maxHp/3,loss=c.hurt(c.t,nominal,'鲸沫非致命最大体力吸取','percent'),healed=c.heal(c.a,nominal,'鲸沫非致命理论吸取回复');c.a.soulState.tidePriority1856=c.round+1;(c.a.soulState.tideDrainEvents1856??=[]).push({round:c.round,move:c.m.id,nominal,loss,healed,nextPriority:c.round+1});}
+}};
+
+})();

@@ -1,0 +1,150 @@
+{
+  "effects": [
+    {
+      "id": 870,
+      "template": "吸取对手{0}点体力",
+      "fn": "(c,p)=>healthRules.drainFixed(c,p[0],c.m.name,c.m.name)"
+    },
+    {
+      "id": 894,
+      "template": "吸取对手{0}点体力，体力低于对手时吸取效果翻倍",
+      "fn": "(c,p)=>{const n=p[0]*(c.a.hp<c.t.hp?2:1);healthRules.drainFixed(c,n,c.m.name,c.m.name);}"
+    },
+    {
+      "id": 929,
+      "template": "反弹{0}倍的伤害给对手并使自身恢复等量体力",
+      "fn": "(c,p)=>healthRules.drainFixed(c,((c.a.roundSettledAttackDamage??c.a.roundAttackDamage)??0)*p[0],c.m.name,c.m.name)"
+    },
+    {
+      "id": 955,
+      "template": "反转自身能力下降状态，反转成功则吸取对手{0}点体力",
+      "fn": "(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.a.stages[k]*=-1;changed=true;}if(changed&&c.t.hp>0)healthRules.drainFixed(c,p[0],c.m.name+'反转吸取',c.m.name+'反转吸取');}"
+    },
+    {
+      "id": 1022,
+      "template": "吸取对手能力提升状态，吸取成功则吸取对手{0}点体力",
+      "fn": "(c,p)=>{if(!Object.values(c.t.stages).some(x=>x>0)||c.on(c.a,'禁强化'))return;c.steal(c.a,c.t,'技能');healthRules.drainFixed(c,p[0],c.m.name+'吸取',c.m.name+'吸取');}"
+    },
+    {
+      "id": 1144,
+      "template": "附加{0}~{1}点固定伤害并恢复等量体力",
+      "fn": "(c,p)=>{const n=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));healthRules.drainFixed(c,n,c.m.name+'吸取',c.m.name+'吸取');}"
+    },
+    {
+      "id": 1148,
+      "template": "随机吸取对手{0}-{1}点体力",
+      "fn": "(c,p)=>{if(c.t.hp<=0)return;const n=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));healthRules.drainFixed(c,n,c.m.name+'随机吸取',c.m.name+'随机吸取');}"
+    },
+    {
+      "id": 1189,
+      "template": "后出手时吸取对手{0}点体力",
+      "fn": "(c,p)=>{if(c.a.side!==c.first&&c.t.hp>0)healthRules.drainFixed(c,p[0],c.m.name+'后手吸取',c.m.name+'后手吸取');}"
+    },
+    {
+      "id": 1241,
+      "template": "吸取对手{0}点固定体力，自身体力低于1/{1}时吸取效果翻倍",
+      "fn": "(c,p)=>{if(c.t.hp>0){healthRules.drainFixed(c,p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.name+'定额吸取',c.m.name+'定额吸取');}}"
+    },
+    {
+      "id": 1354,
+      "template": "吸取对手能力提升状态，吸取成功则吸取对手{0}点体力，若对手不处于能力提升状态则令对手全属性-{1}",
+      "fn": "(c,p)=>{const pos=Object.keys(c.t.stages).filter(k=>c.t.stages[k]>0);if(!pos.length){c.stage(c.t,-p[1]);return;}c.steal(c.a,c.t,'技能');if(pos.some(k=>c.t.stages[k]===0)){healthRules.drainFixed(c,p[0],c.m.name+'吸取');}}"
+    },
+    {
+      "id": 1362,
+      "template": "先出手时吸取对手{0}点体力",
+      "fn": "(c,p)=>{if(c.a.side===c.first&&c.t.hp>0)healthRules.drainFixed(c,p[0],c.m.name+'先手吸取',c.m.name+'先手吸取');}"
+    },
+    {
+      "id": 1450,
+      "template": "吸取对手{0}点体力，若对手任意1项技能PP值小于{1}点则吸取效果翻倍",
+      "fn": "(c,p)=>{const amount=p[0]*(c.t.moves.some(id=>c.t.pp[id]<p[1])?2:1);healthRules.drainFixed(c,amount,c.m.name+'吸取',c.m.name+'吸取');}"
+    }
+  ],
+  "souls": [
+    {
+      "id": 375,
+      "name": "夜",
+      "hooks": {
+        "roundStart": "roundStart(c){c.a.soulState.fixedTriggered=false;}",
+        "afterAttack": "afterAttack(c){const n=positive(c.a);if(n&&c.t.hp>0){c.a.soulState.fixedTriggered=true;c.hurt(c.t,50*n,'千夜魂印追加','fixed');}}",
+        "roundEnd": "roundEnd(c){if(!c.a.soulState.fixedTriggered&&c.a.hp>0&&c.t.hp>0)healthRules.drainFixed(c,200,'千夜魂印吸取','千夜魂印吸取');}"
+      }
+    },
+    {
+      "id": 421,
+      "name": "圣甲瞳",
+      "hooks": {
+        "roundEnd": "roundEnd(c){c.stage(c.a,1,['spa','spe']);if(c.a.hp>0&&c.t.hp>0)healthRules.drainFixed(c,150,'圣甲缪斯吸取','圣甲缪斯吸取');}"
+      }
+    },
+    {
+      "id": 635,
+      "name": "万世北溟",
+      "hooks": {
+        "afterUse": "afterUse(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.side===c.first){const pool=c.t.moves.filter(id=>c.t.pp[id]>0);if(pool.length){const id=pool[Math.floor(c.random()*pool.length)];c.t.pp[id]=0;c.emit(c.name(c.a)+' 玄武魂印：对手随机技能 PP 归零。');}}else{const n=(c.effective(c.a,'def')+c.effective(c.a,'spd'))*.25;healthRules.drainFixed(c,n,'玄武双防吸取','玄武双防吸取');}}"
+      }
+    },
+    {
+      "id": 750,
+      "name": "天父·奥丁",
+      "hooks": {
+        "roundStart": "roundStart(c){const s=c.a.soulState;s.currentRound=c.round;if(c.random()<.5){const pool=['烧伤','冻伤','中毒','麻痹','害怕','睡眠'];c.ailment(c.t,pool[Math.floor(c.random()*pool.length)],c.a);}else s.odinFailedRound=c.round;}",
+        "afterAttack": "afterAttack(c){if(c.dealt<=0||c.t.hp<=0)return;const count=Object.values(c.t.ailments).filter(end=>end>=c.round).length;if(count)healthRules.drainFixed(c,150*count,'奥丁魂印吸取','奥丁魂印吸取');}",
+        "roundEnd": "roundEnd(c){if(c.a.hp<=0)return;const s=c.a.soulState;if(s.odinFailedRound===c.round){c.heal(c.a,c.a.stats.maxHp/3,'奥丁魂印回复');s.odinPriorityRound=c.round+1;}if(c.t.hp>0&&c.a.hp>c.t.hp)for(const k of Object.keys(c.t.ailments))if(c.t.ailments[k]>=c.round)c.t.ailments[k]=c.round+3;}"
+      }
+    },
+    {
+      "id": 752,
+      "name": "艾欧丽娅",
+      "hooks": {
+        "beforeUse": "beforeUse(c){c.a.soulState.aioLow=c.a.hp<c.t.hp;}",
+        "beforeDamage": "beforeDamage(c){c.modifier*=1+bonus+(c.a.soulState.aioLow?.25:0);c.ignoreDefenseBoost=true;}",
+        "afterAttack": "afterAttack(c){if((c.settledDamage??c.dealt)>0&&c.t.hp>0&&c.random()<chance)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'艾欧丽娅魂印追加','percent');}",
+        "afterUse": "afterUse(c){if(c.a.soulState.aioLow&&c.t.hp>0){healthRules.drainFixed(c,200,'艾欧丽娅魂印吸取','艾欧丽娅魂印吸取');}delete c.a.soulState.aioLow;}"
+      }
+    },
+    {
+      "id": 804,
+      "name": "梦天睡神·修普诺斯",
+      "hooks": {
+        "roundStart": "roundStart(c){const s=c.a.soulState;s.currentRound=c.round;s.hypnosLowRound=c.a.hp<c.a.stats.maxHp/3?c.round:0;s.hypnosReductionRound=c.a.hp>c.a.stats.maxHp*threshold?c.round:0;}",
+        "roundEnd": "roundEnd(c){if(c.a.hp<=0||c.a.soulState.hypnosLowRound!==c.round)return;if(drain){healthRules.drainFixed(c,healAmount,'修普诺斯魂印吸取','修普诺斯魂印吸取');}else c.heal(c.a,healAmount,'修普诺斯魂印回复');}"
+      }
+    },
+    {
+      "id": 920,
+      "name": "跃迁狂剑·兰斯洛特·原魂印",
+      "hooks": {
+        "criticalIncoming": "criticalIncoming(c){c.hurt(c.t,c.amount,'兰斯原魂印暴击反弹','fixed');if(c.t.hp>0)healthRules.drainFixed(c,300,'兰斯原魂印吸取','兰斯原魂印吸取');c.timed(c.a,'id984',1,{amount:3},c.round+1);}",
+        "boostRemoved": "boostRemoved(c){if(c.method==='steal')return;if(c.t.hp>0&&!c.ailment(c.t,'瘫痪',c.a)){c.clear(c.t);c.timed(c.t,'必定暴击',1,{},c.round+1);}}"
+      }
+    },
+    {
+      "id": 1017,
+      "name": "玛洛迪斯",
+      "hooks": {
+        "death": "death(c){if(c.a.soulState.rebirthAttempted)return;c.a.soulState.rebirthAttempted=true;if(c.random()<.5){c.a.hp=c.a.stats.maxHp;c.restorePP(c.a,Infinity);c.clearBoost(c.t);c.clear(c.t);}else c.timed(c.t,'statusBlock',3,{});}",
+        "afterAttack": "afterAttack(c){if(c.a.hp<=0)return;if((c.settledDamage??c.dealt)>300&&c.t.hp>0){healthRules.drainFixed(c,300,'玛洛迪斯魂印吸取','玛洛迪斯魂印吸取');}else if((c.settledDamage??c.dealt)<300)c.timed(c.a,'必定暴击',1,{},c.round+1);}"
+      }
+    },
+    {
+      "id": 1209,
+      "name": "艾欧丽娅 · 羁绊强化",
+      "hooks": {
+        "beforeUse": "beforeUse(c){c.a.soulState.aioLow=c.a.hp<c.t.hp;}",
+        "beforeDamage": "beforeDamage(c){c.modifier*=1+bonus+(c.a.soulState.aioLow?.25:0);c.ignoreDefenseBoost=true;}",
+        "afterAttack": "afterAttack(c){if((c.settledDamage??c.dealt)>0&&c.t.hp>0&&c.random()<chance)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'艾欧丽娅魂印追加','percent');}",
+        "afterUse": "afterUse(c){if(c.a.soulState.aioLow&&c.t.hp>0){healthRules.drainFixed(c,200,'艾欧丽娅魂印吸取','艾欧丽娅魂印吸取');}delete c.a.soulState.aioLow;}"
+      }
+    },
+    {
+      "id": 1736,
+      "name": "梦天睡神·修普诺斯·强化",
+      "hooks": {
+        "roundStart": "roundStart(c){const s=c.a.soulState;s.currentRound=c.round;s.hypnosLowRound=c.a.hp<c.a.stats.maxHp/3?c.round:0;s.hypnosReductionRound=c.a.hp>c.a.stats.maxHp*threshold?c.round:0;}",
+        "roundEnd": "roundEnd(c){if(c.a.hp<=0||c.a.soulState.hypnosLowRound!==c.round)return;if(drain){healthRules.drainFixed(c,healAmount,'修普诺斯魂印吸取','修普诺斯魂印吸取');}else c.heal(c.a,healAmount,'修普诺斯魂印回复');}"
+      }
+    }
+  ]
+}

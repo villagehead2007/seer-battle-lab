@@ -1,0 +1,961 @@
+
+=== round 1 attempt 1 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12eb3-d29e-75d0-9db4-24ff025282d7
+--------
+user
+You are continuing work in the seer-battle-lab project. Before changing anything,
+read and obey the complete AGENTS.md and PROGRESS.md included below, and inspect
+the current working tree. Work on the next incomplete batch in seer_id.txt order.
+
+For this round:
+1. Resolve the current blocking or pending implementation first, then continue
+   with the next appropriate species batch (ten species per project rules).
+2. Use only real SeerAPI/BWIKI data already available or successfully queried;
+   never invent names, parameters, soulmarks, or effects.
+3. Implement real battle behavior for every claimed effect and write meaningful
+   state-change tests covering trigger, failure, boundary, and interaction cases.
+   4. Run the relevant deployed and rule tests, then the required batch regression.
+   Preserve existing assertions and report genuine failures and their scope.
+   The automation driver will run the independent npm test command after this
+   round and use its process exit code as the test result.
+5. Update PROGRESS.md with accurate completed, partial, pending, skipped, and
+   blocked states. Data fetching or a smoke test alone is not completion.
+6. Do not weaken tests, silently ignore unknown effects, or modify AGENTS.md,
+   project policy, or unrelated game logic. Do not execute generated scripts.
+   The authoritative implementation files are under dist/ (engine, souls,
+   registries, and range rules); inspect those files and do not count research
+   or data-only changes as implementation progress.
+
+Make concrete code/test progress when evidence permits; if blocked by network or
+missing source data, record the exact reason and continue with independent work.
+Do not wait for a user response.
+
+The current project instructions and progress are appended below. Re-read them
+as authoritative context for this round.
+
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END PROJECT CONTEXT -----
+
+codex
+我会先核对当前工作树、`PROGRESS.md` 与 3575 的现状，优先处理仍阻塞的真实资料/实现缺口；随后按顺序推进可验证的下一只，并运行部署、规则和整批回归测试，最后如实更新进度。
+exec
+/bin/bash -lc "git status --short && printf '%s\\n' '--- files ---' && rg --files | head -80 && printf '%s\\n' '--- progress tail ---' && tail -80 PROGRESS.md && printf '%s\\n' '--- seer ids ---' && cat seer_id.txt | tail -40" in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ exited 128 in 0ms:
+fatal: not a git repository (or any parent up to mount point /mnt)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+
+ERROR: Reconnecting... 2/5
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+tokens used
+4,917
+
+=== round 1 attempt 2 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12eb5-4bce-76b2-8c0e-2f903d2e8fd6
+--------
+user
+You are continuing work in the seer-battle-lab project. Before changing anything,
+read and obey the complete AGENTS.md and PROGRESS.md included below, and inspect
+the current working tree. Work on the next incomplete batch in seer_id.txt order.
+
+For this round:
+1. Resolve the current blocking or pending implementation first, then continue
+   with the next appropriate species batch (ten species per project rules).
+2. Use only real SeerAPI/BWIKI data already available or successfully queried;
+   never invent names, parameters, soulmarks, or effects.
+3. Implement real battle behavior for every claimed effect and write meaningful
+   state-change tests covering trigger, failure, boundary, and interaction cases.
+   4. Run the relevant deployed and rule tests, then the required batch regression.
+   Preserve existing assertions and report genuine failures and their scope.
+   The automation driver will run the independent npm test command after this
+   round and use its process exit code as the test result.
+5. Update PROGRESS.md with accurate completed, partial, pending, skipped, and
+   blocked states. Data fetching or a smoke test alone is not completion.
+6. Do not weaken tests, silently ignore unknown effects, or modify AGENTS.md,
+   project policy, or unrelated game logic. Do not execute generated scripts.
+   The authoritative implementation files are under dist/ (engine, souls,
+   registries, and range rules); inspect those files and do not count research
+   or data-only changes as implementation progress.
+
+Make concrete code/test progress when evidence permits; if blocked by network or
+missing source data, record the exact reason and continue with independent work.
+Do not wait for a user response.
+
+The current project instructions and progress are appended below. Re-read them
+as authoritative context for this round.
+
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END PROJECT CONTEXT -----
+
+----- LATEST CONTEXT BEFORE NETWORK RETRY -----
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END LATEST CONTEXT -----
+
+2026-10-12T06:03:20.777832Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out
+codex
+我会先核对当前工作树、`AGENTS.md`/`PROGRESS.md` 与 3575 的现状，优先处理仍可由本地真实资料确认的阻塞项；若网络资料仍不可用，我会保留阻塞证据并继续做不依赖网络的真实实现与测试。
+exec
+/bin/bash -lc "pwd && git status --short && printf '%s\\n' '--- files ---' && rg --files -g 'AGENTS.md' -g 'PROGRESS.md' -g 'seer_id.txt' -g 'data/species/3575.json' -g 'tests/deployed-3575.test.cjs' -g 'dist/*.js' | head -80 && printf '%s\\n' '--- progress tail ---' && tail -80 PROGRESS.md" in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ exited 128 in 0ms:
+/mnt/c/Users/villa/Desktop/seer-battle-lab
+fatal: not a git repository (or any parent up to mount point /mnt)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+
+ERROR: Reconnecting... 2/5
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+tokens used
+12,027
+
+=== round 1 attempt 3 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12eb7-5aad-76a2-8871-b6f132208887
+--------
+user
+You are continuing work in the seer-battle-lab project. Before changing anything,
+read and obey the complete AGENTS.md and PROGRESS.md included below, and inspect
+the current working tree. Work on the next incomplete batch in seer_id.txt order.
+
+For this round:
+1. Resolve the current blocking or pending implementation first, then continue
+   with the next appropriate species batch (ten species per project rules).
+2. Use only real SeerAPI/BWIKI data already available or successfully queried;
+   never invent names, parameters, soulmarks, or effects.
+3. Implement real battle behavior for every claimed effect and write meaningful
+   state-change tests covering trigger, failure, boundary, and interaction cases.
+   4. Run the relevant deployed and rule tests, then the required batch regression.
+   Preserve existing assertions and report genuine failures and their scope.
+   The automation driver will run the independent npm test command after this
+   round and use its process exit code as the test result.
+5. Update PROGRESS.md with accurate completed, partial, pending, skipped, and
+   blocked states. Data fetching or a smoke test alone is not completion.
+6. Do not weaken tests, silently ignore unknown effects, or modify AGENTS.md,
+   project policy, or unrelated game logic. Do not execute generated scripts.
+   The authoritative implementation files are under dist/ (engine, souls,
+   registries, and range rules); inspect those files and do not count research
+   or data-only changes as implementation progress.
+
+Make concrete code/test progress when evidence permits; if blocked by network or
+missing source data, record the exact reason and continue with independent work.
+Do not wait for a user response.
+
+The current project instructions and progress are appended below. Re-read them
+as authoritative context for this round.
+
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END PROJECT CONTEXT -----
+
+----- LATEST CONTEXT BEFORE NETWORK RETRY -----
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END LATEST CONTEXT -----
+
+----- LATEST CONTEXT BEFORE NETWORK RETRY -----
+----- AGENTS.md -----
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+----- PROGRESS.md -----
+# PROGRESS.md
+
+## 当前状态
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现/阻塞，未标记完成。`local-species.cjs` 当前仍报告真实资料适配缺口：属性组合 `邪灵龙` 的 SeerAPI 映射未保存；效果 642、702、918、1329、731、1864、1331 尚无经过来源核对的执行规则；效果 968 与 1030 的参数范围校验与该快照真实参数不一致；配招还缺少恰好一个第五技能。由于这些词条的完整行为或组合属性映射不能凭猜测补齐，本轮保留阻塞状态，下一步继续从 3575 的 SeerAPI/BWIKI 可验证资料处理上述缺口，再进入 3576。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现/阻塞：本轮 SeerAPI 直连返回 `fetch failed`，未能核实并写入 `邪灵龙` 组合属性映射；效果 642、702、918、1329、731、1864、1331 仍无经过来源核对的执行规则，且配招尚缺恰好一个第五技能。未将 3575 标记为完成，下一步仍从这些可验证资料缺口开始。
+----- END LATEST CONTEXT -----
+
+2026-10-12T06:05:35.650324Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out
+ERROR: Reconnecting... 2/5
+2026-10-12T06:05:55.719787Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 3/5
+ERROR: Reconnecting... 4/5
+ERROR: Reconnecting... 5/5
+warning: Falling back from WebSockets to HTTPS transport. unexpected status 503 Service Unavailable: An error occurred while processing your request. You can retry your request, or contact us through our help center at help.openai.com if the error persists.
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.

@@ -1,0 +1,24 @@
+{
+  "userEvidence": "answer-evidence.json",
+  "userTextQ002": "复制是把对手的覆盖给自己，受己方免弱禁强化影响；重置受这些影响；反转和双倍反转受这些影响；触发；重置就是变成0",
+  "primaryAuditorInterpretation": {
+    "source": "本聊天主代理亲读Q4505-002与现有boostRemoved后的审核解释；不是新的用户原话或API资料",
+    "text": "copy +6→+2仍有该项强化，作为等级下降走免弱，不额外触发消强；+6→0/负才触发该项既有boostRemoved，reset/reverse同样按实际成功移除的正级项数，不按未成功请求。",
+    "basis": "现有boosted按正级项、clearBoost实际清0后以已移除项数通知boostRemoved。"
+  },
+  "implementation": {
+    "copy": "覆盖请求值，逐项通过己方免弱/禁强化；真实移除正级才触发既有反制",
+    "reset": "请求变0；强保/负锁及免弱/禁强化阻止对应实际变化；累计实际abs差而非请求量",
+    "reverse": "保留原操作reverse语义，保护/免弱可阻止；本Q4505精确操作传confirmedOperation，仅解除旧pendingReverseQuestion，不清除其它来源历史保护或明确triggerOnReverse:false例外",
+    "positiveRemoval": "前>0且实际后<=0；按项数进入既有boostRemoved，不将6→2当消强",
+    "negativeRemoval": "前<0且实际后>=0，保留真实stageRewriteEvents记录；当前引擎无独立已注册清弱反制处理器，未宣称不存在的反制或未来队伍效果完成",
+    "traceSource": "显式记录操作所属魂印/技能一方，不能把触发opponentAfterUse的使用者误记为重置来源"
+  },
+  "preciseCallers": [
+    "1719/f04d5267 单精灵复制与重置",
+    "28303/3e62739f/i0/1566[3] 的回合末反转",
+    "28305/6a8963df/i0/970[3] 的双倍反转"
+  ],
+  "stateTests": "stage-confirmed-tests.draft.cjs",
+  "formalAcceptance": false
+}

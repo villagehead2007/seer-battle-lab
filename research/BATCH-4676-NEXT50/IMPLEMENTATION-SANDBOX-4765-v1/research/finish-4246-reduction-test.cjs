@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),f='tests/deployed-4246-answers.test.cjs';let t=fs.readFileSync(f,'utf8').replace("for(const state of [s,base]){if(mode==='miss')","for(const state of [s,base]){timer(state,1,'免异常');if(mode==='miss')");fs.writeFileSync(f,t);

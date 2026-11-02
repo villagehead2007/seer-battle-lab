@@ -1,0 +1,47 @@
+[
+  {
+    "file": "tests/next50-4612-skills.test.cjs",
+    "old": "assert.throws(()=>turn(s,920031,920040),/Q-BATCH-004/);",
+    "replacement": "const natural=turn(s,920031,920040);assert.equal(sum(natural,'fixed'),300);"
+  },
+  {
+    "file": "tests/next50-4618-skills.test.cjs",
+    "old": "assert.throws(()=>turn(make(e(1450))),/Q-BATCH-004/);",
+    "replacement": "{const n=turn(make(e(1450),{hp:5000}));assert.equal(sum(n,'fixed'),300);assert.equal(n.fighters[0].hp,5300);}"
+  },
+  {
+    "file": "tests/next50-4618-soul.test.cjs",
+    "old": "test('1824自然未知伤害类型不提前回复，保留真实窥目与明确pending',()=>{const s=make({hp:5000});delete s.fighters[0].soulState.qualifiedGaze1824;let seen;const old=E.SOULS;E.SOULS={...old,run(e,c){try{return old.run(e,c);}catch(err){if(c.a.soulId===1824)seen={hp:c.a.hp,mark:gaze(c.t),pending:c.a.soulState.gazePending1824};throw err;}}};try{assert.throws(()=>E.resolveTurn(s,[key(neutral),key(stat)]),/Q-BATCH-004/);assert.equal(seen.hp,5000);assert.equal(seen.mark,true);assert.equal(seen.pending.at(-1).healExecuted,false);}finally{E.SOULS=old;}});",
+    "replacement": "test('1824真实补源自然固定300吸取且理论回复300，不再需要伤害类型研究输入',()=>{const s=make({hp:5000,enemyType:'普通'});delete s.fighters[0].soulState.qualifiedGaze1824;const o=E.resolveTurn(s,[key(neutral),key(stat)]);assert.equal(gaze(o.fighters[1]),true);assert.equal(dmg(o,'fixed',1),300);assert.equal(o.fighters[0].hp,5300);assert.equal(o.fighters[1].hp,9000-dmg(o,'attack',1)-300);});"
+  },
+  {
+    "file": "tests/next50-4622-skills.test.cjs",
+    "old": "assert.throws(()=>turn(make(e(837))),/Q-BATCH-004/);",
+    "replacement": "{const n=turn(make(e(837),{hp:5000}));assert.equal(sum(n,'fixed'),300);assert.equal(n.fighters[0].hp,5300);}"
+  },
+  {
+    "file": "tests/next50-4622-skills.test.cjs",
+    "old": "const s=turn(make(e(2059)));assert.throws(()=>qualified(s,c=>c.ailment(c.a,'中毒',c.t,false,false,3)),/Q-BATCH-004/);",
+    "replacement": "const s=turn(make(e(2059),{hp:5000})),n=qualified(s,c=>c.ailment(c.a,'中毒',c.t,false,false,3));assert.equal(sum(n,'fixed'),200);assert.equal(n.fighters[0].hp,5200);assert.equal(n.fighters[0].counts.immune,1);"
+  },
+  {
+    "file": "tests/next50-4623-skills.test.cjs",
+    "old": "s=make(e(1659));timer(s,0,'必定暴击');assert.throws(()=>turn(s),/Q-BATCH-004/);",
+    "replacement": "s=make(e(1659),{hp:5000});timer(s,0,'必定暴击');{const n=turn(s),fixed=sum(n,'fixed');assert.ok(fixed>=300&&fixed<=400);assert.equal(n.fighters[0].hp,5000+fixed);}"
+  },
+  {
+    "file": "tests/next50-4627-skills.test.cjs",
+    "old": "assert.throws(()=>turn(make(e(1613))),/Q-BATCH-004/);",
+    "replacement": "{const n=turn(make(e(1613),{hp:5000}));assert.equal(sum(n,'fixed'),450);assert.equal(n.fighters[0].hp,5450);}"
+  },
+  {
+    "file": "tests/next50-4628-skills.test.cjs",
+    "old": "assert.throws(()=>turn(make(e(1842),{naturalType1842:true})),/Q-BATCH-004/);",
+    "replacement": "{const n=turn(make(e(1842),{naturalType1842:true,hp:5000}));assert.equal(sum(n,'fixed'),350);assert.equal(n.fighters[0].hp,5350);}"
+  },
+  {
+    "file": "tests/next50-4632-skills.test.cjs",
+    "old": "s=make(e(2164),{natural2164:true});s.fighters[0].stages.atk=1;assert.throws(()=>turn(s),/Q-BATCH-004/);",
+    "replacement": "s=make(e(2164),{natural2164:true,hp:5000});s.fighters[0].stages.atk=1;{const n=turn(s);assert.equal(sum(n,'fixed'),40);assert.equal(n.fighters[0].hp,5040);}"
+  }
+]

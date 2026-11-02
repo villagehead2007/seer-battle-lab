@@ -1,0 +1,38 @@
+{
+  "preparedAt": "2026-10-27T14:48:26.239Z",
+  "speciesId": 4541,
+  "queueLine": 237,
+  "status": "read-only-preparation-not-implementation-not-accepted",
+  "formalImplementationRequires": "首批10只新冻结正式验收实际通过后才推进",
+  "source": {
+    "provider": "seerapi",
+    "url": "https://api.seerapi.com/v1/pet/4541",
+    "revision": "936d3167",
+    "loadedAt": "2026-10-24T06:29:44.517Z",
+    "soulId": 1751,
+    "soulHash": "db78b900",
+    "moves": 17
+  },
+  "confirmed": {
+    "Q-N50-4541-001": "回合开始",
+    "Q-N50-4541-002": "回合结束；是",
+    "Q-N50-4541-003": "先向下取整到整数百分比",
+    "Q-N50-4541-004": "伤害结算前"
+  },
+  "implementationOutline": [
+    "1751 roundStart在来源护罩快照有效时立即执行既有branch，不再仅挂pending；免异常及敌用攻后降速快照保留。",
+    "1751 afterUse以successful记当回合成功用招，回合结束双方仍存活、未实际击败且敌有负级时执行fear；失败/控制/无PP边界状态测试。",
+    "1751击败免攻迁移已有source ledger：同源刷新，异源独立LIFO，补齐grant同步marker及消费callback；只移除该已绑定魂印的旧46/570混源guard，其他未来来源不擅自放行。",
+    "精确531/36786/ff86c76e index1参数[] 使用floor((280-settledDamage)/2)百分比并限0..100；279为0、277为1、偶数及免疫/免攻/保1边界保留。",
+    "744/36787/96be43d6 index0[300]使用既有beforeDamage快照mota744High作为唯一分支依据，红伤导致跨HP阈值不能倒推改变资格；成功固定附伤仍遵循免固/护盾等公共规则。",
+    "521/18195/fc642ea5 index1[] 和951/36791/224bb94d index0[1]沿公共rewriteStageValues reverse，遵循禁强、免弱、强化保护和反制；951按真实成功转负授异常免疫。",
+    "追加完整17招原魂印合法配招测试，逐项状态测试并更新所有语义审核，保留真实多精灵延期。"
+  ],
+  "testFiles": [
+    "tests/deployed-4541-skills.test.cjs",
+    "tests/deployed-4541-soul.test.cjs",
+    "拟新增tests/deployed-4541.test.cjs"
+  ],
+  "productionFilesChanged": false,
+  "testsRunFor4541": false
+}

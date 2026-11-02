@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('node:fs'),p='tests/deployed-4275-partial.test.cjs';
+let s=fs.readFileSync(p,'utf8');
+if(!fs.existsSync('research/4275-tests-before-answers.txt'))fs.writeFileSync('research/4275-tests-before-answers.txt',s);
+s=s.replace('两种免伤叠存不猜消费优先级','两种免伤按实际获得先后消耗').replace("assert.throws(()=>turn(s,s.auditMoveId,920040),/Q-A60-4114-021/);","o=turn(s,s.auditMoveId,920040);assert.equal(o.fighters[0].counts.attackReflect,0);assert.equal(o.fighters[0].soulState.nextPercentAttackReflect.count,1);assert.ok(sum(o,'true')>0);assert.equal(sum(o,'percent'),0);");
+const start=s.indexOf("test('4275魂印1499普通同值"),end=s.indexOf("test('4275魂印1499界易伤",start);
+if(start<0||end<0)throw Error('missing old shield test');
+s=s.slice(0,start)+`test('4275魂印1499同源200刷新异源叠加，恒PP保护不突破',()=>{const SR=require('../dist/shield-rules.js');for(const n of [0,100,200,600]){const s=make({moveId:10004,index:null},{soul:1499});SR.refresh(s.fighters[0],n,'moirai-heng');SR.refreshBarrier(s.fighters[0],n,'moirai-heng');const o=turn(s,920031);assert.equal(o.fighters[0].suitState.shield,200);assert.equal(o.fighters[0].suitState.barrier,200);}for(const field of ['shield','barrier']){const s=make({moveId:10004,index:null},{soul:1499});s.fighters[0].suitState[field]=100;const o=turn(s,920031);assert.equal(o.fighters[0].suitState[field],300);}let checked=0;for(let i=0;i<20;i++){const c=make({moveId:10004,index:null},{soul:1499,seed:seed(i)});timer(c,1,'PP保护');const z=turn(c,920031);if(z.fighters[0].soulState.moiraiHeng.branch===2){checked++;assert.ok(z.fighters[1].moves.every(k=>z.fighters[1].pp[k]>0));}}assert.ok(checked>0);});\n`+s.slice(end);
+s=s.replace('保护分支待069','强化保护阻止转化且清除不触发消强事件');
+s=s.replace("if(mode==='protect'){timer(s,1,'强化保护');assert.throws(()=>turn(s),/Q-A60-4275-069/);continue;}","if(mode==='protect')timer(s,1,'强化保护');");
+s=s.replace("assert.equal(o.fighters[0].stages.atk,mode==='cap'?6:mode==='kill'?3:0);","assert.equal(o.fighters[0].stages.atk,mode==='cap'?6:mode==='kill'?3:0);assert.equal(o.fighters[1].stages.atk,mode==='survive'||mode==='protect'?3:mode==='negative'?-2:0);");
+s=s.replace("assert.throws(()=>turn(s,s.auditMoveId,920040),/Q-A60-4114-021/);","o=turn(s,s.auditMoveId,920040);assert.equal(o.fighters[0].soulState.nextPercentAttackReflect.count,1);assert.equal(sum(o,'percent'),0);assert.equal(sum(o,'attack',0),0);");
+if(s.includes('assert.throws(()=>turn(s,s.auditMoveId,920040)'))throw Error('old pending assertion remained');
+fs.writeFileSync(p,s);

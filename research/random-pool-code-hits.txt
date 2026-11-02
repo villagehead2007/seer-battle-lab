@@ -1,0 +1,58 @@
+18:metadata[1332]={info:'消除对手回合类效果，消除成功则随机附加{0}种异常状态',args_num:1};
+33:metadata[1114]={info:'消除对手回合类效果，消除成功则令对手随机{0}项技能PP值归零',args_num:1};
+35:metadata[140]={info:'随机降低对手1/{0}至1/{1}的当前体力值',args_num:2};
+36:metadata[176]={info:'{0}%概率随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态',args_num:1};
+44:metadata[1148]={info:'随机吸取对手{0}-{1}点体力',args_num:2};
+85:metadata[1929]={info:'{0}%令对手{1}，未触发则随机附加{2}种异常状态',args_num:3};
+116:function add(id,phase,execute,ranges=[],deferred,experimental){const e=metadata[id];if(!e)throw Error('Missing reviewed metadata '+id);registry[id]=Object.freeze({id,template:e.info,argsNum:e.args_num,instanceArgsNum:id===534||id===1103?1:e.args_num,direct:true,phase,execute,deferred,experimental,validate(args){if([31,450,683].includes(id)&&args[0]>args[1])throw Error('随机区间上下限颠倒');const enumIndex=({756:1,470:2,573:2,609:0,164:2,889:0,733:0,469:2})[id];if(enumIndex!==undefined&&![0,2,6,7,8,15,20,22].includes(args[enumIndex])&&!(id===756&&args[1]===19)&&!(id===889&&args[0]===27))throw Error('异常类型未核对');if(id===1138&&(![0,6,8,19].includes(args[1])||![2,7].includes(args[3])))throw Error('1138 异常枚举尚未核对');if(id===1864&&![14,26].includes(args[1]))throw Error('1864 异常枚举尚未核对');if(id===1864&&![14,26].includes(args[3]))throw Error('1864 异常枚举尚未核对');if(id===599&&args[1]!==2)throw Error('伤害类型未核对');for(let i=0;i<args.length;i++){const [min,max]=ranges[i]??[0,9999];if(args[i]<min||args[i]>max)throw Error('参数超出规则范围');}}});}
+117:const roll=(c,n)=>n>=100||(n>0&&c.random()<n/100);
+132:add(450,'afterHit',(c,p)=>c.heal(c.a,p[0]+Math.floor(c.random()*(p[1]-p[0]+1)),c.m.name));
+152:add(31,'beforeUse',(c,p)=>{c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));},[[1,60],[1,60]]);
+174:  for(let i=0;i<count;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);
+202:add(683,'afterHit',(c,p)=>c.hurt(c.t,p[0]+Math.floor(c.random()*(p[1]-p[0]+1)),c.m.name,'fixed'));
+208:add(583,'afterHit',(c,p)=>{const pool=c.t.moves.slice();for(let i=0;i<p[0]&&pool.length;i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.t.pp[k]=0;}},[[1,5]]);
+233:add(451,'afterHit',(c,p)=>{if(!roll(c,p[0]))return;const pool=['烧伤','冻伤','中毒'];for(let i=0;i<p[1];i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.ailment(c.t,k,c.a);}},[pct,[1,3]]);
+256:function randomStats(c,f,n,amount){const pool=stats.slice();for(let i=0;i<n;i++)c.stage(f,amount,[pool.splice(Math.floor(c.random()*pool.length),1)[0]]);}
+329:add(805,'afterHit',(c,p)=>{if(c.clearBoost(c.t)){const pool=c.t.moves.slice();for(let i=0;i<p[0]&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;}},[[1,5]]);
+345:add(425,'afterHit',(c,p)=>{const pool=stats.slice();for(let i=0;i<p[0];i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.stage(c.t,p[1],[k]);c.stage(c.a,-p[1],[k]);}},[[1,6],[-6,-1]]);
+358:add(771,'afterHit',(c,p)=>c.timed(c.a,'攻击随机异常',p[0],{chance:p[1]}),[turns,pct],undefined,'异常池待核实：当前从麻痹、害怕、睡眠、烧伤、冻伤、中毒六种中等概率抽取。');
+441:function randomEmpty(c,n){const pool=c.t.moves.slice();for(let i=0;i<n&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;}
+471:add(981,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length;c.hurt(c.t,p[0]*(1+n*p[1]/100)*c.affinity('电',c.t.type),c.m.name+'电系伤害','elemental');},[[0,99999],pct],undefined,'电系定额伤害按属性克制与强化项数计算，不计算攻防、暴击和随机浮动；不属于固定/百分比伤害抗性。');
+493:add(931,'afterHit',(c,p)=>{if(!Object.values(c.t.stages).some(x=>x>0)||c.on(c.a,'禁强化')||c.on(c.t,'hypnosBoostProtect'))return;c.steal(c.a,c.t,'技能');const pool=c.t.moves.slice();for(let i=0;i<p[0]&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;},[[1,5]]);
+504:add(786,'afterHit',(c,p)=>{const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封','流血'];for(let i=0;i<p[0]&&pool.length;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);},[[1,7]]);
+521:add(176,'afterHit',(c,p)=>{if(!roll(c,p[0])||c.t.hp<=0)return;const pool=['烧伤','冻伤','中毒','麻痹','害怕','睡眠'];c.ailment(c.t,pool[Math.floor(c.random()*pool.length)],c.a);},[pct]);
+529:add(1148,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const n=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.heal(c.a,c.hurt(c.t,n,c.m.name+'随机吸取','fixed'),c.m.name+'随机吸取');},[[0,99999],[0,99999]]);
+669:add(1089,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后随机异常',p[0],{count:p[1]}),[turns,[1,6]]);
+693:add(1144,'afterHit',(c,p)=>{const n=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.heal(c.a,c.hurt(c.t,n,c.m.name+'吸取','fixed'),c.m.name+'吸取');},[[0,99999],[0,99999]]);
+705:  c.timed(c.a,'用招前随机吸强',p[0],{count:p[1]});
+708:  for(let i=0;i<p[1]&&pool.length;i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.stage(c.t,-1,[k]);c.stage(c.a,1,[k]);}
+719:add(1141,'beforeUse',(c,p)=>{if(p[3]!==22||p[6]!==22)throw Error('1141 异常枚举尚未核对');c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.a.soulState.phoenixHitChance=c.hits<p[4]?p[5]:p[2];},[[1,10],[1,10],pct,[22,22],[1,10],pct,[22,22]]);
+726:add(1116,'afterHit',(c,p)=>{const kinds=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<p[0]&&kinds.length;i++){const k=kinds.splice(Math.floor(c.random()*kinds.length),1)[0];success=c.ailment(c.t,k,c.a)||success;}if(!success)c.clear(c.t);},[[1,6]]);
+728:add(1132,'afterHit',(c,p)=>{const high=Object.values(c.a.stages).some(n=>n>0),lo=high?p[0]:p[2],hi=high?p[1]:p[3];c.heal(c.a,lo+Math.floor(c.random()*(hi-lo+1)),c.m.name+'随机回复');},[[0,9999],[0,9999],[0,9999],[0,9999]]);
+734:add(1126,'afterHit',(c,p)=>{const pool=c.t.moves.filter(id=>c.t.pp[id]>0),count=p[0]+(c.a.roundAttackDamage>0?p[1]:0);for(let i=0;i<count&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;},[[0,10],[0,10]]);
+766:add(780,'afterHit',(c,p)=>c.timed(c.a,'受击随机清PP',p[0],{chance:p[1],count:p[2]}),[turns,pct,[1,5]]);
+793:add(1131,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const high=Object.values(c.a.stages).some(n=>n>0),lo=high?p[2]:p[0],hi=high?p[3]:p[1];c.hurt(c.t,lo+Math.floor(c.random()*(hi-lo+1)),c.m.name+'随机追加','fixed');},[[0,9999],[0,9999],[0,9999],[0,9999]]);
+815:add(1228,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后随机异常',p[0],{count:p[1]}),[turns,[1,6]]);
+834:add(1929,'afterHit',(c,p)=>{if(p[1]!==15)throw Error('1929 异常枚举尚未核对');if(!roll(c,p[0])||!c.ailment(c.t,'冰封',c.a)){const pool=['烧伤','冻伤','麻痹','害怕','睡眠','疲惫'];for(let i=0;i<p[2]&&pool.length;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);}},[pct,[15,15],[1,6]]);
+844:add(1277,'afterHit',c=>{const n=c.a.hp;if(n>c.t.hp){c.hurt(c.a,n-1,c.m.name+'保留1点消耗','true',true);if(c.t.hp>0)c.hurt(c.t,350+Math.floor(c.random()*201),c.m.name+'随机固定伤害','fixed');}else if(n<c.t.hp){c.hurt(c.a,n,c.m.name+'全部体力消耗','true',true);if(c.t.hp>0){c.hurt(c.t,Math.min(n,Math.max(0,c.t.hp-1)),c.m.name+'体力消耗反馈','fixed');c.ailment(c.t,'瘫痪',c.a,false,false,2);}}},[]);
+852:add(1274,'afterHit',(c,p)=>{const chance=Math.min(1,(p[0]??0)/100*(Object.values(c.t.stages).some(n=>n<0)?2:1));if(c.t.hp>0&&c.random()<chance)c.ailment(c.t,(['麻痹','中毒','烧伤','冻伤','害怕','睡眠'][p[1]]??'害怕'),c.a);},[[0,100],[0,20]]);
+866:add(1376,'afterHit',(c,p)=>{if(c.t.hp>0&&c.random()<p[1]/100)c.ailment(c.t,'害怕',c.a);else if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/(p[3]||1),c.m.name+'吸取','percent');},[[1,10],[0,100],[0,20],[1,9999]]);
+867:add(1539,'afterHit',(c,p)=>{if(c.dealt>p[0]&&c.random()<p[1]/100)c.ailment(c.t,(['害怕','麻痹','睡眠'][p[2]]??'害怕'),c.a);else c.clear(c.t);},[[0,9999],[0,100],[0,20]]);
+873:add(1321,'afterHit',(c,p)=>{const ok=c.clearNegative(c.a)||c.clearBoost(c.t);if(ok&&c.t.hp>0&&c.random()<p[0]/100)c.ailment(c.t,(['麻痹','中毒','烧伤','冻伤','害怕','睡眠'][p[1]]??'害怕'),c.a);},[[0,100],[0,20]]);
+889:add(140,'afterHit',(c,p)=>{const lo=Math.min(p[0],p[1]),hi=Math.max(p[0],p[1]);const n=Math.floor(c.t.hp*(1/lo-(1/lo-1/hi)*c.random()));c.hurt(c.t,n,c.m.name,'percent');},[[1,9999],[1,9999]]);
+918:add(1040,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;if(!(c.random()<p[0]/100&&c.ailment(c.t,ailments[p[1]]??'疲惫',c.a)))c.stage(c.a,p[2]);},[[0,100],[0,20],[0,6]]);
+961:add(1114,'afterHit',(c,p)=>{if(c.clear(c.t)){const pool=c.t.moves.filter(id=>(c.t.pp[id]??0)>0);for(let i=0;i<p[0]&&pool.length;i++){const id=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.t.pp[id]=0;}}},[[1,10]]);
+970:metadata[1348]={info:'{0}回合内若对手使用属性技能则随机附加{1}种异常状态，未触发则消除对手回合类效果',args_num:2};
+974:metadata[1975]={info:'{0}回合内{1}%闪避对手攻击，对手攻击技能命中时随机附加{2}、{3}中的1种异常状态',args_num:4};
+982:add(1348,'afterHit',(c,p)=>c.timed(c.a,'对手属性后随机异常清回合',p[0],{count:p[1]}),[turns,[1,6]]);
+1001:add(941,'beforeUse',(c,p)=>{if(c.random()<c.a.hp/c.a.stats.maxHp)c.ailment(c.t,ailments[p[0]],c.a);},[[6,6]]);
+1007:metadata[851]={info:'随机附加害怕、失明、烧伤、冻伤、中毒中的{0}种异常状态',args_num:1};
+1013:add(851,'afterHit',(c,p)=>{const pool=['害怕','失明','烧伤','冻伤','中毒'];for(let i=0;i<p[0];i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);},[[1,5]]);
+1025:metadata[1245]={info:'若自身处于能力提升状态则附加给对手等同于自身能力提升状态的能力下降状态，若未满足或未触发则令对手随机{0}项技能PP值归零',args_num:1};
+1038:metadata[118]={info:'随机改为{0}~{1}点威力',args_num:2};
+1041:metadata[604]={info:'威力随机，随机范围{0}-{1}，连续使用每次威力提升{2}，最高提升至{3}',args_num:4};
+1046:add(118,'beforeDamage',(c,p)=>{if(p[0]>p[1])throw Error('随机威力区间颠倒');c.power=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));});
+1049:add(604,'beforeDamage',(c,p)=>{if(p[0]>p[1])throw Error('随机威力区间颠倒');c.power=Math.min(p[3],p[0]+Math.floor(c.random()*(p[1]-p[0]+1))+Math.max(0,(c.a.consecutiveUses??1)-1)*p[2]);});
+1069:add(1245,'afterHit',(c,p)=>{let changed=false;for(const k of stats)if(c.a.stages[k]>0){const before=c.t.stages[k];c.stage(c.t,-c.a.stages[k],[k]);changed ||=c.t.stages[k]<before;}if(!changed){const pool=c.t.moves.filter(id=>c.t.pp[id]>0);for(let i=0;i<p[0]&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;}},[[1,10]]);
+1078:metadata[656]={info:'{0}%的概率令对手随机{1}项技能PP值归零',args_num:2};
+1087:add(656,'afterHit',(c,p)=>{if(roll(c,p[0])){const pool=c.t.moves.slice();for(let i=0;i<p[1]&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;}},[pct,[1,10]]);

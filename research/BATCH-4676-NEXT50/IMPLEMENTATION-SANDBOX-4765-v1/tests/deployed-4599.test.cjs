@@ -1,0 +1,15 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4599-battle.cjs');
+const {E,make,turn,timer,key,source}=H,e=id=>H.pick(id)[0],levels=f=>({ming:f.soulState.ming1805,fall:f.soulState.fall1805});
+test('4599仅已确认命中分支：17真实技能与1805原生运行，回合末PP按最终层数结算',()=>{
+ for(const m of source.moves){const b=structuredClone(source);b.id=929599;b.souls=[];const fifth=source.moves.find(x=>x.fifth),regular=source.moves.filter(x=>!x.fifth),support=regular.find(x=>x.id===28608),load=m.fifth?[support,...regular.filter(x=>x.id!==support.id).slice(0,3),m]:[m,...(m.id===support.id?[]:[support]),...regular.filter(x=>x.id!==m.id&&x.id!==support.id).slice(0,m.id===support.id?3:2),fifth];const s=E.createBattle({wikiSnapshots:[source,b],wikiLoadouts:[load.map(x=>x.id),load.map(x=>x.id)],criticals:false,builds:[{overrides:{maxHp:9000,spe:500}},{overrides:{maxHp:9000,spe:100}}]});s.rng=123;s.fighters[0].effects['攻击必中']={start:1,end:99};s.fighters[0].effects['属性必中']={start:1,end:99};const o=E.resolveTurn(s,[key(m.id),key(support.id)]),l=levels(o.fighters[0]);assert.equal(l.ming+l.fall,4);assert.equal(o.fighters[0].pp[key(m.id)],m.pp-1+(l.fall>=l.ming?1:0),'已确认原生技能 '+m.id);assert.ok(o.fighters[0].hp>0);}
+});
+test('4599未击败奖励只在实际使用技能后的回合末发生，控制或药剂不触发',()=>{
+ for(const mode of ['status','control','item']){const s=make({moveId:28608,index:-1},{soul:1805,hp:1000});if(mode==='control')s.fighters[0].ailments['疲惫']=3;let before;const old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===0)before=c.a.hp;}};let o;try{o=mode==='item'?E.resolveTurn(s,['potion:hp',key(920041)]):turn(s,920031);}finally{E.SOULS=old;}if(mode==='status'){assert.equal(before,1000);assert.equal(o.fighters[0].hp,3250);assert.equal(o.fighters[0].soulState.nextImmune1805,1);}else{assert.equal(o.fighters[0].soulState.nextImmune1805,undefined);if(mode==='control')assert.equal(o.fighters[0].hp,1000);}}
+});
+test('4599 2108交换立即执行，下一攻击奖励延后到回合末按最终层数授予',()=>{
+ const s=make(e(2108),{soul:1805,hp:1000});let afterUse;const old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===0)afterUse={layers:levels(c.a),next:c.a.soulState.nextAttack2108};}};let o;try{o=turn(s);}finally{E.SOULS=old;}assert.deepEqual(afterUse.layers,{ming:2,fall:2});assert.equal(afterUse.next,undefined);assert.deepEqual(o.fighters[0].soulState.nextAttack2108,{power:80,priority:2});assert.equal(o.fighters[0].hp,3250);const q=turn(o,920030);assert.equal(q.fighters[0].soulState.nextAttack2108,undefined);assert.equal(q.fighters[0].soulState.nextAttack2108This.power,80);
+});
+test('4599同源必暴击与穿免次数刷新保留异源，来源账本随实际攻击消费保持一致',()=>{
+ for(const [id,field]of [[933,'nextCrit'],[1926,'nextAttackIgnoreImmunity']]){const s=make(e(id));s.fighters[0].counts[field]=3;let o=turn(s);assert.equal(o.fighters[0].counts[field],4);o=turn(o,920030);const records=o.fighters[0].soulState[field+'Sources4599'];assert.equal(o.fighters[0].counts[field],3);assert.equal(records.reduce((n,x)=>n+x.count,0),3);o=turn(o);assert.equal(o.fighters[0].counts[field],4);}
+});

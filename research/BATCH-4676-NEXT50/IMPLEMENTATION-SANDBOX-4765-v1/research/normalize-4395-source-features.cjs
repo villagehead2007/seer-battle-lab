@@ -1,0 +1,1 @@
+const fs=require('fs'),p='research/4395-reviewed-snapshot.json',s=JSON.parse(fs.readFileSync(p));for(const m of s.moves)if(m.sourceTargetCount>1){m.deferredEffects=[{field:'atk_num',description:'多目标字段 atk_num='+m.sourceTargetCount+'；单挑只攻击当前目标一次，多精灵目标选择延期',scope:'多精灵待实现'}];m.limitations=m.limitations.filter(x=>!x.includes('多目标'));}fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n');

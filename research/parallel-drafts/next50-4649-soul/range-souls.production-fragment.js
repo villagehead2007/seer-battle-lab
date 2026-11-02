@@ -1,0 +1,19 @@
+
+(()=>{
+'use strict';
+const live1849=(f,r)=>{const x=f.soulState.starFlare1849;return x?.sourceHash==='8e17ffc7'&&x.start<=r&&x.end>=r?x:null;};
+function grant1849(c,target=c.t){const old=live1849(target,c.round);target.soulState.starFlare1849={start:c.round,end:Math.max(old?.end??0,c.round+2),sourceSide:c.a.side,sourceHash:'8e17ffc7'};return{...target.soulState.starFlare1849};}
+function received1849(c){const mark=live1849(c.t,c.round);if(!mark||!(c.settledDamage>0))return;
+ const hpBefore=c.t.hp,nominalPercent=c.settledDamage*.5,percentLoss=c.hurt(c.t,nominalPercent,'星火之灼附加百分比','percent');
+ const holderOpponentWater=c.isWaterType1849(c.a),publisherOpponentWater=c.isWaterType1849(c.t),policy=c.a.soulState.qualifiedStarWaterView1849;
+ let water;if(holderOpponentWater===publisherOpponentWater)water=holderOpponentWater;else if(policy==='holder-opponent')water=holderOpponentWater;else if(policy==='publisher-opponent')water=publisherOpponentWater;else{const err=Error('Q-N50-4647-001：星火之灼对手为水系的拥有者或施加者视角待确认');err.starWaterView1849={round:c.round,sourceSide:mark.sourceSide,attackerType:c.a.type,holderType:c.t.type,holderOpponentWater,publisherOpponentWater,settledDamage:c.settledDamage,hpBefore,percentLoss,hpAfterPercent:c.t.hp,attackerPP:c.a.pp[c.m.id],mark:{...mark}};throw err;}
+ let trueLoss=0;if(water){delete c.t.soulState.starFlare1849;trueLoss=c.hurt(c.t,c.settledDamage,'星火之灼水系额外真实','true');}
+ (c.a.soulState.starFlareEvents1849??=[]).push({round:c.round,move:c.m.id,holderSide:c.t.side,settledDamage:c.settledDamage,nominalPercent,percentLoss,water,policy:policy??'common',trueNominal:water?c.settledDamage:0,trueLoss,hpBefore,hpAfter:c.t.hp});
+}
+registry[1849]={name:'星光·魔焰猩猩',sourceHash:'8e17ffc7',partial:true,unimplemented:['Q-N50-4647-001：星火水系视角','Q-N50-4649-001：双攻原本最高值与能力等级基准'],deferred:['每次登场的真实换宠再入场触发；初次登场及当前双方星火完整单精灵'],traits:{},abilities:{grantFlare:grant1849,hasFlare:(c,target=c.t)=>!!live1849(target,c.round),receivedAttack:received1849,healingFactor:(c,target=c.a)=>live1849(target,c.round)?0:1},hooks:{
+ battleStart(c){if(c.typeEffectiveness(c.a.type,c.t.type)>1)grant1849(c);},
+ beforeDamage(c){if(!['physical','special'].includes(c.m?.kind))return;const f=c.a,raw=k=>{const e=f.effects['面板数值设定'];return e&&e.start<=c.round&&e.end>=c.round&&Object.hasOwn(e.values??{},k)?e.values[k]:f.stats[k];},mul=n=>n>=0?(2+n)/2:2/(2-n),kind=c.m.kind==='physical'?'atk':'spa',beforeStages=Math.max(1,Math.floor(Math.max(raw('atk'),raw('spa'))*mul(f.stages[kind]))),effectiveHighest=Math.max(1,Math.floor(raw('atk')*mul(f.stages.atk)),Math.floor(raw('spa')*mul(f.stages.spa))),policy=f.soulState.qualifiedAttackBasis1849;if(beforeStages!==effectiveHighest&&!['panels-before-stages','effective-highest'].includes(policy)){const err=Error('Q-N50-4649-001：原本双攻最高值与各自能力等级的应用基准待确认');err.attackBasis1849={round:c.round,move:c.m.id,kind:c.m.kind,atk:raw('atk'),spa:raw('spa'),atkStage:f.stages.atk,spaStage:f.stages.spa,beforeStages,effectiveHighest,pp:f.pp[c.m.id]};throw err;}if(policy==='effective-highest')c.attackOverride=effectiveHighest;f.soulState.starAttackBasis1849={round:c.round,move:c.m.id,beforeStages,effectiveHighest,policy:policy??'common'};},
+ afterUse(c){if(!['physical','special'].includes(c.m?.kind))return;grant1849(c);const nominal=c.a.stats.maxHp/3;if(c.m.kind==='physical'){const actual=c.heal(c.a,nominal,'星火物攻后回复');(c.a.soulState.starUseEvents1849??=[]).push({round:c.round,move:c.m.id,kind:c.m.kind,nominal,actual});}else{const actual=c.hurt(c.t,nominal,'星火特攻后附加','percent');(c.a.soulState.starUseEvents1849??=[]).push({round:c.round,move:c.m.id,kind:c.m.kind,nominal,actual});}}
+}};
+
+})();

@@ -1,0 +1,268 @@
+{
+  "speciesId": 4568,
+  "soulId": 1778,
+  "sourceHash": "6d1a1ef4",
+  "eid": 2171,
+  "args": [
+    1,
+    1,
+    10,
+    1,
+    20,
+    300,
+    1,
+    1
+  ],
+  "status": "frozen-partial-001-public006",
+  "frozenAt": "2026-10-25T11:26:20.872Z",
+  "sourceRecord": {
+    "url": "https://api.seerapi.com/v1/soulmark/1778",
+    "data": {
+      "id": 1778,
+      "desc": "回合开始时若自身体力低于对手则令对手全属性-1，然后若对手处于能力提升、下降状态则每有1段本回合自身造成的攻击伤害提升10%，若不处于能力提升、下降状态则解除自身所处的异常状态且本回合所有技能先制+1;|自身受到攻击后吸取对手最大体力的20%，若受到的攻击伤害低于300则效果翻倍，若高于300则抵挡下1次对手的攻击（boss无效）",
+      "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时若自身体力低于对手则<color=#64F9FA>令对手全属性-1</color>，然后：\r\n<indent=32><sprite=4><indent=48>对手每处于1段能力提升、能力下降本回合自身造成的<b>攻击伤害<color=#64F9FA></b>提升</color>10%\r\n<indent=32><sprite=4><indent=48>若对手同时不处于异常状态、能力下降状态则<color=#64F9FA>解除</color>自身所处的<b>异常状态</b>且本回合所有技能<b>先制</b>+1\r\n\r\n<indent=0><sprite=0><indent=16>触发效果：\r\n<indent=16><sprite=3><indent=32>自身受到攻击后<color=#64F9FA>吸取</color>对手最大体力的20%\r\n<indent=32><sprite=4><indent=48>若受到的攻击伤害低于300则效果翻倍\r\n<indent=32><sprite=4><indent=48>若受到的攻击伤害高于300则<color=#64F9FA>抵挡</color>下1次受到的<b>攻击</b>",
+      "analyze_desc": "",
+      "pve_effective": false,
+      "intensified": false,
+      "is_adv": false,
+      "pet": [
+        {
+          "id": 4568,
+          "url": "https://api.seerapi.com/v1/pet/4568"
+        }
+      ],
+      "effect": {
+        "effect_args": [
+          1,
+          1,
+          10,
+          1,
+          20,
+          300,
+          1,
+          1
+        ],
+        "effect": {
+          "id": 2171,
+          "url": "https://api.seerapi.com/v1/eid_effect/2171"
+        }
+      },
+      "effect_alias": "alias_2171_1_1_10_1_20_300_1_1",
+      "tag": [
+        {
+          "id": 13,
+          "url": "https://api.seerapi.com/v1/soulmark_tag/13"
+        },
+        {
+          "id": 2,
+          "url": "https://api.seerapi.com/v1/soulmark_tag/2"
+        },
+        {
+          "id": 7,
+          "url": "https://api.seerapi.com/v1/soulmark_tag/7"
+        }
+      ],
+      "intensified_to": null,
+      "from": null,
+      "advance": null,
+      "hash": "6d1a1ef4"
+    },
+    "loadedAt": "2026-10-25T11:16:28.856Z",
+    "storage": "refreshed"
+  },
+  "supplementFile": "research/4568-source-supplement.json",
+  "sourceNotes": [
+    "eid2171 hash79a24f9c仅args_num8，无条件定义。Wiki魂印1778 revision320314采用API raw原文，没有额外机制解释，不能拿Wiki消除API自身raw/formatted冲突。",
+    "factor2400303 hash5cf0dcfb返回同1778和技能36929，无need_pet、无新的强化/觉醒魂印。",
+    "API所有desc、desc_formatting_adjustment、analyze_desc原样保留。"
+  ],
+  "branches": [
+    {
+      "text": "回合开始时若自身体力低于对手则令对手全属性-1",
+      "implementation": "严格比较当前HP，等于/大于不弱化；依公共stage机制免疫/正负边界。先执行该条件弱化，再统计随后实际能力段数。",
+      "tests": [
+        "1778HP严格低于敌人才先全弱1，实际弱化后六段增伤，无清异常/先制",
+        "1778HP相等/大于不弱化，弱化免疫无实际段数且共同无状态仍清异常加先制",
+        "1778每段按正负级绝对值合计且先弱化后统计，实际攻击增伤每段10%"
+      ],
+      "questions": []
+    },
+    {
+      "text": "对手每处于1段能力提升、能力下降，本回合自身攻击伤害提升10%",
+      "implementation": "回合初实际六项等级绝对值求和；存本回合快照，攻击trait 1+0.1*n，中途改变目标等级不重算；0/混合8/负6封顶36段实测实际攻击HP变化；固定和百分比不吃该加成。",
+      "tests": [
+        "1778双方无正负能力且无异常的共同条件真实清自己异常并使所有技能先制+1",
+        "1778每段按正负级绝对值合计且先弱化后统计，实际攻击增伤每段10%",
+        "1778段数本回合快照，不用出手时等级重算；下回合重新统计",
+        "1778六能力各-6共36段，能力边界真实增伤4.6倍；固定百分比不吃攻击增伤"
+      ],
+      "questions": []
+    },
+    {
+      "text": "raw：若不处于能力提升、下降状态则解除自身异常且本回合所有技能先制+1；formatted：若对手同时不处于异常状态、能力下降状态则解除自身异常且先制+1",
+      "implementation": "分别计算两种真实条件，只在相同的共同真/共同假分支自动执行。共同真清全部自己异常且所有技能先制+1（攻击与属性）；共同假不清不加。真实分歧精确001诊断，明确eligible负载能力覆盖分支，绝不当新用户答案。",
+      "tests": [
+        "1778双方无正负能力且无异常的共同条件真实清自己异常并使所有技能先制+1",
+        "1778HP严格低于敌人才先全弱1，实际弱化后六段增伤，无清异常/先制",
+        "1778HP相等/大于不弱化，弱化免疫无实际段数且共同无状态仍清异常加先制",
+        "1778原始/格式化先制条件冲突只在真实分歧阻塞，正级+异常及负级共同失败正常",
+        "1778明确先制分支载荷成功清状态并加优先，失败不改；不将载荷当冲突答案"
+      ],
+      "questions": [
+        "Q-N50-4568-001"
+      ]
+    },
+    {
+      "text": "自身受到攻击后吸取对手最大体力20%；受到攻击伤害低300效果翻倍",
+      "implementation": "公共命中受攻事件，完整结算<300理论吸取maxHP40%，=300或>30020%；按已明确最大HP比例吸取公共规则百分比伤害+理论值回复。免疫、余HP少/已死不降低理论回复，不将吸取改为汲取真伤。明确死亡限制只保留自身已死不复活，攻击者先死仍回复。",
+      "tests": [
+        "1778已明确受攻结果299/300/301吸取40%/20%/20%，严格高300才下一免攻",
+        "1778自然真实受攻击正结算触发低伤吸取，真实HP与百分比事件正确",
+        "1778攻击者先被真实免疫反弹击杀，受攻事件仍按其最大HP理论回复；不复活自身",
+        "1778命中0结算仍受到攻击并40%吸取，MISS未受到攻击不吸取",
+        "1778百分比吸取理论回复不因目标余HP/百分比免疫降低，来源吸取不改真伤",
+        "1778魂印回复遵循禁疗/倍回/上限，不受技能禁疗；伤害与高伤授免不因禁疗省略",
+        "1778高伤保1时按完整结算而非实际HP损失判断，仍20%吸取并授免攻"
+      ],
+      "questions": []
+    },
+    {
+      "text": "若高于300则抵挡下1次对手攻击",
+      "implementation": "严格>300吸取完成后自身仍活即授attackNullify1并标记本来源；不因攻击者死/满体/禁疗无源省略。实际下一攻击消费后删本marker，0结算仍可触发40%吸取。重复/其他免攻/反弹/盾转化保持公共006诊断，覆盖旧46/570/1288/2006不暗定覆盖归属。",
+      "tests": [
+        "1778已明确受攻结果299/300/301吸取40%/20%/20%，严格高300才下一免攻",
+        "1778攻击者先被真实免疫反弹击杀，受攻事件仍按其最大HP理论回复；不复活自身",
+        "1778魂印回复遵循禁疗/倍回/上限，不受技能禁疗；伤害与高伤授免不因禁疗省略",
+        "1778高伤保1时按完整结算而非实际HP损失判断，仍20%吸取并授免攻",
+        "1778下次攻击免疫真实消费并清本来源标记，0伤仍触发吸取，下次攻击重新造成红伤",
+        "1778已有免攻重复/混合与盾转换明确公共006，保留原计数不覆盖，未改变单纯来源",
+        "1778先获得本来源免攻后出现其他计数，真实受攻消费入口诊断不暗定归属"
+      ],
+      "questions": [
+        "Q-N50-4511-006"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-N50-4568-001",
+      "type": "api-internal-conflict",
+      "sourceUrl": "https://api.seerapi.com/v1/soulmark/1778",
+      "sourceHash": "6d1a1ef4",
+      "eid": 2171,
+      "args": [
+        1,
+        1,
+        10,
+        1,
+        20,
+        300,
+        1,
+        1
+      ],
+      "fullRaw": "回合开始时若自身体力低于对手则令对手全属性-1，然后若对手处于能力提升、下降状态则每有1段本回合自身造成的攻击伤害提升10%，若不处于能力提升、下降状态则解除自身所处的异常状态且本回合所有技能先制+1;|自身受到攻击后吸取对手最大体力的20%，若受到的攻击伤害低于300则效果翻倍，若高于300则抵挡下1次对手的攻击（boss无效）",
+      "fullFormatted": "<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时若自身体力低于对手则<color=#64F9FA>令对手全属性-1</color>，然后：\r\n<indent=32><sprite=4><indent=48>对手每处于1段能力提升、能力下降本回合自身造成的<b>攻击伤害<color=#64F9FA></b>提升</color>10%\r\n<indent=32><sprite=4><indent=48>若对手同时不处于异常状态、能力下降状态则<color=#64F9FA>解除</color>自身所处的<b>异常状态</b>且本回合所有技能<b>先制</b>+1\r\n\r\n<indent=0><sprite=0><indent=16>触发效果：\r\n<indent=16><sprite=3><indent=32>自身受到攻击后<color=#64F9FA>吸取</color>对手最大体力的20%\r\n<indent=32><sprite=4><indent=48>若受到的攻击伤害低于300则效果翻倍\r\n<indent=32><sprite=4><indent=48>若受到的攻击伤害高于300则<color=#64F9FA>抵挡</color>下1次受到的<b>攻击</b>",
+      "fullAnalyze": "",
+      "sourcesChecked": [
+        "SeerAPI soulmark1778/6d1a1ef4",
+        "SeerAPI eid_effect2171/79a24f9c仅参数数目8",
+        "BWIKI魂印1778 revision320314采用raw同文，无机制增补"
+      ],
+      "gap": "无状态分支判定是对手无正负能力等级，还是无异常且无负能力等级；API自身字段冲突，SeerAPI优先规则不能消除同API矛盾。",
+      "difference": "对手攻击+2、无异常/负级：raw假但formatted真，会造成是否清自身控制并+1先制的区别；对手六级全0但处于异常：raw真但formatted假。",
+      "question": "1778清自身异常并所有技能先制+1的条件，按raw无任何能力提升/下降，还是formatted无异常且无能力下降？",
+      "answer": "",
+      "documentNote": "主线已写入本轮新MD，不重复追加/不读取新填写答案。"
+    },
+    {
+      "id": "Q-N50-4511-006",
+      "type": "existing-public-question-association",
+      "instance": {
+        "species": 4568,
+        "soul": 1778,
+        "hash": "6d1a1ef4",
+        "eid": 2171,
+        "args": [
+          1,
+          1,
+          10,
+          1,
+          20,
+          300,
+          1,
+          1
+        ],
+        "source": "https://api.seerapi.com/v1/soulmark/1778",
+        "original": "自身受到攻击后吸取对手最大体力的20%，若受到的攻击伤害低于300则效果翻倍，若高于300则抵挡下1次对手的攻击"
+      },
+      "gap": "高伤反复授予抵挡下1次与已有免攻、免攻反弹、攻击转化并存时的覆盖/叠加/消费来源尚未确认。",
+      "difference": "已有1次1778免攻后再授予其他1次免攻，覆盖可能总1、累计可能总2；多来源消费不能暗定marker归属。",
+      "question": "公共006关联新增1778高伤后下次免攻来源，请沿该公共问题确认重复/混源消费。",
+      "answer": ""
+    }
+  ],
+  "confirmationsReused": [
+    {
+      "file": "research/FIXED50-ANSWER-USER-CONFIRMATIONS.json",
+      "question": "Q-N20-4359-003",
+      "scope": "公共受到攻击的命中0结算响应、MISS不响应；不扩1834特定限伤例外。"
+    },
+    {
+      "file": "research/damage-settlement-user-confirmed.json",
+      "scope": "完整正结算与实际HP损失独立，阈值取settledDamage，不用dealt截断。"
+    },
+    {
+      "file": "research/Q-DAMAGE-001-user-confirmation.json",
+      "scope": "保1实际损失0仍传正结算受伤事件。"
+    },
+    {
+      "file": "research/2026-10-15-drain-rule-correction.json",
+      "scope": "maxHP比例吸取按理论量回复，免疫/目标余HP低不降回复；技能禁疗仅技能回复，魂印回复照公共回复禁疗倍率上限。"
+    }
+  ],
+  "deferred": [],
+  "deferredAudit": "当前1778原文全部分支只涉及当前在场双方，无队伍/真实换宠/下一只依赖。不得用多宠延期豁免001冲突。",
+  "testFile": "soul1778.test.cjs",
+  "testNames": [
+    "1778双方无正负能力且无异常的共同条件真实清自己异常并使所有技能先制+1",
+    "1778HP严格低于敌人才先全弱1，实际弱化后六段增伤，无清异常/先制",
+    "1778HP相等/大于不弱化，弱化免疫无实际段数且共同无状态仍清异常加先制",
+    "1778每段按正负级绝对值合计且先弱化后统计，实际攻击增伤每段10%",
+    "1778段数本回合快照，不用出手时等级重算；下回合重新统计",
+    "1778六能力各-6共36段，能力边界真实增伤4.6倍；固定百分比不吃攻击增伤",
+    "1778原始/格式化先制条件冲突只在真实分歧阻塞，正级+异常及负级共同失败正常",
+    "1778明确先制分支载荷成功清状态并加优先，失败不改；不将载荷当冲突答案",
+    "1778已明确受攻结果299/300/301吸取40%/20%/20%，严格高300才下一免攻",
+    "1778自然真实受攻击正结算触发低伤吸取，真实HP与百分比事件正确",
+    "1778攻击者先被真实免疫反弹击杀，受攻事件仍按其最大HP理论回复；不复活自身",
+    "1778命中0结算仍受到攻击并40%吸取，MISS未受到攻击不吸取",
+    "1778百分比吸取理论回复不因目标余HP/百分比免疫降低，来源吸取不改真伤",
+    "1778魂印回复遵循禁疗/倍回/上限，不受技能禁疗；伤害与高伤授免不因禁疗省略",
+    "1778高伤保1时按完整结算而非实际HP损失判断，仍20%吸取并授免攻",
+    "1778下次攻击免疫真实消费并清本来源标记，0伤仍触发吸取，下次攻击重新造成红伤",
+    "1778已有免攻重复/混合与盾转换明确公共006，保留原计数不覆盖，未改变单纯来源",
+    "1778先获得本来源免攻后出现其他计数，真实受攻消费入口诊断不暗定归属"
+  ],
+  "logs": [
+    {
+      "file": "tests-v1.log",
+      "exitCode": 0,
+      "total": 17,
+      "passed": 17,
+      "validity": "同生产版本，新增第18项前的子集"
+    },
+    {
+      "file": "tests-v2.log",
+      "exitCode": 0,
+      "total": 18,
+      "passed": 18,
+      "validity": "最终当前冻结稿，单并发，无活动进程"
+    }
+  ],
+  "integration": {
+    "productionSoul": "range-souls.production-fragment.js",
+    "note": "已去掉私有require并复用range-souls既有conditionStatusRules(现有browser lazy代理)/healthRules，不新增顶层捕获undefined。",
+    "sharedEdits": "souls.production-edits.json",
+    "publicCountGuard": "range-effects.production-fragment.js"
+  }
+}

@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-3986-partial.test.cjs';let s=fs.readFileSync(p,'utf8').replace('PP保护和魂印免削减','PP保护和免疫PP削减').replace("else{s.fighters[1].soulId=1061;s.fighters[1].soulState.xinFusion=true;}","else timer(s,1,'免疫PP削减');");fs.writeFileSync(p,s);

@@ -1,0 +1,14 @@
+{
+  "file": "tests/deployed-4442-independent.test.cjs",
+  "baseSHA256": "4bffd19fa30a52299a1338f68d4528b9f35b1b3641bbdf808db3b8b2efa4470f",
+  "migrations": [
+    {
+      "needle": "test('4442魂印低400以下混合共同增长、高伤共同重置但附伤范围不猜，跨400统计分歧只记pending不选连击增长',()=>{for(const mode of ['low','high','split']){const s=make(pick(29)[0],{soul:1658});if(mode==='high')timer(s,0,'攻击最低伤害',{amount:201});if(mode==='split')timer(s,0,'攻击最低伤害',{amount:180});const o=turn(s);assert.equal(sum(o,'fixed'),100);if(mode==='low')assert.equal(o.fighters[0].soulState.martinaHits,4);if(mode==='high'){assert.equal(o.fighters[0].soulState.martinaHits,2);assert.ok(o.fighters[0].soulState.pendingMartinaExtra);assert.equal(sum(o,'percent'),0);}if(mode==='split'){assert.ok(o.fighters[0].soulState.pendingMartinaCounter);assert.equal(o.fighters[0].soulState.pendingMartinaCounter.attack,360);assert.equal(o.fighters[0].soulState.pendingMartinaCounter.all,460);}}});",
+      "insert": "test('4442已答魂印仅红伤决定400与追加，固定100不纳阈值也不纳追加',()=>{for(const mode of ['low','high','split']){const s=make(pick(29)[0],{soul:1658});if(mode==='high')timer(s,0,'攻击最低伤害',{amount:201});if(mode==='split')timer(s,0,'攻击最低伤害',{amount:180});const o=turn(s);assert.equal(sum(o,'fixed'),100);assert.equal(o.fighters[0].soulState.martinaHits,mode==='high'?2:4);assert.equal(sum(o,'percent'),mode==='high'?402:0);assert.equal(o.fighters[0].soulState.pendingMartinaExtra,undefined);assert.equal(o.fighters[0].soulState.pendingMartinaCounter,undefined);}});"
+    },
+    {
+      "needle": "test('4442 819免伤/抵挡导致结算不足的回复口径待答，百分比伤害独立已实施并保留待结算基数，无静默假定0为确认',()=>{const s=make(pick(819)[0],{hp:1000});timer(s,1,'固定百分比免疫');s.moveDefinitions[key(36251)].power=0;const o=turn(s);assert.equal(sum(o,'percent'),0);assert.equal(o.fighters[0].soulState.pendingPanel819Heal[0].amount,72);assert.equal(o.fighters[0].soulState.pendingPanel819Heal[0].settled,0);assert.equal(o.fighters[0].soulState.pendingPanel819Heal[0].index,0);const m=H.source.moves.find(m=>m.id===36251);assert.match(H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m).issue,/819.*未完成/);});",
+      "insert": "test('4442已答819百分比免伤仍按理论72回复，无pending且完整第五正常编译',()=>{const s=make(pick(819)[0],{hp:1000});timer(s,1,'固定百分比免疫');s.moveDefinitions[key(36251)].power=0;const o=turn(s);assert.equal(sum(o,'percent'),0);assert.equal(o.fighters[0].hp,1072);assert.equal(o.fighters[0].soulState.pendingPanel819Heal,undefined);const m=H.source.moves.find(m=>m.id===36251);assert.equal(H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m).issue,'');});"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+'use strict';
+const E=require('../../dist/engine.js'),source=require('../../research/4647-reviewed-snapshot.json'),key=id=>'wiki:'+id;
+const attack=source.moves.find(x=>x.id===10043),status=source.moves.find(x=>x.id===20001),fifth=source.moves.find(x=>x.fifth),ids=[attack.id,status.id,10002,10001,fifth.id];
+function make(o={}){const own=structuredClone(source),enemy=structuredClone(source);for(const p of[own,enemy])for(const m of p.moves){m.effectIds=[];m.effectInstances=[];m.description='';m.deferredEffects=[];m.limitations=[];}own.souls=o.soul===false?[]:own.souls;enemy.souls=[];enemy.id=926447;enemy.name='1847双方基础隔离';if(o.bType)enemy.type=o.bType;const stats={maxHp:9000,atk:300,spa:300,def:300,spd:300,spe:500};const s=E.createBattle({wikiSnapshots:[own,enemy],wikiLoadouts:[ids,ids],criticals:false,builds:[{overrides:{...stats,...o.aStats}},{overrides:{...stats,spe:100,...o.bStats}}]});Object.assign(s.fighters[0].soulState,o.policies??{});if(o.mark)E.SOULS.registry[1847].abilities.grantEntangle({a:s.fighters[0],t:s.fighters[1],round:s.round});return s;}
+const turn=(s,a=attack.id,b=status.id)=>Object.assign(s,E.resolveTurn(s,[key(a),key(b)])),timer=(s,side,name,data={},start=s.round,end=99)=>(s.fighters[side].effects[name]={start,end,...data},s);
+module.exports={E,source,key,attack,status,fifth,make,turn,timer};

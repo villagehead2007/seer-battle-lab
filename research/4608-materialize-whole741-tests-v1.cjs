@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),p='tests/next50-4608-skills.test.cjs';
+fs.copyFileSync(p,'research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4608-before/skills.before-whole741',fs.constants.COPYFILE_EXCL);
+let s=fs.readFileSync(p,'utf8');
+s=s.replace('741多次小伤统计歧义诊断001，大伤连续同判免疫不被过度保护','741整招两段200均免疫，无首段HP泄漏，大伤两段也全免');
+s=s.replace("assert.throws(()=>turn(s,920031,920040),/4608-001/);let q=", "const o=turn(s,920031,920040);assert.equal(sum(o,'attack',0),0);assert.equal(o.fighters[0].hp,s.fighters[0].hp);let q=");
+s=s.replace('护盾前后候选仅歧义001保护','护盾前实际免疫不消费盾且保留历史候选');
+s=s.replace("assert.throws(()=>turn(s,920031,920040),/4608-001/);for(const policy", "const native=turn(s,920031,920040);assert.equal(sum(native,'attack',0),0);assert.equal(native.fighters[0].suitState.shield,200);for(const policy");
+s=s.replace('741与972实际阈值免疫重叠只006，未超阈值正常消费972和无次数单741同判','741阈值免疫优先于972且不消费次数，未超阈值正常消费972');
+s=s.replace("assert.throws(()=>turn(s,920031,920040),/4511-006/);const q=", "const immune=turn(s,920031,920040);assert.equal(sum(immune,'attack',0),0);assert.equal(immune.fighters[0].counts.attackNullify,1);const q=");
+assert.ok(!s.includes('assert.throws(()=>turn(s,920031,920040),/4608-001/)'));
+fs.writeFileSync(p,s);

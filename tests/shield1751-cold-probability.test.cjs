@@ -1,0 +1,1 @@
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict');test('1751八个真实旧来源异步护盾消失保留技能自身50/100概率，寒月压制50而不压制100，固定反击独立',()=>{for(const id of [3532,3586,3683,3716,3740,3763,3907,4048]){const o=require('./helpers/assert-1751-cold-probability.cjs')(id);assert.equal(o.fighters[0].suitState.shield,0);assert.ok(o.fighters[1].hp<9000);}});

@@ -1,0 +1,2 @@
+'use strict';const assert=require('node:assert/strict'),sourced=require('./sourced-583-1647-battle.cjs');
+module.exports=function(id){const {s,turn}=sourced(id,1322);s.fighters[0].hp=1000;s.celestials=[{name:'寒月',side:0,start:1,end:99}];const a=turn(s),b=turn(a,980031,980040),name=({3580:'诅咒',3673:'睡眠',3896:'瘫痪'})[id];assert.ok(b.fighters[1].ailments[name]>=2);assert.equal(b.fighters[1].stages.atk,0);return b;};

@@ -1,0 +1,81 @@
+{
+  "species": 3815,
+  "status": "single-stage-complete",
+  "sourceFiles": [
+    "research/3815-source-check.json",
+    "research/3815-source-manifest.json",
+    "research/3815-wiki-source.json"
+  ],
+  "sourceFailures": [
+    {
+      "url": "https://api.seerapi.com/v1/skill_effect_type/829",
+      "error": "curl exit 28: curl: (28) Failed to connect to api.seerapi.com port 443 after 21034 ms: Could not connect to server\r\n",
+      "at": "2026-10-16T08:05:10.960Z"
+    }
+  ],
+  "userConfirmation": "research/3815-user-confirmed-rules.json",
+  "implementation": [
+    "dist/range-effects.js",
+    "dist/range-souls.js",
+    "dist/souls.js",
+    "dist/effect-registry.js"
+  ],
+  "tests": {
+    "special": {
+      "pass": 25,
+      "log": "research/3815-expanded-v2.log"
+    },
+    "public": {
+      "pass": 123,
+      "log": "research/3815-public-regression.log"
+    },
+    "compatibility": {
+      "pass": 28,
+      "log": "research/3815-compatibility.log"
+    },
+    "versions": {
+      "pass": 2,
+      "log": "research/3815-versions-v2.log"
+    },
+    "full": {
+      "passed": 1747,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "research/3815-final-npm.log"
+    }
+  },
+  "failures": [
+    {
+      "log": "research/3815-first-tests.log",
+      "reason": "957被旧注册覆盖；1173只登记不结算，已修正生产实现；479恰好250体力并非不足250，按原文自损致死，修正边界测试。"
+    },
+    {
+      "log": "research/3815-expanded-tests.log",
+      "reason": "夹具超出9999合法属性上限；清回合应由攻击者清对手负面回合，修正测试配招和目标。"
+    },
+    {
+      "log": "research/3815-full-npm.log",
+      "reason": "3564旧957测试直接使用[1,4,1]，已与原始API缓存及部署快照[1,6,1]核对，仅更正夹具数字，原断言完整保留。"
+    },
+    {
+      "log": "research/3815-versions.log",
+      "reason": "接入夹具让双方均用33031，目标自回复掩盖伤害；改让目标使用真实第五33036，保留伤害及PP断言，两版通过。"
+    }
+  ],
+  "multiPetBranches": [
+    {
+      "move": 11531,
+      "sourceHash": "ba1b7599",
+      "field": "atk_num",
+      "value": 4,
+      "scope": "mixed",
+      "reason": "多目标选择；当前场上单一对手已验证"
+    }
+  ],
+  "protectedFileDifferences": [],
+  "gate": {
+    "exitCode": 0,
+    "result": "passed (single-stage)",
+    "log": "research/3815-final-gate.log"
+  }
+}

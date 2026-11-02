@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4030-partial.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("timer(s,1,'doubleDamage');o=turn(s);assert.equal(o.fighters[1].effects.doubleDamage,undefined)","timer(s,1,'doubleDamage');o=turn(s,undefined,900040);assert.equal(o.fighters[1].effects.doubleDamage,undefined)");fs.writeFileSync(p,s);

@@ -1,0 +1,13 @@
+'use strict';const status=require('../../../dist/status-rules.js'),health=require('../../../dist/health-rules.js');
+const attack=m=>m&&!['status','item'].includes(m.kind);const useKey=(c,f)=>c.round+':'+c.m?.id+':'+(f.soulState.skillUses?.[c.m?.id]??0);
+function attempt(c,name,boostKey){const st=c.a.soulState,chance=st[boostKey]?100:50;st[boostKey]=false;c.markStatusEffect?.();const effective=c.statusProbability?.(chance)??chance;const applied=c.random()<effective/100&&c.ailment(c.t,name,c.a,false,false,null,{probabilityPercent:chance});if(!applied)st[boostKey]=true;return {applied:!!applied,chance};}
+function fear(c){c.a.soulState.whirlpoolFearAttemptKey=useKey(c,c.a);const out=attempt(c,'害怕','whirlpoolFearNextDouble');c.a.soulState.whirlpoolAttackBoost={round:c.round,move:c.m?.id,boost:!out.applied};return out;}
+function freeze(c){c.a.soulState.whirlpoolIceAttemptKey=useKey(c,c.t);const out=attempt(c,'冰封','whirlpoolIceNextDouble');if(!out.applied&&c.a.hp>0&&c.t.hp>0)health.drainPercent(c,c.t.stats.maxHp/3,'涡锋冰封失败吸取');return out;}
+module.exports={name:'涡锋',sourceHash:'5859cd07',partial:true,unimplemented:['Q-N50-4521-001：伤害前控制对当前攻击的中断时序待确认','Q-N50-4521-003：实际用攻击却未到伤害前时下次概率加倍是否消费待确认'],deferred:['击败异常对手先制叠层下场保留及后续真实对手继续叠加；当前对手击败获得一层已实现'],traits:{skillPriority:f=>f.soulState.whirlpoolPriority??0},abilities:{qualifiedFear:fear,qualifiedFreeze:freeze},hooks:{
+ beforeAttackDamage(c){if(!attack(c.m)||c.a.hp<=0||c.t.hp<=0||(c.a.soulState.currentAttackSegment??0)>0)return;const had=status.active(c.a,'害怕',c.round);fear(c);if(!had&&status.active(c.a,'害怕',c.round))throw Error('Q-N50-4521-001：1733伤害前控制当前行动者是否中断待确认');},
+ beforeDamage(c){const x=c.a.soulState.whirlpoolAttackBoost;if(attack(c.m)&&x?.round===c.round&&x.move===c.m.id&&x.boost)c.modifier*=2;},
+ beforeOpponentAttack(c){if(!attack(c.m)||c.a.hp<=0||c.t.hp<=0||(c.t.soulState.currentAttackSegment??0)>0)return;const out=freeze(c);if(out.applied)throw Error('Q-N50-4521-001：1733伤害前冰封当前行动者是否中断待确认');},
+ afterUse(c){const st=c.a.soulState;if(c.a.hp>0&&attack(c.m)&&st.whirlpoolFearNextDouble&&st.whirlpoolFearAttemptKey!==useKey(c,c.a))throw Error('Q-N50-4521-003：自身实际使用攻击但未到伤害前时概率加倍是否消费待确认');},
+ opponentAfterUse(c){const st=c.a.soulState;if(c.a.hp>0&&attack(c.m)&&st.whirlpoolIceNextDouble&&st.whirlpoolIceAttemptKey!==useKey(c,c.t))throw Error('Q-N50-4521-003：对手实际使用攻击但未到伤害前时概率加倍是否消费待确认');},
+ damageDealt(c){if(c.a.hp<=0||c.t.hp>0||!c.t.soulState.deathResolved||!status.conditionPresent(c.t,c.round))return;const st=c.a.soulState;if(st.whirlpoolDefeatRound===c.round&&st.whirlpoolDefeatSide===c.t.side)return;st.whirlpoolDefeatRound=c.round;st.whirlpoolDefeatSide=c.t.side;st.whirlpoolPriority=(st.whirlpoolPriority??0)+1;}
+}};

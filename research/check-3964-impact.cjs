@@ -1,0 +1,2 @@
+const fs=require('fs'),s=fs.readFileSync('tests/deployed-3964.test.cjs','utf8').replace("e.type==='damage'&&e.detail?.includes('暴击')","e.kind==='damage'&&e.detail?.includes('暴击 2')");fs.writeFileSync('tests/deployed-3964.test.cjs',s);
+const files=fs.readdirSync('research').filter(f=>/3564|3699|3813/.test(f)&&/valid|cert/.test(f));console.log(files);const r=JSON.parse(fs.readFileSync('SINGLE-STAGE-REVIEWS.json'));for(const id of [3564,3699,3813])console.log(id,Object.keys(r.entries).filter(k=>k.startsWith(id+':')).length);

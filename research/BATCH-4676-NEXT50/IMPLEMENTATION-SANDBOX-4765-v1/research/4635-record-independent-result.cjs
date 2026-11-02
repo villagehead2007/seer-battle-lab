@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),base='research/next50-answer-takeover-2026-10-26T17-09-55-144Z/';
+const result='research/4635-independent-confirmed-v2-result.json',r=JSON.parse(fs.readFileSync(result,'utf8'));
+assert.equal(r.exitCode,0);assert.equal(r.tests,154);assert.equal(r.pass,154);
+const q=fs.readFileSync('seer_id.txt','utf8').split(/\r?\n/);assert.equal(q[257].trim(),'4635');assert.equal(q[258].trim(),'4642');
+const at=new Date().toISOString(),p=base+'4635-user-confirmations.json',c=JSON.parse(fs.readFileSync(p,'utf8'));
+c.status='independent-verified-awaiting-exact-confirmations';c.latestIndependentResult={at,result,speciesTests:87,publicTests:67,passed:154,formalAccepted:false};fs.writeFileSync(p,JSON.stringify(c,null,2)+'\n');
+const tp=base+'TAKEOVER.json',t=JSON.parse(fs.readFileSync(tp,'utf8'));
+assert.equal(t.currentClarification.speciesId,4635);t.current.phase='independent-verified-awaiting-exact-confirmations';t.current.latestIndependentResult=result;fs.writeFileSync(tp,JSON.stringify(t,null,2)+'\n');
+const note=`正式单精灵阶段完成30/50；第三批8798/8798完整npm及10只HTTP通过，冻结文件无变化。第四批已预检1/10：4633（77项专项、HTTP通过）。当前4635（seer_id.txt第258行）87项专项及67项公共回归通过，仍待6项精确机制确认：2176同名寄生未延长、1949免异重授、1822攻击无效重授、1524反馈成功规则、1343重授、1509攻击免疫补偿。4635未部署、未正式计数；下一只4642须待4635全部专项与HTTP通过后推进。全部机制完全完成认证0/50，跳过0；保持多精灵延期，固定终点4674。证据：${result}。`;
+fs.writeFileSync('PROGRESS.md',`## NEXT50 当前有效进度（${at}）\n\n${note}\n\n`+fs.readFileSync('PROGRESS.md','utf8'));
+fs.appendFileSync('research/BATCH-4509-NEXT50-CHECKPOINT.md',`\n## ${at} 4635已答分支验证\n\n${note}\n`);
+console.log(note);

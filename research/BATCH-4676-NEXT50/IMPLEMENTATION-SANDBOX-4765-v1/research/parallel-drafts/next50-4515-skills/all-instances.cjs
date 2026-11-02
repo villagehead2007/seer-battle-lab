@@ -1,0 +1,1 @@
+const fs=require('fs'),p=__dirname+'/4515-skills.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.split('\n').map(line=>{for(const id of [1440,1926,1909])if(line.startsWith("test('4515 "+id+' ')){line=line.replace('()=>{','()=>{for(const x of pick('+id+')){').replaceAll('make(e('+id+')','make(x');line=line.replace(/\}\);$/,'}});');}return line;}).join('\n');fs.writeFileSync(p,s);

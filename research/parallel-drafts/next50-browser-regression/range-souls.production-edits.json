@@ -1,0 +1,18 @@
+[
+  {
+    "old": "const conditionStatusRules=typeof module==='object'&&module.exports?require('./status-rules.js'):globalThis.BattleStatusRules;",
+    "replacement": "const conditionStatusRules=typeof module==='object'&&module.exports?require('./status-rules.js'):new Proxy({}, {get:(_target,key)=>globalThis.BattleStatusRules[key]});"
+  },
+  {
+    "old": "const soulStatusPools=typeof module==='object'&&module.exports?require('./status-pools.js'):globalThis.BattleStatusPools;",
+    "replacement": "const soulStatusPools=typeof module==='object'&&module.exports?require('./status-pools.js'):new Proxy({}, {get:(_target,key)=>globalThis.BattleStatusPools[key]});"
+  },
+  {
+    "old": "const keys=['atk','def','spa','spd','spe','acc'],controls=pools.pool().map(x=>x.name).filter(statuses.isControl);",
+    "replacement": "const keys=['atk','def','spa','spd','spe','acc'],controls=()=>pools.pool().map(x=>x.name).filter(statuses.isControl);"
+  },
+  {
+    "old": "(f.soulState.nanControlImmuneUntil??0)>=(f.soulState.calculationRound??1)?controls:[]",
+    "replacement": "(f.soulState.nanControlImmuneUntil??0)>=(f.soulState.calculationRound??1)?controls():[]"
+  }
+]

@@ -1,0 +1,21 @@
+# CURRENT — full regression v5 remains running; DO NOT END TURN
+
+User: finish BOTH selectable characteristics(default5stars,乱舞blank) AND fixed50 independent predeployment, integrate MAIN, necessary regression, final deduplicated questiondoc. Do not stopin sandbox/checkpoint. NoGit/subagents/automation. Originaltaskcontinues. Latestuser: bloodpotionsignorehealban; cannothealviaSKILLS doesnotblockSOULhealing. Bothimplementedandrecorded.
+
+ROOT C:/Users/villa/Desktop/seer-battle-lab. MAIN FROZEN at 12295files. Actual full npm test v5 foreground session13499, logfile research/BATCH-4676-NEXT50/REGRESSION-BATCH5/npm-test-v5.log. Last1676pass0fail. It takes~3hours (priorfull10678243ms). Outputfile-order maypause~15minwhilefourworkersrun; DO NOT inferhang. Do NOT edit code/tests/data/researchJSON/CJS untilcomplete. ExcludedREGRESSION-BATCH5 reports/MD/JPG okay.
+
+Allknownrepairsintegrated. v1-v4 INTERRUPTED, NOTPASSED, logs+snapshotRESULT-vN retained. v4 found3971/4030/4050/4105 oldstatekey failures andreal2287overflowshield bugdueAPI405newalias. Userrulemakesitidenticaltoexisting skillhealban. RESTORED canonicalwrites技能禁疗/技能回复转伤害 for9templates, allnewtestfixturescanonical. DO NOT mergeoldchild3971repair orreintroduce newstates; canonicalalreadyfixesthosecases. Primaryrawsourceunchanged. heal keepsfallbackaliases source-only, bloodpotion origin=potion bypassfullhealban, preservesnonzero multipliers/potionreversal/unabletoact. Sourceconfirm research/BATCH-4676-NEXT50/HEAL-SOURCE-USER-CONFIRMATION-2026-10-30.json, AGENTSappend.
+
+MAIN canonicaltargeted63/63 +18/18 passed. New5th tests/next50-api405.test.cjs real679+2287 assertsHP8000,shield0,enemy9000 (oldaliaswronglygenerated3500shield). Canonicalintegrationmanifest+testevidence underREG5. Testscharacteristics default5andranwublank verified. Threeearlierfixturefailures (1073wrongtestlinereplaced,oracleunabletoact) repairedandlogsretained.
+
+All50 scancomplete, mainruntime/source/test/deferredintegrated. 901moves1583effectinstancesverifiedsourcehashes. Formalaccepted/deployed0andcursor4676row277 unchanged. Unansweredbranchesexplicit researchmodels/guards; do NOT falsely claimfullmechanisms/formalstageaccepted. Batches1v2=9136,2v2=9428,3v2=9718,4v2=9995 passed. STATUSstillin-progresspendingfinalizer.
+
+AFTER V5 COMPLETES: node research/BATCH-4676-NEXT50/record-regression.cjs 5 5 verifiesfrozenhashes andactualsummary. Ifpass0fail0skip: runprepared research/BATCH-4676-NEXT50/REGRESSION-BATCH5/finalize-delivery.cjs (syntaxchecked, NOTexecutedyet). ItrequirespassedRESULT, updates50EVIDENCE, STATUSintegration,batch4+5records,4780resolvedQ, DELIVERY-STATUS, appendPROGRESS+CHECKPOINT. ItresolvesoldfirstuseQ-N50-4625-011andlatestQ4780-004 inpendinglists;4676oldstaleEVIDENCEclearedusingexistingaudit/testproof. ItbacksupmetadataunderREG5/delivery-before. ValidateJSONoutputs,all50true/fullNpmtrue/formal0,queueunchanged,finalsourceaudits; thenFINAL.
+
+FINAL DOC EXACT research/BATCH-4676-NEXT50/固定50与特性-最终待答文档-v2.md:139 numberedquestions,139 answerfields,157uniqueoriginalIDs,0duplicates/brokenlinks. AuditREG5/FINAL-QUESTION-DOCUMENT-AUDIT.json. Q4780-004latesthealresolvedremoved;firstusealreadyconfirmednotasked. Earlier140questiondocpreservedbutDO NOTdeliverit. HumananswerMDappendonly/newversion; do notread unannounceduseranswerdocs.
+
+MAINserver foreground6128 port18997; health/api/launcher/health currentrevisionverified REG5/MAIN-SERVER-VALIDATION.json. HiddenQA tab2 finalTraitTab; usertab1untouched. Good screenshot research/CHARACTERISTICS-2026-10-30/main-directory-ui-latest.jpg showsA会心5(+12pp),B乱舞5白板. EmbedinlineinFINAL perbrowserproof. AfterfullpasscanreloadQA,reapplyselectors/applybuttonandrefreshimageifneeded; CUA rewriteDocumentation beforeuseifcompacted. CurrentGUIcosmeticunchangedbycanonicalpatch.
+
+Final: conciseChinese bothobjectivesintegratedMAIN, actualfullpasscount, independent预部署50pendingformalanswers, clickableFINALv2MD (139题), inline latestimage. OptionallyopenfinalMDviaopen_in_codex. Must NOT sendemptyfinal orcheckpointfinal beforefullcompletion.
+
+Monitor: callwrite_stdin13499 empty yield50000, inspectlogcounts. functions.exec loop12 polls withnotifyoncountchange works; returnimmediatelyonfailure/complete. Eachfunctions.waitmax60000. StopONLY monitorcellifneedinspection, notnpm. Do not repeatbroadtestsorchangeunrelatedarchitecture.

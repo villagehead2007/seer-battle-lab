@@ -1,0 +1,16 @@
+C:\Users\villa\Desktop\seer-battle-lab\research\fetch-target-refs.cjs:1
+const fs=require('fs'),{spawnSync}=require('child_process'),{createClient}=require('../wiki-client.cjs'),id=Number(process.argv[2]),refs=process.argv.slice(3),p='research/'+id+'-extra-source.json',out=fs.existsSync(p)?JSON.parse(fs.readFileSync(p)):{records:[],failures:[]};const client=createClient(async url=>{const q=spawnSync('curl.exe',['--silent','--show-error','--max-time','25','--write-out','\n%{http_code}',url],{encoding:'utf8',windowsHide:true,maxBuffer:8e6});if(q.status!==0)throw Error('curl '+q.status+': '+q.stderr);const at=q.stdout.lastIndexOf('\n');return{status:Number(q.stdout.slice(at+1)),body:JSON.parse(q.stdout.slice(0,at))};},{interval:5000,label:'SeerAPI'});(async()=>{for(const ref of refs){if(!/^(skill_effect_param|skill_effect_type|eid_effect)\/\d+$/.test(ref))throw Error('bad reference');const url='https://api.seerapi.com/v1/'+ref;if(out.records.some(r=>r.url===url))continue;try{const data=await client.request(url);out.records.push({url,data,loadedAt:new Date().toISOString()});console.log(ref,JSON.stringify(data));}catch(e){out.failures.push({url,error:e.message});process.exitCode=1;break;}finally{fs.writeFileSync(p,JSON.stringify(out,null,2)+'\n');}}})();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ^
+
+Error: bad reference
+    at C:\Users\villa\Desktop\seer-battle-lab\research\fetch-target-refs.cjs:1:799
+    at Object.<anonymous> (C:\Users\villa\Desktop\seer-battle-lab\research\fetch-target-refs.cjs:1:1194)
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.21.0

@@ -1,0 +1,18 @@
+{
+ "id":4717,"reviewed":true,
+ "rationale":"逐项核对真实1919/84183901及14招实例；用户67/68按当前上限复利、单次余数舍弃且永久增伤相加；通用HP同步/零红命中/自耗死亡停止、独立虚空补答及56普通盾只挡红伤均按各自范围应用。两处失败保留原文件及日志；增加护罩/普通盾对照及零结算事件字段、死亡无固定载荷/免异/自伤事件断言。仅真实队伍与下一只分支延期，不把当前自身免异延期。",
+ "oldTestFile":"research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4717-before-next50-4717.test.cjs",
+ "testFile":"tests/next50-4717.test.cjs",
+ "soulBehavior":"未转态免红且回初按当前上限+1%；首次正结算技能伤害后永久破免，下轮按当前上限-10%，HP保持至新上限截顶。零伤/状态伤害不转态；保1正结算即使HP损失0仍转态。",
+ "extraTests":{
+ "4717:skill:37750:2":[{"file":"tests/next50-4717-answers.test.cjs","name":"4717的2148自身次数免异同源刷新且实际消费，回合免异优先，命中封锁不授予"}],
+ "4717:skill:37750:0":[{"file":"tests/deployed-4717.test.cjs","name":"4717真实1919与全部14招完整原生配招，当前上限增长及消耗、技能PP和死亡停止载荷"}],
+ "4717:skill:28941:2":[{"file":"tests/next50-4717-answers.test.cjs","name":"4717确认独立虚空伤害同时穿过盾免攻限伤且保留资源，封命中载荷则不执行"}],
+ "4717:skill:37751:1":[{"file":"tests/next50-4717-answers.test.cjs","name":"4717反转负级遵禁强化，失败不把原负级传对手，成功实际转为正级后附弱"}]
+ },
+ "decisions":{
+ "4717:soul:1919":{"scope":"mixed","singleBehavior":"未转态免红且回初当前上限+1%；首次正结算技能伤害永久转态、后续回初上限-10%，HP保持至截顶；不从一只在场对象伪造全队总和。","dependencyEvidence":[{"kind":"team-state","quote":"自身体力上限不低于己方所有精灵体力上限之和的一半"}],"trigger":"回合开始时自身体力上限不低于己方所有精灵体力上限之和的一半","deferredBehavior":"真实队伍全部成员体力上限总和的一半门槛及实时更新触发永久转态。","futureMechanisms":["完整己方队伍","所有成员体力上限实时总和","队伍门槛回初快照"]},
+ "4717:skill:37750:0":{"scope":"mixed","singleBehavior":"自耗全部当前HP而非伤害，死亡后同招固定350及当前免异停止；零威力攻击预先零结算事件不算自耗伤害。","dependencyEvidence":[{"kind":"next-entry","quote":"己方下只出战精灵"}],"trigger":"消耗自身全部体力，使己方下只出战精灵令对手下1次使用的攻击技能无效且2回合内造成的攻击伤害额外提升100%","deferredBehavior":"真实己方下一只出战获得对手一次攻击无效和2回合攻击伤害+100%。","futureMechanisms":["己方下一只出战","跨死亡技能遗赠标记","下一只的持续时间与资源消费"]},
+ "4717:skill:37750:2":{"scope":"mixed","singleBehavior":"自身仍存活且该实例可执行时授1次免异；同源刷新，回合免异优先不消费。真实完整自耗死亡则不执行后续实例。","dependencyEvidence":[{"kind":"team-members","quote":"己方免疫下1次受到的异常状态"}],"trigger":"己方免疫下1次受到的异常状态","deferredBehavior":"己方其他成员共享及换宠继承免异次数；不虚构队友。","futureMechanisms":["己方团队共享次数","真实队友与换宠继承","团队资源消费顺序"]}
+ }
+}

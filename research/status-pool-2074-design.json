@@ -1,0 +1,762 @@
+{
+  "schemaVersion": 1,
+  "effectId": 2074,
+  "status": "project-rules-implemented-verified",
+  "runtimeConnected": true,
+  "sourceDefinition": {
+    "originalDescription": "随机附加{0}种非限制类异常状态",
+    "sourceUrl": "https://api.seerapi.com/v1/skill_effect_type/2074",
+    "hash": "3c24dbfb",
+    "argsNum": 1,
+    "param": null
+  },
+  "sourceCatalog": {
+    "file": "data/statuses/statuses.json",
+    "sha256": "9646f9fc3f1dcce3c8142ffc917c5fa00fffd8a69269d02596433fd950909802",
+    "wiki": {
+      "url": "https://wiki.biligame.com/seer/index.php?oldid=388558",
+      "pageUrl": "https://wiki.biligame.com/seer/对战机制",
+      "revision": 388558,
+      "revisionTimestamp": "2026-10-12T13:50:10Z",
+      "hash": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8",
+      "hashAlgorithm": "sha256 of revision wikitext (local content digest)",
+      "loadedAt": "2026-10-14T12:17:43.955Z",
+      "origin": "project-source-cache",
+      "file": "data/statuses/sources.json",
+      "pointer": "/records/1/data/query/pages/143433/revisions/0/slots/main/*"
+    },
+    "enum": {
+      "url": "https://api.seerapi.com/v1/skill_effect_param/1",
+      "revision": null,
+      "hash": "27df2271",
+      "loadedAt": "2026-10-14T12:41:46.772Z",
+      "origin": "live",
+      "file": "data/statuses/sources.json",
+      "pointer": "/records/2/data/infos"
+    }
+  },
+  "separation": {
+    "sourceFacts": "状态分类只接受已缓存原文支持的事实，未知保持null；其它随机效果不作为2074池证据。",
+    "requestedPolicies": "以下动态全池、等概率及max合并是本次用户要求的接入方案，不能据此改写Wiki来源或通用状态叠加字段。",
+    "runtime": "此次仅数据层和只读分类查询；不注册2074、不调用战斗引擎、不推进3667。"
+  },
+  "policies": {
+    "pool": {
+      "kind": "user-requested-design",
+      "source": "本次用户指令第4项",
+      "gameSourceConfirmed": false,
+      "selection": "从数据库全部记录动态生成；不写死状态ID、名称或数量，不因有益/有害、是否控制行动筛选。",
+      "predicate": "classification.isAbnormal === true && classification.isRestrictedClass === false && classification.restrictsSwitching === false",
+      "exclude": "任一明确不是异常、属于限制类或禁止换宠则排除；限制类与禁止换宠分别判断。",
+      "unknown": "需要的任一分类字段为null时登记unresolved，完整池为null，不将!==true当成false；不得以已确认子集静默替代完整池。",
+      "queryModule": "status-pool-candidates.cjs:inspectNonRestricted"
+    },
+    "distribution": {
+      "kind": "user-requested-design",
+      "source": "本次用户指令第4项",
+      "gameSourceConfirmed": false,
+      "kindOfDistribution": "uniform",
+      "perDrawProbability": "1 / N",
+      "index": "floor(u * N)，u为[0,1)均匀随机数",
+      "rng": "未来使用战斗可复现随机数，不用Math.random；非法随机值或空池必须报告失败，不回退固定状态。",
+      "multipleDrawReplacement": null,
+      "existingStatePreFilter": false,
+      "existingStatePreFilterReason": "用户要求已有同状态合并时长，因此不能仅因已有该状态将其从候选中删除。"
+    },
+    "durationMerge": {
+      "kind": "user-requested-design",
+      "source": "本次用户指令第4项",
+      "gameSourceConfirmed": false,
+      "scope": "仅未来2074重施同名状态；不能修改其它效果的持续时间策略，也不代表所有状态允许刷新。",
+      "rule": "max",
+      "newEnd": "currentRound + sourceConfirmedNewDuration - 1",
+      "oldActive": "oldEnd >= currentRound",
+      "result": "oldActive ? max(oldEnd, newEnd) : newEnd",
+      "noStacking": "不相加，不因较短新时长缩短已有状态。",
+      "unknownNewDuration": "返回needs-source且不改变旧状态；不能使用旧1–3回合实验默认值补齐。",
+      "examples": [
+        {
+          "round": 10,
+          "oldEnd": 12,
+          "newDuration": 2,
+          "resultEnd": 12
+        },
+        {
+          "round": 10,
+          "oldEnd": 12,
+          "newDuration": 5,
+          "resultEnd": 14
+        },
+        {
+          "round": 10,
+          "oldEnd": 9,
+          "newDuration": 2,
+          "resultEnd": 11
+        },
+        {
+          "round": 10,
+          "oldEnd": 12,
+          "newDuration": null,
+          "resultEnd": null,
+          "status": "needs-source-preserve-old"
+        }
+      ]
+    }
+  },
+  "plannedFlow": [
+    "加载已审核分类快照，绑定数据库内容hash、Wiki revision/hash和SeerAPI效果hash；将来重开局使用新版本，进行中的对局固定原版本。",
+    "对2074实例参数沿用既有编译/验证规则，绝不通过放宽验证器接入。检查完整池、各候选真实状态处理器、来源时长和多次抽样策略是否齐备；缺项则明确阻塞。",
+    "调用inspectNonRestricted动态生成池。任何unresolved导致poolIds=null；确认空池也是明确错误，不静默跳过效果。",
+    "在完整池中每次等概率抽样。超过1种时的放回/去重及失败补抽策略尚未确认，不擅自选择算法。已有同状态保留在候选中。",
+    "通过status-rules公共免疫/抗性/反弹入口尝试施加；免疫失败不改旧时长，反弹后在实际接收者上判断同名状态。",
+    "计划在公共状态写入处新增可选合并策略，只有2074显式请求max；完成门禁后再合并。抗性窗口仍按新效果原始时长处理，不能先合并后意外延长抗性免疫；该交互需专项验证。",
+    "记录抽样集合版本、抽中ID、输入时长、旧/新结束回合、免疫/反弹结果与合并策略出处，供回放和审核。"
+  ],
+  "unresolved": {
+    "completeCandidateMembership": null,
+    "defaultDurations": null,
+    "multipleDrawReplacement": null,
+    "retryAfterImmunity": null,
+    "applicationOrder": null,
+    "effectLevelTriggerProbability": null,
+    "relationToActual2074GamePool": "用户要求的动态全池设计尚不构成2074真实游戏候选集合已确认；保留既有专项研究阻塞。"
+  },
+  "currentClassification": {
+    "status": "needs-source",
+    "candidates": [],
+    "excluded": [
+      {
+        "id": 19,
+        "name": "瘫痪",
+        "reasons": [
+          "restricted-class",
+          "switching-restricted"
+        ]
+      },
+      {
+        "id": 32,
+        "name": "凝滞",
+        "reasons": [
+          "restricted-class",
+          "switching-restricted"
+        ]
+      },
+      {
+        "id": 44,
+        "name": "魇昧",
+        "reasons": [
+          "restricted-class"
+        ]
+      }
+    ],
+    "unresolved": [
+      {
+        "id": 0,
+        "name": "麻痹",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 1,
+        "name": "中毒",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 2,
+        "name": "烧伤",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 4,
+        "name": "寄生",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 5,
+        "name": "冻伤",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 6,
+        "name": "害怕",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 7,
+        "name": "疲惫",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "睡眠",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 9,
+        "name": "石化",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 10,
+        "name": "混乱",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 11,
+        "name": "衰弱",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 12,
+        "name": "山神守护",
+        "missing": [
+          "isAbnormal",
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 13,
+        "name": "易燃",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 14,
+        "name": "狂暴",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 15,
+        "name": "冰封",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 16,
+        "name": "流血",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 20,
+        "name": "失明",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 22,
+        "name": "焚烬",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 23,
+        "name": "诅咒",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 24,
+        "name": "烈焰诅咒",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 25,
+        "name": "致命诅咒",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 26,
+        "name": "虚弱诅咒",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 27,
+        "name": "感染",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 28,
+        "name": "束缚",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 29,
+        "name": "失神",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 30,
+        "name": "沉默",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 31,
+        "name": "臣服",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 33,
+        "name": "星赐",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 34,
+        "name": "星哲",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 35,
+        "name": "超频",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 36,
+        "name": "沸涌",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 37,
+        "name": "砥砺",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 38,
+        "name": "星赎",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 39,
+        "name": "神游",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 40,
+        "name": "空定",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 41,
+        "name": "狂信",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 42,
+        "name": "雷解",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      },
+      {
+        "id": 43,
+        "name": "渐冻",
+        "missing": [
+          "isRestrictedClass",
+          "restrictsSwitching"
+        ]
+      }
+    ],
+    "candidateIds": [],
+    "poolIds": null,
+    "runtimeConnected": false
+  },
+  "futureTests": [
+    "动态增删或重新分类能改变新局池，旧局版本固定；不按控制/收益过滤。",
+    "每个等宽区间选中对应成员，0及接近1边界正确；空池、未知分类不抽样。",
+    "同名较短、较长、相等及已过期时长；新时长null保持旧状态且报告待核实。",
+    "免疫不刷新旧状态，反弹只合并实际接收方，次数消费和抗性窗口长度不受max误影响。",
+    "多次抽样、去重/放回、数量超池、失败重抽及应用顺序在规则确认后覆盖；不能用单次抽样测试认证多种词条。",
+    "每个池成员真实行为覆盖成功/失败/边界/交互，未实现成员不能悄悄删去以通过验证。"
+  ],
+  "exclusions": [
+    "3667专属逻辑",
+    "3670及后续导入",
+    "战斗引擎和状态运行时修改",
+    "验证器及自动化修改"
+  ],
+  "databaseBindingHistory": [
+    {
+      "sha256": "612ee7489dfbb49a6eda522d5da9eac11eb35a490dfc42650cd9fec67bfec1aa",
+      "reason": "本轮仅增加公共行为审核与睡眠时长研究字段；逐状态原文、分类、分类证据和来源版本均未变。",
+      "updatedAt": "2026-10-14T14:56:11.549Z"
+    },
+    {
+      "file": "data/statuses/statuses.json",
+      "sha256": "61cf2d494257c0c9e483f617b54fe5eb76822896fdc37d197f84d6bcf355d48b",
+      "wiki": {
+        "url": "https://wiki.biligame.com/seer/index.php?oldid=388558",
+        "pageUrl": "https://wiki.biligame.com/seer/对战机制",
+        "revision": 388558,
+        "revisionTimestamp": "2026-10-12T13:50:10Z",
+        "hash": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8",
+        "hashAlgorithm": "sha256 of revision wikitext (local content digest)",
+        "loadedAt": "2026-10-14T12:17:43.955Z",
+        "origin": "project-source-cache",
+        "file": "data/statuses/sources.json",
+        "pointer": "/records/1/data/query/pages/143433/revisions/0/slots/main/*"
+      },
+      "enum": {
+        "url": "https://api.seerapi.com/v1/skill_effect_param/1",
+        "revision": null,
+        "hash": "27df2271",
+        "loadedAt": "2026-10-14T12:41:46.772Z",
+        "origin": "live",
+        "file": "data/statuses/sources.json",
+        "pointer": "/records/2/data/infos"
+      }
+    },
+    {
+      "file": "data/statuses/statuses.json",
+      "sha256": "e28acd5c770444be5f80e6029280d60d4de2d0c81f2dfe82e5087a5f541366a2",
+      "wiki": {
+        "url": "https://wiki.biligame.com/seer/index.php?oldid=388558",
+        "pageUrl": "https://wiki.biligame.com/seer/对战机制",
+        "revision": 388558,
+        "revisionTimestamp": "2026-10-12T13:50:10Z",
+        "hash": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8",
+        "hashAlgorithm": "sha256 of revision wikitext (local content digest)",
+        "loadedAt": "2026-10-14T12:17:43.955Z",
+        "origin": "project-source-cache",
+        "file": "data/statuses/sources.json",
+        "pointer": "/records/1/data/query/pages/143433/revisions/0/slots/main/*"
+      },
+      "enum": {
+        "url": "https://api.seerapi.com/v1/skill_effect_param/1",
+        "revision": null,
+        "hash": "27df2271",
+        "loadedAt": "2026-10-14T12:41:46.772Z",
+        "origin": "live",
+        "file": "data/statuses/sources.json",
+        "pointer": "/records/2/data/infos"
+      }
+    }
+  ],
+  "userRuleConfirmation": {
+    "sourceType": "user_confirmed",
+    "importedAt": "2026-10-14T15:57:56.824Z",
+    "sourceFile": "research/user-rule-confirmation-3667.json",
+    "answers": [],
+    "implementationStatus": "verified",
+    "note": "原始来源与历史未确认结论保留；本次按用户回答更新当前项目规则，不伪造Wiki/API来源。"
+  },
+  "supplementalConfirmations": [
+    {
+      "ruleId": "yanmei-whiteboard-v1",
+      "sourceType": "user_confirmed",
+      "source": "project_rule/user_confirmed",
+      "confirmedAt": "2026-10-14T16:05:38.377Z",
+      "originalUserText": "魇寐受咱们的对局效果影响，改成无效果的白板异常状态吧，就是显示为异常状态，但是实际没有效果",
+      "canonicalName": "魇昧",
+      "inputName": "魇寐",
+      "behavior": "保留异常身份、正常名称和回合显示；沿用公共施加、刷新、到期、清除和免疫；不遮蔽显示，不控制行动，不改变伤害、属性、PP，不产生专属转化。",
+      "supersedes": "Wiki显示遮蔽规则仅作为原始来源保留，不用于本项目当前对局。"
+    }
+  ],
+  "currentProjectPolicy": {
+    "sourceType": "user_confirmed",
+    "poolCount": 38,
+    "pvpExcluded": [
+      "山神守护"
+    ],
+    "restrictedExcluded": [
+      "瘫痪",
+      "凝滞"
+    ],
+    "sampling": "uniform-without-replacement",
+    "duration": [
+      1,
+      3
+    ],
+    "retry": false,
+    "merge": "max-remaining"
+  },
+  "conclusionHistory": [
+    {
+      "at": "2026-10-14T16:20:56.918Z",
+      "status": "design-only-needs-source",
+      "unresolved": {
+        "completeCandidateMembership": null,
+        "defaultDurations": null,
+        "multipleDrawReplacement": null,
+        "retryAfterImmunity": null,
+        "applicationOrder": null,
+        "effectLevelTriggerProbability": null,
+        "relationToActual2074GamePool": "用户要求的动态全池设计尚不构成2074真实游戏候选集合已确认；保留既有专项研究阻塞。"
+      }
+    }
+  ],
+  "currentProjectImplementation": {
+    "at": "2026-10-14T16:20:56.918Z",
+    "sourceType": "user_confirmed",
+    "evidence": "research/user-rule-confirmation-3667.json",
+    "status": "verified",
+    "modules": [
+      "dist/status-rules.js",
+      "dist/status-pools.js",
+      "dist/pp-rules.js",
+      "dist/souls.js"
+    ],
+    "testLogs": [
+      "research/3667-user-rules-npm-second.log",
+      "research/3667-confirmed-targeted.log",
+      "research/3667-status-final-new.log"
+    ],
+    "historicalFields": "未确认/缺口/分类原文的旧字段保留为历史资料；当前项目依据本节与userRuleConfirmation。",
+    "candidates": [
+      {
+        "id": 0,
+        "name": "麻痹"
+      },
+      {
+        "id": 1,
+        "name": "中毒"
+      },
+      {
+        "id": 2,
+        "name": "烧伤"
+      },
+      {
+        "id": 4,
+        "name": "寄生"
+      },
+      {
+        "id": 5,
+        "name": "冻伤"
+      },
+      {
+        "id": 6,
+        "name": "害怕"
+      },
+      {
+        "id": 7,
+        "name": "疲惫"
+      },
+      {
+        "id": 8,
+        "name": "睡眠"
+      },
+      {
+        "id": 9,
+        "name": "石化"
+      },
+      {
+        "id": 10,
+        "name": "混乱"
+      },
+      {
+        "id": 11,
+        "name": "衰弱"
+      },
+      {
+        "id": 13,
+        "name": "易燃"
+      },
+      {
+        "id": 14,
+        "name": "狂暴"
+      },
+      {
+        "id": 15,
+        "name": "冰封"
+      },
+      {
+        "id": 16,
+        "name": "流血"
+      },
+      {
+        "id": 20,
+        "name": "失明"
+      },
+      {
+        "id": 22,
+        "name": "焚烬"
+      },
+      {
+        "id": 23,
+        "name": "诅咒"
+      },
+      {
+        "id": 24,
+        "name": "烈焰诅咒"
+      },
+      {
+        "id": 25,
+        "name": "致命诅咒"
+      },
+      {
+        "id": 26,
+        "name": "虚弱诅咒"
+      },
+      {
+        "id": 27,
+        "name": "感染"
+      },
+      {
+        "id": 28,
+        "name": "束缚"
+      },
+      {
+        "id": 29,
+        "name": "失神"
+      },
+      {
+        "id": 30,
+        "name": "沉默"
+      },
+      {
+        "id": 31,
+        "name": "臣服"
+      },
+      {
+        "id": 33,
+        "name": "星赐"
+      },
+      {
+        "id": 34,
+        "name": "星哲"
+      },
+      {
+        "id": 35,
+        "name": "超频"
+      },
+      {
+        "id": 36,
+        "name": "沸涌"
+      },
+      {
+        "id": 37,
+        "name": "砥砺"
+      },
+      {
+        "id": 38,
+        "name": "星赎"
+      },
+      {
+        "id": 39,
+        "name": "神游"
+      },
+      {
+        "id": 40,
+        "name": "空定"
+      },
+      {
+        "id": 41,
+        "name": "狂信"
+      },
+      {
+        "id": 42,
+        "name": "雷解"
+      },
+      {
+        "id": 43,
+        "name": "渐冻"
+      },
+      {
+        "id": 44,
+        "name": "魇昧"
+      }
+    ],
+    "sampling": "无放回均匀抽样，各项独立1–3回合；实际施加顺序同抽取顺序；免疫失败不补抽；同名max，衰弱固定刷新3",
+    "verificationReport": "research/3667-user-rules-verification.json"
+  }
+}

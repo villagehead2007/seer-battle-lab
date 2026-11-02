@@ -1,0 +1,909 @@
+{
+  "3541:move:11657": {
+    "sourceDigest": "daf7a9d6065835bb047b6127e5319911b6bf5f9aae38710fbec378595d209203",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-18T16:54:15.216Z",
+    "rationale": "API11657/3c1bd651的atk_num=5，经用户确认是多目标数量，单挑当前对手命中一次，其他目标延期。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/wiki-support.js",
+      "seerapi.cjs"
+    ],
+    "userConfirmation": "research/3541-user-confirmed-rules.json",
+    "singleBehavior": "影之波动真实威力PP命中、控制封招和两个合法第五版本正式执行",
+    "deferredBehavior": "影之波动atk_num=5的其余四目标选择及独立伤害结算",
+    "trigger": "多目标战斗使用影之波动且存在额外可选择目标",
+    "futureMechanisms": [
+      "多目标列表",
+      "最多五目标选择",
+      "独立目标伤害分发"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 全部29招基础PP伤害、MISS与控制封招",
+          "assertion": "逐招真实PP和攻击扣血，MISS与被控封招不产生收益"
+        },
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 正式29招双第五搜索加载版本配招初始化与真实效果执行",
+          "assertion": "正式快照真实技能ID、两第五版本合法配招、初始化魂印847与命中500和能力等级状态"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 全部29招基础PP伤害、MISS与控制封招",
+          "assertion": "逐招真实PP和攻击扣血，MISS与被控封招不产生收益"
+        },
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 正式29招双第五搜索加载版本配招初始化与真实效果执行",
+          "assertion": "正式快照真实技能ID、两第五版本合法配招、初始化魂印847与命中500和能力等级状态"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 全部29招基础PP伤害、MISS与控制封招",
+          "assertion": "逐招真实PP和攻击扣血，MISS与被控封招不产生收益"
+        },
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 正式29招双第五搜索加载版本配招初始化与真实效果执行",
+          "assertion": "正式快照真实技能ID、两第五版本合法配招、初始化魂印847与命中500和能力等级状态"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 全部29招基础PP伤害、MISS与控制封招",
+          "assertion": "逐招真实PP和攻击扣血，MISS与被控封招不产生收益"
+        },
+        {
+          "file": "tests/deployed-3541.test.cjs",
+          "name": "3541 正式29招双第五搜索加载版本配招初始化与真实效果执行",
+          "assertion": "正式快照真实技能ID、两第五版本合法配招、初始化魂印847与命中500和能力等级状态"
+        }
+      ]
+    }
+  },
+  "3627:move:14045": {
+    "sourceDigest": "e074c4158d131dd4960e2538265df6f4903a774e315551c4054e2354a812cbef",
+    "scope": "mixed",
+    "reviewedBy": "Codex 3627 source and state review",
+    "reviewedAt": "2026-10-13T13:27:16.276Z",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "rationale": "来源skill/14045 hash d84245f6的atk_num=3经现有SeerAPI reviewedTargets绑定为多目标数，不是多段次数；当前对手一次攻击立即实现，其他目标选择延期。",
+    "singleBehavior": "净火繁星(14045)原始PP、威力、分类、命中、暴击、先制；当前对手一次技能结算，多段次数由真实效果31单独执行。",
+    "deferredBehavior": "保留原始atk_num=3；多精灵场景剩余攻击目标选择与逐目标伤害。",
+    "trigger": "净火繁星使用时存在多个可选精灵目标",
+    "futureMechanisms": [
+      "多精灵战场目标列表",
+      "atk_num=3的目标选择及逐目标伤害"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招PP-1、控制不扣PP、零PP拒绝且不改状态、封招无收益"
+        },
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "真实分类威力/属性伤害、先制顺序、暴击双倍与非必中失误"
+        },
+        {
+          "file": "tests/deployed-3627-effects.test.cjs",
+          "name": "3627 净火繁星只攻击当前对手一次并保留三目标来源",
+          "assertion": "当前对手恰一条实际伤害与一次PP消费，封招/免伤0损血；来源三目标字段完整保留"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招PP-1、控制不扣PP、零PP拒绝且不改状态、封招无收益"
+        },
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "真实分类威力/属性伤害、先制顺序、暴击双倍与非必中失误"
+        },
+        {
+          "file": "tests/deployed-3627-effects.test.cjs",
+          "name": "3627 净火繁星只攻击当前对手一次并保留三目标来源",
+          "assertion": "当前对手恰一条实际伤害与一次PP消费，封招/免伤0损血；来源三目标字段完整保留"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招PP-1、控制不扣PP、零PP拒绝且不改状态、封招无收益"
+        },
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "真实分类威力/属性伤害、先制顺序、暴击双倍与非必中失误"
+        },
+        {
+          "file": "tests/deployed-3627-effects.test.cjs",
+          "name": "3627 净火繁星只攻击当前对手一次并保留三目标来源",
+          "assertion": "当前对手恰一条实际伤害与一次PP消费，封招/免伤0损血；来源三目标字段完整保留"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招PP-1、控制不扣PP、零PP拒绝且不改状态、封招无收益"
+        },
+        {
+          "file": "tests/deployed-3627.test.cjs",
+          "name": "3627 基础22招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "真实分类威力/属性伤害、先制顺序、暴击双倍与非必中失误"
+        },
+        {
+          "file": "tests/deployed-3627-effects.test.cjs",
+          "name": "3627 净火繁星只攻击当前对手一次并保留三目标来源",
+          "assertion": "当前对手恰一条实际伤害与一次PP消费，封招/免伤0损血；来源三目标字段完整保留"
+        }
+      ]
+    },
+    "defaultDurationRevalidation": {
+      "record": "research/duration-correction/user-confirmation.json",
+      "status": "single-stage-revalidated",
+      "basis": "共享运行时默认时长环境变更，不改来源摘要；显式时长例外保留。",
+      "historicalEvidence": "research/duration-correction/reviews-before.json",
+      "gate": "research/duration-correction/gate-3627.log",
+      "exitCode": 0
+    }
+  },
+  "3642:move:11460": {
+    "sourceDigest": "7f9b0f7ed34ab297e6001911115bf3b8d842cf7ef81866dc94a6a32e484c9721",
+    "scope": "mixed",
+    "reviewedBy": "Codex 3642 source/state review",
+    "reviewedAt": "2026-10-13T14:24:21.317Z",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/effect-registry.js",
+      "dist/souls.js"
+    ],
+    "rationale": "真实skill/11460 hash58978e68的atk_num=2表示两目标；单挑仅命中当前对手一次，其余目标依赖多精灵。",
+    "singleBehavior": "羽翼切割原始PP、威力分类、先制命中和暴击执行",
+    "deferredBehavior": "羽翼切割atk_num=2的第二目标选择和独立伤害结算",
+    "trigger": "在可选两个敌方目标的对战中使用羽翼切割",
+    "futureMechanisms": [
+      "多精灵目标列表",
+      "第二目标选择和伤害分发"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招实际PP消耗、零PP拒绝原状态不变，控制和封招无HP/能力/异常收益"
+        },
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "按真实威力与属性计算HP差，暴击倍数、行动顺序和失误状态"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招实际PP消耗、零PP拒绝原状态不变，控制和封招无HP/能力/异常收益"
+        },
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "按真实威力与属性计算HP差，暴击倍数、行动顺序和失误状态"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招实际PP消耗、零PP拒绝原状态不变，控制和封招无HP/能力/异常收益"
+        },
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "按真实威力与属性计算HP差，暴击倍数、行动顺序和失误状态"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招真实扣PP、零PP拒绝、控制和封招阻止执行",
+          "assertion": "逐招实际PP消耗、零PP拒绝原状态不变，控制和封招无HP/能力/异常收益"
+        },
+        {
+          "file": "tests/deployed-3642.test.cjs",
+          "name": "3642 基础27招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+          "assertion": "按真实威力与属性计算HP差，暴击倍数、行动顺序和失误状态"
+        }
+      ]
+    },
+    "defaultDurationRevalidation": {
+      "record": "research/duration-correction/user-confirmation.json",
+      "status": "single-stage-revalidated",
+      "basis": "共享运行时默认时长环境变更，不改来源摘要；显式时长例外保留。",
+      "historicalEvidence": "research/duration-correction/reviews-before.json",
+      "gate": "research/duration-correction/gate-3642.log",
+      "exitCode": 0
+    }
+  },
+  "3815:move:11531": {
+    "sourceDigest": "d946d3a5f97b94a41bba038849d6f2d0cc8e285c32ac0e93b5e8f4ca46e295a4",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-16T08:14:58.418Z",
+    "rationale": "SeerAPI技能11531 hash ba1b7599明确atk_num=4；当前场上单一对手攻击已验证，其余多目标选择依赖第二阶段。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/effect-registry.js",
+      "dist/souls.js"
+    ],
+    "singleBehavior": "念力压制基础威力分类、命中先制暴击、PP消耗及零PP拒绝控制封招",
+    "deferredBehavior": "念力压制原始atk_num=4的多目标选择与分别命中结算",
+    "trigger": "多精灵战场存在多个可选攻击目标",
+    "futureMechanisms": [
+      "多目标选择",
+      "各目标独立命中与伤害"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证",
+          "assertion": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证"
+        },
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行",
+          "assertion": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证",
+          "assertion": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证"
+        },
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行",
+          "assertion": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证",
+          "assertion": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证"
+        },
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行",
+          "assertion": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证",
+          "assertion": "3815 基础18招伤害、PP、零PP拒绝、封招与控制逐招验证"
+        },
+        {
+          "file": "tests/deployed-3815.test.cjs",
+          "name": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行",
+          "assertion": "3815 基础18招先制、命中失败、必暴伤害及本系属性按来源执行"
+        }
+      ]
+    }
+  },
+  "3907:move:11544": {
+    "sourceDigest": "3706a1ebe89f16c5146b098c1cb51ec37fafcbf35b71bbf66c43c048b9ab0af6",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-19T06:28:17.667Z",
+    "rationale": "逐项审核真实API原文、参数、隐藏效果及四个来源绑定版本；用户Q-3907-001确认仅攻击减免；原始资料及隐藏效果版本分别保存。",
+    "singleBehavior": "完整真实技能基础行为，含原始隐藏效果与合法版本配招",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/wiki-support.js",
+      "seerapi.cjs"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        },
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        },
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3907.test.cjs",
+          "name": "3907全部28招基础真实PP扣除、零PP拒绝、控制不行动及攻击扣血",
+          "assertion": "全部28真实技能按源PP扣除，零PP拒绝、控制不使用，攻击实际扣血，属性不扣血"
+        }
+      ]
+    },
+    "deferredBehavior": "真实atk_num=2的额外第二目标选择与独立命中伤害",
+    "trigger": "多目标战斗使用黑色漩涡",
+    "futureMechanisms": [
+      "多目标选择",
+      "逐目标命中和伤害"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "multi-target",
+        "quote": "atk_num=2"
+      }
+    ]
+  },
+  "3940:move:14045": {
+    "sourceDigest": "3f27f401b9742b7e8bc77d33d10d18a3768fec8bc394babde9037fca3b99fafa",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-19T07:45:13.958Z",
+    "rationale": "按真实API和当前用户确认逐实例核查；完整快照包含22招及两个魂印，1203时长歧义保持单精灵待确认，不当成多精灵延期",
+    "singleBehavior": "源技能基础行为和当前目标效果",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3940-partial.test.cjs",
+          "name": "3940全部22招基础PP与行动，所有源实例独立保留，零PP和控制拒绝",
+          "assertion": "逐招原PP消费、实际攻击与属性行动、疲惫不扣PP，零PP拒绝"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3940-partial.test.cjs",
+          "name": "3940全部22招基础PP与行动，所有源实例独立保留，零PP和控制拒绝",
+          "assertion": "逐招原PP消费、实际攻击与属性行动、疲惫不扣PP，零PP拒绝"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3940-partial.test.cjs",
+          "name": "3940全部22招基础PP与行动，所有源实例独立保留，零PP和控制拒绝",
+          "assertion": "逐招原PP消费、实际攻击与属性行动、疲惫不扣PP，零PP拒绝"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3940-partial.test.cjs",
+          "name": "3940全部22招基础PP与行动，所有源实例独立保留，零PP和控制拒绝",
+          "assertion": "逐招原PP消费、实际攻击与属性行动、疲惫不扣PP，零PP拒绝"
+        }
+      ]
+    },
+    "deferredBehavior": "atk_num=3的其他两个独立目标攻击与选择",
+    "trigger": "多目标战斗释放净火繁星",
+    "futureMechanisms": [
+      "多目标选择",
+      "逐目标攻击结算"
+    ],
+    "deploymentBinding": "原始raw逐项deepEqual，URL/revision/loadedAt不变，仅本地storage/savedAt元数据导致摘要重新绑定"
+  },
+  "3954:move:14089": {
+    "sourceDigest": "74d35f17485b9e7543465795e3e5f928981a8ff9a3cb7f73b7d16dd0676dc34d",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-19T16:15:56.728Z",
+    "rationale": "极热旋风为来源classification=regular的普通技能，源atk_num=3/sourceTargetCount=3。当前对手一次100威力特攻与真实PP10已逐招测试；其余两个目标选择和独立攻击需要多目标引擎，按该真实字段延期。此前概括全精灵版本的审核理由与本项无关，现限定到此技能自身来源。",
+    "singleBehavior": "真实技能基础及当前目标行为",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/health-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-3954-partial.test.cjs",
+          "name": "3954全部20招基础源PP、零PP拒绝、控制不行动及真实伤害",
+          "assertion": "20真实招逐招源PP/实际攻击、零PP拒绝和控制不行动"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-3954-partial.test.cjs",
+          "name": "3954全部20招基础源PP、零PP拒绝、控制不行动及真实伤害",
+          "assertion": "20真实招逐招源PP/实际攻击、零PP拒绝和控制不行动"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-3954-partial.test.cjs",
+          "name": "3954全部20招基础源PP、零PP拒绝、控制不行动及真实伤害",
+          "assertion": "20真实招逐招源PP/实际攻击、零PP拒绝和控制不行动"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-3954-partial.test.cjs",
+          "name": "3954全部20招基础源PP、零PP拒绝、控制不行动及真实伤害",
+          "assertion": "20真实招逐招源PP/实际攻击、零PP拒绝和控制不行动"
+        }
+      ]
+    },
+    "deferredBehavior": "真实atk_num=3的其他两个目标独立选择和攻击",
+    "trigger": "多目标释放极热旋风",
+    "futureMechanisms": [
+      "多目标选择",
+      "逐目标攻击"
+    ],
+    "previousRationale": "API原版与觉醒源版本/20招逐项核对。111复用既有明确用户确认初始100每升一级+1；192仍关联公共问题，不以假设绕过部署。"
+  },
+  "4032:move:11531": {
+    "sourceDigest": "7ec90e77012d7b6289d6503134358c9b704c2bd6a8599234b771383201e4d951",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-19T11:15:47.985Z",
+    "rationale": "API17招真实单精灵分支逐实例，六秘法不冒称多精灵。时空原文/格式化差异及瀚海固定等量回复待确认。回复先行1065仍使用实际回复量，没有扩大自身最大体力附伤先行名义回复确认。",
+    "singleBehavior": "当前在场目标一次真实基础特殊攻击与PP/控制/零PP边界已验证",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4032-partial.test.cjs",
+          "name": "4032全部17招真实基础PP/攻击、零PP控制，真实魂印hash与已知缺口禁止正式保存",
+          "assertion": "逐源真实实例验证HP/护盾、完整结算与实际损失、PP、能力/异常、概率、时序和成功失败边界"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4032-partial.test.cjs",
+          "name": "4032全部17招真实基础PP/攻击、零PP控制，真实魂印hash与已知缺口禁止正式保存",
+          "assertion": "逐源真实实例验证HP/护盾、完整结算与实际损失、PP、能力/异常、概率、时序和成功失败边界"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4032-partial.test.cjs",
+          "name": "4032全部17招真实基础PP/攻击、零PP控制，真实魂印hash与已知缺口禁止正式保存",
+          "assertion": "逐源真实实例验证HP/护盾、完整结算与实际损失、PP、能力/异常、概率、时序和成功失败边界"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4032-partial.test.cjs",
+          "name": "4032全部17招真实基础PP/攻击、零PP控制，真实魂印hash与已知缺口禁止正式保存",
+          "assertion": "逐源真实实例验证HP/护盾、完整结算与实际损失、PP、能力/异常、概率、时序和成功失败边界"
+        }
+      ]
+    },
+    "deferredBehavior": "来源atk_num=4的多目标选择与其他目标攻击；单挑当前目标只执行一次，不将四目标解释成四段",
+    "trigger": "战场存在多个合法目标，按来源最多4目标选择",
+    "futureMechanisms": [
+      "多目标战场",
+      "目标列表选择与逐目标结算"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "multi-target",
+        "quote": "atk_num=4"
+      }
+    ]
+  },
+  "4050:move:13533": {
+    "sourceDigest": "f67019cfece859df5a8214637d2cac80fdd87e81d0fd9e9e005fa47b14dd8eb6",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-19T11:42:36.544Z",
+    "rationale": "17招两真实魂印逐项，当前全部明确分支实现；未知下3回合起的闪避时点复用同一公共问题而非新建重复；1585次回合必暴刷新保留当前必暴真实验证。1266当前在场分支不能仅因己方措辞延期。",
+    "singleBehavior": "当前在场目标一次真实基础攻击与PP/控制/零PP边界已验证",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4050-partial.test.cjs",
+          "name": "4050全部17招真实基础PP攻击无PP控制、两魂印版本与唯一第五保持真实来源，未知闪避不得正式部署",
+          "assertion": "逐真实源参数HP/完整伤害与实际损失、PP、等级/异常、免疫/穿免、先制与严格时间边界状态"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4050-partial.test.cjs",
+          "name": "4050全部17招真实基础PP攻击无PP控制、两魂印版本与唯一第五保持真实来源，未知闪避不得正式部署",
+          "assertion": "逐真实源参数HP/完整伤害与实际损失、PP、等级/异常、免疫/穿免、先制与严格时间边界状态"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4050-partial.test.cjs",
+          "name": "4050全部17招真实基础PP攻击无PP控制、两魂印版本与唯一第五保持真实来源，未知闪避不得正式部署",
+          "assertion": "逐真实源参数HP/完整伤害与实际损失、PP、等级/异常、免疫/穿免、先制与严格时间边界状态"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4050-partial.test.cjs",
+          "name": "4050全部17招真实基础PP攻击无PP控制、两魂印版本与唯一第五保持真实来源，未知闪避不得正式部署",
+          "assertion": "逐真实源参数HP/完整伤害与实际损失、PP、等级/异常、免疫/穿免、先制与严格时间边界状态"
+        }
+      ]
+    },
+    "deferredBehavior": "原始atk_num=3的其他目标选择与逐目标攻击；当前单挑只攻击在场对手一次，不误作三段",
+    "trigger": "有多个合法目标时按来源至多3目标选择",
+    "futureMechanisms": [
+      "多目标战场",
+      "逐目标攻击结算"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "multi-target",
+        "quote": "atk_num=3"
+      }
+    ]
+  },
+  "4169:move:13983": {
+    "sourceDigest": "09d8c06dbbfb7bd01e2475bd12dfff707b8c5ede88414dd95288c93e4db2ab5e",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-20T00:19:20.660Z",
+    "rationale": "API已核实13983/hash5e7a921e/atk_num3，转换器新增精确来源支持，所有既有来源三元组与参数边界不变；不修改正式验证器、队列或自动化。单挑当前目标一次正常伤害，其他两个目标完整延期，不改成三段。属于本轮普通开发，不伪造新增用户授权。",
+    "singleBehavior": "真实基础攻击或属性行为、PP/控制/空PP边界；完整本地接入尚被真实未解实例/来源/目标分类保护阻断",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "seerapi.cjs"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4169-partial.test.cjs",
+          "name": "4169全部17真实技能基础PP/控制/空PP边界，Wiki补充版本不伪造APIhash且未知1644/1650不注册",
+          "assertion": "原始实例序号及参数严格校验后真实HP/PP/异常/强化/伤害类型、次数、先制、免疫、护盾和时序；未知分支只保存阻断证据，不宣称整招或整只完成"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4169-partial.test.cjs",
+          "name": "4169全部17真实技能基础PP/控制/空PP边界，Wiki补充版本不伪造APIhash且未知1644/1650不注册",
+          "assertion": "原始实例序号及参数严格校验后真实HP/PP/异常/强化/伤害类型、次数、先制、免疫、护盾和时序；未知分支只保存阻断证据，不宣称整招或整只完成"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4169-partial.test.cjs",
+          "name": "4169全部17真实技能基础PP/控制/空PP边界，Wiki补充版本不伪造APIhash且未知1644/1650不注册",
+          "assertion": "原始实例序号及参数严格校验后真实HP/PP/异常/强化/伤害类型、次数、先制、免疫、护盾和时序；未知分支只保存阻断证据，不宣称整招或整只完成"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4169-partial.test.cjs",
+          "name": "4169全部17真实技能基础PP/控制/空PP边界，Wiki补充版本不伪造APIhash且未知1644/1650不注册",
+          "assertion": "原始实例序号及参数严格校验后真实HP/PP/异常/强化/伤害类型、次数、先制、免疫、护盾和时序；未知分支只保存阻断证据，不宣称整招或整只完成"
+        }
+      ]
+    },
+    "reviewStatus": "single-branch-implemented-multiplayer-deferred",
+    "deferredBehavior": "原始API技能13983 hash5e7a921e字段atk_num=3；仅其他两个真实目标的选择与各目标结算延期，不能改成对当前目标三段攻击",
+    "trigger": "真实存在当前对手以外的可攻击目标，或完整三目标结算",
+    "futureMechanisms": [
+      "真实敌方多目标集合及最多三个目标选择",
+      "逐目标命中/伤害/击败流程"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "source-multiple-target-field",
+        "field": "atk_num",
+        "value": 3,
+        "source": {
+          "url": "https://api.seerapi.com/v1/skill/13983",
+          "hash": "5e7a921e",
+          "file": "research/4169-source-check.json"
+        }
+      }
+    ],
+    "sourceSupportEvidence": {
+      "id": 13983,
+      "hash": "5e7a921e",
+      "atk_num": 3,
+      "raw": "research/4169-source-check.json",
+      "tests": "tests/seerapi-4169-source-target.test.cjs",
+      "authorityBasis": "not-needed-normal-source-bound-development-no-validator-change"
+    }
+  },
+  "4184:move:11680": {
+    "sourceDigest": "6136d88bc4dccfa8b40baddcb63807d5c7b2068ebd5acee29298ae28ae07803a",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-20T02:01:58.757Z",
+    "rationale": "当前真实来源、原始参数及本地版本逐项核对；全部明确自身分支实做状态验证，仅原文确指真实其他目标、换宠及下一只的分支延期；不猜测时空漩涡语义。",
+    "singleBehavior": "真实三目标攻击的当前对手仅一次，真实power/pp/属性不改，精确hash支持",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/pp-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4184-partial.test.cjs",
+          "name": "4184 全部19真实技能本地配招初始化与原版强化选择，伙伴为自身强化不是多精灵",
+          "assertion": "当前原始序号参数的真实HP、完整伤害、PP、能力、异常、逐段、领域与时序成功/失败/边界/交互；已知独立部分不等同整只验收"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4184-partial.test.cjs",
+          "name": "4184 全部19真实技能本地配招初始化与原版强化选择，伙伴为自身强化不是多精灵",
+          "assertion": "当前原始序号参数的真实HP、完整伤害、PP、能力、异常、逐段、领域与时序成功/失败/边界/交互；已知独立部分不等同整只验收"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4184-partial.test.cjs",
+          "name": "4184 全部19真实技能本地配招初始化与原版强化选择，伙伴为自身强化不是多精灵",
+          "assertion": "当前原始序号参数的真实HP、完整伤害、PP、能力、异常、逐段、领域与时序成功/失败/边界/交互；已知独立部分不等同整只验收"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4184-partial.test.cjs",
+          "name": "4184 全部19真实技能本地配招初始化与原版强化选择，伙伴为自身强化不是多精灵",
+          "assertion": "当前原始序号参数的真实HP、完整伤害、PP、能力、异常、逐段、领域与时序成功/失败/边界/交互；已知独立部分不等同整只验收"
+        }
+      ]
+    },
+    "deferredBehavior": "原始3目标中的当前对手外另2目标",
+    "trigger": "实际同时存在当前对手外的合法目标",
+    "dependencyEvidence": [
+      {
+        "kind": "source-multiple-target-field",
+        "field": "atk_num",
+        "value": 3,
+        "source": {
+          "url": "https://api.seerapi.com/v1/skill/11680",
+          "hash": "71f52076",
+          "file": "research/4184-source-check.json"
+        }
+      }
+    ],
+    "futureMechanisms": [
+      "多目标列表及每个独立对手伤害"
+    ]
+  },
+  "4200:move:11084": {
+    "sourceDigest": "423fae71657dcfa1728faf7c30b92f0225038712e43a5f89fc231ff74fd9808e",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-20T03:54:40.963Z",
+    "rationale": "18招与两个真实魂印逐项按来源/hash/实例位置审核；普通技能及自身强化独立实现；未决分支不猜测",
+    "singleBehavior": "原始四目标攻击当前对手一次，基础85威力不改；其余目标延期",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/effect-registry.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4200-partial.test.cjs",
+          "name": "4200十八真实技能基础伤害/属性、实际PP与唯一第五保留",
+          "assertion": "当前来源实例真实HP、完整结算与实际损失、PP、概率、异常、能力、保命消费、回复及先制/回合边界；未决分支不计完成"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4200-partial.test.cjs",
+          "name": "4200十八真实技能基础伤害/属性、实际PP与唯一第五保留",
+          "assertion": "当前来源实例真实HP、完整结算与实际损失、PP、概率、异常、能力、保命消费、回复及先制/回合边界；未决分支不计完成"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4200-partial.test.cjs",
+          "name": "4200十八真实技能基础伤害/属性、实际PP与唯一第五保留",
+          "assertion": "当前来源实例真实HP、完整结算与实际损失、PP、概率、异常、能力、保命消费、回复及先制/回合边界；未决分支不计完成"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4200-partial.test.cjs",
+          "name": "4200十八真实技能基础伤害/属性、实际PP与唯一第五保留",
+          "assertion": "当前来源实例真实HP、完整结算与实际损失、PP、概率、异常、能力、保命消费、回复及先制/回合边界；未决分支不计完成"
+        }
+      ]
+    },
+    "deferredBehavior": "原始atk_num=4中当前对手外的另外三个目标",
+    "trigger": "实际存在另外合法目标",
+    "dependencyEvidence": [
+      {
+        "kind": "source-multiple-target-field",
+        "field": "atk_num",
+        "value": 4,
+        "source": {
+          "url": "https://api.seerapi.com/v1/skill/11084",
+          "hash": "c5d5e1ca",
+          "file": "research/4200-source-check.json"
+        }
+      }
+    ],
+    "futureMechanisms": [
+      "真实多目标列表及每个目标独立伤害结算"
+    ]
+  },
+  "4208:move:11531": {
+    "sourceDigest": "c2c0eb3368b694a2610e26f1bdbb248318b73e0dead201bdb38c510806cc988e",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-20T04:18:29.412Z",
+    "rationale": "17招与魂印1427保留API真实原文、参数和hash；16招有据技能完整组合、未决衍生威力不写处理器",
+    "singleBehavior": "真实四目标技能当前对手一次，其他三个目标延期",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4208-partial.test.cjs",
+          "name": "4208十六有据技能完整组合接入，精神封锁100未混入已完成技能",
+          "assertion": "当前真实实例HP、完整伤害与实际HP、能力、PP、异常、回复附伤、免疫/保护、阈值及下一回合实际封锁；未知威力和受击统计不计完成"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4208-partial.test.cjs",
+          "name": "4208十六有据技能完整组合接入，精神封锁100未混入已完成技能",
+          "assertion": "当前真实实例HP、完整伤害与实际HP、能力、PP、异常、回复附伤、免疫/保护、阈值及下一回合实际封锁；未知威力和受击统计不计完成"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4208-partial.test.cjs",
+          "name": "4208十六有据技能完整组合接入，精神封锁100未混入已完成技能",
+          "assertion": "当前真实实例HP、完整伤害与实际HP、能力、PP、异常、回复附伤、免疫/保护、阈值及下一回合实际封锁；未知威力和受击统计不计完成"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4208-partial.test.cjs",
+          "name": "4208十六有据技能完整组合接入，精神封锁100未混入已完成技能",
+          "assertion": "当前真实实例HP、完整伤害与实际HP、能力、PP、异常、回复附伤、免疫/保护、阈值及下一回合实际封锁；未知威力和受击统计不计完成"
+        }
+      ]
+    },
+    "deferredBehavior": "原始atk_num=4中当前对手外的其他三个目标",
+    "trigger": "实际存在其他合法目标",
+    "dependencyEvidence": [
+      {
+        "kind": "source-multiple-target-field",
+        "field": "atk_num",
+        "value": 4,
+        "source": {
+          "url": "https://api.seerapi.com/v1/skill/11531",
+          "hash": "ba1b7599",
+          "file": "research/4208-source-check.json"
+        }
+      }
+    ],
+    "futureMechanisms": [
+      "真实多目标列表和各个独立目标伤害"
+    ]
+  },
+  "4219:move:14089": {
+    "sourceDigest": "7f35a8fa89ef2bd425ffcee13e322b87014e122a0d3856f7de513e9880f0678f",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-20T06:16:00.776Z",
+    "rationale": "真实API atk_num=3，已有精确hash兼容；当前对手一次真实攻击已验证，另外两个真实目标延期。",
+    "singleBehavior": "极热旋风14089/a021d45c，原始三目标中的当前对手一次攻击，power100/PP10/先制0/命中100保留",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4219-partial.test.cjs",
+          "name": "4219 18招已知独立实例链真实PP与基础伤害，两真实第五及四个来源组合保留",
+          "assertion": "当前原始实例真实HP、伤害类型、原子回复/名义吸取、能力、PP、状态、消除条件、实际护盾护罩、概率边界、时序与两个真实魂印已知分支；未知载荷不计完成"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4219-partial.test.cjs",
+          "name": "4219 18招已知独立实例链真实PP与基础伤害，两真实第五及四个来源组合保留",
+          "assertion": "当前原始实例真实HP、伤害类型、原子回复/名义吸取、能力、PP、状态、消除条件、实际护盾护罩、概率边界、时序与两个真实魂印已知分支；未知载荷不计完成"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4219-partial.test.cjs",
+          "name": "4219 18招已知独立实例链真实PP与基础伤害，两真实第五及四个来源组合保留",
+          "assertion": "当前原始实例真实HP、伤害类型、原子回复/名义吸取、能力、PP、状态、消除条件、实际护盾护罩、概率边界、时序与两个真实魂印已知分支；未知载荷不计完成"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4219-partial.test.cjs",
+          "name": "4219 18招已知独立实例链真实PP与基础伤害，两真实第五及四个来源组合保留",
+          "assertion": "当前原始实例真实HP、伤害类型、原子回复/名义吸取、能力、PP、状态、消除条件、实际护盾护罩、概率边界、时序与两个真实魂印已知分支；未知载荷不计完成"
+        }
+      ]
+    },
+    "deferredBehavior": "API atk_num=3中当前对手外另外两个真实目标的选择与各自攻击",
+    "trigger": "实际存在除当前对手以外的另外两个合法目标",
+    "dependencyEvidence": [
+      {
+        "kind": "source-multiple-target-field",
+        "field": "atk_num",
+        "value": 3,
+        "source": {
+          "url": "https://api.seerapi.com/v1/skill/14089",
+          "hash": "a021d45c",
+          "file": "research/4219-source-check.json"
+        }
+      }
+    ],
+    "futureMechanisms": [
+      "真实多个敌方目标选择",
+      "每个合法目标分别结算威力100攻击"
+    ]
+  }
+}

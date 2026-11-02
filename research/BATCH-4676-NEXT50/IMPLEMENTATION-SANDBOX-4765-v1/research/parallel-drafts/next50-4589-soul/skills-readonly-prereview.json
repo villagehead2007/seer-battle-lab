@@ -1,0 +1,40 @@
+{
+  "at": "2026-10-25T12:51:13.613Z",
+  "scope": "4589 skills未冻结稿只读预审，不测试/不改对方文件/不外查/不读liveMD",
+  "reviewedFragmentSha256": "267692f0978985b9246098c355ca8bd8e9a8a49dcdbd78b6063168bda7f809c2",
+  "findings": [
+    {
+      "severity": "compatibility",
+      "id": "983-legacy-compile",
+      "file": "research/parallel-drafts/next50-4589-skills/range-effects.production-fragment.js",
+      "detail": "registry983原为非direct正则描述编译规则；当前稿全局direct:true。虽old.execute数组转{amount}保留旧compileInstances行为，effect-registry.compile(ids,description,effects)在rule.direct直接拒绝。当前旧3142测试只compileInstances，不覆盖legacy文本compile入口。",
+      "evidence": [
+        "dist/effect-registry.js:28 原983正则规则",
+        "dist/effect-registry.js:36 rule.direct直接返回需要结构化参数",
+        "draft for id983/1933 wrapper direct:true",
+        "draft测试旧3142使用compileInstances"
+      ],
+      "recommendedScope": "只保持983原先文本编译兼容；不扩大整个注册表或放宽不相关源校验。",
+      "status": "已消息主线，未运行验证或自行改稿"
+    }
+  ],
+  "verifiedByReading": [
+    {
+      "item": "source-bound wrappers",
+      "detail": "全部新增特定4589 moveID的validate最终使用exact4589绑定真实revision/index/args/hash；非4589回old.validate。runtime缺hash仅允许wiki: ID且精确revision，匹配现有runtime传递约定。"
+    },
+    {
+      "item": "717",
+      "detail": "持续效果在used&&非item&&存活入口执行；先固定基数对敌最大HP/3百分比伤害，再检查恢复时自身当前HP严格低半，仅回复翻倍；目标已死不阻理论回复；回复origin skill。控制未用不触发，实际MISS/整招无效仍used触发。"
+    },
+    {
+      "item": "983/1933真实KO",
+      "detail": "beforeAccuracy已在真实used计数增加之后登记round/token；resolveDeath依据实际技能origin记KO，支持立即复活；属性/控制未用不创建本次登记。后续魂印晚杀004属于明确待答保护，不归为实现缺陷。"
+    },
+    {
+      "item": "双魂印时序",
+      "detail": "1933技能afterAttack可先施自身烧伤，再正常afterUse魂印按自身烧伤决定额外焚烬；1797/1864差别在后者异常计数吸取。晚魂印击败引发004诊断，不猜回溯983/1933。"
+    }
+  ],
+  "limits": "live稿可能继续更新；上述发现须主线按最后冻结稿再次核对。未把待答849/989/733/1474等guard当实现缺陷。"
+}

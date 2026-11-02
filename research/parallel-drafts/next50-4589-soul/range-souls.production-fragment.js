@@ -1,0 +1,10 @@
+{
+const burning4589=(f,r)=>Number.isInteger(f.ailments['烧伤'])&&f.ailments['烧伤']>=r;
+function entry4589(c){if(c.a.hp<=0||c.t.hp!==c.t.stats.maxHp)return false;const duration=1+c.t.moves.filter(id=>c.t.pp[id]===c.maxPP(id)).length;return c.entryAilment?c.entryAilment(c.t,'烧伤',duration):c.ailment(c.t,'烧伤',c.a,false,false,duration);}
+function protect4589(c,operation){return c.t!==c.a&&c.t.side!==c.a.side&&burning4589(c.t,c.round)&&(operation==='clear'||operation==='steal'&&c.a.soulId===1864);}
+function payload4589(c){if(c.a.hp<=0||!['physical','special'].includes(c.m.kind))return;const burn=burning4589(c.t,c.round);if(c.t.hp>0){c.ailment(c.t,burn?'失明':'烧伤',c.a);if((c.actionAttackDamage??0)===0||burning4589(c.a,c.round))c.ailment(c.t,'焚烬',c.a);}if(c.a.soulId===1864){const count=Object.values(c.t.ailments).filter(end=>end>=c.round).length;if(count)healthRules.drainFixed(c,200*count,'曜焰万象每种异常吸取');}}
+function qualifiedHeal4589(c,amount){if(!Number.isFinite(amount)||amount<0)throw Error('抵挡回复载荷须非负数');return c.heal(c.a,amount,'曜焰万象低体抵挡回复');}
+const out={};for(const [id,hash] of [[1797,'bd24d5d4'],[1864,'4ba357b8']])out[id]={name:'曜焰万象·文森特'+(id===1864?'·强化':''),sourceHash:hash,partial:id===1864,unimplemented:id===1864?['Q-N50-4589-001：抵挡攻击后的等量回复基数/时点待核']:[],deferred:['真实再次登场时重新检查对手满体及满PP数量施加烧伤；当前首次已实现'],traits:{},abilities:{qualifiedEntry:entry4589,protectBoost:protect4589,qualifiedBlockedHeal:qualifiedHeal4589},hooks:{battleStart:entry4589,afterUse:payload4589,beforeIncomingAttack(c){if(burning4589(c.a,c.round)){c.immuneAttack=true;if(id===1864&&c.a.hp<c.t.hp){c.a.soulState.vincentBlockedHealPending4589={questionId:'Q-N50-4589-001',round:c.round,ownHp:c.a.hp,opponentHp:c.t.hp};c.emit('Q-N50-4589-001：攻击抵挡已完成，低体等量回复基数未猜测。');}}},beforeIncomingDamage(c){if(c.type==='attack'&&burning4589(c.a,c.round)){c.amount=0;if(id===1864&&c.a.hp<c.t.hp)c.a.soulState.vincentBlockedHealPending4589={questionId:'Q-N50-4589-001',round:c.round,ownHp:c.a.hp,opponentHp:c.t.hp};}}}};
+Object.assign(registry,out);
+
+}

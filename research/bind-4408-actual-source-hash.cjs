@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/range-effects.js';let s=fs.readFileSync(p,'utf8').replace("m.hash==='cb037bca'","m.hash==='"+require('./4408-reviewed-snapshot.json').moves.find(x=>x.id===36055).hash+"'");fs.writeFileSync(p,s);

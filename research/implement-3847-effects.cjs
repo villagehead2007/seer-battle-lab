@@ -1,0 +1,35 @@
+'use strict';
+const fs=require('fs'),r=require('./3847-source-check.json'),p=r.records.find(x=>x.url.endsWith('/pet/3847')).data;
+let f='dist/wiki-support.js',s=fs.readFileSync(f,'utf8');
+const reviewed={pet:p.hash,souls:Object.fromEntries(r.records.filter(x=>/\/soulmark\//.test(x.url)).map(x=>[x.data.id,x.data.hash])),fifths:p.skill.filter(x=>x.is_fifth).map(x=>x.skill.id),skills:p.skill.map(x=>x.skill.id)};
+s=s.replace('const reviewed={3763:', 'const reviewed={3847:'+JSON.stringify(reviewed)+',3763:');fs.writeFileSync(f,s);
+f='dist/range-effects.js';s=fs.readFileSync(f,'utf8');
+s=s.replace("c.ailment(c.t,'失神',c.a)))c.heal(c.a,c.a.stats.maxHp/p[2],c.m.name+'未控回复');},[pct,[29,29],[1,9999]]);", "c.ailment(c.t,p[1]===6?'害怕':'失神',c.a)))c.heal(c.a,c.a.stats.maxHp/p[2],c.m.name+'未控回复');},[pct,[6,29],[1,9999]]);");
+s=s.replace("if(id===2190&&", "if(id===1423&&![6,29].includes(args[1]))throw Error('1423异常枚举未核对');if(id===2190&&");
+s=s.replace(/add\(786,'afterHit'.*?\n/,"add(786,'afterHit',(c,p)=>c.randomFromSharedPool(p[0],false,786),[[1,7]]);\n");
+const ids=[1181,1491,2058,2057,1078,55,1647,2284,1878,1111,1821,2456];
+const metadata=ids.map(id=>{const d=r.records.find(x=>x.url.endsWith('/skill_effect_type/'+id)).data;return 'metadata['+id+']='+JSON.stringify({info:d.info,args_num:d.args_num})+';';}).join('\n');
+const code=`
+${metadata}
+add(1181,'afterHit',(c,p)=>c.timed(c.a,'用招异常失败弱化',p[0],{chance:p[1],ailment:ailments[p[2]],amount:p[3]}),[turns,pct,[20,20],[1,6]]);
+add(1491,'beforeOrder',c=>{if(c.typeAffinity(c.t.type,c.a.type)>1)c.priority++;});
+add(2058,'beforeOrder',c=>{if(c.typeAffinity(c.a.type,c.t.type)>1)c.priority++;});
+add(2057,'afterHit',(c,p)=>c.stage(c.a,p[0]*(c.typeAffinity(c.a.type,c.t.type)>1?2:1)),[[1,6]]);
+add(1078,'afterHit',(c,p)=>{const result=c.randomFromSharedPool(p[0],false,1078);if(result.some(x=>!x.applied))c.timed(c.a,'属性技能先制',p[1],{amount:p[2]},c.round+1);},[[1,7],turns,[0,10]]);
+add(55,'afterHit',(c,p)=>c.swapTypes(c.a,c.t,p[0]),[turns]);
+add(1647,'afterHit',(c,p)=>c.timed(c.a,'用招低体双吸',p[0],{fraction:1/p[1],threshold:1/p[2],immuneTrueDamage:p[3]}),[turns,[1,9999],[1,9999],[0,99999]]);
+add(2284,'afterHit',(c,p)=>{const parts=c.typeParts(c.t.type).filter(x=>x!=='普通');if(!parts.length)return;c.t.soulState.strippedType??=c.t.type;c.t.type='普通';if(c.a.soulState.corpseCount>0)c.a.soulState.contractDamageBonus=(c.a.soulState.contractDamageBonus??0)+parts.length*50;const result=c.randomFromSharedPool(parts.length,true,2284);c.a.soulState.typedContracts??=[];result.forEach((x,i)=>{if(!x.applied)c.a.soulState.typedContracts.push({type:parts[i%parts.length],remaining:p[0],base:p[1]});});},[turns,[0,99999]]);
+add(1878,'afterHit',(c,p)=>{c.clear(c.t);if(!Object.values(c.t.effects).some(e=>e.end>=c.round))healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name);},[[1,9999]]);
+add(1111,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,'神游',c.a)))c.timed(c.a,'攻击伤害倍数',p[2],{multiple:1+p[3]/100});},[pct,[39,39],turns,[0,1000]]);
+add(1821,'afterAttack',(c,p)=>{if(c.t.hp>0)c.restorePP(c.a,p[0]);},[[0,99]]);
+add(2456,'beforeUse',(c,p)=>{c.a.counts.defeatFullRestore=p[0];},[[1,99]]);
+`;
+s=s.replace(/\}\);\s*$/,code+'});\n');fs.writeFileSync(f,s);
+f='dist/souls.js';s=fs.readFileSync(f,'utf8');
+s=s.replace('function restoreCopiedType(f){','function restoreSwappedTypes(){for(const f of fs){const e=f.soulState.typeSwap;if(e&&!on(f,\'交换属性\')){for(const target of fs)if(target.soulState.typeSwap?.token===e.token){target.type=target.soulState.typeSwap.base;delete target.soulState.typeSwap;delete target.effects[\'交换属性\'];}}}}\n    function restoreCopiedType(f){');
+s=s.replace('restoreCopiedType(f);emit(', 'restoreCopiedType(f);restoreSwappedTypes();emit(');
+s=s.replace('expireOtherCrit(f);restoreCopiedType(f);','expireOtherCrit(f);restoreCopiedType(f);restoreSwappedTypes();');
+s=s.replace('skillPhase,syncStages:', "skillPhase,typeParts:type=>s.typeChart?.aliases[type]??[type],swapTypes(a,t,n){const at=a.type,tt=t.type,token=r+':'+a.side;for(const f of [a,t]){f.soulState.typeSwap={token,base:f.soulState.typeSwap?.base??f.type};timed(f,'交换属性',n,{});}a.type=tt;t.type=at;},syncStages:");
+s=s.replace("if(a.hp>0&&t.hp>0&&on(a,'用招低体双吸'))", "if(a.hp>0&&t.hp>0&&on(a,'用招异常失败弱化')){const e=a.effects['用招异常失败弱化'];statusRules.markExecution(a,r);if(!(rng(s)<e.chance/100&&ailment(t,e.ailment,a)))stage(t,-e.amount);}\n      if(a.hp>0&&t.hp>0&&on(a,'用招低体双吸'))");
+s=s.replace("drainPercent(a,t,t.stats.maxHp*e.fraction*multiple,'用招低体双吸');}","const immune=damageImmune(t,'percent');drainPercent(a,t,t.stats.maxHp*e.fraction*multiple,'用招低体双吸');if(immune&&e.immuneTrueDamage&&t.hp>0)inflict(a,t,e.immuneTrueDamage,'吸取免疫追加','true');}");
+fs.writeFileSync(f,s);

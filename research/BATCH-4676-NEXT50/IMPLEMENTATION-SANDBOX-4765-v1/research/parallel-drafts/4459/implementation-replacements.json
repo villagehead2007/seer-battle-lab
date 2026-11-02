@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-23T11:29:39.914Z",
+  "patches": [
+    {
+      "file": "dist/range-souls.js",
+      "baseSHA256": "efb9e988b48aee5363f9876ae408b4cca800e3a417446c4b573fcfc0b239ad48",
+      "needle": "registry[1672]={name:'恶鬼·图伽',sourceHash:'4254ff4c',partial:true,unimplemented:['Q-N20-4459-001：两弱化异常混合成功时未触发吸取范围'],traits:{},hooks:{roundStart(c){c.a.soulState.tugaStartAilments=conditionStatusRules.conditionPresent(c.t,c.round)?Object.values(c.t.ailments).filter(end=>end>=c.round).length:0;},afterUse(c){const n=c.a.soulState.tugaStartAilments??0;if(c.a.hp>0&&c.m.kind!=='item'&&n>0)healthRules.drainFixed(c,n*100,'恶鬼回合初异常种数吸取');},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;const names=soulStatusPools.pool(undefined,{includeRestricted:true}).map(x=>x.name).filter(conditionStatusRules.isWeakening),result=c.randomAilmentsFrom(2,names,null),success=result.filter(x=>x.applied).length;if(success===0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'恶鬼双异常未触发吸取');else if(success!==result.length)c.a.soulState.pendingTugaMixedStatuses={question:'Q-N20-4459-001',round:c.round,result};}}};",
+      "insert": "registry[1672]={name:'恶鬼·图伽',sourceHash:'4254ff4c',deferred:['战阶随机弱化池抽中并施加凝滞后的真实主动切换限制与切换生命周期；当前双方异常施加、持续和凝滞免控制分支不延期'],traits:{},hooks:{roundStart(c){c.a.soulState.tugaStartAilments=conditionStatusRules.conditionPresent(c.t,c.round)?Object.values(c.t.ailments).filter(end=>end>=c.round).length:0;},afterUse(c){const n=c.a.soulState.tugaStartAilments??0;if(c.a.hp>0&&c.m.kind!=='item'&&n>0)healthRules.drainFixed(c,n*100,'恶鬼回合初异常种数吸取');},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;const names=soulStatusPools.pool(undefined,{includeRestricted:true}).map(x=>x.name).filter(conditionStatusRules.isWeakening),result=c.randomAilmentsFrom(2,names,null),success=result.filter(x=>x.applied).length;if(success<result.length)healthRules.drainPercent(c,c.t.stats.maxHp/3,'恶鬼双异常未触发吸取');}}};",
+      "why": "Q4459-001: any failed weakening status grants one theoretical maxHP/3 drain; remove partial pending"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "419a1fb73c280552cc1a34369df922df82a6597f535bcbb71af8adee636e509c",
+      "needle": "metadata[1922]={\"info\":\"消除对手回合类效果，消除成功则{0}回合内对手属性技能命中效果失效\",\"args_num\":1};",
+      "insert": "metadata[557]={info:'{0}回合内对手使用正先制的技能时{1}%令对手{2}',args_num:3};add(557,'afterHit',(c,p)=>c.timed(c.a,'正先制用招反制',p[0],{chance:p[1],ailment:ailments[p[2]],effectId:557}),[turns,pct,[6,6]]);\nmetadata[1922]={\"info\":\"消除对手回合类效果，消除成功则{0}回合内对手属性技能命中效果失效\",\"args_num\":1};",
+      "why": "register actual557 source template/3args and timed positive-final-priority counter, only confirmedfear6 enum"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3",
+      "needle": "      a.soulState.ppBeforeUse={...a.pp};",
+      "insert": "      if(a.hp>0&&t.hp>0&&priorities[a.side]>0&&on(t,'正先制用招反制')){const e=t.effects['正先制用招反制'],chance=context(t,a,m).statusProbability(e.chance);if(chance>=100||rng(s)<chance/100)ailment(a,e.ailment,t,false,false,null,{origin:'skill',effectId:e.effectId,probabilityPercent:e.chance});if(statusRules.blocksAction(a,r,t)||Object.entries(a.ailments).some(([k,end])=>['瘫痪','焚烬','神游','诅咒','感染'].includes(k)&&end>=r)){emit(`${name(a)} 受到正先制技能反制，当前行动被控制打断，未消耗 PP。`,'miss');E.SOULS.run('actionSkipped',{...context(a,t,m),reason:'control'});endAction(a,t,m,false);finish();continue;}}\n      a.soulState.ppBeforeUse={...a.pp};",
+      "why": "Q4459-002: after existing control/noPP checks, before basePP and used marks; shared ailment then actual control recheck"
+    }
+  ]
+}

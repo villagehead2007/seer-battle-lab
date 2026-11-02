@@ -1,0 +1,49 @@
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict');const {E,key,make,turn,pick,timer}=require('./helpers/3716-battle.cjs');const e=id=>pick(id)[0];
+test('3716 721后手令下回合攻击MISS，先手不触发且必中仍有效',()=>{const s=make(e(721),{aStats:{spe:1}}),o=turn(s);assert.equal(o.fighters[1].effects['攻击必失'].start,2);o.moveDefinitions[key(900040)].alwaysHit=false;assert.equal(turn(o,900031,900040).fighters[0].hp,9000);o.moveDefinitions[key(900040)].alwaysHit=true;assert.ok(turn(o,900031,900040).fighters[0].hp<9000);assert.equal(turn(make(e(721))).fighters[1].effects['攻击必失'],undefined);o.round=3;o.moveDefinitions[key(900040)].alwaysHit=false;assert.ok(turn(o,900031,900040).fighters[0].hp<9000);});
+test('3716 1938给对手真实护盾，抵挡伤害并消耗，封招不附加',()=>{const s=make(e(1938)),o=turn(s);assert.equal(o.fighters[1].suitState.shield,300);const n=turn(o,900030);assert.equal(n.fighters[1].hp,9000);assert.ok(n.fighters[1].suitState.shield<300);timer(s,0,'skillBlock');assert.equal(turn(s).fighters[1].suitState.shield,0);});
+test('3716 1922清回合成功封属，无效果与免断回合保护不触发',()=>{const s=make(e(1922));timer(s,1,'doubleDamage');const o=turn(s);assert.equal(o.fighters[1].effects.doubleDamage,undefined);assert.equal(o.fighters[1].effects['属性技能命中效果失效'].end,2);assert.equal(turn(make(e(1922))).fighters[1].effects['属性技能命中效果失效'],undefined);timer(s,1,'protect');assert.equal(turn(s).fighters[1].effects['属性技能命中效果失效'],undefined);});
+test('3716 1661护盾破裂石化、1769天生石化免疫与魔盾双持疲惫',()=>{
+ const s=make(e(1661)),o=turn(s);assert.equal(o.fighters[0].suitState.shield,300);o.fighters[1].stats.spa=9999;const broken=turn(o,900031,900040);assert.equal(broken.fighters[0].suitState.shield,0);assert.ok(broken.fighters[1].ailments['石化']>=2);
+ const im=structuredClone(o);im.fighters[1].soulId=1769;const immune=turn(im,900031,900040);assert.equal(immune.fighters[1].ailments['石化'],undefined);
+ const both=make(undefined,{soul:1769});const first=turn(both,900030);assert.equal(first.fighters[0].effects['物理攻击闪避'].end,2);const second=turn(first,900031);assert.ok(second.fighters[1].ailments['疲惫']>=3);assert.equal(second.fighters[0].effects['特殊攻击闪避'].end,3);
+});
+test('3716 1769分类魔盾闪避不拦必中，低体回复按实际量追加',()=>{
+ for(const physical of [false,true]){const s=make(undefined,{soul:1769,bPhysical:physical});s.moveDefinitions[key(900040)].alwaysHit=false;const o=turn(s,physical?900030:900031,900040);assert.equal(o.fighters[1].lastAttackDamage??0,0);s.moveDefinitions[key(900040)].alwaysHit=true;assert.ok(turn(s,physical?900030:900031,900040).fighters[1].lastAttackDamage>0);}
+ const low=make(undefined,{soul:1769,hp:1000});const o=turn(low,900031);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[1].hp,6000);const high=make(undefined,{soul:1769,targetHp:1000});assert.equal(turn(high,900031).fighters[0].suitState.shield,3000);const equal=turn(make(undefined,{soul:1769}),900031);assert.equal(equal.fighters[0].suitState.shield,0);assert.equal(equal.fighters[0].hp,9000);
+});
+test('3716 993无条件先回复再比体力，百分比追加取实际回复量',()=>{
+ for(const hp of [1000,6000,9000]){const s=make(undefined,{soul:993,hp});const o=turn(s,900031);assert.equal(o.fighters[0].hp,Math.min(9000,hp+3000));assert.equal(o.fighters[1].hp,hp===1000?6000:9000);}
+ const im=make(undefined,{soul:993,hp:1000});im.fighters[1].soulId=622;const o=turn(im,900031);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[1].hp,9000);
+ const no=make(undefined,{soul:993,hp:1000});no.fighters[0].ailments['感染']=2;const n=turn(no,900031);assert.equal(n.fighters[0].hp,4000);assert.equal(n.fighters[1].hp,6000);
+});
+test('3716 727后手恢复上回合末能力，首回合回到开战且先手不回溯',()=>{
+ const s=make(e(727),{aStats:{spe:1}});s.fighters[0].stages.atk=-2;assert.equal(turn(s).fighters[0].stages.atk,0);
+ const prior=make(e(727),{aStats:{spe:1}});prior.fighters[0].stages.atk=3;const later=turn(prior,900031);assert.equal(later.fighters[0].soulState.previousRoundStages.atk,3);later.fighters[0].stages.atk=-4;assert.equal(turn(later).fighters[0].stages.atk,3);
+ const fast=make(e(727));fast.fighters[0].stages.atk=-2;assert.equal(turn(fast).fighters[0].stages.atk,-2);const block=structuredClone(s);timer(block,0,'skillBlock');assert.equal(turn(block).fighters[0].stages.atk,-2);
+});
+test('3716 2079数值护盾先制与无视，分类魔盾和护罩不计，2080护盾威力',()=>{
+ const s=make(e(2079),{aStats:{spe:1}});s.moveDefinitions[key(s.auditMoveId)].priority=0;s.fighters[1].suitState.shield=3000;const o=turn(s);assert.equal(o.turns[0].first,0);assert.ok(o.fighters[1].hp<9000);assert.equal(o.fighters[1].suitState.shield,3000);
+ const no=make(e(2079),{aStats:{spe:1}});no.moveDefinitions[key(no.auditMoveId)].priority=0;no.fighters[1].suitState.barrier=3000;timer(no,1,'物理攻击闪避');assert.equal(turn(no).turns[0].first,1);
+ for(const field of ['attackShield','marsShield']){const q=make(e(2079));q.fighters[1].soulState[field]=3000;if(field==='marsShield'){q.fighters[1].soulId=708;q.fighters[1].soulState.marsForm='speed';}const n=turn(q);assert.ok(n.fighters[1].hp<9000);assert.equal(n.fighters[1].soulState[field],3000);}
+ const power=make(e(2080)),plain=turn(power);power.fighters[0].suitState.shield=1;assert.ok(turn(power).fighters[0].lastAttackDamage>plain.fighters[0].lastAttackDamage);power.fighters[0].suitState.shield=0;power.fighters[0].suitState.barrier=1;assert.equal(turn(power).fighters[0].lastAttackDamage,plain.fighters[0].lastAttackDamage);
+});
+test('3716 1368清全部数值护盾后下回合封招，不清护罩与分类闪避',()=>{
+ const s=make(e(1368));s.fighters[1].suitState.shield=300;s.fighters[1].soulState.attackShield=400;s.fighters[1].suitState.barrier=500;timer(s,1,'特殊攻击闪避');const o=turn(s);assert.equal(o.fighters[1].suitState.shield,0);assert.equal(o.fighters[1].soulState.attackShield,0);assert.equal(o.fighters[1].suitState.barrier,500);assert.ok(o.fighters[1].effects['特殊攻击闪避']);assert.equal(o.fighters[1].effects.skillBlock.start,2);assert.equal(o.fighters[1].effects.skillBlock.end,2);
+ const no=make(e(1368));timer(no,1,'特殊攻击闪避');assert.equal(turn(no).fighters[1].effects.skillBlock,undefined);
+});
+test('3716 1662消耗护盾追加固伤，免疫或护盾阻止掉血则回复且禁疗有效',()=>{
+ const s=make(e(1662),{hp:1000});s.fighters[0].suitState.shield=300;const o=turn(s);assert.equal(o.fighters[0].suitState.shield,0);assert.equal(o.fighters[0].hp,1000);assert.equal(9000-o.fighters[1].hp-o.fighters[0].lastAttackDamage,300);
+ for(const blocked of [false,true]){const im=structuredClone(s);im.fighters[1].soulId=622;if(blocked)timer(im,0,'技能禁疗');const n=turn(im);assert.equal(n.fighters[0].hp,blocked?1000:1300);assert.equal(n.fighters[0].suitState.shield,0);}
+ const no=make(e(1662),{hp:1000});no.fighters[1].soulId=622;assert.equal(turn(no).fighters[0].hp,1000);
+});
+test('3716 1769盾高增伤盾低攻固粉减半，相等不改变',()=>{
+ const run=(a,b)=>{const s=make(undefined,{soul:1769});s.fighters[0].suitState.shield=a;s.fighters[1].suitState.shield=b;return turn(s,900030);};const high=run(500,0),equal=run(0,0);assert.ok(high.fighters[0].lastAttackDamage>equal.fighters[0].lastAttackDamage);
+ const attack=make(undefined,{soul:1769});attack.fighters[1].suitState.shield=10000;const reduced=turn(attack,900031,900040);attack.fighters[1].suitState.shield=0;const plain=turn(attack,900031,900040);assert.ok(Math.abs(reduced.fighters[1].lastAttackDamage*2-plain.fighters[1].lastAttackDamage)<=2);
+});
+test('3716 1769固定与百分比减伤按伤害发生时盾值比较，非等值才减半',()=>{
+ const fixed=extra=>{const s=make(undefined,{soul:1769,opponentMove:32548,opponentEffectId:683});s.fighters[1].suitState.shield=extra;const o=turn(s,900031,900042);return o.fighters[0].roundDamageTaken-o.fighters[1].lastAttackDamage;};assert.ok(Math.abs(fixed(10000)*2-fixed(0))<=1);
+ const percent=extra=>{const s=make(undefined,{soul:1769,targetHp:1000});s.fighters[1].soulId=993;s.fighters[1].suitState.shield=extra;return turn(s,900031);};const low=percent(10000),high=percent(0);assert.equal(low.fighters[0].suitState.shield,1500);assert.equal(high.fighters[0].suitState.shield,0);assert.equal(low.fighters[0].hp,9000);assert.equal(high.fighters[0].hp,9000);
+});
+test('3716 993用招时开启分类魔盾含当前与下一回合，必中绕过且控制不触发',()=>{
+ for(const physical of [false,true]){const s=make(undefined,{soul:993,bPhysical:physical});s.moveDefinitions[key(900040)].alwaysHit=false;const m=physical?900030:900031,o=turn(s,m,900040);assert.equal(o.fighters[1].lastAttackDamage??0,0);assert.equal(o.fighters[0].effects[physical?'物理攻击闪避':'特殊攻击闪避'].end,2);s.moveDefinitions[key(900040)].alwaysHit=true;assert.ok(turn(s,m,900040).fighters[1].lastAttackDamage>0);s.fighters[0].ailments['疲惫']=1;const c=turn(s,m,900040);assert.equal(c.fighters[0].effects[physical?'物理攻击闪避':'特殊攻击闪避'],undefined);}
+});

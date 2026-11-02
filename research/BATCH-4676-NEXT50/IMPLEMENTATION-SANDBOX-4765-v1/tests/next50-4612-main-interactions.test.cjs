@@ -1,0 +1,36 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4612-battle.cjs');
+const entry=id=>H.entries.find(x=>x.id===id);
+test('4612主线1820实际自清1400触发疲惫，已清监听不在后轮重复且敌控制未用不扣PP',()=>{
+  let s=H.make(entry(1400),{soul:1820});
+  s=H.turn(s);
+  assert.ok(s.fighters[0].effects['回合被清追加异常']);
+  s.fighters[0].stages.atk=1;
+  const oldPP={...s.fighters[1].pp};
+  s=H.turn(s,920031,920040);
+  assert.equal(s.fighters[0].stages.atk,0);
+  assert.equal(s.fighters[0].effects['回合被清追加异常'],undefined);
+  assert.ok(s.fighters[1].ailments['疲惫']>0);
+  for(const id of s.fighters[1].moves)assert.equal(s.fighters[1].pp[id],oldPP[id]-1,'只有自身实际用招后吸取1PP，敌疲惫未用招不另扣选招PP');
+  assert.equal(s.fighters[0].soulState.chordPPEvents1820.filter(x=>x.round===2).length,1);
+  assert.equal(s.fighters[0].soulState.chordCleanRound1820,2);
+  const fatigueEnd=s.fighters[1].ailments['疲惫'];s.fighters[0].stages.atk=1;
+  s=H.turn(s,920031,920041);
+  assert.equal(s.fighters[0].soulState.chordCleanRound1820,3);
+  assert.ok((s.fighters[1].ailments['疲惫']??0)<=fatigueEnd,'下一轮再次清强不刷新已经移除的1400反应');
+});
+test('4612主线1820清强面对1813实际高低HP动态保护，自己清强成功仍授本轮免异',()=>{
+  const soul=require('../research/4608-reviewed-snapshot.json').souls.find(x=>x.id===1813);
+  let s=H.make({moveId:10234,index:-1},{soul:1820,enemySoul:soul,hp:6000});
+  s.fighters[0].stages.atk=1;s.fighters[1].stages.atk=2;
+  s=H.turn(s,920031,920041);
+  assert.equal(s.fighters[0].stages.atk,0);
+  assert.equal(s.fighters[1].stages.atk,2);
+  assert.equal(s.fighters[0].soulState.chordCleanRound1820,1);
+  assert.equal(s.fighters[0].soulState.chordClearEvents1820.at(-1).results.targetBoosts,false);
+  s.fighters[0].stages.atk=1;s.fighters[1].hp=1000;
+  s=H.turn(s,920031,920041);
+  assert.equal(s.fighters[1].stages.atk,0);
+  assert.equal(s.fighters[0].soulState.chordClearEvents1820.at(-1).results.targetBoosts,true);
+  assert.equal(s.fighters[0].soulState.chordCleanRound1820,2);
+});

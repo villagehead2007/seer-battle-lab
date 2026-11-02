@@ -1,0 +1,18 @@
+'use strict';require('./deployed-4333-independent.test.cjs');const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4333-battle.cjs'),{make,pick,turn,timer,key,source,keys,E}=H;
+const damage=(s,type='percent',side=1)=>(s.damageEvents??[]).filter(e=>e.type===type&&e.targetSide===side&&e.round===s.round-1).reduce((n,e)=>n+e.settledDamage,0);
+test('4333确认两版魂印MISS控制整招无效不吸取，免攻击与命中效果封锁仍吸取',()=>{
+for(const soul of [1559,1851])for(const mode of ['miss','control','invalid','attack-immune','hit-block']){const s=make({moveId:10001,index:null},{soul,hp:1000});s.fighters[0].counts.nextCrit=0;if(mode==='miss'){delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;s.moveDefinitions[key(s.auditMoveId)].accuracy=0;}if(mode==='control')s.fighters[0].ailments['疲惫']=3;if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='attack-immune')s.fighters[1].counts.attackNullify=1;if(mode==='hit-block')timer(s,0,'技能命中效果失效');const o=turn(s);assert.equal(damage(o),['attack-immune','hit-block'].includes(mode)?3000:0);assert.equal(o.fighters[0].hp,['attack-immune','hit-block'].includes(mode)?4000:1000);if(mode==='attack-immune')assert.equal(o.fighters[1].counts.attackNullify,0);}
+});
+test('4333确认混合暴击多段按整招一次吸取，全暴击才清PP且保留既有crit标记',()=>{
+for(const soul of [1559,1851]){let mixed=false;for(let seed=1;seed<150&&!mixed;seed++){const s=make({moveId:10001,index:null},{soul,hp:1000,seed,criticals:true});s.fighters[0].counts.nextCrit=0;s.moveDefinitions[key(s.auditMoveId)].critical='8/16';s.moveDefinitions[key(s.auditMoveId)].operations=[{effectId:1627,index:0,phase:'beforeUse',params:[1,2,2]}];const o=turn(s);if(o.fighters[0].soulState.laberLastAttack?.mixed){mixed=true;assert.equal(damage(o),3000);assert.equal(o.fighters[0].hp,4000);}}assert.ok(mixed);}
+});
+test('4333确认1851登场名单固定两回合，恢复不解除后来降PP不新增第三回合解除',()=>{
+const soul=source.souls.find(x=>x.id===1851),s=make(pick(732)[0],{enemySoul:soul}),foe=s.fighters[1],a=s.fighters[0],m=key(s.auditMoveId);delete foe.soulState.laberEntry;a.pp[m]=1;E.SOULS.registry[1851].hooks.battleStart({a:foe,t:a,round:1,maxPP:k=>s.moveDefinitions[k].pp,ppReductionBlocked:()=>true,random:()=>0});assert.ok(foe.soulState.laberEntry.blocked.includes(m));a.pp[m]=s.moveDefinitions[m].pp;let o=turn(s);assert.equal(o.fighters[0].stages.atk,0);o=turn(o);assert.equal(o.fighters[0].stages.atk,0);o=turn(o);assert.equal(o.fighters[0].stages.atk,1);
+const q=make(pick(732)[0],{enemySoul:soul});q.fighters[0].pp[key(q.auditMoveId)]=1;const n=turn(q);assert.equal(n.fighters[0].stages.atk,1);
+});
+test('4333公共技能载荷在实际攻击免疫时不执行，护盾零伤仍执行且魂印独立',()=>{
+for(const mode of ['immune','shield','hit-block']){const s=make(pick(732)[0],{soul:1559,hp:1000});if(mode==='immune')s.fighters[1].counts.attackNullify=1;if(mode==='shield')require('../dist/shield-rules.js').add(s.fighters[1],9000,'test');if(mode==='hit-block')timer(s,0,'技能命中效果失效');const o=turn(s);assert.equal(o.fighters[0].stages.atk,mode==='shield'?1:0);assert.equal(damage(o),3000);if(mode==='shield')assert.equal(damage(o,'attack'),0);}
+});
+test('4333精确58原始双参真实执行下两回合必暴，邻pet或参数不接受',()=>{
+const s=make({moveId:21741,index:null},{omit:true}),m=source.moves.find(x=>x.id===21741),compiled=E.WIKI.compile(m,source);assert.equal(compiled.issue,'');s.moveDefinitions[key(21741)].operations=compiled.operations;const o=turn(s);assert.equal(o.fighters[0].effects['必定暴击'].start,2);assert.equal(o.fighters[0].effects['必定暴击'].end,3);for(const args of [[2,3],[2,2,2]]){const v=structuredClone(m);v.effectInstances[0].args=args;assert.ok(E.WIKI.compile(v,source).issue);}assert.deepEqual(m.effectInstances[0].args,[2,2]);
+});

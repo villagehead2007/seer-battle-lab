@@ -1,0 +1,37 @@
+[
+  {
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))heal(a,a.stats.maxHp*a.effects.id57.fraction,'持续用招回复','skill');",
+    "replacement": "if(a.hp>0&&on(a,'腐坏用招回复')){const e=a.effects['腐坏用招回复'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount(),first=a.soulState.qualified57First4633;if(same&&!['immediate','next-use'].includes(first))throw Error('Q-N50-4625-011：57持续回复同招首次是否触发待确认');if(!same||first==='immediate')heal(a,a.stats.maxHp*e.fraction,'腐坏既授使用技能回复','skill');}if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))heal(a,a.stats.maxHp*a.effects.id57.fraction,'持续用招回复','skill');",
+    "label": "57-used"
+  },
+  {
+    "old": "if(!s.finished)for(const f of fs)if(on(f,'每回合强化'))f.effects['每回合强化'].stages.forEach((n,i)=>{if(n)stage(f,n,[keys[i]]);});",
+    "replacement": "if(!s.finished)for(const f of fs)if(on(f,'每回合强化'))f.effects['每回合强化'].stages.forEach((n,i)=>{if(n)stage(f,n,[keys[i]]);});for(const f of fs){const e=f.soulState.decaySpeed812;if(e?.round===r){delete f.soulState.decaySpeed812;const levels=Math.max(0,f.stages.spe),other=fs[1-f.side];if(f.hp>0&&other.hp>0&&levels>0)inflict(f,other,other.stats.maxHp*levels/e.denominator,'冥腐速度段数回合末附伤','percent');}}",
+    "label": "812-round-end"
+  },
+  {
+    "old": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){",
+    "replacement": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){const decay1198=a.soulState.decay1198This;if(n>0&&a!==t&&skillPhase&&currentActorSide===a.side&&decay1198?.round===r&&decay1198.move==='wiki:37304'&&decay1198.use===(a.soulState.skillUses?.[decay1198.move]??0)&&['fixed','percent','true'].includes(type)){const policy=a.soulState.qualified1198Scope4633;if(!['red-only','all'].includes(policy))throw Error('Q-N50-4612-001：37304泛造成伤害是否覆盖本次用招实际非红载荷待确认');if(policy==='all')n*=decay1198.multiple;}",
+    "label": "1198-nonred"
+  },
+  {
+    "old": "function endAction(a,t,m,successful=false){",
+    "replacement": "function endAction(a,t,m,successful=false){delete a.soulState.decay1198This;delete a.soulState.decay1198Candidate;",
+    "label": "1198-clear"
+  },
+  {
+    "old": "if(applied&&removedReaction.hunxian1400&&skillPhase",
+    "replacement": "if(applied&&removedReaction.decay1400&&skillPhase&&currentActorSide===1-f.side&&(fs[1-f.side].soulState.currentAttackSegment??0)+1<(fs[1-f.side].soulState.attackSegmentsThisUse??1))throw Error('Q-N50-4521-001：4633被清回合感染是否中断已用多段剩余段待确认');if(applied&&removedReaction.hunxian1400&&skillPhase",
+    "label": "1400-control"
+  },
+  {
+    "old": "canFeedbackNegative:f=>!f.soulState.witchEyesWeaknessLocked,",
+    "replacement": "transferNeedsPolicy4633(f,k){return E.SOULS.trait(f,'ailmentImmune')||(E.SOULS.trait(f,'immuneAilments')??[]).includes(k)||gear.resistanceChance(f,k)>0||(f.statusState?.resistUntil?.[k]??0)>=r||on(f,'控制异常反弹')&&statusRules.isControl(k);},canFeedbackNegative:f=>!f.soulState.witchEyesWeaknessLocked,",
+    "label": "2165-admission-context"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&on(t,'reflect')&&t.effects.reflect.decay191&&(t.counts.immune>0||on(t,'免异常')||E.SOULS.trait(t,'ailmentImmune')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：4633免异反弹与次数或其他免疫实际重叠待确认');let explicitImmunity=false;const immuneGate=",
+    "label": "191-mixed"
+  }
+]

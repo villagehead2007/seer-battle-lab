@@ -1,0 +1,3 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),f='tests/deployed-4219-answers.test.cjs';let t=fs.readFileSync(f,'utf8');
+t=t.replace("o.damageEvents.filter(e=>e.sourceSide===0&&e.type==='attack')","o.damageEvents.filter(e=>e.round===s.round&&e.sourceSide===0&&e.type==='attack')");
+const old="const saved=E.SOULS.registry[920999];E.SOULS.registry[920999]={traits:{immuneAilments:[immune]},hooks:{}};";assert.ok(t.includes(old));t=t.replace(old,"const saved=E.SOULS;E.SOULS={...saved,trait(f,k){if(f.side===1&&k==='immuneAilments')return [immune];return saved.trait(f,k);}};").replace("if(saved)E.SOULS.registry[920999]=saved;else delete E.SOULS.registry[920999];","E.SOULS=saved;");fs.writeFileSync(f,t);

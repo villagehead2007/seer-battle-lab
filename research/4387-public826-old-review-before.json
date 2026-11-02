@@ -1,0 +1,86 @@
+[
+  {
+    "key": "3578:skill:31853:2",
+    "before": {
+      "sourceDigest": "0dc8cb808bfc64834caed8a792ef9d0ca76deae500e29f4addbae98b3057e4a9",
+      "scope": "multiplayer",
+      "reviewedBy": "Codex 3578 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "rationale": "原文要求当回合击败对手后，在下回合开始向对手附加异常。当前目标已死亡，单精灵对局此时结束；后续有效目标需要下一只对手出场。本项不包含可对当前存活目标触发的分支。",
+      "deferredBehavior": "当回合击败对手则下回合开始后随机附加1种异常状态",
+      "trigger": "本次攻击当回合击败当前对手，下一回合开始且对手下一只精灵已出场",
+      "futureMechanisms": [
+        "击败后的下一只对手出场",
+        "跨回合待执行异常事件及替补目标绑定",
+        "按真实异常池随机一种并按新目标免疫结算"
+      ],
+      "defaultDurationRevalidation": {
+        "record": "research/duration-correction/user-confirmation.json",
+        "status": "single-stage-revalidated",
+        "basis": "共享运行时默认时长环境变更，不改来源摘要；显式时长例外保留。",
+        "historicalEvidence": "research/duration-correction/reviews-before.json",
+        "gate": "research/duration-correction/gate-3578.log",
+        "exitCode": 0
+      }
+    }
+  },
+  {
+    "key": "4105:skill:34484:2",
+    "before": {
+      "sourceDigest": "cb7ad3747524fb7ab37476982466bb0367af8f533c6e3fd5d881a244db0b5ab1",
+      "scope": "multiplayer",
+      "reviewedBy": "Codex",
+      "reviewedAt": "2026-10-20T16:36:35.453Z",
+      "rationale": "本普通技能实例要求当回合击败对手后下回合开始施加异常；当前目标已死亡，单挑结束，后续有效目标需下一只对手。复核旧3578相同826[1]源实例的相同延期依据，没有当前存活目标分支。",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-4105-partial.test.cjs",
+            "name": "4105 911强化条件1304次两回合忽略双防843先制、582未击败次回合必暴，604连续增威736消强成功封属",
+            "assertion": "真实HP/完整与实际伤害、控制和次数免疫、源技能PP、状态清理/能力变化、时序与参数/来源反例；魂印未知分支不以结构检查当完成"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-4105-partial.test.cjs",
+            "name": "4105 911强化条件1304次两回合忽略双防843先制、582未击败次回合必暴，604连续增威736消强成功封属",
+            "assertion": "真实HP/完整与实际伤害、控制和次数免疫、源技能PP、状态清理/能力变化、时序与参数/来源反例；魂印未知分支不以结构检查当完成"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-4105-partial.test.cjs",
+            "name": "4105 911强化条件1304次两回合忽略双防843先制、582未击败次回合必暴，604连续增威736消强成功封属",
+            "assertion": "真实HP/完整与实际伤害、控制和次数免疫、源技能PP、状态清理/能力变化、时序与参数/来源反例；魂印未知分支不以结构检查当完成"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-4105-partial.test.cjs",
+            "name": "4105 911强化条件1304次两回合忽略双防843先制、582未击败次回合必暴，604连续增威736消强成功封属",
+            "assertion": "真实HP/完整与实际伤害、控制和次数免疫、源技能PP、状态清理/能力变化、时序与参数/来源反例；魂印未知分支不以结构检查当完成"
+          }
+        ]
+      },
+      "deferredBehavior": "当回合击败对手则下回合开始后随机附加1种异常状态",
+      "trigger": "当回合击败对手后，下回合开始且下一只有效对手已出场",
+      "futureMechanisms": [
+        "后继对手登场",
+        "跨回合击败奖励",
+        "后继在场随机异常施加"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "defeat-delayed",
+          "quote": "当回合击败对手则下回合开始后随机附加1种异常状态"
+        }
+      ],
+      "singleScopeExplanation": "当前原文仅击败后下回合，无当前存活目标分支；同技能1141和582已单精灵实现"
+    }
+  }
+]

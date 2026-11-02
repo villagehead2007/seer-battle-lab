@@ -1,0 +1,10 @@
+const fs=require('fs');function edit(f,a,b){let s=fs.readFileSync(f,'utf8');if(!s.includes(a))throw Error('missing '+a);fs.writeFileSync(f,s.replace(a,b));}
+fs.writeFileSync('research/3724-user-confirmed-rules.json',JSON.stringify({species:3724,at:new Date().toISOString(),source:'当前用户明确确认',rules:{effect944:{hash:'4f0f09da',args:[3,35],answer:'哈肯萨的，不含能力等级，使用完技能',meaning:'技能施加者基础面板防御加特防（不乘能力等级）35%，对手用攻结束后结算百分比伤害'},souls:{ids:[999,1756],hashes:['829dc61','ee3379dc'],answer:'后者，对',meaning:'先回复并追加伤害，再按最新双方体力比较先制；1756总层数>30亦如此'}},preservation:'用户确认不是上游说明，API/Wiki原文及hash原样保留'},null,2)+'\n');
+edit('dist/soul-registry.js',"'混沌哈肯萨原魂印追加','fixed');}}},",`'混沌哈肯萨原魂印追加','fixed');},combatEnd(c){if(c.a.hp<=0)return;if(c.t.hp>c.a.hp){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'哈肯萨原魂印回复');c.hurt(c.t,c.a.hp-before,'哈肯萨原魂印回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:1},c.round+1);}}},`);
+edit('dist/soul-registry.js',"'混沌哈肯萨觉醒追加','fixed');}\n }},",`'混沌哈肯萨觉醒追加','fixed');},
+ combatEnd(c){if(c.a.hp<=0)return;const total=(c.a.soulState.darkDragonHatred??0)+(c.a.soulState.fallenDragonResentment??0);if(c.t.hp>c.a.hp||total>30){const before=c.a.hp;c.heal(c.a,Math.min(c.a.stats.maxHp-c.a.hp,c.a.stats.maxHp/3),'哈肯萨觉醒回复');c.hurt(c.t,c.a.hp-before,'哈肯萨觉醒回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:total>30?2:1},c.round+1);}
+ }},`);
+const f='dist/range-effects.js',a=require('./3724-source-audit.json');let s=fs.readFileSync(f,'utf8');const d=a.records.find(r=>r.url.endsWith('/skill_effect_type/944')).data,extra=`\nmetadata[944]=${JSON.stringify({info:d.info,args_num:d.args_num})};
+add(944,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后双防追加',p[0],{fraction:p[1]/100}),[turns,pct]);
+`;const at=s.lastIndexOf('});');fs.writeFileSync(f,s.slice(0,at)+extra+s.slice(at));
+edit('dist/souls.js',"      if(t.hp>0&&a.hp>0)E.SOULS.run('opponentAfterUse'", "      if(t.hp>0&&a.hp>0&&m.kind!=='status'&&on(t,'对手攻击后双防追加'))inflict(t,a,(t.stats.def+t.stats.spd)*t.effects['对手攻击后双防追加'].fraction,'攻击后双防追加','percent');\n      if(t.hp>0&&a.hp>0)E.SOULS.run('opponentAfterUse'");

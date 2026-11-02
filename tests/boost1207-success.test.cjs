@@ -1,0 +1,1 @@
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict');test('1207真实3613来源：只有实际吸取成功才双倍强化并降低下回合先制，保护/禁强/空强化不得奖励',()=>{const o=require('./helpers/assert-1207-success.cjs')();assert.equal(o.fighters[0].stages.atk,0);assert.equal(o.fighters[1].effects.id984,undefined);});

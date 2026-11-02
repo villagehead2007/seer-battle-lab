@@ -1,0 +1,3 @@
+// Append AFTER frozen 4623 range fragment. Source-only; old handlers remain unchanged.
+{const old=registry[976];registry[976]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,976))return old.execute(c,p);if(!c.clear(c.t))return;if((c.t.counts.nextStatusInvalid??0)>0)throw Error('Q-N50-4511-006：4623新976与未消费属性无效次数重授待确认');c.t.counts.nextStatusInvalid=p[0];}});}
+{const old=registry[886];registry[886]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,886))return old.execute(c,p);const before=c.a.counts.nextDefenseIgnore??0;if(before>0&&before!==p[0]/100)throw Error('Q-N50-4511-006：4623新886与不同忽略双防资源重授待确认');return old.execute(c,p);}});}

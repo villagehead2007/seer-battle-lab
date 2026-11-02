@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-23T11:36:03.642Z",
+  "patches": [
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+      "needle": "add(766,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],pendingMultihitQuestion:'Q-N20-4438-001'});},[turns,[0,99999]]);",
+      "insert": "add(766,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],perRoundAttackOutput:true});},[turns,[0,99999]]);",
+      "why": "766 API explicitly attack damage; answered whole-round unit reuses current798 attackOutputBudget without new cap implementation"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+      "needle": "{const old=registry[834];registry[834]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28203&&(c.m.hash==='e37ebbe'||c.m.revision==='seerapi:e37ebbe'))c.a.effects['强化被清封属'].pendingReverseQuestion='Q-N20-4467-001';}});}",
+      "insert": "{const old=registry[834];registry[834]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28203&&(c.m.hash==='e37ebbe'||c.m.revision==='seerapi:e37ebbe'))c.a.effects['强化被清封属'].triggerOnReverse=false;}});}",
+      "why": "Q4467-001 exact28203/e37ebbe pure reversal does not trigger834; clear/steal remain"
+    },
+    {
+      "file": "dist/souls.js",
+      "baseSHA256": "c8e345e301a6e0cf0983d78cf36a6d8d1dceeaa231395b0441f7b5ddd6428cd6",
+      "needle": "if(on(f,'强化被清封属')){",
+      "insert": "if(on(f,'强化被清封属')&&(operation!=='reverse'||f.effects['强化被清封属'].triggerOnReverse!==false)){",
+      "why": "public component honors exact reverse flag; other834 sources without flag retain behavior and pending guards"
+    }
+  ]
+}

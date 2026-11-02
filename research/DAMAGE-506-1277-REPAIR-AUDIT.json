@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-19T21:18:39.471Z",
+  "confirmation": "Q-DAMAGE-001 / AGENTS.md既有用户确认",
+  "old506": [
+    {
+      "id": 2989,
+      "move": 24624,
+      "index": 3,
+      "effect": 506,
+      "args": [
+        1
+      ],
+      "description": "下回合受到致命伤害时残留1点体力",
+      "hash": "69527044"
+    },
+    {
+      "id": 2993,
+      "move": 24636,
+      "index": 3,
+      "effect": 506,
+      "args": [
+        1
+      ],
+      "description": "下回合受到致命伤害时残留1点体力",
+      "hash": "eaabed14"
+    },
+    {
+      "id": 3021,
+      "move": 24703,
+      "index": 0,
+      "effect": 506,
+      "args": [
+        1
+      ],
+      "description": "下回合受到致命伤害时残留1点体力",
+      "hash": "849bc5c"
+    },
+    {
+      "id": 3506,
+      "move": 24636,
+      "index": 3,
+      "effect": 506,
+      "args": [
+        1
+      ],
+      "description": "下回合受到致命伤害时残留1点体力",
+      "hash": "eaabed14"
+    }
+  ],
+  "new4135": "research/4135-source-check.json",
+  "impact": [
+    {
+      "id": 2989,
+      "key": "2989:skill:24624:3",
+      "sourceDigest": "435ddd75654788685faa997d1f5fe07cfada5262dea758b151052dd8c61283d7",
+      "validCertificationBefore": false,
+      "reviewOnly": true
+    },
+    {
+      "id": 2993,
+      "key": "2993:skill:24636:3",
+      "sourceDigest": "03662a2162455243e6b3755e8b91b83d1812a19e57803b8653860a0848a1d788",
+      "validCertificationBefore": false,
+      "reviewOnly": true
+    },
+    {
+      "id": 3021,
+      "key": "3021:skill:24703:0",
+      "sourceDigest": "e21886d59b01cc2051fa53992444ae45e60fe8b41c30aec656447f681e4759a7",
+      "validCertificationBefore": false,
+      "reviewOnly": true
+    },
+    {
+      "id": 3506,
+      "key": "3506:skill:24636:3",
+      "sourceDigest": "eb02d19faf696d110b68654f9c0374441e57450cc8bddf9399dc7b00bec0ea85",
+      "validCertificationBefore": false,
+      "reviewOnly": true
+    },
+    {
+      "id": 3512,
+      "key": "3512:skill:31507:0",
+      "sourceDigest": "6c30e0cadf612c92b3e09794af0fd8500805a8c4645a2ae10e8935c72b540d72",
+      "validCertificationBefore": false,
+      "reviewOnly": true
+    }
+  ],
+  "source8": "原实现已在最终HP应用leaveOne；未改触发规则，新增反证测试",
+  "repair": [
+    "506在所有正常伤害通路完成减免/护盾后只加最终HP下限，完整伤害不截断",
+    "1277仅低体反馈添加专用HP下限，完整反馈经过正常倍率/减免；自身耗体及高体分支不改变",
+    "hurtWithHpFloor为独立私有上下文入口，未扩大旧c.hurt参数兼容"
+  ],
+  "tests": {
+    "specialAndAffected": {
+      "exitCode": 0,
+      "passed": 85,
+      "log": "research/DAMAGE-506-1277-affected-v2.log"
+    },
+    "full": {
+      "exitCode": 0,
+      "passed": 3131,
+      "log": "research/DAMAGE-506-1277-full-regression.log"
+    }
+  },
+  "ui": {
+    "source": 3506,
+    "opponent": 2988,
+    "hpBefore": 200,
+    "hpAfter": 1,
+    "attackSettled": 3640,
+    "attackHpLoss": 199,
+    "laterPercentSettled": 134,
+    "laterPercentHpLoss": 0,
+    "screenshot": "research/DAMAGE-506-UI-1HP-full.png",
+    "transcript": "research/DAMAGE-506-UI-evidence.txt",
+    "serverStopped": true
+  },
+  "certification": "506/1277直接来源旧5只均无有效新阶段认证，不伪造完成或重认证；当前已认证目标3986等消费者回归+整库通过。既有34只认证规则未更改，源8未改。",
+  "hashes": {
+    "dist/souls.js": "91d4cab0007e3591533db6a9982de045e4a0861253e757afcca57a385788d1bd",
+    "dist/range-effects.js": "4b61680cd4dde1e821a9aea79fc97bbface1670e4a8f22d8e603dda75f29a48b"
+  },
+  "formalCursor": {
+    "id": 4002,
+    "next": 4004
+  },
+  "next": 4135,
+  "latestFullRegression": {
+    "exitCode": 0,
+    "via": "automation-validate.cjs 4113",
+    "log": "research/recert-597-4113-gate-v1.log",
+    "npmTestIncluded": true,
+    "note": "同一冻结运行代码下最后一个必要认证内置完整npm test通过；未额外重复整库"
+  },
+  "laterFixtureMetadataCorrection": "真实4135双第五元数据保留，只有隔离506反事实夹具删除版本组合字段以测试506；未绕过正式部署"
+}

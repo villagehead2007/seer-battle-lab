@@ -1,0 +1,43 @@
+[
+  {
+    "file": "dist/souls.js",
+    "before": "function ailment(t,k,source,bypass=false,reflected=false,duration=null){",
+    "after": "function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "return statusRules.attempt(t,k,r,{duration,bypass,random:()=>rng(s),resistanceChance:gear.resistanceChance,",
+    "after": "const result=statusRules.attempt(t,k,r,{duration,bypass,merge:statusPolicy?.merge??'replace',random:()=>rng(s),resistanceChance:gear.resistanceChance,"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "ailment(source,k,t,false,true,duration)",
+    "after": "ailment(source,k,t,false,true,duration,statusPolicy)",
+    "all": true
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "notify:({reason,duration:n,chance})=>{",
+    "after": "notify:({reason,duration:n,appliedDuration,chance})=>{"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "陷入${k}（${n} 回合，含当前回合）",
+    "after": "陷入${k}（${appliedDuration??n} 回合，含当前回合）"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "}}).applied;",
+    "after": "}});\n      if(statusPolicy?.effectId===2074){\n        s.randomStatusEvents??=[];s.randomStatusEvents.push({type:'application',effectId:2074,sourceType:statusPolicy.sourceType,round:r,targetSide:t.side,name:k,...result});\n        if(result.applied&&statusRules.behaviorCoverage(k)==='not-implemented'){s.pendingStatusBehaviors??=[];s.pendingStatusBehaviors.push({effectId:2074,name:k,side:t.side,round:r,status:'not-implemented'});emit(`${name(t)} 的${k}已施加，其状态专属行为尚未实现，不能视为完整验证。`);}\n      }\n      return result.applied;"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "stage,timed,clear,ailment,emit,name,",
+    "after": "stage,timed,clear,ailment,randomAilments2074(count){return statusRules.effect2074({a,t,round:r,random:()=>rng(s),ailment,record:event=>{s.randomStatusEvents??=[];s.randomStatusEvents.push(event);}},count);},emit,name,"
+  },
+  {
+    "file": "dist/index.html",
+    "before": "<script defer src=\"status-rules.js\"></script>",
+    "after": "<script defer src=\"status-catalog.js\"></script><script defer src=\"status-pools.js\"></script><script defer src=\"status-rules.js\"></script>"
+  }
+]

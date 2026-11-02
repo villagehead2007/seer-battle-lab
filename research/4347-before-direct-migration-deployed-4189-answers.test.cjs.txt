@@ -1,0 +1,26 @@
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4189-battle.cjs'),{make,turn,timer,key,E}=H;
+test('4189寒晶保护秒杀、直接HP损失、自身全消耗，保留1后按实际对手HP回复',()=>{
+ for(const mode of ['instant','direct','self']){
+  const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:200});s.fighters[0].stages.def=-1;s.fighters[0].ailments['失明']=9;
+  let o;if(mode==='instant'){H.op(s,36,[100],920042);o=turn(s,920031,920042);}else if(mode==='direct'){H.op(s,1493,[],920032);o=turn(s,920032);}else{H.op(s,1276,[2],920032);o=turn(s,920032);}
+  assert.equal(o.fighters[0].hp,201,mode);assert.equal(o.fighters[0].stages.def,0);assert.equal(o.fighters[0].ailments['失明'],undefined);if(mode!=='instant'){assert.equal((o.damageEvents??[]).filter(e=>e.targetSide===0).length,0);const d=o.healthLossEvents.find(e=>e.targetSide===0);assert.equal(d.type,'direct');assert.equal(d.requested,200);assert.equal(d.hpLoss,199);if(mode==='direct')assert.equal(o.damageEvents?.length??0,0);else{const foe=o.damageEvents.find(e=>e.targetSide===1);assert.equal(foe.type,'percent');assert.equal(foe.settledDamage,99);assert.equal(foe.hpLoss,99);}}else{const d=o.damageEvents.find(e=>e.targetSide===0);assert.equal(d.settledDamage,200);assert.equal(d.hpLoss,199);}
+ }
+});
+test('4189寒晶直接赋零死亡也按真实对手HP救护，301边界失败且不将自伤来源当对手',()=>{
+ for(const enemyHp of [200,300,301]){const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:enemyHp});H.op(s,1182,[enemyHp,1],920032);const o=turn(s,920032);assert.equal(o.fighters[0].hp,enemyHp<=300?enemyHp+1:0);assert.equal(o.fighters[1].hp,enemyHp);}
+});
+test('4189寒晶所有路径沿同一回复抑制，禁止回复仍保留1HP，半回复向下取整',()=>{
+ for(const fraction of [0,.5,1])for(const direct of [false,true]){
+  const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:199});timer(s,0,'回复效果削减',{fraction});H.op(s,direct?1182:36,direct?[199,1]:[100],direct?920032:920042);const o=direct?turn(s,920032):turn(s,920031,920042);assert.equal(o.fighters[0].hp,1+Math.floor(199*(1-fraction)));
+ }
+});
+test('4189直接体力消耗按实际199反馈百分比伤害，不把完整消耗200或保命回复算入反馈',()=>{
+ const s=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:200});H.op(s,1185,[1],920032);const o=turn(s,920032);assert.equal(o.fighters[0].hp,201);assert.equal(o.fighters[1].hp,1);assert.equal(o.healthLossEvents[0].requested,200);assert.equal(o.healthLossEvents[0].hpLoss,199);assert.equal(o.damageEvents.find(e=>e.type==='percent').settledDamage,199);
+ const plain=make({moveId:10004,index:null},{hp:200,targetHp:200});H.op(plain,1493,[],920032);const p=turn(plain,920032);assert.equal(p.fighters[0].hp,0);assert.equal(p.healthLossEvents[0].hpLoss,200);assert.equal(p.damageEvents?.length??0,0);
+ const one=make({moveId:10004,index:null},{soul:1411,hp:1,targetHp:200});H.op(one,1185,[1],920032);const z=turn(one,920032);assert.equal(z.fighters[0].hp,201);assert.equal(z.fighters[1].hp,200);assert.equal(z.healthLossEvents[0].hpLoss,0);assert.equal(z.damageEvents?.length??0,0);
+});
+test('4189三类首次都不触发，物特互换触发异类，控制和药剂不打断已有类型记录',()=>{
+ for(const kind of ['physical','special','status']){const move=H.source.moves.find(m=>m.kind===kind),s=make({moveId:move.id,index:null},{soul:1411,omit:true}),o=turn(s);assert.equal(o.fighters[0].soulState.sakuraLastRawKind,kind);assert.equal(o.fighters[0].effects.id984,undefined);assert.equal(o.fighters[1].ailments['冰封'],undefined);}
+ const s=make({moveId:10564,index:null},{soul:1411});s.fighters[0].soulState.sakuraLastRawKind='physical';timer(s,1,'免异常');const o=turn(s);assert.equal(o.fighters[0].soulState.sakuraLastRawKind,'special');assert.equal(o.fighters[0].effects.id984.start,2);assert.equal(o.fighters[0].effects.id984.amount,1);
+ let q=turn(make({moveId:10004,index:null},{soul:1411}),920031);q.fighters[0].ailments['疲惫']=2;q=turn(q,920031);assert.equal(q.fighters[0].soulState.sakuraLastRawKind,'status');q=E.resolveTurn(q,['potion:hp',key(920041)]);assert.equal(q.fighters[0].soulState.sakuraLastRawKind,'status');const hp=q.fighters[1].hp;q=turn(q,920031);assert.ok(hp-q.fighters[1].hp>=200&&hp-q.fighters[1].hp<=400);
+});

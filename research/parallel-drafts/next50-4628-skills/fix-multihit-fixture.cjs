@@ -1,0 +1,1 @@
+const fs=require('fs'),p=__dirname+'/4628-skills.test.cjs';let t=fs.readFileSync(p,'utf8');t=t.replace("s=qualified(s,c=>{const enemy=H.E.context(s,1);assert.ok(enemy);});", "H.op(s,31,[2,2],920040);s=turn(s,920031,920040);assert.equal(sum(s,'attack',0),unit==='event'?0:200);");fs.writeFileSync(p,t);

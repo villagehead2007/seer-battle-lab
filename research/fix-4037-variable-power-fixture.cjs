@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4037-partial.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("s=make(pick(1049)[0],{targetHp:1});o=turn(s);", "s=make(pick(1049)[0],{targetHp:1});s.moveDefinitions[key(s.auditMoveId)].power=150;o=turn(s);");fs.writeFileSync(p,s);

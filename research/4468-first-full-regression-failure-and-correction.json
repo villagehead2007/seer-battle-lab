@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-23T13:21:46.503Z",
+  "failedGate": "research/fixed50-answered-4468-gate-v1-result.json",
+  "exitCode": 1,
+  "full": {
+    "tests": 7483,
+    "passed": 7482
+  },
+  "onlyFailure": {
+    "file": "tests/deployed-3576-state.test.cjs",
+    "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+    "assertion": "lastAttackDamage strictly increases at0/1/6 positive levels"
+  },
+  "reason": "Q-N20-4468-005 changes old +20 formula to +1 per positive level; real power70/71 floor to same base37 and final49, power76 base40 final53",
+  "originalAssertionPreserved": "research/3576-before-public35-rounding-assertion.test.cjs.txt",
+  "before": "const e=pick(35)[0];let previous=0;for(const n of [0,1,6]){const s=make(e);s.fighters[1].stages.atk=n;const o=turn(s);assert.ok(o.fighters[0].lastAttackDamage>previous);previous=o.fighters[0].lastAttackDamage;}",
+  "after": "const e=pick(35)[0];for(const [n,expected]of [[0,49],[1,49],[6,53]]){const s=make(e);s.fighters[1].stages.atk=n;const o=turn(s),power=70+n;assert.equal(o.fighters[0].lastAttackDamage,expected);assert.equal(o.fighters[1].hp,9000-expected);assert.ok(o.turns[0].events.some(e=>e.kind==='damage'&&e.detail.startsWith('威力 '+power+' ·')));assert.equal(expected,Math.floor((Math.floor(42*power*180/300/50)+2)*1.5*.89));}",
+  "correctNegativeAndMissAssertionsPreserved": true,
+  "runtimeChanged": false,
+  "sourceAndHashesUnchanged": true,
+  "oldFourValidatorsNotStarted": true
+}

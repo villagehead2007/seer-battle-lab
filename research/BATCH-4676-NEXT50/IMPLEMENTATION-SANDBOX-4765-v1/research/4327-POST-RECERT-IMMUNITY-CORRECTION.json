@@ -1,0 +1,36 @@
+{
+  "status": "passed-final-full-regression",
+  "changedRuntimeFiles": [
+    "dist/souls.js"
+  ],
+  "previousFileSha256": "d9d76848c5bd31c75f5046f4ad762a07a0325219f059e989c72e60bd69ac21df",
+  "correctedFileSha256": "fd440c40c5ddb03f0eda7cadb3976c3057f5f9ddd8a7b99b1a429beb08fa887b",
+  "problem": "现有内置星皇之怒真实追加行动被新1770同招免疫标记误覆盖，种子2654435761观察到主攻击0、皇怒0",
+  "correction": "新战魂私有免伤判断在rage=true时不适用；旧一般攻击免疫规则及皇怒规则保持原逻辑",
+  "scope": "只有当前新1770/1553状态实际存在时分支返回不同；旧正式目标无该新状态",
+  "alreadyRecertified7991025FragmentsSha256": "b52d08fc69e3a2eb4bc43fb70f0310e5de832d1087d04c898169e1ae3194c4c0",
+  "alreadyRecertifiedFragments": [
+    "add(799,'afterHit',(c,p)=>{const n=c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),restored=c.heal(c.a,n,c.m.name)??0;if(restored>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,restored,c.m.name,'percent');},[[1,9999],[1,9999]]);",
+    "add(1025,'afterHit',(c,p)=>{if(!Object.values(c.t.stages).some(x=>x>0)||c.on(c.a,'禁强化'))return;const transferred=c.steal(c.a,c.t,'技能');if(transferred&&c.a.hp>0&&c.t.hp>0)c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name);},[[1,9999]]);"
+  ],
+  "recertificationImpact": "3613/4001的799及其上下游回复路径未变，既有必要重新认证保留；最终完整回归在本次修正后的新状态重新运行，不虚称旧整体冻结hash等于最终hash",
+  "completedAt": "2026-10-20T13:58:12.731Z",
+  "necessaryRecertificationFrozenSha256": "cf4cf804b3dad2a03fab6e382a2dd71cac381182affa0de8eb8968be032a66c6",
+  "reconstructedPriorRuntimeAndTestsSha256": "cf4cf804b3dad2a03fab6e382a2dd71cac381182affa0de8eb8968be032a66c6",
+  "finalRuntimeAndTestsSha256": "91ceb8d0f70b2d2c2667195623e1322d59d1e2dc45f30870e92055ad884b857a",
+  "exactChangeProof": "反向替换四个1770私有条件、移除最后追加皇怒原生测试后，全部dist/tests SHA与两次旧目标重新认证冻结SHA逐字节匹配；无其他未记录运行/测试改动",
+  "new1770FormalConsumers": [],
+  "finalRegression": {
+    "startedAt": "2026-10-20T13:51:28.088Z",
+    "completedAt": "2026-10-20T13:52:28.276Z",
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "tests": 3966,
+    "passed": 3966,
+    "failed": 0,
+    "skipped": 0,
+    "log": "research/NEXT40-FINAL-full-regression-v1.log"
+  },
+  "old7991025ChangedSinceTheirRecertifications": false
+}

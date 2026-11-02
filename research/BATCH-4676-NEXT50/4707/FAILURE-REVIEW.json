@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-29T22:48:31.236Z",
+  "logs": [
+    "targeted-v1.log",
+    "targeted-v2.log",
+    "targeted-v4.log",
+    "targeted-v6.log",
+    "targeted-v7.log"
+  ],
+  "runtimeFix": {
+    "effectId": 77,
+    "issue": "普通用招定额回血受actionPayloadAllowed门槛导致MISS漏回复",
+    "fix": "仅28924/9c602991/1标记源实例，在实际用招postuse回调回复400并跳过旧命中分支；技能来源、控制/物品跳过、当次与四回合期限均已验证"
+  },
+  "fixtureCorrections": [
+    "同编号单魂印与移除魂印的双快照共用profile导致魂印被敌方覆盖。隔离用例双方保留真实profile初始化，之后明确关闭敌方魂印；实际完整配招使用不同真实精灵作对手。",
+    "半体吸取超杀用例用0红免攻让1HP目标活到固定吸取结算，保留完整300与理论回复300断言。",
+    "转盾先授予再受击，避免优先+3敌方先攻击。",
+    "942消回合会清掉临时固百分免疫，改用引擎真实622常驻固百分免疫分支作反事实机制探针。",
+    "物品回复实际250，用招400不叠加。"
+  ],
+  "newShieldRule": "1768当前源生成护盾同源刷新本次量，异源保留；其他旧转换入口未改源策略。",
+  "confirmedAssertionUpdate": {
+    "archive": "research/BATCH-4676-NEXT50/4707/targeted-before-1768-frozen-reuse.test.cjs",
+    "reason": "同1768/98820602同参数旧确认明确同源刷新1，替换原未答候选测试为多次刷新仍1的强断言；异源仍有守卫，不用候选默认冒充确认",
+    "proof": "research/BATCH-4676-NEXT50/4707/1768-FROZEN-SAME-DEFINITION.json"
+  },
+  "originalFailureLogsRetained": true
+}

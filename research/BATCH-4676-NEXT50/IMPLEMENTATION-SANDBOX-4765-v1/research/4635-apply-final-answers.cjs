@@ -1,0 +1,22 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),base='research/next50-answer-takeover-2026-10-26T17-09-55-144Z/';
+const answers={2176:'算触发，不清 PP',1949:'同源刷新1次、异源分别保存后得先消费',1822:'同源刷新1次、不累加，异源分别保存后得先消费',1524:'是，继续降低并成功清负',1343:'刷新1次，不累加',1509:'攻击免疫归零不触发'};
+const direct={recordedAt:new Date().toISOString(),speciesId:4635,answers,globalLatest:'技能命中但伤害归零算命中，执行命中效果，不执行无效补偿',source:'用户本轮直接回答；不改写上游来源'};
+fs.writeFileSync('research/4635-direct-answers-2026-10-29.json',JSON.stringify(direct,null,2)+'\n');
+for(const file of ['dist/range-effects.js','dist/souls.js','tests/next50-4635-skills.test.cjs'])fs.copyFileSync(file,base+'4635-before/final-answer-'+file.split('/').at(-1));
+let p='dist/range-effects.js',s=fs.readFileSync(p,'utf8');
+function replace(a,b){assert.ok(s.includes(a),a.slice(0,120));s=s.replace(a,b);}
+replace('const same=c.a.soulState.qualified2176Same4635;','const same=c.a.soulState.qualified2176Same4635??"success";');
+replace("if(c.canFeedbackNegative?.(c.a)===false||c.canRemoveNegative?.(c.a)===false)throw Error('Q-N50-4511-002：1524反馈/自清特殊保护待确认');const policy=c.a.soulState.qualified1524Feedback4635;","if(c.canFeedbackNegative?.(c.a)===false||c.canRemoveNegative?.(c.a)===false)return;const policy=c.a.soulState.qualified1524Feedback4635??{apply:'add',success:'clear'};");
+replace("if(c.a.counts.immune>0||c.on(c.a,'reflect')||c.on(c.a,'免异常')||c.a.soulState.immunity1757Charges?.length||c.a.soulState.oracle2059Charges?.length)throw Error('Q-N50-4511-006：1949免异常次数重复/混源授予待确认');c.a.counts.immune=p[0];c.a.soulState.maple1949Charges=p[0];","delete c.a.soulState.maple1949Charges;c.grantOracleImmunity(c.a,p[0],'1949:37318:7bd5da27:1','maple-1949');");
+replace('policy=c.a.soulState.qualified1509Invalid4635;','policy=c.a.soulState.qualified1509Invalid4635??{blocked:true,miss:true,"hit-effects":false,"attack-immune":false,other:false};');
+replace("if(c.a.soulState.nextSettledAttackHealing?.count>0)throw Error('Q-N50-4511-006：1343既有下次伤害转回复次数重复授予待确认');",'');
+replace("if(c.t.counts.nextAttackInvalid>0)throw Error('Q-N50-4511-006：1822既有下一次攻无效重授待确认');c.t.counts.nextAttackInvalid=p[2];","refreshCounter4599({...c,a:c.t},'nextAttackInvalid',p[2],'1822:37320:803ff1b4:2');");
+fs.writeFileSync(p,s);
+p='dist/souls.js';s=fs.readFileSync(p,'utf8');
+const start=s.indexOf('if(!bypass&&t.soulState.maple1949Charges>0'),end=s.indexOf("if(!bypass&&on(t,'免异常')&&t.effects['免异常'].sourceSoul1843",start);assert.ok(start>=0&&end>start);s=s.slice(0,start)+s.slice(end);
+replace("if(nextAttackInvalid)a.counts.nextAttackInvalid--;","if(nextAttackInvalid){a.counts.nextAttackInvalid--;if(a.soulState.nextAttackInvalidSources4599)E.WIKI.effectsEngine.registry[933].syncCounter4599(a,'nextAttackInvalid');}");
+fs.writeFileSync(p,s);
+const cp=base+'4635-user-confirmations.json',c=JSON.parse(fs.readFileSync(cp,'utf8'));c.direct=direct;c.pending=[];c.status='final-answer-implementation';fs.writeFileSync(cp,JSON.stringify(c,null,2)+'\n');
+const tp=base+'TAKEOVER.json',t=JSON.parse(fs.readFileSync(tp,'utf8'));t.currentClarification={speciesId:4635,pending:[],resolved:direct};t.current.phase='final-answer-implementation';fs.writeFileSync(tp,JSON.stringify(t,null,2)+'\n');
+console.log('4635 final answers applied; global zero-damage hit audit remains required.');

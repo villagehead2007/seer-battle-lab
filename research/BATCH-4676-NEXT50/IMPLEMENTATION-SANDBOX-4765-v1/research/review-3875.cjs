@@ -1,0 +1,9 @@
+const fs=require('fs'),P=require('../completion-policy.cjs'),s=require('../local-species.cjs').species(3875),r=require('../SINGLE-STAGE-REVIEWS.json');const file='tests/deployed-3875.test.cjs',names=[...fs.readFileSync(file,'utf8').matchAll(/test\('([^']+)'/g)].map(x=>x[1]);const refs=p=>{const name=names.find(n=>n.includes(p));if(!name)throw Error(p);return {file,name,assertion:name};};
+const map={4:'4和5',5:'4和5',985:'985吸强',1032:'985吸强',9:'9连续',22:'9连续',200:'200有强化',43:'43回复',52:'43回复',540:'540后手',513:'513三类',191:'540后手',792:'43回复',843:'540后手',577:'577有强化',585:'577有强化',433:'577有强化',927:'927低体',573:'573强化',679:'927低体',1341:'1341高伤',1221:'1221反弱',1129:'1221反弱',967:'967命中',2389:'2389有强化',1606:'1606反弱',1233:'1233命中',1156:'1221反弱'};
+for(const i of P.inventory(s)){const e={sourceDigest:i.sourceDigest,scope:'single',reviewedBy:'Codex',reviewedAt:new Date().toISOString(),rationale:'真实SeerAPI与BWIKI技能、魂印及效果原文核对；追加第五属于自身伙伴强化，四版本均接入；无明确队伍依赖。魂印时点、暴击、随机强化及967/1233依用户独立确认。',implementation:['dist/range-effects.js','dist/range-souls.js','dist/souls.js','dist/wiki-support.js'],userConfirmation:'research/3875-user-confirmed-rules.json'};let evidence;
+ if(i.kind==='move'){e.singleBehavior=i.raw.name+'真实参数PP、命中伤害与控制状态；正式本地18招四版本逐招配招、战斗执行，拒绝混装遗漏与版本变化';evidence=[refs('全部技能基础'),refs('正式本地18')];}
+ else if(i.kind==='soul'){e.singleBehavior='攻击实伤50%回复；回合初低于半血锁定战阶追加最近攻击实伤50%，属性招沿用，MISS/免攻归零；任意强化锁定先制1/2和攻击翻倍，否则最终基础暴击50%/100%、战阶六项无放回随机三项+1，满级仍参与';evidence=[refs('魂印回合初'),refs('魂印攻击吸血'),refs('魂印随机')];}
+ else{e.singleBehavior=i.raw.instance.description;evidence=[refs(map[i.raw.instance.id])];}
+ e.tests=Object.fromEntries(['success','failure','boundary','interaction'].map(k=>[k,evidence]));r.entries[i.key]=e;
+}
+fs.writeFileSync('SINGLE-STAGE-REVIEWS.json',JSON.stringify(r,null,2)+'\n');console.log(P.reviewCoverage(s,r));

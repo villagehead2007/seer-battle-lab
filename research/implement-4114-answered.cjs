@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('fs');
+let f='dist/range-effects.js',s=fs.readFileSync(f,'utf8');
+s=s.replace("add(1617,'afterHit'",`metadata[1444]={info:'威力根据自身体力变化，当前剩余体力越少则威力越大',args_num:0};
+add(1444,'beforeUse',c=>{c.a.soulState.hpPower1444={round:c.round,move:c.m.id,power:Math.ceil(Math.abs(100-c.a.hp*100/c.a.stats.maxHp))};},[],undefined,undefined,{beforeDamage(c){const e=c.a.soulState.hpPower1444;if(e?.round===c.round&&e.move===c.m.id)c.power=e.power;}});
+add(1617,'afterHit'`);
+s=s.split('\n').filter(l=>!l.startsWith('registry[1617]=Object.freeze({...registry[1617],partial:')).join('\n');fs.writeFileSync(f,s);
+f='dist/souls.js';s=fs.readFileSync(f,'utf8');
+const old="if(!rage&&t.hp>0&&on(t,'受攻异常未触发全强')){const e=t.effects['受攻异常未触发全强'];if(settledDamage<=0)throw Error('Q-A60-4114-021：1617完整0伤害受攻是否反制待确认');if(t.soulState.corolina1617ReactionRound===r)throw Error('Q-A60-4075-012：1617重复受攻触发单位待确认');t.soulState.corolina1617ReactionRound=r;";
+if(!s.includes(old))throw Error('1617 current guard changed');s=s.replace(old,"if(!rage&&t.hp>0&&settledDamage>0&&on(t,'受攻异常未触发全强')&&t.soulState.corolina1617ReactionRound!==r){const e=t.effects['受攻异常未触发全强'];t.soulState.corolina1617ReactionRound=r;");fs.writeFileSync(f,s);
+f='tests/deployed-4114-partial.test.cjs';s=fs.readFileSync(f,'utf8');fs.writeFileSync('research/4114-tests-before-answered-implementation.txt',s,{flag:'wx'});
+s=s.replace("assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('1444')))","assert.deepEqual(require('../local-species.cjs').issues(source),[])");
+s=s.replace('1444未知公式不宣称完整实现','1444公式按用户回答实现').replace('已确定22招完整链含伙伴实际释放，不把34533未知威力和1617受击缺口计完成','已确定22招与伙伴原生完整链，34533公式和1617边界由专项覆盖').replace('1617多段反制次数明确待确认不猜实现','1617多段仅整回合一次反制');
+s=s.replace("assert.throws(()=>turn(s,undefined,900040),/Q-A60-4114-021/)","const shielded=turn(s,undefined,900040);assert.equal(shielded.fighters[0].hp,9000);assert.equal(shielded.fighters[1].ailments['害怕'],undefined);assert.equal(shielded.fighters[0].soulState.corolina1617ReactionRound,undefined)");
+s=s.replace("assert.throws(()=>turn(s,undefined,900042),/Q-A60-4075-012/)","const multi=turn(s,undefined,900042);assert.equal(multi.fighters[0].stages.atk,1);assert.equal(multi.damageEvents.filter(e=>e.type==='attack').length,2)");fs.writeFileSync(f,s);

@@ -1,0 +1,36 @@
+{
+  "notApplied": true,
+  "changes": [
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "完整结算：固定伤害先经过减免护盾再记录",
+      "next": "完整结算：固定伤害先经过减免护罩再记录"
+    },
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "s.fighters[1].hp=100;s.fighters[1].suitState.shield=100;",
+      "next": "s.fighters[1].hp=100;s.fighters[1].suitState.barrier=100;"
+    },
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "assert.equal(s.fighters[1].suitState.shield,0);",
+      "next": "assert.equal(s.fighters[1].suitState.barrier,0);"
+    },
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "for(const mode of ['immune','shield','cap'])",
+      "next": "for(const mode of ['immune','barrier','shield','cap'])"
+    },
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "if(mode==='shield')s.fighters[1].suitState.shield=800;",
+      "next": "if(mode==='shield')s.fighters[1].suitState.shield=800;if(mode==='barrier')s.fighters[1].suitState.barrier=800;"
+    },
+    {
+      "file": "tests/damage-settlement.test.cjs",
+      "old": "assert.equal(s.fighters[1].hp,1);assert.equal(s.damageEvents?.[0]?.settledDamage??0,mode==='cap'?100:0);assert.equal(s.damageEvents?.[0]?.hpLoss??0,0);assert.ok(!s.turns[0].events.some(x=>x.text.includes('大伤回满：')));",
+      "next": "assert.equal(s.fighters[1].hp,mode==='shield'?1000:1);assert.equal(s.damageEvents?.[0]?.settledDamage??0,mode==='cap'?100:mode==='shield'?800:0);assert.equal(s.damageEvents?.[0]?.hpLoss??0,0);assert.equal(s.turns[0].events.some(x=>x.text.includes('大伤回满：')),mode==='shield');if(mode==='shield')assert.equal(s.fighters[1].suitState.shield,800);"
+    }
+  ],
+  "append": ".turns[0].events}));const result=s.fighters[0].effects[effect[0]===1031?'statusBlock':'id984'];assert.equal(!!result,shield,JSON.stringify({effect,shield,result,events:s.turns[0].events}));}});\r\n\ntest('固定伤害经50%减免后不扣普通盾，完整400与实际100分别保留',()=>{let s=game(snap(99653,null,[[29,[800]]]),snap(99654),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:2000},resistance:{fixed:50}}]);s.fighters[1].hp=100;s.fighters[1].suitState.shield=100;s=E.resolveTurn(s,[key(99653,1),key(99654,1)]);assert.equal(s.damageEvents[0].settledDamage,400);assert.equal(s.damageEvents[0].hpLoss,100);assert.equal(s.fighters[1].suitState.shield,100);});\n"
+}

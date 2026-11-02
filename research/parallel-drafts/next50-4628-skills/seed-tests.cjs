@@ -1,0 +1,1 @@
+const fs=require('fs'),old=fs.readFileSync(__dirname+'/../next50-4627-skills/4627-skills.test.cjs','utf8');let head=old.slice(0,old.indexOf("test('4627神速"));head=head.replaceAll('4627','4628');fs.writeFileSync(__dirname+'/4628-skills.test.cjs',head);

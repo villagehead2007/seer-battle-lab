@@ -1,0 +1,3 @@
+const fs=require('node:fs'),d=JSON.parse(fs.readFileSync('research/selected-3046-3056-3066-3075-3079-3082-3102-3106-3141-3142.json','utf8')),E=require('../dist/engine.js');for(const id of d.requestedIds){const p=d.pet[id];if(!p)continue;console.log('\nPET',id,p.name);for(const x of p.soulmark)if(d.soulmark[x.id])console.log('SOUL',x.id,d.soulmark[x.id].hash,d.soulmark[x.id].desc);for(const l of p.skill){const m=d.skill[l.skill.id];if(!m)continue;for(const e of m.skill_effect)if(!E.WIKI.effectsEngine.registry[e.effect.id])console.log('EFFECT',m.name,e.effect.id,JSON.stringify(e.args),e.info);if(m.atk_num!==1||m.hide_effect)console.log('TARGET',m.id,m.hash,m.atk_num,m.hide_effect);}}
+
+

@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-3665-effects.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace('assert.ok(dmg(o)>150)','const plain=turn(make(x,{seed:(seed+0x6D2B79F5)>>>0,omit:true}));assert.ok(dmg(o)>=5*dmg(plain)&&dmg(o)<5*dmg(plain)+5)');fs.writeFileSync(p,s);

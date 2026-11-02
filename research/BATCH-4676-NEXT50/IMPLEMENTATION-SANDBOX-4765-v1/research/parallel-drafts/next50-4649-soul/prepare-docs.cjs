@@ -1,0 +1,18 @@
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),base=path.resolve(__dirname,'../../..'),read=f=>JSON.parse(fs.readFileSync(path.join(base,f),'utf8')),hash=f=>crypto.createHash('sha256').update(fs.readFileSync(path.join(base,f))).digest('hex'),s=read('research/4649-reviewed-snapshot.json'),soul=s.souls.find(x=>x.id===1849),supp=read('research/4649-source-supplement.json'),names=[...fs.readFileSync(path.join(__dirname,'soul1849.test.cjs'),'utf8').matchAll(/test\('([^']+)'/g)].map(x=>x[1]);
+const source={petId:4649,petName:s.name,soulId:1849,sourceHash:soul.hash,args:soul.args,eid:soul.eid,raw:soul.description,formatted:soul.desc_formatting_adjustment,analyze:soul.analyze_desc,source:soul.source,snapshot:'research/4649-reviewed-snapshot.json',snapshotSHA256:hash('research/4649-reviewed-snapshot.json'),manifest:'research/4649-source-manifest.json',manifestSHA256:hash('research/4649-source-manifest.json'),supplement:'research/4649-source-supplement.json',supplementSHA256:hash('research/4649-source-supplement.json')};
+const wiki=[];for(const record of supp.records??[])for(const page of Object.values(record.data?.query?.pages??{}))if(page.title==='魂印:1849'||page.missing!==undefined)wiki.push({title:page.title,missing:page.missing!==undefined,url:record.url,revision:page.revisions?.[0]?.revid,text:page.revisions?.[0]?.slots?.main?.['*']??null});source.wiki=wiki;
+const common={...source,answer:'',status:'pending-source-semantics-not-user-answer'};
+const questions={new:[{id:'Q-N50-4649-001',gap:'战斗中双攻等于原本二者最高值，是否先统一原面板后各自应用能力等级，还是取双方已应用等级的有效高值',question:'原攻击600、特攻200、攻击等级-2、特攻等级+3，物理攻击时应使用300还是500？请明确原本最高值的取值层级及能力等级应用步骤。原始stats和stages不改写。',difference:{panelsBeforeStages:300,effectiveHighest:500},frozenLookup:{files:['research/*confirmed*.json','research/*CONFIRMATIONS*.json','research/*decisions*.json'],search:'equalAttackStats|二者最高|攻击、特攻等于',result:'未找到明确适用于1849该基准的用户确认；旧equalAttackStats代码不作为答案'},...common}],shared:[{id:'Q-N50-4647-001',gap:'星火之灼若对手为水系，是拥有者对手还是施加者对手视角',question:'星火之灼由火系本体施加给水系对手后，本体再用攻击造成正红伤；无争议先附50%百分比伤害，之后是否消失并额外附100%真实伤害？请按本1849新实例明确视角，不自动把仅1847的回答扩来。',difference:{holderOpponent:'本体火，不满足水',publisherOpponent:'被标记者水，满足水'},...common}]};
+const parts=[
+ ['初次天敌入场星火3回合',0,0,0,9],
+ ['双攻统一原本较高值共同路径及等级待答',1,2,3,3],
+ ['实际使用物理攻击后最大HP三分一回复',4,4,5,16],
+ ['实际使用特殊攻击后最大HP三分一百分比',6,6,7,7],
+ ['星火持有者所有回复削减100%',8,8,9,16],
+ ['完整正红附加50%百分比',10,13,14,15],
+ ['水系条件额外100%真实及消失重附',12,11,14,15]
+ ].map(([part,a,b,c,d])=>({part,scope:'single',assertions:{success:[names[a]],failure:[names[b]],boundary:[names[c]],interaction:[names[d]]},testFile:'tests/next50-4649-soul.test.cjs',currentResult:'not-run',pending:part.includes('双攻')?['Q-N50-4649-001']:part.includes('水系')?['Q-N50-4647-001']:[]}));
+const audit={status:'draft-not-run',...source,parts,validation:{privateTest:'soul1849.test.cjs',preparedTests:names.length,executedTests:0,pureStructure:[],pureDiagnostics:[],history:[]},semantics:{used:'使用攻击后按真实actualused，MISS/整招无效仍触，控制未用不触',independent:'50%百分比始终独立；水条件成立再额外100%真，不替代50%',baseView:'原stats/stages保持；新源面板视图仅供零等级共同路径或明确研究政策，非零候选差异自然001',sourcePriority:'analyze为空，raw/formatted相容完整星火定义；Wiki仅补充不覆盖API'},deferred:['真实再次换宠入场天敌施加']};
+const deferred={status:'mixed',...source,branches:[{part:'每次登场天敌附加3回合星火',scope:'mixed',single:'本次初登场真实天敌判断/当前双方星火施加及全部后续行为',multiplayer:'真实换宠后再次登场的触发、次数及目标重新绑定',trigger:'自身真实再次登场且为当时对手天敌',dependencyEvidence:{kind:'switch',quote:'每次登场时，若自身为对手天敌则为对手附加3回合的星火之灼'},futureMechanism:'队伍主动/被动换宠与重新入场事件，重新绑定当前双方及天敌克制'}]};
+for(const[name,value]of Object.entries({'source-audit.draft.json':audit,'questions.draft.json':questions,'multi-pet-deferred.json':deferred}))fs.writeFileSync(path.join(__dirname,name),JSON.stringify(value,null,2)+'\n');

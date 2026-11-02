@@ -1,0 +1,64 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path');
+const E=require('../dist/engine.js');
+const {inventory}=require('../completion-policy.cjs');
+const root=path.join(__dirname,'..');
+function build(snapshots,reviews={entries:{}}) {
+  const result=[],excluded=[];
+  for(const s of snapshots) {
+    const items=inventory(s), candidates=new Map();
+    const add=(key,note)=>{if(!candidates.has(key))candidates.set(key,[]);if(!candidates.get(key).includes(note))candidates.get(key).push(note);};
+    for(const soul of s.souls??[]) {
+      const descriptions=[...(E.SOULS.registry[soul.id]?.deferred??[]),...(s.deployment?.deferredSouls??[]).filter(x=>x.soulId===soul.id).map(x=>x.description)];
+      descriptions.forEach(x=>add(`${s.id}:soul:${soul.id}`,x));
+    }
+    for(const m of s.moves??[]) {
+      // Inspect instances directly too: a compile error must not hide later deferred occurrences.
+      (m.effectInstances??[]).forEach((x,index)=>{const text=E.WIKI.effectsEngine.registry[x.id]?.deferred;if(text)add(`${s.id}:skill:${m.id}:${index}`,text);});
+      for(const x of m.deferredEffects??[]) {
+        const matches=(m.effectInstances??[]).map((v,i)=>({v,i})).filter(({v})=>v.id===x.effectId);
+        if(matches.length)matches.forEach(({i})=>add(`${s.id}:skill:${m.id}:${i}`,x.description));
+        else add(`${s.id}:move:${m.id}`,JSON.stringify(x));
+      }
+    }
+    for(const entry of items) {
+      const review=reviews.entries?.[entry.key];
+      if(review?.scope && review.scope!=='single')add(entry.key,review.deferredBehavior??'');
+      if(!candidates.has(entry.key))continue;
+      const current=review?.sourceDigest===entry.sourceDigest;
+      const parts=entry.key.split(':'),move=entry.kind==='soul'?null:s.moves.find(x=>x.id===Number(parts[2]));
+      const metadata=entry.raw.metadata;
+      const row={key:entry.key,speciesId:s.id,speciesName:s.name,kind:entry.kind,skillId:move?.id??null,ruleId:entry.kind==='soul'?entry.raw.id:entry.raw.instance?.id??null,instanceIndex:entry.raw.index??null,sourceDigest:entry.sourceDigest,
+        reviewStatus:current&&['mixed','multiplayer'].includes(review.scope)?'reviewed':'needs-review',scope:current?review.scope:'unclassified',
+        legacyNotes:candidates.get(entry.key),description:current?review.deferredBehavior:null,
+        raw:entry.raw,source:{snapshot:s.source,url:s.source?.provider==='seerapi'?`https://api.seerapi.com/v1/${entry.kind==='soul'?'soulmark':'skill'}/${entry.kind==='soul'?entry.raw.id:move.id}`:s.source?.url,revision:entry.kind==='soul'?entry.raw.hash:move?.revision,effectUrl:metadata&&s.source?.provider==='seerapi'?`https://api.seerapi.com/v1/skill_effect_type/${entry.raw.instance.id}`:null,effectRevision:metadata?.revision??null},
+        trigger:current?review.trigger:null,futureMechanisms:current?review.futureMechanisms:[],singleBehavior:current?review.singleBehavior:null};
+      const ignored=current&&review.scope==='single'&&entry.kind==='move'&&entry.raw.effectIds?.length===0&&entry.raw.sourceTargetCount>1&&entry.raw.deferredEffects?.length&&entry.raw.deferredEffects.every(x=>x.field==='atk_num')&&review.ignoredSourceFeatures?.some(x=>x.field==='atk_num'&&x.value===entry.raw.sourceTargetCount&&x.sourceHash===entry.raw.hash&&x.confirmation==='research/MULTI-TARGET-USER-SCOPE.json');
+      if(ignored)excluded.push({...row,reviewStatus:'excluded-by-user-confirmation',description:'原始多目标范围字段按用户单挑约定不产生额外词条；当前目标一次普通攻击，其他目标不在项目范围。保留原来源及历史延期记录，不声明多目标已实现。',userConfirmation:'research/MULTI-TARGET-USER-SCOPE.json'});else result.push(row);
+    }
+    // Unbound historical annotations remain visible and block review; never silently discard them.
+    (s.deferredEffects??[]).forEach((raw,index)=>result.push({key:`${s.id}:unbound:${index}`,speciesId:s.id,kind:'unbound',raw,source:s.source,reviewStatus:'needs-review'}));
+  }
+  return {schemaVersion:1,scope:'multiplayer-deferred',records:result,excludedRecords:excluded};
+}
+function main() {
+  const snapshots=fs.readdirSync(path.join(root,'data/species')).filter(x=>/^\d+\.json$/.test(x)).map(x=>JSON.parse(fs.readFileSync(path.join(root,'data/species',x),'utf8')).snapshot).filter(Boolean).sort((a,b)=>a.id-b.id);
+  const pendingDirectory=path.join(root,'data/species-pending'),localIds=new Set(snapshots.map(s=>s.id));
+  if(fs.existsSync(pendingDirectory))for(const name of fs.readdirSync(pendingDirectory).filter(x=>/^\d+\.json$/.test(x))){const record=JSON.parse(fs.readFileSync(path.join(pendingDirectory,name),'utf8')),s=record.snapshot??record;if(s?.id&&!localIds.has(s.id))snapshots.push(s);}
+  snapshots.sort((a,b)=>a.id-b.id);
+  const reviews=JSON.parse(fs.readFileSync(path.join(root,'SINGLE-STAGE-REVIEWS.json'),'utf8'));
+  const todo=build(snapshots,reviews);
+  const extras=JSON.parse(fs.readFileSync(path.join(__dirname,'multiplayer-extra.json'),'utf8'));
+  for(const [index,raw] of extras.entries())todo.records.push({key:`legacy-extra:${index}`,speciesId:raw.id,kind:'unbound',raw,source:{provider:null,url:null,revision:null,status:'missing',note:'尚未落盘，必须依据真实 SeerAPI/BWIKI 来源核实后才能登记为有效延期'},reviewStatus:'needs-review',scope:'unclassified'});
+  const lines=['# 多精灵统一待实现清单','','机器可读原始资料与版本在 `MULTI-PET-TODO.json`；逐词条审核在 `SINGLE-STAGE-REVIEWS.json`。本文件由 `node research/build-multiplayer-todo.cjs` 生成。','','历史延期标记只作为候选，不是语义审核结论。needs-review 条目不能豁免单精灵实现；混合词条必须先验证单精灵部分。重复效果按技能内实例序号分别保留。', '',`共 ${todo.records.length} 个候选/延期记录，其中 ${todo.records.filter(x=>x.reviewStatus==='needs-review').length} 个待语义审核。`,''];
+  for(const row of todo.records) {
+    lines.push(`## ${row.key} · ${row.speciesName??''}`,`状态：${row.reviewStatus}；范围：${row.scope??'unclassified'}`,'',`原始记录：见 JSON 的同名 key（完整原文、参数、来源和版本）。`, '',`延期分支：${row.description??'待逐项语义审核，不能按效果 ID 自动延期。'}`,`触发条件：${row.trigger??'待从原文审核'}`,`未来机制：${row.futureMechanisms?.join('；')||'待审核'}`,`历史标记：${row.legacyNotes?.join('；')??JSON.stringify(row.raw)}`,'');
+  }
+  lines.push('# 用户明确排除的来源特性（历史保留）','',`以下 ${todo.excludedRecords.length} 条仅忽略多目标范围标记，按一次普通单目标攻击执行；原始字段、版本和历史延期记录完整保存在JSON excludedRecords，不计入待实现。确认见 research/MULTI-TARGET-USER-SCOPE.json。`,'');
+  for(const row of todo.excludedRecords)lines.push(`- ${row.key} · ${row.speciesName}：atk_num=${row.raw.sourceTargetCount}，范围特性按用户确认忽略；来源 ${row.source.url}，版本 ${row.source.revision}。`);
+  fs.writeFileSync(path.join(root,'MULTI-PET-TODO.json'),JSON.stringify(todo,null,2)+'\n');
+  fs.writeFileSync(path.join(root,'MULTI-PET-TODO.md'),lines.join('\n'));
+  console.log(`Unified multiplayer records: ${todo.records.length}; user-excluded source features: ${todo.excludedRecords.length}; no completion status changed.`);
+}
+if(require.main===module)main();
+module.exports={build};

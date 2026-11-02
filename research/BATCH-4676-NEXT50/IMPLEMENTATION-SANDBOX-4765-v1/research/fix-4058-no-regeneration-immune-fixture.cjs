@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4058-partial.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("if(immune)s.fighters[1].soulId=622;let o=turn(s,undefined,900040)", "if(immune){s.fighters[1].soulId=1061;s.fighters[1].soulState.xinFusion=true;}let o=turn(s,undefined,900040)");fs.writeFileSync(p,s);

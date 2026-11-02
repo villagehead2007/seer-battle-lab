@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict'),{spawnSync}=require('child_process');
+const id=4635,b=JSON.parse(fs.readFileSync('research/BATCH-4509-NEXT50-STATUS.json'));assert.equal(b.scan.current,id);assert.equal(b.ids[b.ids.indexOf(4633)+1],id);assert.equal(b.targets.find(t=>t.id===4633).independentWorkComplete,true);
+const log='research/4635-next50-source-fetch-v2.log',fd=fs.openSync(log,'wx'),startedAt=new Date().toISOString();let r;try{r=spawnSync(process.execPath,['research/fetch-4509-next50-target.cjs',String(id)],{stdio:['ignore',fd,fd],windowsHide:true});}finally{fs.closeSync(fd);}const out={id,startedAt,endedAt:new Date().toISOString(),exitCode:r.status,signal:r.signal,error:r.error?.message,log};fs.writeFileSync('research/4635-next50-source-fetch-v2-result.json',JSON.stringify(out,null,2)+'\n');console.log(JSON.stringify(out));process.exitCode=r.status??1;

@@ -1,0 +1,96 @@
+{
+  "at": "2026-10-22T19:11:40.230Z",
+  "stage": "single",
+  "source": {
+    "pet": "81c9146a",
+    "soul": {
+      "id": 1564,
+      "hash": "2a0cb57",
+      "eid": 1922,
+      "args": [
+        15,
+        15,
+        15,
+        1
+      ]
+    },
+    "moves": 17,
+    "raw": "research/4338-source-check.json",
+    "snapshot": "research/4338-reviewed-snapshot.json",
+    "deployedSource": {
+      "provider": "seerapi",
+      "url": "https://api.seerapi.com/v1/pet/4338",
+      "revision": "81c9146a",
+      "loadedAt": "2026-10-21T14:52:52.725Z",
+      "storage": "local",
+      "savedAt": "2026-10-21T14:59:50.430Z"
+    },
+    "mismatches": []
+  },
+  "answers": [
+    {
+      "question": "Q-N20-4472-001",
+      "answer": "否",
+      "scope": "已明确关联1126四来源；使用当下判断，此后受击不补清"
+    },
+    {
+      "question": "Q-N20-4359-003",
+      "answer": "必须命中，结算0也触发；miss不触发",
+      "linkedSupplementHeading": "公共Q-N20-4359-003补充关联1126（不新建重复主问题）",
+      "scope": "关联1126四来源的零伤/MISS，不把1834特例套入1126"
+    }
+  ],
+  "implementation": [
+    {
+      "file": "dist/souls.js",
+      "change": "复用实际命中received数组，向1126提供receivedAttackThisRound查询；不改伤害记录/其他伤害量机制"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "change": "1126当下根据已实际命中而非正伤害量计算额外清PP；保留正PP无放回及保护；移除已答pending1126诊断标记"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "change": "1564真实格式化仅攻击伤害，damageMultiplier改既有attackMultiplier；减攻击伤害/战阶回复不变"
+    }
+  ],
+  "targeted": {
+    "log": "research/4338-answered-targeted-v3.log",
+    "tests": 21,
+    "passed": 21
+  },
+  "deferred": {
+    "id": 1702,
+    "branch": "主动切换下场后真实己方下只出场恢复200",
+    "registry": "MULTI-PET-TODO.json"
+  },
+  "affected": {
+    "modern": [
+      4258,
+      4338
+    ],
+    "legacy": [
+      3311
+    ],
+    "pendingFuture4472": "未部署不提前开发"
+  },
+  "compatibilityChanges": [],
+  "gate": "research/fixed50-answered-4338-gate-v2.log",
+  "firstGate": {
+    "result": "research/fixed50-answered-4338-gate-v1-result.json",
+    "exitCode": 1,
+    "npm": {
+      "tests": 6415,
+      "passed": 6413,
+      "failed": 2
+    },
+    "cause": "4472旧1126研究诊断与零伤预期未迁移，原文件完整备份，648等非1126断言保留"
+  },
+  "relatedRegression": {
+    "log": "research/4338-related1126-targeted-v5.log",
+    "tests": 2,
+    "passed": 2,
+    "legacyOnly3311": "仅1126本次真实源专项，不声明78项现代完整审核/认证",
+    "modern4258": "1126单项审核已更新为已答已实现待必要正式复验，未变原源hash"
+  }
+}

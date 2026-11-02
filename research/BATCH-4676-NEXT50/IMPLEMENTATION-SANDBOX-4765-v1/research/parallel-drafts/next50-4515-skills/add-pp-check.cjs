@@ -1,0 +1,1 @@
+const fs=require('fs'),p=__dirname+'/4515-skills.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("const z=turn(a,920031,id===2012?920040:920041);if(id===2012)","const z=turn(a,920031,id===2012?920040:920041);assert.equal(z.fighters[1].pp[key(id===2012?920040:920041)],id===2012?98:97);if(id===2012)");fs.writeFileSync(p,s);

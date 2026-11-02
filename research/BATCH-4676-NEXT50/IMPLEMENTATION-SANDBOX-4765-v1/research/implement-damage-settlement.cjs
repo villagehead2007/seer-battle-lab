@@ -1,0 +1,21 @@
+const fs=require('fs');
+const file='dist/souls.js';let s=fs.readFileSync(file,'utf8');fs.mkdirSync('research/damage-settlement-before',{recursive:true});for(const f of ['dist/souls.js','dist/engine.js','dist/range-souls.js'])fs.copyFileSync(f,'research/damage-settlement-before/'+f.split('/').pop());
+function replace(a,b){if(!s.includes(a))throw Error(a);s=s.replace(a,b);}
+replace("const emit=(text,kind='status',detail='')=>events.push({text,kind,detail});","const emit=(text,kind='status',detail='',damage=null)=>events.push({text,kind,detail,...(damage?{damage}: {})});\n    // dealt remains actual HP loss for existing drain/heal consumers.\n    function recordDamage(target,source,type,settledDamage,hpLoss){const result={settledDamage,hpLoss,type,targetSide:target.side,sourceSide:source?.side??null};s.damageEvents??=[];s.damageEvents.push({...result,round:r});target.roundSettledDamageTaken+=settledDamage;if(skillPhase)target.roundSettledSkillDamageTaken+=settledDamage;return result;}");
+replace('f.roundSkillDamageTaken=0;','f.roundSkillDamageTaken=0;f.roundSettledSkillDamageTaken=0;f.roundSettledDamageTaken=0;');
+replace('const v=Math.min(f.hp,amount);','const settledDamage=Math.max(0,amount),v=Math.min(f.hp,settledDamage),damageResult=recordDamage(f,origin,type,settledDamage,v);');
+replace("emit(`${name(f)} ${source}：损失 ${v} 点体力。`,'damage');","emit(`${name(f)} ${source}：结算伤害 ${settledDamage}，损失 ${v} 点体力。`,'damage','',damageResult);");
+replace('dealt:v,type});','dealt:v,hpLoss:v,settledDamage,type});');
+replace('damageDealt(origin,f,v);','damageDealt(origin,f,v,settledDamage);');
+replace('function damageDealt(a,t,dealt){','function damageDealt(a,t,dealt,settledDamage=dealt){');
+replace("E.SOULS.run('damageDealt',{...context(a,t),dealt});","E.SOULS.run('damageDealt',{...context(a,t),dealt,hpLoss:dealt,settledDamage});");
+replace('const dealt=Math.min(effectContext.leaveOne?Math.max(0,t.hp-1):t.hp,remaining);','const settledDamage=effectContext.leaveOne?Math.min(Math.max(0,t.hp-1),remaining):remaining;const dealt=Math.min(t.hp,settledDamage),damageResult=recordDamage(t,a,\'attack\',settledDamage,dealt);');
+replace("E.SOULS.run('damageTaken',{...context(t,a,m),dealt});damageDealt(a,t,dealt);","E.SOULS.run('damageTaken',{...context(t,a,m),dealt,hpLoss:dealt,settledDamage});damageDealt(a,t,dealt,settledDamage);");
+s=s.replaceAll('...context(t,a,m),dealt,shieldDamage:','...context(t,a,m),dealt,hpLoss:dealt,settledDamage,shieldDamage:');
+replace('emit(`${name(t)} 损失 ${dealt} 点体力','emit(`${name(t)} 结算伤害 ${settledDamage}，损失 ${dealt} 点体力');
+replace('；实际 ${dealt}`);','；完整结算 ${settledDamage}；实际 ${dealt}`,damageResult);');
+replace("E.SOULS.run('receivedAttack',{...context(t,a,m),dealt});","E.SOULS.run('receivedAttack',{...context(t,a,m),dealt,hpLoss:dealt,settledDamage});");
+replace('return {dealt,crit};','return {dealt,hpLoss:dealt,settledDamage,crit};');
+fs.writeFileSync(file,s);
+let g=fs.readFileSync('dist/range-souls.js','utf8');g=g.replace("c.a.roundSkillDamageTaken??0,'圣甲盖亚临终反击'","c.a.roundSettledSkillDamageTaken??0,'圣甲盖亚临终反击'");fs.writeFileSync('dist/range-souls.js',g);
+let e=fs.readFileSync('dist/engine.js','utf8');e=e.replace('`${label(1 - side)} 损失 ${damage} 点体力','`${label(1 - side)} 结算伤害 ${calculated}，损失 ${damage} 点体力');fs.writeFileSync('dist/engine.js',e);

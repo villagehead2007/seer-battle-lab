@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/souls.js';let s=fs.readFileSync(p,'utf8');s=s.replace('),dealt,crit,first,opponentBoostedAtHit:', '),dealt,hpLoss:dealt,settledDamage,crit,first,opponentBoostedAtHit:');fs.writeFileSync(p,s);

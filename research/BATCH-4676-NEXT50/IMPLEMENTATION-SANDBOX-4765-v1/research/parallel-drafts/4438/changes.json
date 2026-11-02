@@ -1,0 +1,56 @@
+[
+  {
+    "file": "dist/range-effects.js",
+    "before": "metadata[798]={info:'若对手处于能力提升状态，则对手{0}回合内造成的伤害不超过{1}',args_num:2};add(798,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],pendingOtherDamageQuestion:'Q-N20-4438-001',pendingMultihitQuestion:'Q-N20-4438-001'});},[turns,[0,99999]]);registry[798]=Object.freeze({...registry[798],singleStagePending:'Q-N20-4438-001：单段纯攻击上限已实现，其他伤害类型及多段单位待确认'});",
+    "after": "metadata[798]={info:'若对手处于能力提升状态，则对手{0}回合内造成的伤害不超过{1}',args_num:2};add(798,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],perRoundAttackOutput:true});},[turns,[0,99999]]);",
+    "baselineSha256": "72e513250dc64f8e6ab265df9a220412bd9eb0bf0bbb3903805283a481583467"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "metadata[1458]={info:'{0}回合内每回合{1}%对手属性技能无效，未触发则{2}%令对手{3}',args_num:4};add(1458,'afterHit',(c,p)=>c.timed(c.a,'对手属性失效',p[0],{chance:p[1],failureChance:p[2],failureAilment:ailments[p[3]],failureQuestion:'Q-N20-4438-002'}),[turns,pct,pct,[0,0]]);registry[1458]=Object.freeze({...registry[1458],singleStagePending:'Q-N20-4438-002：成功封属性已实现，失败麻痹时序未知分支明确拒绝'});",
+    "after": "metadata[1458]={info:'{0}回合内每回合{1}%对手属性技能无效，未触发则{2}%令对手{3}',args_num:4};add(1458,'afterHit',(c,p)=>c.timed(c.a,'对手属性失效',p[0],{chance:p[1],failureChance:p[2],failureAilment:ailments[p[3]],failureAfterUse:true}),[turns,pct,pct,[0,0]]);",
+    "baselineSha256": "72e513250dc64f8e6ab265df9a220412bd9eb0bf0bbb3903805283a481583467"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "    function recordDamage(target,source,type,settledDamage,hpLoss){const result={settledDamage,hpLoss,type,targetSide:target.side,sourceSide:source?.side??null};s.damageEvents??=[];s.damageEvents.push({...result,round:r});target.roundSettledDamageTaken+=settledDamage;if(type==='attack')target.roundSettledAttackDamage+=settledDamage;if(type==='fixed')target.roundSettledFixedDamageTaken+=settledDamage;if(skillPhase)target.roundSettledSkillDamageTaken+=settledDamage;if(damageSourceOrigin===null?skillPhase:damageSourceOrigin==='skill'){target.roundActualSettledSkillDamageTaken=(target.roundActualSettledSkillDamageTaken??0)+settledDamage;if(target.soulState.yuliGuardConsumedRound===r)target.soulState.yuliLastHitDamage=target.roundActualSettledSkillDamageTaken;}return result;}",
+    "after": "    function recordDamage(target,source,type,settledDamage,hpLoss){const result={settledDamage,hpLoss,type,targetSide:target.side,sourceSide:source?.side??null};s.damageEvents??=[];s.damageEvents.push({...result,round:r});target.roundSettledDamageTaken+=settledDamage;if(type==='attack')target.roundSettledAttackDamage+=settledDamage;if(type==='fixed')target.roundSettledFixedDamageTaken+=settledDamage;if(skillPhase)target.roundSettledSkillDamageTaken+=settledDamage;if(damageSourceOrigin===null?skillPhase:damageSourceOrigin==='skill'){target.roundActualSettledSkillDamageTaken=(target.roundActualSettledSkillDamageTaken??0)+settledDamage;if(target.soulState.yuliGuardConsumedRound===r)target.soulState.yuliLastHitDamage=target.roundActualSettledSkillDamageTaken;}return result;}\n    // Q-N20-4438-001: prior type answer retains red-only scope; latest unit answer is the whole round.\n    function attackOutputBudget(a){const e=a.effects['攻击输出上限'];if(!e.perRoundAttackOutput)return e.amount;const spent=(s.damageEvents??[]).filter(x=>x.round===r&&x.sourceSide===a.side&&x.type==='attack').reduce((n,x)=>n+x.settledDamage,0);return Math.max(0,e.amount-spent);}",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "if(on(a,'攻击输出上限'))remaining=Math.min(remaining,a.effects['攻击输出上限'].amount);",
+    "after": "if(on(a,'攻击输出上限')&&!a.effects['攻击输出上限'].perRoundAttackOutput)remaining=Math.min(remaining,a.effects['攻击输出上限'].amount);",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "if(!rage&&!effectContext.ignoreLimit&&!minimumAfterReductions&&on(a,'攻击输出上限'))remaining=Math.min(remaining,a.effects['攻击输出上限'].amount);",
+    "after": "if(!rage&&!effectContext.ignoreLimit&&on(a,'攻击输出上限')&&(a.effects['攻击输出上限'].perRoundAttackOutput||!minimumAfterReductions))remaining=Math.min(remaining,attackOutputBudget(a));",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "const settledDamage=Math.max(0,remaining);if(!rage&&!effectContext.ignoreLimit&&on(t,'致命保留')",
+    "after": "if(!rage&&!effectContext.ignoreLimit&&on(a,'攻击输出上限')&&a.effects['攻击输出上限'].perRoundAttackOutput)remaining=Math.min(remaining,attackOutputBudget(a));const settledDamage=Math.max(0,remaining);if(!rage&&!effectContext.ignoreLimit&&on(t,'致命保留')",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "      let confirmedStatusBlock=false;if(m.kind==='status'&&on(t,'对手属性失效')&&t.effects['对手属性失效'].failureQuestion){const e=t.effects['对手属性失效'];if(e.rollRound!==r){e.rollRound=r;e.rolled=rng(s)<e.chance/100;}if(!e.rolled)throw Error(e.failureQuestion+'：未触发补偿的麻痹施加时序待确认');confirmedStatusBlock=true;}",
+    "after": "      let confirmedStatusBlock=false;if(m.kind==='status'&&on(t,'对手属性失效')&&(t.effects['对手属性失效'].failureQuestion||t.effects['对手属性失效'].failureAfterUse)){const e=t.effects['对手属性失效'];if(e.rollRound!==r){e.rollRound=r;e.rolled=rng(s)<e.chance/100;}if(!e.rolled&&e.failureQuestion)throw Error(e.failureQuestion+'：未触发补偿的麻痹施加时序待确认');confirmedStatusBlock=e.rolled;}",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "(m.kind==='status'&&on(t,'对手属性失效')&&(confirmedStatusBlock||rng(s)<t.effects['对手属性失效'].chance/100))",
+    "after": "(m.kind==='status'&&on(t,'对手属性失效')&&(t.effects['对手属性失效'].failureAfterUse?confirmedStatusBlock:(confirmedStatusBlock||rng(s)<t.effects['对手属性失效'].chance/100)))",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "      if(t.hp>0&&a.hp>0)E.SOULS.run('opponentAfterUse',{...context(t,a,m),first,attackDamage:useAttackDamage,successful:!invalid&&actionLanded});",
+    "after": "      if(t.hp>0&&a.hp>0)E.SOULS.run('opponentAfterUse',{...context(t,a,m),first,attackDamage:useAttackDamage,successful:!invalid&&actionLanded});\n      if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性失效')){const e=t.effects['对手属性失效'];if(e.failureAfterUse&&e.rollRound===r&&!e.rolled&&(e.failureChance>=100||rng(s)<e.failureChance/100))ailment(a,e.failureAilment,t,false,false,null,{probabilityPercent:e.failureChance});}",
+    "baselineSha256": "2c94508dd30b4b2a5001d231757df63f107426eb1b1361cd2dc566732fa8e0c3"
+  }
+]

@@ -1,0 +1,18 @@
+'use strict';
+const fs=require('fs'),p=require('../completion-policy.cjs'),reviewFile='SINGLE-STAGE-REVIEWS.json',reviews=JSON.parse(fs.readFileSync(reviewFile)),snapshots=[];
+for(const file of fs.readdirSync('data/species').filter(x=>/^\d+\.json$/.test(x)))snapshots.push(JSON.parse(fs.readFileSync('data/species/'+file)).snapshot);
+const ids=new Set(snapshots.map(s=>s.id));for(const file of fs.readdirSync('data/species-pending').filter(x=>/^\d+\.json$/.test(x))){const data=JSON.parse(fs.readFileSync('data/species-pending/'+file)),s=data.snapshot??data;if(s?.id&&!ids.has(s.id))snapshots.push(s);}
+const before={},applied=[],stale=[];
+for(const s of snapshots)for(const e of p.inventory(s)){
+ if(e.kind!=='move'||!(e.raw.sourceTargetCount>1)||e.raw.effectIds.length||!e.raw.deferredEffects?.length||!e.raw.deferredEffects.every(x=>x.field==='atk_num'))continue;
+ const r=reviews.entries[e.key];if(!r||r.sourceDigest!==e.sourceDigest){stale.push(e.key);continue;}if(r.ignoredSourceFeatures?.some(x=>x.confirmation==='research/MULTI-TARGET-USER-SCOPE.json'&&x.sourceHash===e.raw.hash&&x.value===e.raw.sourceTargetCount))continue;
+ before[e.key]=structuredClone(r);r.scope='single';r.singleBehavior='真实无效果实例普通攻击：依原始威力、属性、命中、PP对当前一个目标结算一次；sourceTargetCount原字段保留，不转换为多段。';
+ r.rationale='用户在008的4169/13983新增关联明确所有多目标攻击按无词条处理，本地只有单目标。现有引擎已对当前目标一次攻击；本次按用户范围排除原规划中的其他攻击目标，保留真实API字段、来源、基础伤害及历史审核。';r.userConfirmation='research/MULTI-TARGET-USER-SCOPE.json';
+ r.ignoredSourceFeatures=[{field:'atk_num',value:e.raw.sourceTargetCount,sourceHash:e.raw.hash,confirmation:'research/MULTI-TARGET-USER-SCOPE.json'}];
+ for(const key of ['deferredBehavior','trigger','futureMechanisms','dependencyEvidence','reviewStatus'])delete r[key];applied.push({key:e.key,speciesId:s.id,skillId:e.raw.id,sourceHash:e.raw.hash,count:e.raw.sourceTargetCount,sourceDigest:e.sourceDigest});
+}
+const archive='research/MULTI-TARGET-REVIEWS-before-user-scope.json',history=fs.existsSync(archive)?JSON.parse(fs.readFileSync(archive)):{};for(const [key,review]of Object.entries(before)){if(!history[key])history[key]=review;else if(history[key].sourceDigest!==review.sourceDigest)history[key+'@'+review.sourceDigest]=review;}fs.writeFileSync(archive,JSON.stringify(history,null,2)+'\n');
+fs.writeFileSync(reviewFile,JSON.stringify(reviews,null,2)+'\n');
+const rule={sourceType:'human-user-confirmation',questionId:'Q-A60-4004-008',additionalScope:'4169/13983原始多目标字段分类',answerVerbatim:'所有多目标攻击当做无词条处理，我们的对战没有多目标攻击',scope:'所有多目标范围特性在本地单挑忽略，当前目标只结算一次普通攻击；不修改真实atk_num、不转换成多段、不删独立技能词条，不扩来源hash或参数兼容。',overrides:'覆盖此前把额外攻击目标列为第二阶段待实现的项目规划；其他真实队伍/换宠/场下分支仍按两阶段策略登记。',implementation:'dist/souls.js既有每方当前单一对手的damage/normalEffect执行路径，未按sourceTargetCount生成额外命中；tests/seerapi-4169-source-target.test.cjs及4169已答专项实际验证13983只对当前目标攻击一次。此运行时已满足，修改的是过时延期分类。',originalSourceFieldsPreserved:true,priorReviews:archive,applied,staleSourceReviewsNotAutoRebound:stale};
+const rulePath='research/MULTI-TARGET-USER-SCOPE.json',prior=fs.existsSync(rulePath)?JSON.parse(fs.readFileSync(rulePath)):null;rule.applied=[...(prior?.applied??[]),...applied].filter((v,i,all)=>all.findIndex(x=>x.key===v.key&&x.sourceDigest===v.sourceDigest)===i);fs.writeFileSync(rulePath,JSON.stringify(rule,null,2)+'\n');
+const file='research/FIXED60-ANSWER-USER-CONFIRMATIONS.json',c=JSON.parse(fs.readFileSync(file));c.globalRules??={};c.globalRules.multiTargetSingleBattleScope={file:rulePath,answerVerbatim:rule.answerVerbatim,appliedKeys:[...new Set(rule.applied.map(x=>x.key))],overrides:rule.overrides};fs.writeFileSync(file,JSON.stringify(c,null,2)+'\n');console.log(JSON.stringify({reviewScopeUpdated:applied.length,staleNotRebound:stale.length,engineBehaviorUnchanged:true,sourceAndAcceptanceStatesUnchanged:true}));

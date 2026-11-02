@@ -1,0 +1,12 @@
+[
+  {
+    "old": "if(t.hp>0)inflict(a,t,n,'枫叶已授使用技能吸取','percent');",
+    "replacement": "if(t.hp>0){a.soulState.maple1303Resolving={round:r,move:m.id,use:context(a,t,m).effectUseCount(),beforeHP:t.hp};try{inflict(a,t,n,'枫叶已授使用技能吸取','percent');}finally{delete a.soulState.maple1303Resolving;}}",
+    "label": "1303-real-payload-origin"
+  },
+  {
+    "old": "function resolveDeath(f,defeater=null){",
+    "replacement": "function resolveDeath(f,defeater=null){if(f.hp<=0&&!f.soulState.deathResolved&&defeater?.side===1-f.side&&currentActorSide===defeater.side){const move=battleMoves[choices[defeater.side]],late=defeater.soulState.maple1303Resolving,ko=defeater.soulState.mapleFifthKO4635,use=defeater.soulState.skillUses?.[move.id];if((move.wikiId??move.id)===37320&&move.revision==='seerapi:803ff1b4'&&late?.round===r&&late.move===move.id&&late.use===use&&!(ko?.round===r&&ko.use===use)){const error=Error('Q-N50-4589-004：4635已授1303用招吸取晚杀是否承接本次1091未击败反弹待确认');error.mapleLateKO4635={round:r,use,beforeHP:late.beforeHP,hp:f.hp,pp:defeater.pp[move.id],reflect:!!defeater.effects.reflect};throw error;}}",
+    "label": "1303-late-KO-1091-guard"
+  }
+]

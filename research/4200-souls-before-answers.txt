@@ -1,0 +1,8 @@
+for(const [id,hash]of [[1422,'ce698ab3'],[1762,'7af0cb07']])registry[id]={name:'阿莱克托'+(id===1762?'·强化':''),sourceHash:hash,...(id===1422?{partial:true,unimplemented:['Q-A60-4200-050：先手未触发补偿的无攻击/外部必暴/多段统计']}:{ }),traits:{},hooks:{
+roundStart(c){const st=c.a.soulState;st.alectoBonus=st.alectoTakenRound===c.round-1&&st.alectoOpponentId===c.t.id?Math.floor(st.alectoTaken*100/c.a.stats.maxHp)*.02:0;st.alectoCritRolls=[];delete st.alectoAttackCrit;delete st.alectoCompensationPending;},
+attackDamageTaken(c){const st=c.a.soulState,n=c.settledDamage??c.dealt;if(n<=0)return;if(st.alectoTakenRound!==c.round||st.alectoOpponentId!==c.t.id){st.alectoTakenRound=c.round;st.alectoOpponentId=c.t.id;st.alectoTaken=0;}st.alectoTaken+=n;},
+beforeDamage(c){c.modifier*=1+(c.a.soulState.alectoBonus??0);},
+beforeCrit(c){if(c.a.side!==c.first)return;if(id===1762){c.forceCrit=true;return;}const st=c.a.soulState;if(st.alectoCritRolls.length)throw Error('阿莱克托同回合多次暴击判定与补偿待Q-A60-4200-050');const success=c.random()<.5;st.alectoCritRolls.push(success);c.forceCrit=!!c.forceCrit||success;c.chance=0;},
+afterAttack(c){c.a.soulState.alectoAttackCrit=c.crit;},
+combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState;if(c.a.side!==c.first){c.timed(c.a,'id984',1,{amount:1},c.round+1);return;}if(id===1762||st.alectoCritRolls.length===1&&!st.alectoCritRolls[0]&&st.alectoAttackCrit===false){c.stage(c.a,2,['atk','spe']);}else if(id===1422&&(st.alectoCritRolls.length===0||!st.alectoCritRolls[0]&&st.alectoAttackCrit))st.alectoCompensationPending='Q-A60-4200-050';}
+}};

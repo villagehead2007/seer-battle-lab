@@ -1,0 +1,1 @@
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict');test('1647旧3847实际实例与当前4169相同规则：基础致死仍理论回复，蛊反噬死亡后不继续补真',()=>{const o=require('./helpers/assert-1647-confirmed-boundaries.cjs')(3847);assert.equal(o.fighters[1].hp,30);});

@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('fs'),source=require('./3847-source-check.json');
+const confFile='research/3847-user-confirmed-rules.json',conf=require('./3847-user-confirmed-rules.json');
+conf.originalAnswers.corpseDetail='包括这五项和体力上限；算；保留，下次再获得尸骸会再获得收益';
+conf.originalAnswers.dodge1427='每回合抽一次；伤害只包括攻击伤害；必中也减伤';
+conf.rules.corpse.statKeys=['maxHp','atk','def','spa','spd','spe'];conf.rules.corpse.lethalIncludesSurvivalAndRevive=true;conf.rules.corpse.consumed='bonuses retained; new gains require a corpse';
+conf.rules.dodge1427={roll:'once per round, immediately on activation',damageReduction:'attack only, including always-hit attacks'};
+fs.writeFileSync(confFile,JSON.stringify(conf,null,2)+'\n');
+let f='dist/range-effects.js',s=fs.readFileSync(f,'utf8');
+let code='\n';for(const id of [1427,2526]){const d=source.records.find(x=>x.url.endsWith('/skill_effect_type/'+id)).data;code+='metadata['+id+']='+JSON.stringify({info:d.info,args_num:d.args_num})+';\n';}
+code+=`add(1427,'afterHit',(c,p)=>{const old=c.a.effects['回合闪避失败减伤'];c.timed(c.a,'回合闪避失败减伤',p[0],{chance:p[1],fraction:p[2]/100,rolledRound:c.round,dodge:old?.rolledRound===c.round?old.dodge:c.random()<p[1]/100});},[turns,pct,pct]);
+add(2526,'battleStart',c=>{c.a.soulState.corpseCount=(c.a.soulState.corpseCount??0)+1;},[],['重新登场令双方阵亡精灵消逝并召唤尸骸；下场保留尸骸和累计收益']);
+`;
+s=s.replace(/\}\);\s*$/,code+'});\n');fs.writeFileSync(f,s);
+f='dist/souls.js';s=fs.readFileSync(f,'utf8');
+s=s.replace('function preventLethal(f,n){',"function corpseLethal(a,t,n){if(a&&a!==t&&a.hp>0&&t.hp>0&&n>=t.hp&&a.soulState.corpseCount>0&&a.soulState.corpseLethalRound!==r){a.soulState.corpseLethalRound=r;for(const k of ['maxHp','atk','def','spa','spd','spe'])a.stats[k]+=50;}}\n    function preventLethal(f,n){");
+s=s.replace("if(!bypass)amount=preventLethal(f,amount);", "corpseLethal(origin,f,amount);if(!bypass)amount=preventLethal(f,amount);");
+s=s.replace("if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);", "corpseLethal(a,t,remaining);if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);");
+s=s.replace("const effectForcedFirst=[false,false];", "for(const f of fs)if(on(f,'回合闪避失败减伤')){const e=f.effects['回合闪避失败减伤'];if(e.rolledRound!==r){e.rolledRound=r;e.dodge=rng(s)<e.chance/100;}}\n    const effectForcedFirst=[false,false];");
+s=s.replace('const evaded=ppDodge||soulDodge||',"const evaded=m.kind!=='status'&&!alwaysHit&&on(t,'回合闪避失败减伤')&&t.effects['回合闪避失败减伤'].dodge||ppDodge||soulDodge||");
+s=s.replace("if(m.type==='电'&&on(a,'电系伤害翻倍'))", "if(on(t,'回合闪避失败减伤'))modifier*=1-t.effects['回合闪避失败减伤'].fraction;\n      if(m.type==='电'&&on(a,'电系伤害翻倍'))");
+s=s.replace("if(a.hp>0&&t.hp<=0&&a.counts.defeatFullRestore>0)","if(a.hp>0&&t.hp>0&&a.soulState.corpseCount>0&&Object.values(t.ailments).filter(end=>end>=r).length>=6){a.soulState.corpseCount--;inflict(a,t,t.hp,'咽咎尸骸六异常秒杀','true',true);}\n      if(a.hp>0&&t.hp<=0&&a.counts.defeatFullRestore>0)");
+fs.writeFileSync(f,s);

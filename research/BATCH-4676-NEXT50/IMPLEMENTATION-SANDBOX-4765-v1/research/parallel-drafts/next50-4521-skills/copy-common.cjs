@@ -1,0 +1,1 @@
+const fs=require('fs');const lines=fs.readFileSync('research/parallel-drafts/next50-4515-skills/4515-skills.test.cjs','utf8').split(/\r?\n/).filter(l=>l.startsWith("test('4515 4")||l.startsWith("test('4515 5"));fs.appendFileSync(__dirname+'/4521-skills.test.cjs',lines.join('\n').replaceAll('4515','4521')+'\n');

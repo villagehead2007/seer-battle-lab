@@ -1,0 +1,14 @@
+
+const old4663=Object.fromEntries([...new Set(bindings4663.map(b=>b.id))].map(id=>[id,registry[id]]));
+metadata[1392]={info:'解除自身能力下降状态，解除成功则消除对手回合类效果',args_num:0};
+add(1392,'afterHit',c=>{const before=stats.filter(k=>c.a.stages[k]<0);registry[3].execute(c,[]);if(before.some(k=>c.a.stages[k]===0))c.clear(c.t);},[]);
+const custom4663={
+597(c,p){c.timed(c.a,'凌虎用招比例吸取',p[0],{fraction:1/p[1],grantRound:c.round,grantUse:c.effectUseToken()});},
+1200(c,p){c.timed(c.a,'凌虎受击反应',p[0],{chance:p[1],ailment:'焚烬',sourceHash:c.m.hash});},
+570(c,p,old){if((c.a.counts.attackNullify??0)>0)throw Error('Q-N50-4511-006：4663免攻未消费重授待确认');return old.execute(c,p);},
+1120(c,p){if((c.settledDamage??c.dealt)===0){const zero=c.a.soulState.qualified1120Zero4663;if(!['trigger','skip'].includes(zero))throw Error('Q-N50-4665-001：4663/1120完整零伤是否触发造成伤害低于阈值待确认');if(zero==='skip')return;}if((c.settledDamage??c.dealt)<p[0]){if(c.shieldValue(c.a)>0)throw Error('Q-N50-4600-005：4663低伤盾与已有盾合并待确认');c.addShield(c.a,p[1],'4663/37475/1120');}}
+};
+for(const id of new Set(bindings4663.map(b=>b.id))){const old=old4663[id],fresh=registry[id];if(!fresh)throw Error('4663 missing '+id);registry[id]=Object.freeze({...fresh,validate(p,m,i){if(bindings4663.some(b=>b.id===id&&exact4663(m,i,b,p))){if(p.length!==fresh.argsNum||!p.every(Number.isInteger))throw Error('4663 source arity');return;}if(legacyBindings4663.some(b=>b.id===id&&exact4663(m,i,b,p)))return old?.validate?.(p,m,i);if(bindings4663.some(b=>b.id===id&&b.moveId===(m?.wikiId??m?.id)))throw Error('4663 exact source required');if(old)return old.validate?.(p,m,i);throw Error('4663 exact source required');},execute(c,p){if(!source4663(c,id)){if(old?.execute)return old.execute(c,p);throw Error('4663 exact source required');}return custom4663[id]?custom4663[id](c,p,old):fresh.execute(c,p);}});}
+function used4663(c){const e=c.a.effects['凌虎用招比例吸取'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const first=e.grantRound===c.round&&e.grantUse===c.effectUseToken(),p=c.a.soulState.qualified597First4663;if(first&&!['grant-use','next-use'].includes(p))throw Error('Q-N50-4625-011：4663持续吸取授予当次是否首触待确认');if(first&&p==='next-use')return;const n=c.t.stats.maxHp*e.fraction;c.hurt(c.t,n,'凌虎最大体力比例吸取','percent');c.heal(c.a,n,'凌虎最大体力比例理论回复','skill');}
+function received4663(c){const e=c.a.effects['凌虎受击反应'];if(!e||e.start>c.round||e.end<c.round)return;const p=c.a.soulState.qualified1200Zero4663;if(c.settledDamage===0&&!['trigger','skip'].includes(p))throw Error('Q-N50-4618-002：4663/1200完整零伤是否受攻待确认');if(c.settledDamage===0&&p==='skip')return;if((c.t.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-A60-4075-012：4663/1200受多段时异常反应单位待确认');if(!(c.random()*100<e.chance&&c.ailment(c.t,e.ailment,c.a,false,false,null,{probabilityPercent:e.chance})))c.clear(c.t);}
+registry[597]=Object.freeze({...registry[597],used4663});registry[1200]=Object.freeze({...registry[1200],received4663});

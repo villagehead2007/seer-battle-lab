@@ -1,0 +1,1 @@
+const fs=require('fs'),assert=require('node:assert/strict'),p='dist/souls.js';let s=fs.readFileSync(p,'utf8');const a="if(!rage&&t.hp>0&&a.hp>0&&on(t,'凌虎受击反应'))E.WIKI.effectsEngine.registry[1200].received4663({...context(t,a,m),settledDamage:totalSettled,dealt:total});";assert.ok(s.includes(a));fs.writeFileSync(p,s.replace(a,a.replace('!rage&&','')));

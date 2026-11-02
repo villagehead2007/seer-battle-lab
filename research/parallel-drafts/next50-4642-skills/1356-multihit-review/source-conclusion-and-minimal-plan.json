@@ -1,0 +1,87 @@
+{
+  "species": 4642,
+  "question": "Q-N50-4642-010",
+  "status": "real natural unit/timing ambiguity; current520 is before this newly identified gate",
+  "source": {
+    "moveId": 37348,
+    "moveHash": "9e655a90",
+    "moveURL": "https://api.seerapi.com/v1/skill/37348",
+    "index": 2,
+    "effectId": 1356,
+    "args": [
+      3
+    ],
+    "description": "打出致命一击则附加对手最大体力1/3的百分比伤害",
+    "effectHash": "seerapi:4daf0872",
+    "effectURL": "https://api.seerapi.com/v1/skill_effect_type/1356",
+    "rawFields": {
+      "id": 1356,
+      "args_num": 1,
+      "info": "打出致命一击则附加对手最大体力1/{0}的百分比伤害",
+      "info_formatting_adjustment": null,
+      "analyze_info": "[sprite name=iconHit]打出[color=#57c975]致命一击[/color]则附加对手最大体力1/{0}的[color=#52a5f2]百分比伤害[/color]",
+      "hash": "4daf0872",
+      "tag": [
+        {
+          "id": 60828,
+          "url": "https://api.seerapi.com/v1/skill_effect_type_tag/60828"
+        }
+      ]
+    },
+    "wholeMoveDescription": "反转对手能力提升状态，反转成功则100%令对手睡眠；将自身能力下降状态反馈给对手，反馈成功则对手失神；打出致命一击则附加对手最大体力1/3的百分比伤害；1回合做15-17次攻击，对手处于异常状态时连击上限为19"
+  },
+  "checked": [
+    {
+      "file": "research/4642-source-supplement.json",
+      "WikiEffect": "效果:1356 page175967",
+      "conclusion": "同模板无暴击附伤多段单位说明"
+    },
+    {
+      "file": "research/FIXED50-ANSWER-USER-CONFIRMATIONS.json",
+      "conclusion": "1356精确数值检索只有摘要哈希或魂印1356，不是本技能效果答案"
+    },
+    {
+      "file": "research/FIXED60-ANSWER-USER-CONFIRMATIONS.json",
+      "conclusion": "命中大多为魂印1356/4125不同效果；4182的441计数问答只自身暴击率不是1356附伤多段单位"
+    },
+    {
+      "file": "research/4422-user-confirmed-rules.json",
+      "question": "Q-N20-4333-003",
+      "conclusion": "两版魂印1559/1851混合暴击多段按整招触发吸取，原文明示两版魂印，不能扩大到本技能1356"
+    }
+  ],
+  "productionReadOnly": {
+    "registryPhase": "afterHit",
+    "execute": "if(c.crit)c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,percent)",
+    "actualDispatch": "dist/souls.js598/600 normalEffect afterHit; line736每实际段调用normalEffect，故当前每个暴击段立即附加3000，而非整招一次",
+    "notAnswer": true
+  },
+  "actualDifference": "真实37348有15–17段/异常上限19；1843属性选择后下轮可自然必暴。maxHP9000目标若每暴段3000，在少数段数后可先KO并中断剩余段；整招末一次仅3000且会先执行全部仍可完成的红伤段。混合暴击时还涉及按任意暴段和实际施加时点，不能凭engine默认选。",
+  "minimalPlan": {
+    "sharedChangesNow": false,
+    "testsNow": false,
+    "location": "单独correction片段，在当前生产registry[1356]外包，不改原phase/parse/direct/validate，不影响旧owner",
+    "exactSelector": {
+      "moveId": 37348,
+      "hash": "9e655a90",
+      "index": 2,
+      "args": [
+        3
+      ],
+      "effectHash": "4daf0872"
+    },
+    "naturalGate": "仅本selector，实际多段attackSegmentsThisUse>1、此次允许效果的实际c.crit为true且目标仍活，第一次附伤发生之前throw Q-N50-4642-010。无暴击/单段正常，整招无效与控制未用不额外拦。",
+    "qualifiedModels": [
+      "per-critical-hit：每个实际允许命中效果的暴击段立即调用旧1356载荷",
+      "skill-end-once：afterHit仅记录本次允许效果的实际暴击，在afterAttack整招结束最多调用一次旧1356载荷；明确研究输入而非答案"
+    ],
+    "token": "round + actual move id + effectUseCount；每次用招独立，不跨回合残留",
+    "minimalTestsToPrepareAfterAuthorization": [
+      "自然真实37348+必暴在第一段完整红伤后、附伤前精确010 guard，HP/PP/实际段数可见",
+      "明确per-critical-hit与skill-end-once真实HP/百分伤/段数/PP差异",
+      "单段1356正常3000、无暴多段正常完整段数、实际immune/未使用路径不误guard",
+      "混合暴段qualified模型按真实暴击事件处理，不仅取最后一段crit"
+    ],
+    "effectScope": "仅1356当前新source，1430与1843各自单位/时点仍独立；未来只答一条不能扩其它两条"
+  }
+}

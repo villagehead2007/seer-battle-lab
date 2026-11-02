@@ -1,0 +1,1 @@
+const fs=require('fs'),p='research/parallel-drafts/4489/';let c=require('./changes.json');c=c.filter(x=>x.before!=='randomFromSharedPool(count,controlOnly,effectId=null){');for(const x of c)x.after=x.after.replaceAll('c.randomFromNamedPool','c.randomAilmentsFrom');fs.writeFileSync(p+'changes.json',JSON.stringify(c,null,2)+'\n');

@@ -1,0 +1,140 @@
+[
+  {
+    "file": "dist/guard-states.js",
+    "before": "const old=state(f,key,round),e=",
+    "after": "if(key!=='white'&&f.soulState?.royalGuards?.white)return null;const old=state(f,key,round),e=",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": "(f.soulState.royalGuards??={})[key]=e;return e;",
+    "after": "if(key==='white')for(const color of ['red','yellow','blue'])remove(f,color);(f.soulState.royalGuards??={})[key]=e;return e;",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": "return !!(state(f,colored(family),round)||state(f,'white',round));",
+    "after": "return !!(state(f,colored(family),round)||state(f,'white',round)||family==='attack'&&f.soulState?.royalRedImmuneRound===round);",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": "function applied(c,family){if(c.a.hp<=0)return;const color=colored(family),one=state(c.a,color,c.round),white=state(c.a,'white',c.round);if(one&&white||c.otherImmunity)throw Error('Q-N20-4500-001：龙鳞与其它同类免疫重叠的触发/消耗优先级待确认');if(white){const st=c.a.soulState;if(st.royalWhiteRound!==c.round){st.royalWhiteRound=c.round;st.royalWhiteSuccess={};}st.royalWhiteSuccess[family]=true;return;}if(!one)return;remove(c.a,color);c.emit?.(names[color]+' 成功免疫后消失。');const target=c.opponent??c.t;if(color==='red')c.clear(target);else if(color==='yellow')c.clearBoost(target);else{c.consumeShields(target,c.a);c.consumeBarrier(target);}}",
+    "after": "function applied(c,family){if(c.a.hp<=0)return;const color=colored(family),one=state(c.a,color,c.round),white=state(c.a,'white',c.round);if(c.otherImmunity)return;if(white){const st=c.a.soulState;if(st.royalWhiteRound!==c.round){st.royalWhiteRound=c.round;st.royalWhiteSuccess={};}st.royalWhiteSuccess[family]=true;return;}if(!one)return;if(family==='attack')c.a.soulState.royalRedImmuneRound=c.round;remove(c.a,color);c.emit?.(names[color]+' 成功免疫后消失。');const target=c.opponent??c.t;if(color==='red')c.clear(target);else if(color==='yellow')c.clearBoost(target);else{c.consumeShields(target,c.a);c.consumeBarrier(target);}}",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='overlappingDamageImmunities'&&available(f,c.type,c.round)&&(c.otherImmunity||['fixed','percent'].includes(c.type)&&intrinsic('pinkImmune')))throw Error('Q-N20-4500-001：已有同类免疫与龙鳞触发顺序待确认');",
+    "after": " if(event==='overlappingDamageImmunities')return;",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='attackImmunityApplied'&&c.amount>0&&available(f,'attack',c.round)){if(c.resourceGuard){if(state(f,'red',c.round)&&(c.t.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-N20-4438-001：红鳞免疫后消失的多段单位待答');applied(c,'attack');}else throw Error('Q-N20-4500-001：已有攻击免疫与龙鳞的优先级待确认');}",
+    "after": " if(event==='attackImmunityApplied'&&c.amount>0&&available(f,'attack',c.round)&&c.resourceGuard)applied(c,'attack');",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='beforeAilment'&&available(f,'ailment',c.round)){applied({...c,otherImmunity:!!c.blocked},'ailment');c.blocked=true;c.guardImmunityHandled=true;}",
+    "after": " if(event==='beforeAilment'&&available(f,'ailment',c.round)&&!c.blocked&&!(f.counts?.immune>0)){applied(c,'ailment');c.blocked=true;c.guardImmunityHandled=true;}",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='otherAilmentImmunity'&&available(f,'ailment',c.round))throw Error('Q-N20-4500-001：已有异常免疫与龙鳞优先级待确认');",
+    "after": " if(event==='otherAilmentImmunity')return;",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='beforeStageChange'&&c.delta<0&&available(f,'weakness',c.round)){applied(c,'weakness');c.blocked=true;}",
+    "after": " if(event==='beforeStageChange'&&c.delta<0&&!c.blocked&&available(f,'weakness',c.round)){applied(c,'weakness');c.blocked=true;}",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='otherWeaknessImmunity'&&available(f,'weakness',c.round))throw Error('Q-N20-4500-001：已有免弱与龙鳞优先级待确认');",
+    "after": " if(event==='otherWeaknessImmunity')return;",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='beforeDamage'&&st.guardAttackRewards>0){if((f.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-N20-4438-001：白鳞下次攻击增伤多段消费单位待答');c.modifier*=2;}",
+    "after": " if(event==='beforeDamage'&&(st.guardAttackRewards>0||st.guardAttackBoostRound===c.round))c.modifier*=2;",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='afterUse'&&(c.actionAttackDamage??0)>0&&st.guardAttackRewards>0)st.guardAttackRewards--;",
+    "after": " if(event==='afterUse'&&(c.actionAttackDamage??0)>0&&st.guardAttackRewards>0&&st.guardAttackBoostRound!==c.round){st.guardAttackRewards--;st.guardAttackBoostRound=c.round;}",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": "function describe(f,round){",
+    "after": "function disappearWhite(c){const removed=remove(c.a,'white');if(!removed)return false;c.clear(c.t);c.clearBoost(c.t);c.consumeShields(c.t,c.a);c.consumeBarrier(c.t);return true;}\nfunction describe(f,round){",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": " if(event==='afterStateExpiry'&&f.hp>0){const white=f.soulState.royalGuards?.white;if(white?.end<=c.round){remove(f,'white');c.clear(c.t);c.clearBoost(c.t);c.consumeShields(c.t,f);c.consumeBarrier(c.t);}}",
+    "after": " if(event==='afterStateExpiry'&&f.hp>0){const white=f.soulState.royalGuards?.white;if(white?.end<=c.round)disappearWhite(c);}",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/guard-states.js",
+    "before": "{state,grant,remove,available,applied,trait,run,describe,",
+    "after": "{state,grant,remove,available,applied,trait,run,describe,disappearWhite,",
+    "baselineSha256": "0fbebd8130d7fc57da7448013bd42440c67979249816c1b56052dc59d60f4b32"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "before": "registry[1724]={name:'武心婵',sourceHash:'77c3c93c',partial:true,unimplemented:['Q-N20-4500-001：龙鳞和其它同类免疫重叠的触发顺序待答','Q-N20-4489-001：第五解放当前龙鳞的操作定义待答'],deferred:['位于出战背包时双方真实场下精灵HP/PP不减少','红黄蓝三色龙鳞真实下场保留、后续再次入场不重新获得首次三色'],traits:{fifthLocked:f=>!f.soulState.royalScaleContract?.unlocked},hooks:{battleStart(c){const source={origin:'soul',sourceSide:c.a.side,url:'https://api.seerapi.com/v1/soulmark/1724',revision:'77c3c93c'};c.a.soulState.royalScaleContract={armed:true,unlocked:false,whiteIssued:false,source};for(const k of ['red','yellow','blue'])royalGuards.grant(c.a,k,c.round,source);},beforeDamage(c){if(c.m.type==='龙')c.stab=1.5;}}};",
+    "after": "registry[1724]={name:'武心婵',sourceHash:'77c3c93c',deferred:['位于出战背包时双方真实场下精灵HP/PP不减少','红黄蓝三色龙鳞真实下场保留、后续再次入场不重新获得首次三色'],traits:{fifthLocked:f=>!f.soulState.royalScaleContract?.unlocked},hooks:{battleStart(c){const source={origin:'soul',sourceSide:c.a.side,url:'https://api.seerapi.com/v1/soulmark/1724',revision:'77c3c93c'};c.a.soulState.royalScaleContract={armed:true,unlocked:false,whiteIssued:false,source};for(const k of ['red','yellow','blue'])royalGuards.grant(c.a,k,c.round,source);},beforeDamage(c){if(c.m.type==='龙')c.stab=1.5;}}};",
+    "baselineSha256": "5cd2e64ad3c189121c0a130ce2d97b1c9183b37f861347f011121bf809a28764"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "add(1995,'afterHit',c=>{if(royalHas(c,'red','yellow','blue','white'))throw Error('Q-N20-4489-001：1995解放当前持有龙鳞的操作/消失反应/每色时长累加待确认');});",
+    "after": "add(1995,'afterHit',c=>{let n=0;for(const color of ['red','yellow','blue'])if(royalGuardRules.state(c.a,color,c.round)&&royalGuardRules.remove(c.a,color))n++;if(n){c.timed(c.a,'protect',n,{});c.timed(c.a,'强化保护',n,{});c.timed(c.t,'弱化不可解除反转',n,{});}if(royalGuardRules.state(c.a,'white',c.round)&&royalGuardRules.disappearWhite(c)){c.a.soulState.guardAttackRewards=(c.a.soulState.guardAttackRewards??0)+1;if(c.t.hp>0)c.hurt(c.t,300,c.m.name+'解放白鳞固定','fixed');if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp*.3,c.m.name+'解放白鳞百分比','percent');if(c.t.hp>0)c.randomFromSharedPool(2,true,1995);if(c.t.hp>0)c.stage(c.t,-2);}});",
+    "baselineSha256": "a1e65d8bb8c98ef35b330f0256b571806fc796e416a01744f3a55b155bee40d5"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "type:name,pendingDualTypeQuestion:'Q-N20-4500-002'",
+    "after": "type:name",
+    "baselineSha256": "a1e65d8bb8c98ef35b330f0256b571806fc796e416a01744f3a55b155bee40d5"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "type:({1:'草',2:'水',3:'火'})[p[1]],pendingDualTypeQuestion:'Q-N20-4500-002'",
+    "after": "type:({1:'草',2:'水',3:'火'})[p[1]]",
+    "baselineSha256": "a1e65d8bb8c98ef35b330f0256b571806fc796e416a01744f3a55b155bee40d5"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "      if(!rage&&!effectContext.ignoreImmunity&&total>0&&guardStates.available(t,'attack',r))E.SOULS.run('overlappingDamageImmunities',{...context(t,a,m),amount:total,type:'attack',otherImmunity:effectContext.incomingOtherSoulImmune||wouldAttackImmune(a,t,m,crit,total,{...effectContext,incomingSoulImmune:false},rage)});",
+    "after": "      if(!rage&&!effectContext.ignoreImmunity&&total>0&&guardStates.available(t,'attack',r)){const other=effectContext.incomingOtherSoulImmune||t.soulState.nullifyUse===r+':'+a.side+':'+(m.replayRootMoveId??m.id)||wouldAttackImmune(a,t,m,crit,total,{...effectContext,incomingSoulImmune:false},rage);if(other&&effectContext.incomingGuardImmunity){effectContext.incomingSoulImmune=!!effectContext.incomingOtherSoulImmune;effectContext.incomingGuardImmunity=false;}}",
+    "baselineSha256": "6566150e0eb4f0ebb2033728a27437e42053baf1f5443f6697543f6164dda4f6"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "function damageImmune(f,type){",
+    "after": "function damageImmune(f,type,ignoreGuard=false){",
+    "baselineSha256": "6566150e0eb4f0ebb2033728a27437e42053baf1f5443f6697543f6164dda4f6"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "!!E.SOULS.trait(f,'pinkImmune')||on(f,'固定百分比免疫')",
+    "after": "!!(ignoreGuard?(typeof E.SOULS.registry[f.soulId]?.traits?.pinkImmune==='function'?E.SOULS.registry[f.soulId].traits.pinkImmune(f):E.SOULS.registry[f.soulId]?.traits?.pinkImmune):E.SOULS.trait(f,'pinkImmune'))||on(f,'固定百分比免疫')",
+    "baselineSha256": "6566150e0eb4f0ebb2033728a27437e42053baf1f5443f6697543f6164dda4f6"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "        if(damageImmune(f,type)&&!bypass){",
+    "after": "        if(!bypass&&amount>0&&guardStates.available(f,type,r)&&!damageImmune(f,type,true)&&f.counts.nextPinkImmunity>0){f.counts.nextPinkImmunity--;if(resolution)resolution.immune=true;return 0;}\n        if(damageImmune(f,type)&&!bypass){",
+    "baselineSha256": "6566150e0eb4f0ebb2033728a27437e42053baf1f5443f6697543f6164dda4f6"
+  }
+]

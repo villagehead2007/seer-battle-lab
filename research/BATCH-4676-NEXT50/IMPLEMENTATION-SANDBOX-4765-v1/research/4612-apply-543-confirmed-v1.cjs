@@ -1,0 +1,5 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+let p='dist/range-effects.js',s=fs.readFileSync(p,'utf8');const before="throw Error('Q-N50-4612-003：543参数10的概率单位与算法待确认');";assert.equal(s.split(before).length,2);s=s.replace(before,"if(!sourced4612(c,543))throw Error('543 probability semantics require a reviewed source');c.chance=Math.min(1,c.chance*p[0]);");fs.writeFileSync(p,s);
+p='tests/next50-4612-skills.test.cjs';s=fs.readFileSync(p,'utf8');s=s.replace('4612 543禁用随机暴击共同分支正常红伤，明确概率0与1载荷真实暴击伤害差，自然参数003保护','4612 543原生基础暴击乘10及真实暴击伤害，禁用随机与明确0或1边界保持');s=s.replace("assert.throws(()=>turn(make(e(543),{criticals:true})),/4612-003/);","const native=turn(make(e(543),{criticals:true}));assert.ok(sum(native)>0);const ctx={...make(e(543)).fighters,criticalsEnabled:true,a:{soulState:{}},m:{wikiId:32934,revision:'seerapi:7602c556'},chance:.0625};reg(543).execute(ctx,[10]);assert.equal(ctx.chance,.625);");fs.writeFileSync(p,s);
+console.log('4612 543 bound source now multiplies the native critical probability by10; original source fields retained.');

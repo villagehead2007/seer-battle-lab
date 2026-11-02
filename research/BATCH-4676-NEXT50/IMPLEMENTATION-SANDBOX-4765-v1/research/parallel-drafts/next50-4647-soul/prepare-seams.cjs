@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('fs'),path=require('path'),code=fs.readFileSync(path.resolve(__dirname,'../../../dist/souls.js'),'utf8');
+const oldReduction="      if(!rage)modifier*=(1-(E.SOULS.trait(t,'allDamageReduction')??0)*(1-damageReductionIgnore))";
+const oldEvent="E.SOULS.run('attackDamageTaken',{...context(t,a,m),defeatedByAttack,dealt,hpLoss:dealt,settledDamage,attackImmune:hitImmune,shieldDamage:(t.roundShieldDamage??0)-shieldAtAttackStart});";
+const entries=[{label:'1847 live source mark outgoing red reduction for current holder',target:'dist/souls.js',old:oldReduction,replacement:"      if(a.soulState.starEntangle1847?.sourceHash==='5521fbf2'&&E.SOULS.registry[1847]?.sourceHash==='5521fbf2')modifier*=E.SOULS.registry[1847].abilities.outgoingMultiplier(context(a,t,m));\n"+oldReduction},{label:'1847 positive complete attack damage invokes independent50percent plus conditional extra100true',target:'dist/souls.js',old:oldEvent,replacement:oldEvent+"if(settledDamage>0&&t.soulState.starEntangle1847?.sourceHash==='5521fbf2'&&E.SOULS.registry[1847]?.sourceHash==='5521fbf2')E.SOULS.registry[1847].abilities.receivedAttack({...context(a,t,m),settledDamage,hpLoss:dealt,isFireType1847(f){const parts=s.typeChart.aliases?.[f.type];if(!Array.isArray(parts))throw Error('1847真实属性成分未覆盖');return parts.includes('火');}});"}];
+for(const x of entries)if(code.split(x.old).length!==2)throw Error('1847 source seam not unique '+x.label);
+fs.writeFileSync(path.join(__dirname,'souls.production-edits.json'),JSON.stringify(entries,null,2)+'\n');

@@ -1,0 +1,3798 @@
+{
+  "species": 3576,
+  "status": "single-stage-complete",
+  "source": {
+    "provider": "seerapi",
+    "url": "https://api.seerapi.com/v1/pet/3576",
+    "revision": "5fe5b341",
+    "loadedAt": "2026-10-11T15:43:04.929Z",
+    "storage": "local",
+    "savedAt": "2026-10-12T12:28:25.119Z"
+  },
+  "soul": {
+    "raw": {
+      "id": 877,
+      "description": "每次对手攻击技能命中前令对手全属性-1；|战斗阶段结束时若自身处于异常状态或能力下降状态，则消除对手回合类效果并附加给对手等同于自身的异常状态或能力下降状态（自身体力为0时也可触发）；|回合结束后若自身死亡，则令己方下只精灵出战时全属性+1且免疫下1次受到的异常状态|（boss无效）",
+      "hash": "7962bd41",
+      "eid": 1163,
+      "args": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "scope": "mixed",
+    "singleBehavior": "对手攻击命中前全属性-1；阶段结束复制自身异常及负等级并清除对手回合效果，死亡仍触发",
+    "deferredBehavior": [
+      {
+        "soulId": 877,
+        "description": "自身死亡后己方下只精灵出战时全属性+1并免疫下1次异常",
+        "status": "多精灵待实现"
+      }
+    ]
+  },
+  "effects": [
+    {
+      "key": "3576:skill:20230:0",
+      "move": "慧眼",
+      "instance": {
+        "id": 4,
+        "args": [
+          5,
+          100,
+          1
+        ]
+      },
+      "raw": "技能使用成功时，100%改变自身命中等级+1",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：慧眼成功命中等级从0升至1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：封招或禁强化时命中等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：命中+6再次使用仍为+6"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：禁强化阻止自身提升"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:20085:0",
+      "move": "雷祭",
+      "instance": {
+        "id": 10,
+        "args": [
+          100
+        ]
+      },
+      "raw": "命中后100%令对方麻痹",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：麻痹状态持续到第二回合且本回合对手未扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：免疫或实际失误没有异常，免疫者正常扣PP行动"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：一次异常免疫次数由1消费到0"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：异常控制改变对手本回合行动与PP"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:11267:0",
+      "move": "静电强击",
+      "instance": {
+        "id": 5,
+        "args": [
+          4,
+          15,
+          -1
+        ]
+      },
+      "raw": "技能使用成功时，15%改变对手速度等级-1",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：负六级再次弱化仍为负六级"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31838:0",
+      "move": "禅定印",
+      "instance": {
+        "id": 1332,
+        "args": [
+          2
+        ]
+      },
+      "raw": "消除对手回合类效果，消除成功则随机附加2种异常状态",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：清除doubleDamage后目标保存两种不同异常"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：无回合效果或免断保护时不附加异常"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：一次免疫被消费且至多剩余一种异常"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：免断保护保留原效果并阻止后续异常"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31838:1",
+      "move": "禅定印",
+      "instance": {
+        "id": 1263,
+        "args": [
+          4,
+          3
+        ]
+      },
+      "raw": "吸取对手最大体力的1/4，自身体力低于对手时变为1/3",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：按命中后的双方HP比较实际吸取2250或3000并回复"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：伤害免疫时双方HP不变"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：HP等值及上下1点切换1/4与1/3；残血只回复实际损血"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：禁疗保留伤害但阻止自身回复"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:20086:0",
+      "move": "雷雨天",
+      "instance": {
+        "id": 5,
+        "args": [
+          1,
+          100,
+          -1
+        ]
+      },
+      "raw": "技能使用成功时，100%改变对手防御等级-1",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:20086:1",
+      "move": "雷雨天",
+      "instance": {
+        "id": 5,
+        "args": [
+          3,
+          100,
+          -1
+        ]
+      },
+      "raw": "技能使用成功时，100%改变对手特防等级-1",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:13100:0",
+      "move": "灵空击",
+      "instance": {
+        "id": 35,
+        "args": []
+      },
+      "raw": "惩罚，对方能力等级越高，此技能威力越大",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：对手攻击等级0、1、6时实际攻击伤害递增"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：负等级与无提升造成同样伤害"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：负六级不计为正向提升，正六级仍增加伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：攻击必失阻止增强后的伤害"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:24201:0",
+      "move": "致幻雷鸣",
+      "instance": {
+        "id": 47,
+        "args": [
+          3
+        ]
+      },
+      "raw": "3回合内免疫能力下降状态",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：封招时防御正常下降"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：最后有效回合免弱，到期下一回合防御降1"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：当回合先施放免弱阻止后手真实弱化技"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:24201:1",
+      "move": "致幻雷鸣",
+      "instance": {
+        "id": 583,
+        "args": [
+          1
+        ]
+      },
+      "raw": "使对手随机1项技能的PP值归零",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：目标四招中恰好一招PP归零"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：封招不清任何PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：允许随机选到已经为0的同一槽，不凭空清第二招"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：执行清PP后其他招PP保持正常行动消耗"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31839:0",
+      "move": "闪雷之暴",
+      "instance": {
+        "id": 749,
+        "args": [
+          50,
+          1
+        ]
+      },
+      "raw": "50%令对手全属性-1",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：概率成功六项能力全部降1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：概率失败六项保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：六项负六级不越界"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：免弱时成功概率也不能改变等级"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26028:0",
+      "move": "雷音普渡",
+      "instance": {
+        "id": 681,
+        "args": [
+          2
+        ]
+      },
+      "raw": "下2回合自身攻击技能必定致命、必定命中",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：下两回合实际攻击穿过必失且伤害为非暴击对照两倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：施放被封时没有后续必暴效果"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：仅第2、3回合有效，第4回合在必失下目标不损血但技能扣PP"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：消回合实际移除必中和必暴窗口"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31840:0",
+      "move": "空间破碎",
+      "instance": {
+        "id": 890,
+        "args": []
+      },
+      "raw": "自身处于能力提升状态时造成的伤害翻倍",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：任一正等级使实际攻击伤害翻倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：无提升及只有负等级时伤害等于无效果对照"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：命中等级-1、0、1、6区分提升条件"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：翻倍增伤与必暴乘算"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26029:0",
+      "move": "圣界煌雷",
+      "instance": {
+        "id": 191,
+        "args": [
+          4
+        ]
+      },
+      "raw": "4回合内免疫并反弹所有受到的异常状态",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：四回合内自身不麻痹且施加者受到反弹麻痹"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：施放被封则没有反弹效果"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：第4回合仍免疫，第5回合自身可被麻痹"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：对手真实异常技能触发反弹并保留自身无异常"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26029:1",
+      "move": "圣界煌雷",
+      "instance": {
+        "id": 47,
+        "args": [
+          4
+        ]
+      },
+      "raw": "4回合内免疫能力下降状态",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：封招时防御正常下降"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：最后有效回合免弱，到期下一回合防御降1"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：当回合先施放免弱阻止后手真实弱化技"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26029:2",
+      "move": "圣界煌雷",
+      "instance": {
+        "id": 1270,
+        "args": [
+          80,
+          0,
+          1
+        ]
+      },
+      "raw": "命中则80%使对手麻痹，未触发则对手下1次技能无效",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：80%分支麻痹使对手本回合不扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：免疫挡住异常时不误入概率失败补偿"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：概率失败仅阻止下一次技能，扣PP并消费后随后攻击正常伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：对手先行动时保留1次失效标记到下一回合"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31841:0",
+      "move": "光轮回旋",
+      "instance": {
+        "id": 683,
+        "args": [
+          200,
+          400
+        ]
+      },
+      "raw": "随机附加200~400点固定伤害",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：目标损血减攻击伤害在200至400之间"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：失误时目标无损血"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：实际随机种子同时覆盖200和400端点"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：伤害免疫同时挡住攻击与固定追加"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26030:0",
+      "move": "明王天威",
+      "instance": {
+        "id": 962,
+        "args": [
+          1
+        ]
+      },
+      "raw": "全属性+1，自身不处于能力提升状态时强化效果翻倍",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：无提升时六项升2，有任一提升时仅升1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：禁强化时六项保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：-1、0、1、6条件切换且等级最大6"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：已有单项强化决定全体强化倍数"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26030:1",
+      "move": "明王天威",
+      "instance": {
+        "id": 1065,
+        "args": [
+          4,
+          3,
+          2
+        ]
+      },
+      "raw": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "修复单精灵缺口并通过状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：1000HP回复6000并令对手损失6000；4500HP回复3000"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：满血或技能禁疗实际回复0且对手不损血"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：4499、4500、4501严格半血边界及8999只能回复1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：禁疗不产生虚假等量伤害；回复不得超过最大HP"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:26030:2",
+      "move": "明王天威",
+      "instance": {
+        "id": 843,
+        "args": [
+          2,
+          2
+        ]
+      },
+      "raw": "下2回合令自身所有技能先制+2",
+      "scope": "single",
+      "reuse": "3575已验证公共机制，保持实现不变",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：第二回合属性技和第三回合攻击均优先行动"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：施放被封没有后续行动优先"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：仅下2回合有效，第4回合按速度后手"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：属性与攻击共用先制加2且实际伤害仍执行"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31842:0",
+      "move": "圆寂归尘",
+      "instance": {
+        "id": 875,
+        "args": []
+      },
+      "raw": "消耗自身全部体力，对手所有技能PP值归零，全属性-1",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：自身HP归0、对手全部PP归0且六项降1，战斗结束"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：施放被封时自身不死亡也不清对手PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：自身HP为1、400、9000均全部消耗"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：免弱仅挡住降能力，仍清PP并死亡"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31843:0",
+      "move": "金轮耀世斩",
+      "instance": {
+        "id": 1061,
+        "args": []
+      },
+      "raw": "反转对手能力提升状态，反转成功则自身附加相同的能力提升，反转失败则消除对手能力提升状态",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "修复单精灵缺口并通过状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：对手正等级变同幅负等级，自身获得原正等级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：无强化时自身不获益；免弱挡住反转后只清除强化"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：目标正6可反转为负6；自身累加上限6；负等级不变"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：禁强化不阻止对手反转，但阻止自身复制"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061触发消强反馈且败亡目标不产生自身强化",
+            "assertion": "消强反馈实际削弱自身后再复制；目标被攻击击败时不凭空给予自身强化"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31843:1",
+      "move": "金轮耀世斩",
+      "instance": {
+        "id": 1136,
+        "args": [
+          2,
+          3
+        ]
+      },
+      "raw": "自身体力高于1/2时附加自身当前体力1/3的百分比伤害",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：4501或9000HP实际追加当前HP的1/3百分比伤害"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：低于或等于半血不追加，封招也不伤害"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：4499、4500、4501严格大于半血边界"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：伤害免疫挡住追加与攻击"
+          }
+        ]
+      }
+    },
+    {
+      "key": "3576:skill:31843:2",
+      "move": "金轮耀世斩",
+      "instance": {
+        "id": 1137,
+        "args": [
+          2,
+          3
+        ]
+      },
+      "raw": "自身体力低于1/2时吸取对手最大体力的1/3",
+      "scope": "single",
+      "reuse": "已有注册实现，需真实状态测试审核",
+      "result": "复用既有机制并通过3576真实状态断言",
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：半血以下吸取目标最大HP的1/3且回复实际量"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：等于或高于半血不吸取"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：自身1、4499、4500、4501边界及目标残血取实际值"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：禁疗阻止回复而免伤同时阻止损血与吸取回复"
+          }
+        ]
+      }
+    }
+  ],
+  "missing": [],
+  "fullyComplete": false,
+  "coverage": {
+    "total": 42,
+    "missing": 0,
+    "stale": 0
+  },
+  "tests": {
+    "targeted": {
+      "passed": 36,
+      "total": 36,
+      "exitCode": 0,
+      "log": "research/3576-targeted.log"
+    },
+    "npm": {
+      "passed": 450,
+      "total": 450,
+      "exitCode": 0,
+      "log": "research/3576-npm.log"
+    },
+    "validator": {
+      "result": "passed (single-stage)",
+      "exitCode": 0,
+      "log": "research/3576-validate.log"
+    }
+  },
+  "implementationChanges": [
+    {
+      "effectId": 1061,
+      "file": "dist/range-effects.js",
+      "reason": "原直接写等级绕过免弱及禁强化，补上真实消强、弱化尝试、成功后复制和失败时仅消强；触发既有消强反馈",
+      "attempts": 1
+    },
+    {
+      "effectId": 1065,
+      "file": "dist/souls.js",
+      "reason": "原按计划回复量追加伤害，改为实际HP回复差值；保留原半血阈值、双倍与回合时序",
+      "attempts": 1
+    }
+  ],
+  "initialFailures": {
+    "total": 7,
+    "mechanismFailures": [
+      1061,
+      1065
+    ],
+    "fixtureCorrections": [
+      "10/191种子0产生1回合麻痹，返回状态时已到期；改用种子8验证持续状态，仍保留控制与免疫断言",
+      "1332种子0有一个异常在当回合到期；种子1使两个真实异常都跨回合，保留两异常数量断言",
+      "681的lastAttackDamage保存历史命中伤害，不能当作本次失误伤害；到期改断言目标HP不变及实际扣PP",
+      "1065持续测试使用40000HP超出引擎允许范围；改为每回合重置9000HP目标，逐回合仍断言3000损血，避免提前死亡阻断持续时长检查"
+    ],
+    "introducedBy": "本轮新增测试揭示既有1061/1065机制缺口；无既有测试被删除或弱化"
+  },
+  "protectedChecks": {
+    "unchangedFiles": [
+      "automation-validate.cjs",
+      "completion-policy.cjs",
+      "dist/engine.js",
+      "dist/effect-registry.js",
+      "dist/range-souls.js",
+      "data/species/3576.json",
+      "AUTO-PROGRESS.json",
+      "tests/deployed-3576.test.cjs"
+    ],
+    "otherSpeciesReviewsUnchanged": true,
+    "otherSpeciesDeferredRecordsUnchanged": true,
+    "productionChangesRestrictedTo": [
+      1061,
+      1065
+    ],
+    "reused3575EffectsUnchanged": [
+      4,
+      5,
+      191,
+      843
+    ],
+    "automationPausedAndCursorUnchanged": true,
+    "gitUsed": false
+  },
+  "reviewEntries": {
+    "3576:soul:877": {
+      "sourceDigest": "c32fdb7de3b5a5e36b2f517c32baa0ad95f0e2b509bcf27863d1e74e8f297c4b",
+      "scope": "mixed",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877命中前全弱改变本次伤害、失误属性不触发与免弱",
+            "assertion": "命中前对手六项降低1并降低本次攻击实际伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877阶段末复制异常负等级清回合、无状态不清除及保护免疫",
+            "assertion": "清除doubleDamage，烧伤剩余时间同为3，攻击-2复制且自身不清除"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877命中前全弱改变本次伤害、失误属性不触发与免弱",
+            "assertion": "属性招或失误不降能力，免弱阻止等级变化"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877阶段末复制异常负等级清回合、无状态不清除及保护免疫",
+            "assertion": "自身无异常无弱化不清回合；受保护免疫阻止复制"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877持有者死亡仍复制状态且不伪造下一只入场",
+            "assertion": "自毁死亡后仍复制烧伤和负等级；不产生替补精灵或虚假免疫"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877阶段末复制异常负等级清回合、无状态不清除及保护免疫",
+            "assertion": "仅剩当前回合的麻痹复制后同期到期，不延长到下一回合"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877阶段末复制异常负等级清回合、无状态不清除及保护免疫",
+            "assertion": "免断保护保留免弱免异常后，复制按免疫结算"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 魂印877持有者死亡仍复制状态且不伪造下一只入场",
+            "assertion": "自毁技能降1与自身负2复制叠加为对手攻击-3"
+          }
+        ]
+      },
+      "rationale": "按魂印原文拆分：对手攻击命中前弱化和阶段末异常/负等级复制均仅需双方在场，即使持有者死亡也属于单精灵；仅己方下一只入场获益依赖队伍事件。",
+      "deferredBehavior": "自身死亡后己方下只精灵出战时全属性+1并免疫下1次异常",
+      "trigger": "魂印持有者在回合结束死亡，己方下一只精灵出战",
+      "futureMechanisms": [
+        "己方队伍与下一只出场选择",
+        "死亡结算与替补入场顺序",
+        "入场全属性强化及一次异常免疫消费"
+      ],
+      "singleBehavior": "每次对手攻击命中前令对手全属性-1；阶段结束自身有异常或负等级时清除对手回合效果并复制对应异常剩余持续时间及负等级，自身死亡仍触发。"
+    },
+    "3576:move:10267": {
+      "sourceDigest": "381f164bb6998fa9142d39237f851076b80738f5cc5826bb769176415014450b",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "10267实际使用后PP由40变为39，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "10267隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "10267零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "10267零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "10267原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "10267攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "落雷(10267)：special，威力40，PP40，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行0个效果。"
+    },
+    "3576:move:20230": {
+      "sourceDigest": "961bc4fb6c72d9f2e09e744d5fea8408b3167ef6f7071700f404f529d62d65bb",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20230实际使用后PP由40变为39，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20230隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20230效果4参数[5,100,1]：慧眼成功命中等级从0升至1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20230零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20230效果4参数[5,100,1]：封招或禁强化时命中等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20230零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20230原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20230效果4参数[5,100,1]：命中+6再次使用仍为+6"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20230攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20230效果4参数[5,100,1]：禁强化阻止自身提升"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "慧眼(20230)：status，威力0，PP40，先制0，命中100，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:20230:0": {
+      "sourceDigest": "bcb5db76b56744b6974c43830ca39edd46af735c8e88f5735c76f9b99b6ef167",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：慧眼成功命中等级从0升至1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：封招或禁强化时命中等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：命中+6再次使用仍为+6"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20230:0 effectId=4 args=[5,100,1]：禁强化阻止自身提升"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "技能使用成功时，100%改变自身命中等级+1"
+    },
+    "3576:move:13611": {
+      "sourceDigest": "065b40f74592bec7781457d2f8d1fc0cfcb9f25786981eea43c3bc28a522edbd",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13611实际使用后PP由30变为29，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13611隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13611零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13611零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13611原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13611攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "掌风(13611)：special，威力50，PP30，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行0个效果。"
+    },
+    "3576:move:20085": {
+      "sourceDigest": "efd2cf65d1236fcf3f39ed4a9ae9692b1f0ee2d755f1102aa32d6561830877b7",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20085实际使用后PP由30变为29，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20085隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "20085效果10参数[100]：麻痹状态持续到第二回合且本回合对手未扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20085零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "20085效果10参数[100]：免疫或实际失误没有异常，免疫者正常扣PP行动"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20085零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20085原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "20085效果10参数[100]：一次异常免疫次数由1消费到0"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20085攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "20085效果10参数[100]：异常控制改变对手本回合行动与PP"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "雷祭(20085)：status，威力0，PP30，先制0，命中50，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:20085:0": {
+      "sourceDigest": "f797d350aa76f5f83df0c1e7f9482dcacb2d0c7cc7acc2da3e7023b36e84a54a",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：麻痹状态持续到第二回合且本回合对手未扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：免疫或实际失误没有异常，免疫者正常扣PP行动"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：一次异常免疫次数由1消费到0"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹10命中阻止行动、免疫与失误不触发",
+            "assertion": "3576:skill:20085:0 effectId=10 args=[100]：异常控制改变对手本回合行动与PP"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "命中后100%令对方麻痹"
+    },
+    "3576:move:11267": {
+      "sourceDigest": "a2de623be9ed25d0cfb8ca894b10defedc641fc1ebe03c8f7eef34fbf1ef0721",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "11267实际使用后PP由30变为29，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "11267隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "11267效果5参数[4,15,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "11267零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "11267效果5参数[4,15,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "11267零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "11267原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "11267效果5参数[4,15,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "11267攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "11267效果5参数[4,15,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "静电强击(11267)：physical，威力60，PP30，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:11267:0": {
+      "sourceDigest": "dd0d021797a428f20a602b9aab35ce33b0ce0f58413e8caa4668917c2cf0c17a",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：负六级再次弱化仍为负六级"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:11267:0 effectId=5 args=[4,15,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "技能使用成功时，15%改变对手速度等级-1"
+    },
+    "3576:move:31838": {
+      "sourceDigest": "e5d0191cf6bd62bf81f5e0337c1548f85ee15811e14c286f6d7e8d73c6f40e81",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31838实际使用后PP由20变为19，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31838隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "31838效果1332参数[2]：清除doubleDamage后目标保存两种不同异常"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "31838效果1263参数[4,3]：按命中后的双方HP比较实际吸取2250或3000并回复"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31838零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "31838效果1332参数[2]：无回合效果或免断保护时不附加异常"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "31838效果1263参数[4,3]：伤害免疫时双方HP不变"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31838零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31838原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "31838效果1332参数[2]：一次免疫被消费且至多剩余一种异常"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "31838效果1263参数[4,3]：HP等值及上下1点切换1/4与1/3；残血只回复实际损血"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31838攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "31838效果1332参数[2]：免断保护保留原效果并阻止后续异常"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "31838效果1263参数[4,3]：禁疗保留伤害但阻止自身回复"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "禅定印(31838)：physical，威力85，PP20，先制3，命中95，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行2个效果。"
+    },
+    "3576:skill:31838:0": {
+      "sourceDigest": "d5f0c0a862053872cdb9dfb1ed3cca50e7b7e6464f4d172f6b83fcb260db67d5",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：清除doubleDamage后目标保存两种不同异常"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：无回合效果或免断保护时不附加异常"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：一次免疫被消费且至多剩余一种异常"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 消回合1332成功附加两种异常、无效果与保护失败及一次免疫",
+            "assertion": "3576:skill:31838:0 effectId=1332 args=[2]：免断保护保留原效果并阻止后续异常"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "消除对手回合类效果，消除成功则随机附加2种异常状态"
+    },
+    "3576:skill:31838:1": {
+      "sourceDigest": "2490b599f0941248318452aefb83fc6f2c1293624a12d9f99941f5dec54b63d8",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：按命中后的双方HP比较实际吸取2250或3000并回复"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：伤害免疫时双方HP不变"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：HP等值及上下1点切换1/4与1/3；残血只回复实际损血"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 吸取1263按命中后体力比较四分之一与三分之一且只回复实际损血",
+            "assertion": "3576:skill:31838:1 effectId=1263 args=[4,3]：禁疗保留伤害但阻止自身回复"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "吸取对手最大体力的1/4，自身体力低于对手时变为1/3"
+    },
+    "3576:move:20086": {
+      "sourceDigest": "208d3cfba93910e86e3f889b47388517517313d69d25069251fbc957688f456e",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20086实际使用后PP由20变为19，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20086隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[1,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[3,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20086零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[1,100,-1]：15%概率失败或封招时对应等级保持0"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[3,100,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "20086零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20086原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[1,100,-1]：负六级再次弱化仍为负六级"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[3,100,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "20086攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[1,100,-1]：免弱阻止对应等级下降"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "20086效果5参数[3,100,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "雷雨天(20086)：status，威力0，PP20，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行2个效果。"
+    },
+    "3576:skill:20086:0": {
+      "sourceDigest": "f0451ab9d86b4b647c9d21a3ddb57f73906443ded2a40b6e49600b6b6bb4b462",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:0 effectId=5 args=[1,100,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "技能使用成功时，100%改变对手防御等级-1"
+    },
+    "3576:skill:20086:1": {
+      "sourceDigest": "20eef3b8ac43d58eee1bd23653cf1a0a0542c1ec01d7ba65f0fa5b0fe967ea7d",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：实例指定的速度、防御或特防实际降低1级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：15%概率失败或封招时对应等级保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：负六级再次弱化仍为负六级"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 属性4与5逐实例概率、六级边界及免弱禁强",
+            "assertion": "3576:skill:20086:1 effectId=5 args=[3,100,-1]：免弱阻止对应等级下降"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "技能使用成功时，100%改变对手特防等级-1"
+    },
+    "3576:move:13100": {
+      "sourceDigest": "e2879f85283a0ce2f4c38cedf1a06021e62349d97eacbc7fbae54d369fb17601",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13100实际使用后PP由25变为24，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13100隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "13100效果35参数[]：对手攻击等级0、1、6时实际攻击伤害递增"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13100零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "13100效果35参数[]：负等级与无提升造成同样伤害"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "13100零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13100原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "13100效果35参数[]：负六级不计为正向提升，正六级仍增加伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "13100攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "13100效果35参数[]：攻击必失阻止增强后的伤害"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "灵空击(13100)：physical，威力70，PP25，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:13100:0": {
+      "sourceDigest": "82a35b3ec4815be159c5358c4480b7106b466b904f55150ccc231b120f3acffe",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：对手攻击等级0、1、6时实际攻击伤害递增"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：负等级与无提升造成同样伤害"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：负六级不计为正向提升，正六级仍增加伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 惩罚35能力提升增加实际攻击伤害、负等级不加成且失误不伤害",
+            "assertion": "3576:skill:13100:0 effectId=35 args=[]：攻击必失阻止增强后的伤害"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "惩罚，对方能力等级越高，此技能威力越大"
+    },
+    "3576:move:24201": {
+      "sourceDigest": "44702e932705a5dfa1638a2ecae486dd6f75516800ccb817b5f4248ae084c7f6",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "24201实际使用后PP由10变为9，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "24201隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "24201效果47参数[3]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "24201效果583参数[1]：目标四招中恰好一招PP归零"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "24201零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "24201效果47参数[3]：封招时防御正常下降"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "24201效果583参数[1]：封招不清任何PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "24201零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "24201原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "24201效果47参数[3]：最后有效回合免弱，到期下一回合防御降1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "24201效果583参数[1]：允许随机选到已经为0的同一槽，不凭空清第二招"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "24201攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "24201效果47参数[3]：当回合先施放免弱阻止后手真实弱化技"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "24201效果583参数[1]：执行清PP后其他招PP保持正常行动消耗"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "致幻雷鸣(24201)：status，威力0，PP10，先制0，命中100，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行2个效果。"
+    },
+    "3576:skill:24201:0": {
+      "sourceDigest": "67ac234b80761ccd9969762e932eaca36120dd5bfecc495f8fb3d8e6417a8eb9",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：封招时防御正常下降"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：最后有效回合免弱，到期下一回合防御降1"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:24201:0 effectId=47 args=[3]：当回合先施放免弱阻止后手真实弱化技"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "3回合内免疫能力下降状态"
+    },
+    "3576:skill:24201:1": {
+      "sourceDigest": "0f7dd8660be38d641fa3c6ddc890660482f2f645b44f46d5701973cbfbd586e7",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：目标四招中恰好一招PP归零"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：封招不清任何PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：允许随机选到已经为0的同一槽，不凭空清第二招"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 清PP583每次只清一个技能、可命中已空技能且封招不执行",
+            "assertion": "3576:skill:24201:1 effectId=583 args=[1]：执行清PP后其他招PP保持正常行动消耗"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "使对手随机1项技能的PP值归零"
+    },
+    "3576:move:31839": {
+      "sourceDigest": "6f29927c53b9f3dfb22facc39a801c7ef6f57a60748005e6210bb64401af877b",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31839实际使用后PP由10变为9，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31839隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "31839效果749参数[50,1]：概率成功六项能力全部降1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31839零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "31839效果749参数[50,1]：概率失败六项保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31839零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31839原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "31839效果749参数[50,1]：六项负六级不越界"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31839攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "31839效果749参数[50,1]：免弱时成功概率也不能改变等级"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "闪雷之暴(31839)：special，威力120，PP10，先制0，命中95，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:31839:0": {
+      "sourceDigest": "9a41acb941b554f533100e8bddccfd48783eedaadc0d0e9cb66efa9dbf5b82fe",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：概率成功六项能力全部降1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：概率失败六项保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：六项负六级不越界"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 全弱749概率成败、负六级边界及免弱",
+            "assertion": "3576:skill:31839:0 effectId=749 args=[50,1]：免弱时成功概率也不能改变等级"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "50%令对手全属性-1"
+    },
+    "3576:move:26028": {
+      "sourceDigest": "68fb82415b5285facf8de23a767aa77848fb7bede366b0f91f8c952799aa461f",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26028实际使用后PP由10变为9，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26028隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "26028效果681参数[2]：下两回合实际攻击穿过必失且伤害为非暴击对照两倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26028零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "26028效果681参数[2]：施放被封时没有后续必暴效果"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26028零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26028原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "26028效果681参数[2]：仅第2、3回合有效，第4回合在必失下目标不损血但技能扣PP"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26028攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "26028效果681参数[2]：消回合实际移除必中和必暴窗口"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "雷音普渡(26028)：status，威力0，PP10，先制0，命中100，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:26028:0": {
+      "sourceDigest": "a8c44ecfb04842f54794f921bfaea4cbccdc23c4bb149cfcd6df0e53d21aef7b",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：下两回合实际攻击穿过必失且伤害为非暴击对照两倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：施放被封时没有后续必暴效果"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：仅第2、3回合有效，第4回合在必失下目标不损血但技能扣PP"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 必中必暴681只作用下两回合、真实双倍伤害、到期及消回合",
+            "assertion": "3576:skill:26028:0 effectId=681 args=[2]：消回合实际移除必中和必暴窗口"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "下2回合自身攻击技能必定致命、必定命中"
+    },
+    "3576:move:31840": {
+      "sourceDigest": "e0265cb81f51255d1eef20905ad3a5a9181ef657c8cb7aa14137044cb6f6aecf",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31840实际使用后PP由10变为9，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31840隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "31840效果890参数[]：任一正等级使实际攻击伤害翻倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31840零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "31840效果890参数[]：无提升及只有负等级时伤害等于无效果对照"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31840零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31840原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "31840效果890参数[]：命中等级-1、0、1、6区分提升条件"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31840攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "31840效果890参数[]：翻倍增伤与必暴乘算"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "空间破碎(31840)：physical，威力130，PP10，先制0，命中95，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:31840:0": {
+      "sourceDigest": "309401e531576bd9f104a85529d604639620ac691a247e70359774d18ba73061",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：任一正等级使实际攻击伤害翻倍"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：无提升及只有负等级时伤害等于无效果对照"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：命中等级-1、0、1、6区分提升条件"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 增伤890有任一提升时翻倍、零和负等级不触发且暴击相乘",
+            "assertion": "3576:skill:31840:0 effectId=890 args=[]：翻倍增伤与必暴乘算"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "自身处于能力提升状态时造成的伤害翻倍"
+    },
+    "3576:move:26029": {
+      "sourceDigest": "7cfe3a2ad379dd5bd789fb3d0e8eeddf2234cffc1c80805a629d4796bca3feea",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26029实际使用后PP由5变为4，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26029隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "26029效果191参数[4]：四回合内自身不麻痹且施加者受到反弹麻痹"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "26029效果47参数[4]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "26029效果1270参数[80,0,1]：80%分支麻痹使对手本回合不扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26029零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "26029效果191参数[4]：施放被封则没有反弹效果"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "26029效果47参数[4]：封招时防御正常下降"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "26029效果1270参数[80,0,1]：免疫挡住异常时不误入概率失败补偿"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26029零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26029原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "26029效果191参数[4]：第4回合仍免疫，第5回合自身可被麻痹"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "26029效果47参数[4]：最后有效回合免弱，到期下一回合防御降1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "26029效果1270参数[80,0,1]：概率失败仅阻止下一次技能，扣PP并消费后随后攻击正常伤害"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26029攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "26029效果191参数[4]：对手真实异常技能触发反弹并保留自身无异常"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "26029效果47参数[4]：当回合先施放免弱阻止后手真实弱化技"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "26029效果1270参数[80,0,1]：对手先行动时保留1次失效标记到下一回合"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "圣界煌雷(26029)：status，威力0，PP5，先制0，命中100，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行3个效果。"
+    },
+    "3576:skill:26029:0": {
+      "sourceDigest": "ea70797e08181fa1129e5859971bc9853dda9d1bb0482533b8cf9d307ace3c5e",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：四回合内自身不麻痹且施加者受到反弹麻痹"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：施放被封则没有反弹效果"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：第4回合仍免疫，第5回合自身可被麻痹"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反弹191四回合反弹麻痹、到期自身受控与封招失败",
+            "assertion": "3576:skill:26029:0 effectId=191 args=[4]：对手真实异常技能触发反弹并保留自身无异常"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "4回合内免疫并反弹所有受到的异常状态"
+    },
+    "3576:skill:26029:1": {
+      "sourceDigest": "d9ca8cac41c28513d6bfc87bcd3a4b28e138ec41574370e32fa43ebcc95f63c3",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：3或4回合内实际对手防御下降技能不能降低自身防御"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：封招时防御正常下降"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：最后有效回合免弱，到期下一回合防御降1"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 免弱47两个实例持续三或四回合、到期恢复弱化且封招不生效",
+            "assertion": "3576:skill:26029:1 effectId=47 args=[4]：当回合先施放免弱阻止后手真实弱化技"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "4回合内免疫能力下降状态"
+    },
+    "3576:skill:26029:2": {
+      "sourceDigest": "c70dc57b0d22e386a456ba6aebdede6b02fee101af31df39d1fbfac3cb944231",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：80%分支麻痹使对手本回合不扣PP"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：免疫挡住异常时不误入概率失败补偿"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：概率失败仅阻止下一次技能，扣PP并消费后随后攻击正常伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 概率15与50及80在真实随机阈值两侧产生不同状态",
+            "assertion": "实际随机阈值两侧分别改变负等级或下一次技能失效计数"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 麻痹1270概率与免疫分支、未触发封下一次技能并真实消费",
+            "assertion": "3576:skill:26029:2 effectId=1270 args=[80,0,1]：对手先行动时保留1次失效标记到下一回合"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "命中则80%使对手麻痹，未触发则对手下1次技能无效"
+    },
+    "3576:move:31841": {
+      "sourceDigest": "c767d5e29a2c8da68384d1447b09d23516a4d24cc4681cc52e657e63f31b3c28",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31841实际使用后PP由5变为4，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31841隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "31841效果683参数[200,400]：目标损血减攻击伤害在200至400之间"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31841零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "31841效果683参数[200,400]：失误时目标无损血"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31841零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31841原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "31841效果683参数[200,400]：实际随机种子同时覆盖200和400端点"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31841攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "31841效果683参数[200,400]：伤害免疫同时挡住攻击与固定追加"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "光轮回旋(31841)：special，威力140，PP5，先制0，命中95，必中false。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:31841:0": {
+      "sourceDigest": "da7b33c35b39858fbb5ac71f5285d44c8e3ab944eb2667d6ed570177adb0b2ef",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：目标损血减攻击伤害在200至400之间"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：失误时目标无损血"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：实际随机种子同时覆盖200和400端点"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 固伤683随机200至400包含端点、免伤与失误不追加",
+            "assertion": "3576:skill:31841:0 effectId=683 args=[200,400]：伤害免疫同时挡住攻击与固定追加"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "随机附加200~400点固定伤害"
+    },
+    "3576:move:26030": {
+      "sourceDigest": "be25e0f93b6a2c254fc4c561e60f42ce275dc59fb4b7502b7a291212a03ce4a5",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26030实际使用后PP由5变为4，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26030隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "26030效果962参数[1]：无提升时六项升2，有任一提升时仅升1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "26030效果1065参数[4,3,2]：1000HP回复6000并令对手损失6000；4500HP回复3000"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "26030效果843参数[2,2]：第二回合属性技和第三回合攻击均优先行动"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26030零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "26030效果962参数[1]：禁强化时六项保持0"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "26030效果1065参数[4,3,2]：满血或技能禁疗实际回复0且对手不损血"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "26030效果843参数[2,2]：施放被封没有后续行动优先"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "26030零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26030原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "26030效果962参数[1]：-1、0、1、6条件切换且等级最大6"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "26030效果1065参数[4,3,2]：4499、4500、4501严格半血边界及8999只能回复1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "26030效果843参数[2,2]：仅下2回合有效，第4回合按速度后手"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "26030攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "26030效果962参数[1]：已有单项强化决定全体强化倍数"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "26030效果1065参数[4,3,2]：禁疗不产生虚假等量伤害；回复不得超过最大HP"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "26030效果843参数[2,2]：属性与攻击共用先制加2且实际伤害仍执行"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "明王天威(26030)：status，威力0，PP5，先制0，命中100，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行3个效果。"
+    },
+    "3576:skill:26030:0": {
+      "sourceDigest": "2f63c385fd77db74070e9272d28017c44b59be00ba9f4d22809dc8cd9dc6b0f1",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：无提升时六项升2，有任一提升时仅升1"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：禁强化时六项保持0"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：-1、0、1、6条件切换且等级最大6"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 强化962无提升翻倍、任一正等级只加一、六级和禁强",
+            "assertion": "3576:skill:26030:0 effectId=962 args=[1]：已有单项强化决定全体强化倍数"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+    },
+    "3576:skill:26030:1": {
+      "sourceDigest": "417c8061acf5886014ceef650f1687edd78ceaed2d5a8ad0e197f2d47663e74c",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：1000HP回复6000并令对手损失6000；4500HP回复3000"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：满血或技能禁疗实际回复0且对手不损血"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：4499、4500、4501严格半血边界及8999只能回复1"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065半血边界、实际等量、满血和禁疗",
+            "assertion": "3576:skill:26030:1 effectId=1065 args=[4,3,2]：禁疗不产生虚假等量伤害；回复不得超过最大HP"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 回血粉伤1065持续四次用招、控制不触发、到期与伤害免疫",
+            "assertion": "施放当回合起共4次用招回复并追加实际等量伤害；控制不能用招不回复，到期停止；免伤不阻止自身回复"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍"
+    },
+    "3576:skill:26030:2": {
+      "sourceDigest": "b04866afbfde1b70aedb4f030bf478b70a93f5fc5669098f87eda8a6328ee63f",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：第二回合属性技和第三回合攻击均优先行动"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：施放被封没有后续行动优先"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：仅下2回合有效，第4回合按速度后手"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 先制843下两回合包含属性技、到期恢复速度顺序及封招",
+            "assertion": "3576:skill:26030:2 effectId=843 args=[2,2]：属性与攻击共用先制加2且实际伤害仍执行"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "下2回合令自身所有技能先制+2"
+    },
+    "3576:move:31842": {
+      "sourceDigest": "da27f0dae10ac19d3a79486e51acebcfc0877cdc598180ca6a1be9ce594f9d2a",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31842实际使用后PP由1变为0，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31842隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "31842效果875参数[]：自身HP归0、对手全部PP归0且六项降1，战斗结束"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31842零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "31842效果875参数[]：施放被封时自身不死亡也不清对手PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31842零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31842原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "31842效果875参数[]：自身HP为1、400、9000均全部消耗"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31842攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "31842效果875参数[]：免弱仅挡住降能力，仍清PP并死亡"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "圆寂归尘(31842)：physical，威力0，PP1，先制3，命中100，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行1个效果。"
+    },
+    "3576:skill:31842:0": {
+      "sourceDigest": "aa55bbcb5a3fa6fde7ce1dc26b053dfa21de4d0b15eb7e38fe48417bf3fe34ca",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：自身HP归0、对手全部PP归0且六项降1，战斗结束"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：施放被封时自身不死亡也不清对手PP"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：自身HP为1、400、9000均全部消耗"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 自毁875真实死亡结束、清空全PP、全弱与免弱交互",
+            "assertion": "3576:skill:31842:0 effectId=875 args=[]：免弱仅挡住降能力，仍清PP并死亡"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "消耗自身全部体力，对手所有技能PP值归零，全属性-1"
+    },
+    "3576:move:31843": {
+      "sourceDigest": "4d24247ffd6144daa13653ac218ccd851a47ae20093e60b12fcade3c34874ae6",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31843实际使用后PP由5变为4，攻击招造成真实伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31843隔离附加效果后实际HP损失符合原始威力、攻击分类、属性倍率与随机伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "31843效果1061参数[]：对手正等级变同幅负等级，自身获得原正等级"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "31843效果1136参数[2,3]：4501或9000HP实际追加当前HP的1/3百分比伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "31843效果1137参数[2,3]：半血以下吸取目标最大HP的1/3且回复实际量"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31843零PP拒绝，疲惫阻止行动不扣PP，封招扣PP但不改变目标HP与能力"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "31843效果1061参数[]：无强化时自身不获益；免弱挡住反转后只清除强化"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "31843效果1136参数[2,3]：低于或等于半血不追加，封招也不伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "31843效果1137参数[2,3]：等于或高于半血不吸取"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招真实扣PP、零PP拒绝、控制和封招阻止执行",
+            "assertion": "31843零PP不能行动且原战斗状态不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31843原先制与速度决定先后，原始必中决定必失时是否仍产生攻击伤害"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "31843效果1061参数[]：目标正6可反转为负6；自身累加上限6；负等级不变"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "31843效果1136参数[2,3]：4499、4500、4501严格大于半血边界"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "31843效果1137参数[2,3]：自身1、4499、4500、4501边界及目标残血取实际值"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 基础17招原始威力分类、暴击倍数、先制与命中决定战斗结果",
+            "assertion": "31843攻击种类使用正确攻击面板，暴击与属性倍率共同决定伤害；非必中可因命中等级降低失误"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "31843效果1061参数[]：禁强化不阻止对手反转，但阻止自身复制"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "31843效果1136参数[2,3]：伤害免疫挡住追加与攻击"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "31843效果1137参数[2,3]：禁疗阻止回复而免伤同时阻止损血与吸取回复"
+          }
+        ]
+      },
+      "rationale": "来源缓存技能与正式快照的名称、分类、威力、先制、命中、PP及有序实例一致；基础用招和本招词条都在当前在场双方完成，无队伍分支。",
+      "singleBehavior": "金轮耀世斩(31843)：physical，威力160，PP5，先制0，命中95，必中true。用招扣1PP，控制不可行动不扣PP，封招扣PP但不执行，命中后按来源顺序执行3个效果。"
+    },
+    "3576:skill:31843:0": {
+      "sourceDigest": "d8831a9cf61b7aed22e8b9e53cbd3c98f2ebd8c749ac9976e4481ce8510653f9",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：对手正等级变同幅负等级，自身获得原正等级"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：无强化时自身不获益；免弱挡住反转后只清除强化"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：目标正6可反转为负6；自身累加上限6；负等级不变"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061成功复制、六级上限、禁强及免弱失败清强化",
+            "assertion": "3576:skill:31843:0 effectId=1061 args=[]：禁强化不阻止对手反转，但阻止自身复制"
+          },
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 反转1061触发消强反馈且败亡目标不产生自身强化",
+            "assertion": "消强反馈实际削弱自身后再复制；目标被攻击击败时不凭空给予自身强化"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "反转对手能力提升状态，反转成功则自身附加相同的能力提升，反转失败则消除对手能力提升状态"
+    },
+    "3576:skill:31843:1": {
+      "sourceDigest": "3422f1fa6cdb89de7179796643af56b074dd332f280781064657b1c00802e5fe",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：4501或9000HP实际追加当前HP的1/3百分比伤害"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：低于或等于半血不追加，封招也不伤害"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：4499、4500、4501严格大于半血边界"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 高体1136严格大于半血、按当前体力百分比、免伤与封招",
+            "assertion": "3576:skill:31843:1 effectId=1136 args=[2,3]：伤害免疫挡住追加与攻击"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "自身体力高于1/2时附加自身当前体力1/3的百分比伤害"
+    },
+    "3576:skill:31843:2": {
+      "sourceDigest": "818c497a0b4a10cf4d14ec47d838c8e18cb37e09c411360c07c023a8c8f16a21",
+      "scope": "single",
+      "reviewedBy": "Codex 3576 source and battle-state review",
+      "reviewedAt": "2026-10-13",
+      "implementation": [
+        "dist/effect-registry.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：半血以下吸取目标最大HP的1/3且回复实际量"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：等于或高于半血不吸取"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：自身1、4499、4500、4501边界及目标残血取实际值"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/deployed-3576-state.test.cjs",
+            "name": "3576 低体1137严格小于半血、真实吸取残血、禁疗和免伤",
+            "assertion": "3576:skill:31843:2 effectId=1137 args=[2,3]：禁疗阻止回复而免伤同时阻止损血与吸取回复"
+          }
+        ]
+      },
+      "rationale": "依据该实例原始描述与参数，触发者、目标均为当前在场双方，无换宠、队友、场下或存活数量条件。保留同ID多实例各自位置与参数。",
+      "singleBehavior": "自身体力低于1/2时吸取对手最大体力的1/3"
+    }
+  },
+  "deferred": [
+    {
+      "key": "3576:soul:877",
+      "speciesId": 3576,
+      "speciesName": "大轮明王",
+      "kind": "soul",
+      "skillId": null,
+      "ruleId": 877,
+      "instanceIndex": null,
+      "sourceDigest": "c32fdb7de3b5a5e36b2f517c32baa0ad95f0e2b509bcf27863d1e74e8f297c4b",
+      "reviewStatus": "reviewed",
+      "scope": "mixed",
+      "legacyNotes": [
+        "自身死亡后己方下只精灵出战时全属性+1并免疫下1次异常"
+      ],
+      "description": "自身死亡后己方下只精灵出战时全属性+1并免疫下1次异常",
+      "raw": {
+        "id": 877,
+        "description": "每次对手攻击技能命中前令对手全属性-1；|战斗阶段结束时若自身处于异常状态或能力下降状态，则消除对手回合类效果并附加给对手等同于自身的异常状态或能力下降状态（自身体力为0时也可触发）；|回合结束后若自身死亡，则令己方下只精灵出战时全属性+1且免疫下1次受到的异常状态|（boss无效）",
+        "hash": "7962bd41",
+        "eid": 1163,
+        "args": [
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/3576",
+          "revision": "5fe5b341",
+          "loadedAt": "2026-10-11T15:43:04.929Z",
+          "storage": "local",
+          "savedAt": "2026-10-12T12:28:25.119Z"
+        },
+        "url": "https://api.seerapi.com/v1/soulmark/877",
+        "revision": "7962bd41",
+        "effectUrl": null,
+        "effectRevision": null
+      },
+      "trigger": "魂印持有者在回合结束死亡，己方下一只精灵出战",
+      "futureMechanisms": [
+        "己方队伍与下一只出场选择",
+        "死亡结算与替补入场顺序",
+        "入场全属性强化及一次异常免疫消费"
+      ],
+      "singleBehavior": "每次对手攻击命中前令对手全属性-1；阶段结束自身有异常或负等级时清除对手回合效果并复制对应异常剩余持续时间及负等级，自身死亡仍触发。"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+const fs=require('fs');let s=fs.readFileSync('dist/souls.js','utf8').replace('const used=[false,false],received=', 'let first=null;const used=[false,false],received=').replace('const first=itemChoices','first=itemChoices');fs.writeFileSync('dist/souls.js',s);

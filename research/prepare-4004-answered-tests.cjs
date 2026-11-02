@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('fs');
+const p='research/4004-reviewed-snapshot.json',s=JSON.parse(fs.readFileSync(p));
+for(const m of s.moves)m.limitations=(m.limitations??[]).filter(x=>!x.startsWith('Q-A60-4004-007：'));
+fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n');
+const f='tests/deployed-4004-partial.test.cjs',old=fs.readFileSync(f,'utf8');
+if(!fs.existsSync('research/4004-tests-before-answered-implementation.txt'))fs.writeFileSync('research/4004-tests-before-answered-implementation.txt',old);
+let next=old.replace('原版/觉醒两源绑定及未知项禁止正式保存','原版/觉醒两源绑定及全部技能规则可正式保存').replace("assert.equal(require('../local-species.cjs').save(source).saved,false)","assert.deepEqual(require('../local-species.cjs').issues(source),[])");
+next=next.split('\n').map(l=>l.startsWith("test('4004裁异常视同仍明确partial")?`test('4004确认裁仅屏蔽异常条件，双方真实异常仍可清除并触发真伤及无异常吸取',()=>{let s=make(pick(2548)[0],{hp:1000});s.moveDefinitions[key(s.auditMoveId)].power=0;s.fighters[0].ailments['烧伤']=3;s.fighters[1].ailments['烧伤']=3;s.fighters[1].soulState.holyVerdict=1;const o=turn(s);assert.equal(o.fighters[0].ailments['烧伤'],undefined);assert.equal(o.fighters[1].ailments['烧伤'],undefined);assert.ok(o.damageEvents.some(e=>e.type==='true'&&e.settledDamage===210));assert.ok(o.damageEvents.some(e=>e.type==='percent'&&e.settledDamage===210));assert.equal(o.fighters[0].hp,1210);assert.equal(o.fighters[0].soulState.holyVerdictViewUnresolved,undefined);assert.notEqual(E.SOULS.registry[2121].partial,true);});`:l).join('\n');
+fs.writeFileSync(f,next);

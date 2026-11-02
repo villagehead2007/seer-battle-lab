@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict');
+const file='tests/deployed-4125-partial.test.cjs',helper='tests/helpers/4125-battle.cjs';
+for(const [path,archive]of [[file,'research/4125-tests-before-answered-implementation.txt'],[helper,'research/4125-helper-before-answered-implementation.txt']])if(!fs.existsSync(archive))fs.copyFileSync(path,archive);
+let h=fs.readFileSync(helper,'utf8');
+const a=h.indexOf(' if(!options.omit&&[2397'),b=h.indexOf(' if(options.omit)',a);assert.ok(a>0&&b>a);
+h=h.slice(0,a)+" const move=structuredClone(a.moves.find(m=>m.id===entry.moveId));move.limitations=[];\n"+h.slice(b);fs.writeFileSync(helper,h);
+let t=fs.readFileSync(file,'utf8');
+const replace=(from,to)=>{assert.ok(t.includes(from),from);t=t.replace(from,to);};
+replace("assert.equal(o.fighters[0].suitState.shield,0);assert.equal(o.fighters[0].soulState.leonShield1327Pending.question,'Q-A60-4125-026');","assert.equal(o.fighters[0].suitState.shield,3000);assert.equal(o.fighters[0].soulState.leonShield1327Pending,undefined);");
+replace('assert.equal(o.fighters[0].soulState.leonResourcePending,true);',"assert.equal(o.fighters[1].soulState.leonCosmicLayers,1);");
+replace("assert.deepEqual(o.fighters[0].soulState.leon2145Pending.statuses,[{name:'失明',remaining:3}]);assert.equal(o.fighters[0].soulState.leon2145Pending.blockDuration,2);","assert.equal(o.fighters[1].ailments['失明'],3);assert.equal(o.fighters[1].effects['技能命中效果失效'].end,2);");
+replace('assert.throws(()=>turn(s),/Q-A60-4125-022/);',"const o=turn(s);assert.equal(o.fighters[1].ailments['衰弱'],undefined);assert.equal(o.fighters[1].soulState.leonCosmicLayers,1);");
+replace('assert.equal(o.fighters[0].soulState.leonResourcePending,true);',"assert.equal(o.fighters[1].soulState.leonCosmicLayers,1);");
+replace('assert.equal(o.fighters[0].soulState.leonOriginalRandomPending,true);',"assert.equal(o.randomStatusEvents.filter(e=>e.type==='draw').length,1);assert.equal(o.fighters[0].hp,4000);");
+replace('assert.equal(o.fighters[0].soulState.leonMixedAttackPending,true);',"assert.equal(o.fighters[0].soulState.leonDifferent,true);assert.equal(o.fighters[0].hp,4000);");
+replace('assert.equal(E.WIKI.effectsEngine.registry[2397],undefined);assert.equal(E.WIKI.effectsEngine.registry[2400],undefined);assert.equal(E.WIKI.effectsEngine.registry[2401],undefined);assert.equal(E.SOULS.registry[1356].partial,true);assert.equal(E.SOULS.registry[2051].partial,true);',"for(const id of [2397,2400,2401])assert.equal(typeof E.WIKI.effectsEngine.registry[id].execute,'function');assert.equal(E.SOULS.registry[1356].partial,undefined);assert.equal(E.SOULS.registry[2051].partial,undefined);");
+const renames=[['1327真实吸取回复保留盾量待确认','1327真实吸取回复及理论量护盾'],['宙变待确认、2145明确解除分支与转附/命中封锁待确认','宙变、2145继承转附与命中封锁'],['未明资源不猜','无衰弱只附宙变'],['有异常只明确盾分支无硬清PP','有异常盾和宙变且无硬清PP'],['原版随机时点明确待确认','原版随机使用后与失败战阶吸取'],['不把物特分类待确认默认为同或异','物特三类区分按不同类执行'],['可独立技能分支连贯执行，资源和时序缺口明确阻断正式部署','全部技能原生完整链连贯执行且资源行为由回答专项覆盖']];
+for(const [from,to]of renames)t=t.replaceAll(from,to);
+// Remove the old counterfactual filtering from the real version-initialization check.
+t=t.replace("m.effectInstances=m.effectInstances.filter(e=>![2397,2400,2401].includes(e.id));m.effectIds=m.effectInstances.map(e=>e.id);",'');
+fs.writeFileSync(file,t);fs.writeFileSync('research/4125-answer-test-renames.json',JSON.stringify(renames,null,2)+'\n');
+console.log('旧pending断言改为具体已确认状态断言；完整原测试及helper已存历史。');

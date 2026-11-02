@@ -1,0 +1,34 @@
+[
+  {
+    "old": "k=witchEyeAilment(t,k);",
+    "replacement": "k=witchEyeAilment(t,k);if(t.soulState.oracle2059Charges?.length&&(t.counts.immune!==t.soulState.oracle2059Charges.length||t.soulState.immunity1757Charges?.length))throw Error('Q-N50-4511-006：2059与其他异常免疫次数共存待确认');"
+  },
+  {
+    "old": "if(f.hp>0&&e.expireFullHeal){ppRules.restore(f,battleMoves,e.expireRestorePP);",
+    "replacement": "if(f.hp>0&&e.expireFullHeal){if(!e.oracle2067Source||!skillPPRestoreBlocked(f))ppRules.restore(f,battleMoves,e.oracle2067Source?Infinity:e.expireRestorePP);"
+  },
+  {
+    "old": "outgoingAttackEvents:()",
+    "replacement": "previousOutgoingAttackDamage:f=>(s.damageEvents??[]).filter(e=>e.round===r-1&&e.sourceSide===f.side&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0),outgoingAttackEvents:()"
+  },
+  {
+    "old": "if(reason==='count-immunity'&&t.soulState.immunity1757Charges?.length)",
+    "replacement": "if(reason==='count-immunity'&&t.soulState.oracle2059Charges?.length){const amount=t.soulState.oracle2059Charges.shift();drainFixed(t,fs[1-t.side],amount,'圣谕异常免疫吸取');}if(reason==='count-immunity'&&t.soulState.immunity1757Charges?.length)"
+  },
+  {
+    "old": "explicitImmunity=true;return false;",
+    "replacement": "if(t.soulState.oracle2059Charges?.length)throw Error('Q-N50-4511-006：2059与其他异常免疫并存次序待确认');explicitImmunity=true;return false;"
+  },
+  {
+    "old": "      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'北鸟用招低体吸取')){const e=a.effects['北鸟用招低体吸取'],n=t.stats.maxHp*e.fraction*(a.hp<a.stats.maxHp*e.threshold?2:1);drainPercent(a,t,n,'北鸟用招低体吸取');}",
+    "replacement": "      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'北鸟用招低体吸取')){const e=a.effects['北鸟用招低体吸取'],n=t.stats.maxHp*e.fraction*(a.hp<a.stats.maxHp*e.threshold?2:1);drainPercent(a,t,n,'北鸟用招低体吸取');}\n      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'邪魇用招吸取追加')){const e=a.effects['邪魇用招吸取追加'],n=e.amount*(a.hp<a.stats.maxHp*e.threshold?2:1),loss=drainFixed(a,t,n,'邪魇用招吸取');if(loss<e.extra&&t.hp>0){inflict(a,t,e.extra,'邪魇用招低损追加','true');if(t.hp>0){const form=a.soulState.oracleForm1764;if(!form)throw Error('1764形态未初始化');context(a,t,m).soulAbility(1764,'grantMark',form==='holy'?'holy':'evil',1);}}}"
+  },
+  {
+    "old": "    if(!s.finished)for(const f of fs)if(f.hp>0&&fs[1-f.side].hp>0&&on(f,'枫下异常弱化追击')){const t=fs[1-f.side],e=f.effects['枫下异常弱化追击'];if([f,t].some(x=>Object.values(x.ailments).some(end=>end>=r)||Object.values(x.stages).some(n=>n<0))){inflict(f,t,e.amount,'枫下祈愿追击','fixed');if(!on(t,'PP保护')&&!on(t,'免疫PP削减')&&!E.SOULS.trait(t,'ppReductionImmune'))for(const id of t.moves)t.pp[id]=Math.max(0,t.pp[id]-e.pp);}}",
+    "replacement": "    for(const f of fs)if(f.hp>0&&on(f,'邪魇未翻倍逐回合强化'))f.effects['邪魇未翻倍逐回合强化'].stages.forEach((n,i)=>{if(n)stage(f,n,[keys[i]]);});\n    if(!s.finished)for(const f of fs)if(f.hp>0&&fs[1-f.side].hp>0&&on(f,'枫下异常弱化追击')){const t=fs[1-f.side],e=f.effects['枫下异常弱化追击'];if([f,t].some(x=>Object.values(x.ailments).some(end=>end>=r)||Object.values(x.stages).some(n=>n<0))){inflict(f,t,e.amount,'枫下祈愿追击','fixed');if(!on(t,'PP保护')&&!on(t,'免疫PP削减')&&!E.SOULS.trait(t,'ppReductionImmune'))for(const id of t.moves)t.pp[id]=Math.max(0,t.pp[id]-e.pp);}}"
+  },
+  {
+    "old": "const effect=f.effects[k];delete f.effects[k];",
+    "replacement": "const effect=f.effects[k];if(effect.oracle2067Source)throw Error('Q-N50-4554-007：提前清除是否触发结束回复待确认');delete f.effects[k];"
+  }
+]

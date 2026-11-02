@@ -1,0 +1,69 @@
+{
+  "id": 4713,
+  "reviewed": true,
+  "rationale": "用户58/59及通用2/23：死亡结算先于回归、其他保命存活不消费，回合当前HP吸取理论回复，先回后等量附伤净HP增加；自爆击败对手自留1HP，明确下只出场的收益保留延期。最终整库前不认证。",
+  "oldTestFile": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4713-before-next50-4713.test.cjs",
+  "testFile": "tests/next50-4713.test.cjs",
+  "soulBehavior": "真实初次入场记录HP，致死攻击先死亡/击败事件再绝对回归一次；其他保命已存活不耗回归；非攻击不回归，保留PP及异常能力状态。",
+  "extraTests": {
+    "4713:soul:1916": [
+      {
+        "file": "tests/next50-4713-answers.test.cjs",
+        "name": "4713致死攻击先触发死亡和击败事件，再回归登场HP，保留原有PP异常和能力状态"
+      }
+    ],
+    "4713:skill:37755:1": [
+      {
+        "file": "tests/next50-4713-answers.test.cjs",
+        "name": "4713第五红伤击败对手自留1HP，消除成功只登记真正下只出场回复，不给自己回满"
+      }
+    ]
+  },
+  "decisions": {
+    "4713:soul:1916": {
+      "scope": "mixed",
+      "deferredBehavior": "每次真实再次登场记录新的HP；自身被击败后己方下只首回合免疫对方攻击，成功后瘫痪对方。",
+      "trigger": "每次登场时记录自身的体力值；自身被击败后，己方下只精灵登场首回合免疫对手的攻击，触发成功则令对手瘫痪",
+      "futureMechanisms": [
+        "真实再次登场记录",
+        "己方下只出场首回合资源",
+        "攻击免疫成功事件及对手瘫痪"
+      ],
+      "singleBehavior": "真实初次入场记录HP，致死攻击先死亡/击败事件再绝对回归一次；其他保命已存活不耗回归；非攻击不回归，保留PP及异常能力状态。"
+    },
+    "4713:skill:37690:1": {
+      "scope": "multiplayer",
+      "deferredBehavior": "自身下次被击败后，真正下一只己方出场获得攻击+1。",
+      "trigger": "自身下次被击败后下一只出场的精灵攻击+1",
+      "futureMechanisms": [
+        "死亡后下一只出场",
+        "下一次死亡增益携带与消费"
+      ],
+      "singleBehavior": "当前150威力物理攻击和独立882加威力已验证；不向当前自己授下一只攻击。"
+    },
+    "4713:skill:37755:1": {
+      "scope": "mixed",
+      "deferredBehavior": "真正下一只己方出场时，按本次分别消除成功记录恢复全部HP或全部PP。",
+      "trigger": "消耗自身全部体力，消除对手回合类效果，消除成功则令己方下只精灵出战时恢复全部体力，消除对手能力提升状态，消除成功则令己方下只精灵出战时恢复所有技能PP值",
+      "futureMechanisms": [
+        "真实己方下一只对象",
+        "分别记录清回合/清强化成功",
+        "后继出场HP/PP恢复来源和限制"
+      ],
+      "singleBehavior": "全部自耗及同一原子效果双消除，击败对手自留1HP，分别记录下只出场的全HP/PP恢复条件。"
+    },
+    "4713:skill:37755:2": {
+      "scope": "multiplayer",
+      "deferredBehavior": "恢复己方所有真实场下精灵200HP。",
+      "trigger": "恢复己方所有不在场精灵200点体力",
+      "futureMechanisms": [
+        "真实己方队伍与场下对象",
+        "场下存活与回复来源、禁疗和上限"
+      ],
+      "singleBehavior": "真实160威力原生第五本体PP命中先制暴击均验证；未给当前双方加200HP。"
+    }
+  },
+  "structuralTestNames": [
+    "4713新枚举173和1238及1979严格校验真实hash实例和原始参数，错误来源继续拒绝"
+  ]
+}

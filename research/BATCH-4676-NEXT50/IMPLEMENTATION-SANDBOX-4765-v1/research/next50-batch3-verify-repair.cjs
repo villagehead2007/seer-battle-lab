@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs'),cp=require('node:child_process'),assert=require('node:assert/strict');
+const original='research/next50-batch3-formal-2026-10-28T16-20-04-793Z-npm.log';
+const files=[...new Set([...fs.readFileSync(original,'utf8').matchAll(/^test at (tests\\[^:]+):/gm)].map(m=>m[1].replaceAll('\\','/')))];
+assert.equal(files.length,18);
+files.push('tests/next50-4627-skills.test.cjs');
+const args=['--test','--test-concurrency=1','--test-name-pattern=基础.*真实扣PP|固定数值吸取|反弹并恢复|战斗复制前后|1849',...files];
+const start=new Date().toISOString(),run=cp.spawnSync(process.execPath,args,{encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024});
+const output=(run.stdout??'')+(run.stderr??'');
+const stem='research/next50-batch3-repair-verification-v1';fs.writeFileSync(stem+'.log',output,{flag:'wx'});
+const result={startedAt:start,finishedAt:new Date().toISOString(),original,files,args,exitCode:run.status,error:run.error?.message??null,assertionsUnchanged:true};
+for(const k of ['tests','pass','fail','skipped','cancelled','todo'])result[k]=Number(output.match(new RegExp('^(?:ℹ|#) '+k+' (\\d+)','m'))?.[1]??-1);
+fs.writeFileSync(stem+'-result.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));process.exitCode=run.status??1;

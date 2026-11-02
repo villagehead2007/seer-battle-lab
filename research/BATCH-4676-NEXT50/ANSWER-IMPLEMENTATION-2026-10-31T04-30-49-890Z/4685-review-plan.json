@@ -1,0 +1,50 @@
+{
+  "id": 4685,
+  "reviewed": true,
+  "rationale": "用户22/23题累计三次、零伤清层、每层减25百分点、死亡不反击与随机不同技能PP；公共1/5/6题完整红伤回复、只增红伤和整次攻击限伤接入。23项专项通过，待整批回归认证。",
+  "oldTestFile": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4685-before-next50-4685.test.cjs",
+  "testFile": "tests/next50-4685.test.cjs",
+  "soulBehavior": "首次登场不叠层；在场累计三次，每层先制1、红伤25%及回合末最大体力10%回复；普通命中零伤亦清层，存活时按完整结算红伤乘150%减每层25百分点反伤，按层无放回清不同技能PP。",
+  "extraTests": {
+    "4685:skill:37618:3": [
+      {
+        "file": "tests/next50-4685-answers.test.cjs",
+        "name": "4685真实798三段攻击共享300上限，每次攻击重置并在到期后恢复"
+      },
+      {
+        "file": "tests/next50-4685-answers.test.cjs",
+        "name": "4685真实798同回合另一次独立攻击另有300上限，不误按全回合累计"
+      }
+    ]
+  },
+  "decisions": {
+    "4685:soul:1888": {
+      "scope": "mixed",
+      "deferredBehavior": "真实下场重置氤氲蛰影，记录下场前层数；下次真实登场时每层令对手混乱1回合",
+      "trigger": "真实下场后再次登场",
+      "futureMechanisms": [
+        "换宠离场记录层数",
+        "再次入场附加混乱"
+      ]
+    },
+    "4685:skill:37616:1": {
+      "scope": "mixed",
+      "singleBehavior": "消除对手强化，成功与失败分别验证。",
+      "deferredBehavior": "清强成功后对手下1回合无法主动切换精灵",
+      "trigger": "清强成功且对手尝试主动换宠",
+      "futureMechanisms": [
+        "主动换宠许可与回合窗口"
+      ]
+    },
+    "4685:skill:28866:2": {
+      "scope": "mixed",
+      "singleBehavior": "4回合用招吸取目标最大体力三分之一并按已确认理论量回复。",
+      "deferredBehavior": "吸取体力时自身满体则恢复己方所有不在场精灵120体力",
+      "trigger": "吸取体力时自身满体且有场下队友",
+      "futureMechanisms": [
+        "场下队伍体力",
+        "队友回复分发"
+      ]
+    }
+  }
+}

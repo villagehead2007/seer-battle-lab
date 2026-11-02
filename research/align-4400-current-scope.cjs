@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/range-effects.js';let s=fs.readFileSync(p,'utf8');const at=s.lastIndexOf('\n});');s=s.slice(0,at)+"\n// Legal in-field 1617 marks and 1758 field swords make these entire clauses single-stage.\nfor(const id of [1760,1765,1825,1826])registry[id]=Object.freeze({...registry[id],deferred:undefined});\n"+s.slice(at);fs.writeFileSync(p,s);

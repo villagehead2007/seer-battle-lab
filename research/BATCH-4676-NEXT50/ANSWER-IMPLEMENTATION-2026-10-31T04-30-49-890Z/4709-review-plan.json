@@ -1,0 +1,34 @@
+{
+  "id": 4709,
+  "reviewed": true,
+  "rationale": "用户48/49与最新边界确认：低体回初锁定，实际用招前麻痹失败交换HP百分比，四舍五入最低1且上限截断，直接HP调整；415仅完整红伤门槛；997净HP增加附伤；真实后继异常转移延期。",
+  "oldTestFile": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4709-before-next50-4709.test.cjs",
+  "testFile": "tests/next50-4709.test.cjs",
+  "soulBehavior": "回初低半锁定，实际用招含MISS在伤害词条前麻痹，失败直接交换百分比，四舍五入最低1，不受禁疗护盾影响。",
+  "extraTests": {
+    "soul": [
+      {
+        "file": "tests/next50-4709-answers.test.cjs",
+        "name": "4709百分比交换四舍五入为零时双方各自保留1HP，直接调整不产生伤害或回复事件"
+      }
+    ]
+  },
+  "decisions": {
+    "4709:soul:1912": {
+      "scope": "mixed",
+      "deferredBehavior": "保留死亡/下场目标实际异常及剩余回合，以源魂印条件确认后转移到真实下一只对手，遵守后续异常免疫、转换、同名最大剩余规则和事件归因；不得把当前目标再次附异常当作已转移。",
+      "trigger": "自身真实击败且死亡对手在下场时满足麻痹条件，之后对方选择真实下一只出战",
+      "futureMechanisms": [
+        "真实击败和下场顺序",
+        "死亡目标异常与剩余回合快照",
+        "真实后继精灵对象与转移结算"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "next-opponent",
+          "quote": "自身击败对手时，若对手处于麻痹状态，则令对手下场后所有的异常状态转移给下只出战精灵"
+        }
+      ]
+    }
+  }
+}

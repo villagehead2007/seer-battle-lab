@@ -1,0 +1,17 @@
+const fs=require('fs'),assert=require('assert/strict');const A=__dirname;
+for(const f of ['dist/range-souls.js','dist/range-effects.js','tests/next50-4709.test.cjs'])fs.copyFileSync(f,A+'/4709-before-'+f.split('/').pop(),fs.constants.COPYFILE_EXCL);
+let s=fs.readFileSync('dist/range-souls.js','utf8');
+const start=s.indexOf('function prophecyUse1912(c)'),end=s.indexOf('\n',s.indexOf('registry[1912]=',start));assert(start>0&&end>start);
+s=s.slice(0,start)+`function prophecyUse1912(c){if(!c.a.soulState.prophecy1912?.low||c.a.hp<=0||c.t.hp<=0||c.m.kind==='item')return;if(c.ailment(c.t,'麻痹',c.a))return;const a=c.a.hp,t=c.t.hp,am=c.a.stats.maxHp,tm=c.t.stats.maxHp;const na=Math.min(am,Math.round(am*t/tm)),nt=Math.min(tm,Math.round(tm*a/am));if(na<1||nt<1)throw Error('Q-4696-002：百分比交换四舍五入至0的存活边界待确认');c.a.hp=na;c.t.hp=nt;(c.a.soulState.exchanges1912??=[]).push({round:c.round,before:[a,t],after:[na,nt],mode:'percent'});}
+registry[1912]={name:'原始预言·吉尼亚斯',sourceHash:'dff9a46',partial:true,unimplemented:['Q-4696-002：百分比交换四舍五入至0的存活边界待确认'],deferred:['击败麻痹对手后的真实下场异常转移到下一只精灵'],traits:{},hooks:{roundStart(c){c.a.soulState.prophecy1912={round:c.round,low:c.a.hp<c.a.stats.maxHp/2};},beforeUse(c){prophecyUse1912(c);}}};`+s.slice(end);fs.writeFileSync('dist/range-souls.js',s);
+s=fs.readFileSync('dist/range-effects.js','utf8');
+const a=s.indexOf('const red=c.settledDamage??c.dealt,all=c.roundSettledAll4669'),b=s.indexOf("if(amount>p[0])",a);assert(a>0&&b>a);s=s.slice(0,a)+'const amount=c.settledDamage??c.dealt;'+s.slice(b);
+const old="const actual=c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复','skill')??0;if(actual>0&&c.t.hp>0)";assert(s.includes(old));s=s.replace(old,"const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复','skill');const actual=Math.max(0,c.a.hp-before);if(actual>0&&c.t.hp>0)");fs.writeFileSync('dist/range-effects.js',s);
+s=fs.readFileSync('tests/next50-4709.test.cjs','utf8');
+function replaceTest(prefix,body){const lines=s.split('\n');const i=lines.findIndex(l=>l.startsWith("test('"+prefix));assert(i>=0,prefix);lines[i]=body;s=lines.join('\n');}
+replaceTest('4709/415红伤未达',`test('4709/415仅红伤判断门槛，红伤未达而514合计超过也不回血',()=>{const s=make({move:37727,hp:1000});s.fighters[1].hp=4000;go(s);assert.ok(sum(s)<=200);assert.ok(sum(s)+sum(s,'percent')>200);assert.equal(s.fighters[0].hp,1000);});`);
+s=s.replace('非红范围共享守卫','非红保持原值').replace("if(!policy)assert.throws(run,/Q-4682-001/);else{run();assert.equal(sum(t,'percent'),policy==='all'?200:100);}","run();assert.equal(sum(t,'percent'),100);");
+s=s.replace('技能处理前后时序无默认','技能处理前执行').replace("const unknown=soul({move:20196,hp:1000});assert.throws(()=>go(unknown),/Q-4709-001/);", "const confirmed=soul({move:20196,hp:1000});go(confirmed);assert.ok(confirmed.fighters[1].ailments['麻痹']);");
+s=s.replace('技能处理前后两候选改变645本招威力','技能处理前执行影响645本招威力').replace("for(const timing of['before-payload','after-use'])", "for(const timing of['before-payload'])");
+replaceTest('4709魂印百分比交换不同',`test('4709魂印百分比交换四舍五入并直接调整，护盾禁疗不参与且不产生回复伤害事件',()=>{const s=soul({move:20196,hp:1,aStats:{maxHp:1000},bStats:{maxHp:3000}});s.fighters[1].hp=1001;timer(s,1,'免异常');go(s);assert.equal(s.fighters[0].hp,333);assert.equal(s.fighters[1].hp,3);const t=soul({move:20196,hp:1000});t.fighters[0].suitState.shield=100;timer(t,0,'禁疗');timer(t,0,'回复翻倍');timer(t,1,'免异常');go(t);assert.equal(t.fighters[0].hp,9000);assert.equal(t.fighters[0].suitState.shield,100);assert.equal(t.fighters[1].hp,1000);assert.equal((t.damageEvents??[]).length,0);});`);
+fs.writeFileSync('tests/next50-4709.test.cjs',s);

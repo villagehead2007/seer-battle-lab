@@ -1,0 +1,22 @@
+'use strict';
+// Draft-only: never writes production paths.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'../../..'),out=__dirname;
+const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
+const patches=[];
+function replacement(file,needle,insert,why){const s=fs.readFileSync(path.join(root,file),'utf8');if(s.split(needle).length!==2)throw Error('Non-unique anchor '+file+' '+why);patches.push({file,baseSha256:sha(s),needle,insert,why});}
+const effects=fs.readFileSync(path.join(root,'dist/range-effects.js'),'utf8').split(/\r?\n/);
+const exchange=effects.find(s=>s.startsWith("add(529,'afterHit'"));
+replacement('dist/range-effects.js',exchange,`add(529,'afterHit',c=>{if(c.a.hp<=0||c.t.hp<=0)return;const a=c.a.hp/c.a.stats.maxHp,t=c.t.hp/c.t.stats.maxHp,id=c.m.wikiId??c.m.id;const confirmed=id===28087&&c.m.revision==='seerapi:666527f7'&&c.effectInstanceIndex===0;if(id===28087&&!confirmed)throw Error('Q-N20-4421-001：529仅确认28087/666527f7实例0');if(confirmed){c.a.hp=Math.max(1,Math.ceil(t*c.a.stats.maxHp));c.t.hp=Math.max(1,Math.ceil(a*c.t.stats.maxHp));}else{if(c.m.hpExchangePolicy==='known-integer-only'&&(!Number.isInteger(t*c.a.stats.maxHp)||!Number.isInteger(a*c.t.stats.maxHp)||t*c.a.stats.maxHp<1||a*c.t.stats.maxHp<1))throw Error((c.m.hpExchangeQuestion??'未确认百分比交换边界')+'：非整数或低于1HP的取整/保留规则待确认');c.a.hp=Math.floor(t*c.a.stats.maxHp);c.t.hp=Math.floor(a*c.t.stats.maxHp);}c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力百分比。');});`,'Q001 exact new source ceil/min1; retain other sources including3673 unchanged');
+const stateEffect=effects.find(s=>s.startsWith('metadata[1858]='));
+patches[0].insert+=`\n{const old=registry[529];registry[529]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id===28087&&(m.hash!=='666527f7'||m.revision!=='seerapi:666527f7'||i!==0||p.length!==0))throw Error('Q-N20-4421-001：529精确来源不匹配');}});}`;
+replacement('dist/range-effects.js',stateEffect,`metadata[1858]={info:'自身每处于一种能力提升、能力下降、异常状态则附加{0}点固定伤害，自身每有1层龙胆视为自身至少处于一种',args_num:1};add(1858,'afterHit',(c,p)=>{const stages=Object.values(c.a.stages),abnormal=Object.values(c.a.ailments).some(end=>end>=c.round),gall=c.a.soulState.dragonGall??0,count=Math.max(gall,Number(stages.some(n=>n>0))+Number(stages.some(n=>n<0))+Number(abnormal));if(count>0&&c.t.hp>0)c.hurt(c.t,count*p[0],c.m.name+'状态种类附伤','fixed');},[[0,99999]]);`,'Q002 three categories; gall lower bound, never add gall or detailed per-stat counts');
+const souls=fs.readFileSync(path.join(root,'dist/range-souls.js'),'utf8').split(/\r?\n/);
+const gain=souls.find(s=>s.startsWith('function gainDragonGall('));
+replacement('dist/range-souls.js',gain,`function gainDragonGall(c,n=1){const st=c.a.soulState,before=st.dragonGall??0;st.dragonGall=Math.min(7,before+n);if(st.dragonGall>before)st.dragonGallImmunityPendingRound=c.round;c.emit?.('龙胆 '+before+' → '+st.dragonGall+'/7；获得的回合结束时给予后2回合异常免疫。');}`,'Q002 actual gain schedules immunity at end of gain round; cap7 remains immediate');
+const trait="ailmentImmune:f=>(f.soulState.dragonGall??0)>=7||(f.soulState.dragonGallImmuneUntil??0)>0&&f.soulState.calculationRound<=f.soulState.dragonGallImmuneUntil";
+replacement('dist/range-souls.js',trait,"ailmentImmune:f=>(f.soulState.dragonGall??0)>=7||(f.soulState.dragonGallImmuneUntil??0)>0&&f.soulState.calculationRound>=(f.soulState.dragonGallImmuneFrom??1)&&f.soulState.calculationRound<=f.soulState.dragonGallImmuneUntil",'Do not make scheduled immunity active in remaining gain round');
+const end=souls.find(s=>s.startsWith("combatEnd(c){if(c.a.hp<=0||c.a.soulState.zhaoFailureRound"));
+replacement('dist/range-souls.js',end,`combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState;if(st.dragonGallImmunityPendingRound===c.round){const oldUntil=st.dragonGallImmuneUntil??0;st.dragonGallImmuneFrom=oldUntil>=c.round?Math.min(st.dragonGallImmuneFrom??1,c.round+1):c.round+1;st.dragonGallImmuneUntil=Math.max(oldUntil,c.round+2);delete st.dragonGallImmunityPendingRound;}if(st.zhaoFailureRound!==c.round)return;for(const k of ['atk','def','spa','spd','spe','acc'])if(c.a.stages[k]<0)c.stage(c.a,-2*c.a.stages[k],[k]);}`,'End-round immunity grant independent of failure compensation; preserve existing active interval');
+fs.writeFileSync(path.join(out,'implementation-replacements.json'),JSON.stringify({createdAt:new Date().toISOString(),root,patches},null,2)+'\n');
+console.log('Wrote draft replacements: '+patches.length+' anchors; production unchanged');

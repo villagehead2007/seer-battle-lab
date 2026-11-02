@@ -1,0 +1,20 @@
+const fs=require('fs'),assert=require('assert/strict');for(const f of ['dist/range-effects.js','dist/souls.js'])fs.copyFileSync(f,__dirname+'/4712-reduction-before-'+f.split('/').pop(),fs.constants.COPYFILE_EXCL);
+let s=fs.readFileSync('dist/range-effects.js','utf8');
+const marker='function refreshCounter4599(';
+const helper=`function grantReduction4712(c,n,fraction,key){const field='nextAttackReductionUses',records=syncCounter4599(c.a,field);for(const e of records)if(e.fraction===undefined)e.fraction=c.a.soulState.nextAttackReductionFraction??0;key??='reduction:'+c.effectId+':'+(c.m.wikiId??c.m.id)+':'+c.m.revision+':'+c.effectInstanceIndex;const next=records.filter(e=>e.key!==key);next.push({key,count:n,fraction});c.a.soulState[field+'Sources4599']=next;c.a.soulState.reductionSources4712=true;c.a.counts[field]=next.reduce((a,e)=>a+e.count,0);c.a.soulState.nextAttackReductionFraction=fraction;}
+`;
+s=s.replace(marker,helper+marker);
+function rep(old,next){assert(s.includes(old),old);s=s.replaceAll(old,next);}
+rep('c.a.counts.nextAttackReductionUses=(c.a.counts.nextAttackReductionUses??0)+p[0];c.a.soulState.nextAttackReductionFraction=p[1]/100;', 'grantReduction4712(c,p[0],p[1]/100);');
+rep('c.a.counts.nextAttackReductionUses=(c.a.counts.nextAttackReductionUses??0)+1;c.a.soulState.nextAttackReductionFraction=.5;', 'grantReduction4712(c,1,.5);');
+rep('c.a.counts.nextAttackReductionUses=(c.a.counts.nextAttackReductionUses??0)+p[1];c.a.soulState.nextAttackReductionFraction=p[2]/100;', 'grantReduction4712(c,p[1],p[2]/100);');
+rep('c.a.counts.nextAttackReductionUses=p[0];c.a.soulState.nextAttackReductionFraction=p[1]/100;', 'grantReduction4712(c,p[0],p[1]/100);');
+rep("refreshCounter4599(c,'nextAttackReductionUses',p[0],'2120:37211:7e537db5:1');c.a.soulState.nextAttackReductionFraction=p[1]/100;", "grantReduction4712(c,p[0],p[1]/100,'2120:37211:7e537db5:1');");
+rep("refreshCounter4599(c,'nextAttackReductionUses',p[0],'1287:37218:bc94b20b:1');c.a.soulState.nextAttackReductionFraction=p[1]/100;", "grantReduction4712(c,p[0],p[1]/100,'1287:37218:bc94b20b:1');");
+rep('c.a.counts.nextAttackReductionUses=1;c.a.soulState.nextAttackReductionFraction=.5;', 'grantReduction4712(c,1,.5);');
+let a=s.indexOf('let n=p[1],prior=c.a.counts.nextAttackReductionUses'),b=s.indexOf('}});}',a);assert(a>0&&b>a);s=s.slice(0,a)+'grantReduction4712(c,p[1],p[2]/100);'+s.slice(b);
+a=s.indexOf("let n=p[1];if(c.a.counts.nextAttackReductionUses>0)");b=s.indexOf('\n',a);assert(a>0&&b>a);s=s.slice(0,a)+'grantReduction4712(c,p[1],p[2]/100);}'+s.slice(b);fs.writeFileSync('dist/range-effects.js',s);
+s=fs.readFileSync('dist/souls.js','utf8');a=s.indexOf('if(!rage&&(t.counts.nextAttackReductionUses>0||candle2120This))');assert(a>0);
+const branch=`const reductionGroup4712=attackBudgetGroup798?.a===a&&attackBudgetGroup798.m===m?attackBudgetGroup798:null;let reductionUsed4712=null;if(!rage&&t.soulState.reductionSources4712){let memo=reductionGroup4712?.reduction4712;if(!memo){const records=t.soulState.nextAttackReductionUsesSources4599??[],entry=records.findLast(e=>e.count>0);memo={entry,fraction:entry?.fraction??0};if(entry){entry.count--;t.counts.nextAttackReductionUses=Math.max(0,(t.counts.nextAttackReductionUses??0)-1);}if(reductionGroup4712)reductionGroup4712.reduction4712=memo;}reductionUsed4712=memo;const factor=1-memo.fraction*(1-damageReductionIgnore);modifier*=factor;nextAttackReductionZero=factor===0;}else `;
+s=s.slice(0,a)+branch+s.slice(a);
+const old="if(candle2120This&&settledDamage===0&&t.soulState.qualified2120Zero4620==='positive'&&(a.soulState.currentAttackSegment??0)===0)t.counts.nextAttackReductionUses++;";assert(s.includes(old));s=s.replace(old,"if(candle2120This&&settledDamage===0&&t.soulState.qualified2120Zero4620==='positive'&&(a.soulState.currentAttackSegment??0)===0){t.counts.nextAttackReductionUses++;if(reductionUsed4712?.entry){reductionUsed4712.entry.count++;if(reductionGroup4712)delete reductionGroup4712.reduction4712;}}");fs.writeFileSync('dist/souls.js',s);

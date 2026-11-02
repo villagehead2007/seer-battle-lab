@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-30T10:19:03.202Z",
+  "sourceFailures": [
+    {
+      "url": "https://api.seerapi.com/v1/skill/10713",
+      "error": "SeerAPI 返回 HTTP 545，API non-json Error return from script，未使用该数据。",
+      "cause": null,
+      "state": {
+        "paused": false,
+        "retryAfter": 0,
+        "lastStatus": 545,
+        "cacheEntries": 12,
+        "pending": 0,
+        "intervalMs": 5000,
+        "cacheMinutes": 30
+      },
+      "at": "2026-10-30T07:41:18.104Z"
+    }
+  ],
+  "logs": [
+    "soul-v1.log",
+    "soul-v2.log",
+    "state-v4.log",
+    "public-state-v6.log",
+    "priority-cross-v10.log"
+  ],
+  "causes": [
+    "魂印有限轨迹测试把技能PP全设1导致后续无法释放，并在后续攻击前被Soul粉伤击败对手；修正夹具PP和每轮开始的真实目标HP准备，仍保留真实衍化/回满/关闭断言及失败日志。",
+    "2299先清回合会清掉PP保护timer，旧预期仍受该timer保护顺序错误；保留真正protect阻清与属性PP不变，严格验证先清PP保护后攻击PP全0。",
+    "2220本招真实分类special，最高面板400再乘SPA负级为100，有效值最高ATT为800，原比较方向写反；按真实技能分类核对后仍验证两候选红伤16/128真实差异，不更改计算器。",
+    "护罩真实字段为suitState.barrier，且API112明确只挡固定和百分比，不挡红伤；原测试魂印字段错误，改为真实护罩5000吸50固定后4950，红伤仍命中，护盾被跳过仍保留5000。",
+    "跨回合对照伤害未同步公共RNG，造成7/8自然波动差异；对照每轮从同一真实随机状态、相同招式顺序执行后严格验证红伤减半、固定50不变与到期恢复。",
+    "禁强化不等于弱化不可解除反转，旧733直接反写与1221经stage的现有实现并不能互相当作来源结论；当前两实例建立一致显式研究模型，负级锁仍按公共真实锁阻止，Q4765-009统一待答。",
+    "逆转初稿用反馈量n<=0取消衍化，错误混淆反馈基数与正完整受伤事件；改为完整伤害>0决定受伤触发，HPLOSS候选反馈0仍衍化。保1、免疫0、每段/整招、致死false/true都实际状态验证，符合用户Q-DAMAGE-001。",
+    "原生组合原断言含初始非零等级和已有必中timer，可能出现假阳性；改为公共native-state-probe对施放前/行动后/回合末真实状态逐招比较，保留逐效果专项断言；强化后当前两只和43组合均通过，未修改引擎机制。"
+  ],
+  "assertionsWeakened": false,
+  "originalLogsRetained": true
+}

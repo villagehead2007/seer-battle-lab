@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('fs'),crypto=require('crypto'),assert=require('assert/strict'),baseline=require('./3627-baseline.json');
+assert.match(fs.readFileSync('research/3627-gate.log','utf8'),/species 3627 passed \(single-stage\)/);
+const changed=Object.entries(baseline.files).filter(([p,h])=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')!==h).map(([p])=>p);
+assert.ok(changed.every(p=>['dist/range-effects.js','dist/souls.js','dist/soul-registry.js'].includes(p)),JSON.stringify(changed));
+const reviews=require('../SINGLE-STAGE-REVIEWS.json');for(const [k,v]of Object.entries(baseline.reviews.entries))assert.deepEqual(reviews.entries[k],v,k);
+const todo=require('../MULTI-PET-TODO.json');for(const r of baseline.todo.records)assert.ok(todo.records.some(v=>JSON.stringify(v)===JSON.stringify(r)),r.key);assert.equal(todo.records.length,baseline.todo.records.length+1);
+fs.writeFileSync('research/3627-scope-check.json',JSON.stringify({changed,newDeployment:'data/species/3627.json',otherReviewsUnchanged:true,previousTodoUnchanged:true,newTodo:1,protectedFilesUnchanged:true},null,2)+'\n');
+const a=require('./3627-review-audit.json');a.status='single-stage-complete';a.validation={targeted:'26/26',npm:'800/800',gate:'passed (single-stage)',log:'research/3627-gate.log'};a.failures=[{log:'research/3627-source-check.json',cause:'sandbox EACCES; external serial source refresh completed'},{log:'research/3627-source-check-external.json',cause:'HTTP545 non-JSON at skill24558 then skill18329; cached resume and increased 5s interval with project standard headers completed every resource'},{log:'research/3627-targeted-initial.log',cause:'985 falsely granted next-round status block when boost protection prevented stealing; now requires actual target positive stage removed. 852 ran once per segment of effect31 multi-hit attack; moved to afterAttack for exactly one bonus and heal. Original assertions retained and passed.'}];fs.writeFileSync('research/3627-review-audit.json',JSON.stringify(a,null,2)+'\n');
+console.log({status:a.status,...a.validation,scope:'previous completed snapshots/tests and automation unchanged'});

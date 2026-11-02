@@ -1,0 +1,21 @@
+'use strict';
+// Pure draft source handlers. No private/production validation has run for 4661.
+const custom4661={
+ 1647(c,p){c.timed(c.a,'源4661用招低体双吸',p[0],{fraction:1/p[1],threshold:1/p[2],immuneTrueDamage:p[3],grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount(),sourceHash:'6a652b03'});},
+ 663(c,p){c.timed(c.a,'源4661对手用攻束缚',p[0],{chance:p[1],ailment:'束缚',sourceHash:'7e604e80'});},
+ 1113(c){c.clearBoost(c.a);},
+ 38(c,p){c.reduceMaxHp(c.t,p[0],c.m.name+'降低战斗上限');},
+ 39(c,p){if(c.random()*100>=p[0])return;if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[1]);const selected=c.selectedMoveKey4661(c.t);if(selected&&(c.t.pp[selected]??0)===0)c.t.soulState.actionForbidden1862={round:c.round,sourceMove:37458};},
+ 1711(c,p){if(!Object.values(c.a.stages).some(n=>n<0)||c.canRemoveNegative?.(c.a)===false)return;c.clearNegative(c.a);if(c.random()*100<p[0])c.ailment(c.t,'臣服',c.a,false,false,null,{probabilityPercent:p[0]});},
+ 1868(c,p){if(c.random()*100<p[2])c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:p[2]});},
+ 179(c,p){if(conditionGone4661(c,0)||c.a.type===c.t.type)c.power+=p[0];},
+ 700(c,p){if((conditionGone4661(c,1)||c.a.side===c.first)&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[0]);},
+ 1083(c){if(conditionGone4661(c,2)||c.a.side!==c.first)c.clear(c.t);},
+ 1257(c,p){if(conditionGone4661(c,3)||!conditionStatusRules.conditionPresent(c.t,c.round)){const n=c.t.stats.maxHp/p[0];if(c.t.hp>0)c.hurt(c.t,n,c.m.name+'比例吸取','percent');c.heal(c.a,n,c.m.name+'比例吸取理论回复','skill');}},
+ 1248(c,p){if((conditionGone4661(c,4)||conditionStatusRules.conditionPresent(c.t,c.round))&&c.random()*100<p[0])c.ailment(c.t,'臣服',c.a,false,false,null,{probabilityPercent:p[0]});},
+ 456(c,p){if(conditionGone4661(c,5)||c.t.hp<p[0])c.defeat(c.t,c.m.name+'低体力直接秒杀',{lethalProtection:true,defeatReactions:true});}
+};
+function conditionGone4661(c,index){return c.a.soulId===1862&&c.soulAbility(1862,'conditionCancelled',index);}
+function wuwei4661(c,p){const condition=p[0]===3?conditionStatusRules.conditionPresent(c.a,c.round):p[0]===4?!c.used[c.t.side]:p[0]===5?Object.values(c.t.stages).some(n=>n>0):p[0]===6?c.a.hp<c.a.stats.maxHp:false;if(!condition)return;const spent=c.consumeAllOwnPP4661();if(p[0]===3){(c.a.soulState.deferredWuwei1862??=[]).push({round:c.round,move:c.m.id,spent,targetSide:c.t.side,mechanism:'对手下回合无法主动切换'});return;}if(p[0]===4&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);if(p[0]===5)c.clear(c.t);if(p[0]===6)c.timed(c.t,'id984',1,{amount:-2},c.round+1);(c.a.soulState.wuwei1862Events??=[]).push({round:c.round,move:c.m.id,kind:p[0],spent});}
+
+function reactAttack6634661(c,stage){const e=c.a.effects['源4661对手用攻束缚'];if(!e||e.sourceHash!=='7e604e80'||!c.on(c.a,'源4661对手用攻束缚')||!['physical','special'].includes(c.m?.kind))return;const policy=c.a.soulState.qualified663Timing1862;if(!['before-use','use-end'].includes(policy))throw Error('Q-N50-4604-004：4661/663束缚的对手实际用攻击施加时点待确认');if(policy!==stage)return;c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:e.chance});}

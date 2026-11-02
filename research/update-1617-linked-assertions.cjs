@@ -1,0 +1,8 @@
+'use strict';
+const fs=require('fs');
+const file='tests/deployed-4163-partial.test.cjs',old=fs.readFileSync(file,'utf8');fs.writeFileSync('research/4163-tests-before-public1617-confirmation.txt',old,{flag:'wx'});
+const oldName='4163 1617重复/完整0受攻仍准确保留公共问题，不将受攻单位语义默当已确认',name='4163 1617沿用公共确认：完整零伤不反制、多段整回合最多一次';
+const next=old.split('\n').map(l=>l.startsWith("test('"+oldName)?`test('${name}',()=>{let s=make(pick(1617)[0]);timer(s,0,'攻击伤害免疫');let o=turn(s,undefined,930040);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[1].ailments['石化'],undefined);assert.equal(o.fighters[0].soulState.corolina1617ReactionRound,undefined);s=make(pick(1617)[0]);timer(s,1,'免异常');op(s,31,[2,2],930040);o=turn(s,undefined,930040);assert.equal(events(o,'attack',0).length,2);for(const k of keys)assert.equal(o.fighters[0].stages[k],1);assert.equal(o.fighters[0].soulState.corolina1617ReactionRound,1);});`:l).join('\n');
+fs.writeFileSync(file,next);
+const rfile='SINGLE-STAGE-REVIEWS.json',r=JSON.parse(fs.readFileSync(rfile));for(const [key,v]of Object.entries(r.entries))if(key.startsWith('4163:'))for(const refs of Object.values(v.tests??{}))for(const ref of refs)if(ref.name===oldName){ref.name=name;ref.assertion='公共用户确认沿用：0完整伤害不反制、不占本回合次数；两段正攻击在免石化时仅令自身六项+1一次。仅更新公共受影响断言，不认证4163其他未落实机制。';}fs.writeFileSync(rfile,JSON.stringify(r,null,2)+'\n');
+const log='research/4114-answered-public-impact.json',x=JSON.parse(fs.readFileSync(log));x.failedFullRegression={gate:'research/answered-4114-gate-v1.log',result:'research/answered-4114-gate-v1-result.json',passed:4089,total:4090,failed:1,reason:'新公共1617已实现，使4163旧待确认抛错预期失效；来自本次公共变更，替换为更具体真实状态断言，原测试全文保留。'};x.affectedPendingTestConsumers=[4163];x.updatedPendingTest=file;fs.writeFileSync(log,JSON.stringify(x,null,2)+'\n');

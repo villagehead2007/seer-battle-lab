@@ -1,0 +1,51 @@
+[
+  {
+    "old": "ppRules.usable(f,id,(f.hp<=0",
+    "replacement": "ppRules.usable(f,id,(id===f.moves[1]&&!!E.SOULS.trait(f,'secondSlotIgnorePP'))||(f.hp<=0"
+  },
+  {
+    "old": "!!E.SOULS.trait(a,'ignorePP')||on(a,'不受PP限制')||(a.soulState.bedPartnerPP",
+    "replacement": "(m.id===a.moves[1]&&!!E.SOULS.trait(a,'secondSlotIgnorePP'))||!!E.SOULS.trait(a,'ignorePP')||on(a,'不受PP限制')||(a.soulState.bedPartnerPP",
+    "all": true
+  },
+  {
+    "old": "const settledDamage=Math.max(0,amount);if(!bypass",
+    "replacement": "const settledDamage=Math.max(0,amount);if(f.soulId===1791){const fatal={...context(f,origin??fs[1-f.side]),amount:settledDamage,type,hpFloor};E.SOULS.run('beforeFatalDamage',fatal);hpFloor=Math.max(hpFloor,fatal.hpFloor??0);}if(!bypass"
+  },
+  {
+    "old": "const settledDamage=Math.max(0,remaining);if(!rage",
+    "replacement": "const settledDamage=Math.max(0,remaining);if(t.soulId===1791){const fatal={...context(t,a,m),amount:settledDamage,type:'attack',hpFloor};E.SOULS.run('beforeFatalDamage',fatal);hpFloor=Math.max(hpFloor,fatal.hpFloor??0);}if(!rage"
+  },
+  {
+    "old": "if(f.hp>0)delete f.soulState.deathResolved;else if(!f.soulState.kingRevivalRound)",
+    "replacement": "if(defeater?.hp>0&&defeater.side===1-f.side&&defeater.soulId===1791){const poemMove=defeater.soulState.emptyPoemExecutingMove1791,actual=!!poemMove||used[defeater.side]&&currentActorSide===defeater.side&&(damageSourceOrigin===null?skillPhase:damageSourceOrigin==='skill');E.SOULS.run('opponentDefeated',{...context(defeater,f,poemMove??battleMoves[choices[defeater.side]]),fromActualSkill1791:actual});}if(f.hp>0)delete f.soulState.deathResolved;else if(!f.soulState.kingRevivalRound)"
+  },
+  {
+    "old": "      const a=fs[side],t=fs[1-side],m=battleMoves[choices[side]];",
+    "replacement": "      const a=fs[side],t=fs[1-side],m=battleMoves[choices[side]];a.soulState.emptyOutputAttackThis1791=0;"
+  },
+  {
+    "old": "a.soulState.ignoreImmunityThis=m.kind!=='status'&&a.counts.nextAttackIgnoreImmunity>0;",
+    "replacement": "if(m.kind!=='status'&&m.kind!=='item'&&a.soulState.emptyNextAttackOutput1791>0){a.soulState.emptyOutputAttackThis1791=a.soulState.emptyNextAttackOutput1791;delete a.soulState.emptyNextAttackOutput1791;}a.soulState.ignoreImmunityThis=m.kind!=='status'&&a.counts.nextAttackIgnoreImmunity>0;"
+  },
+  {
+    "old": "let modifier=timedDamageMultiplier(a,'attack')",
+    "replacement": "let modifier=(1-(a.soulState.emptyOutputAttackThis1791??0))*timedDamageMultiplier(a,'attack')"
+  },
+  {
+    "old": "E.SOULS.run('opponentActionEnd',{...context(t,a,m),successful});",
+    "replacement": "E.SOULS.run('opponentActionEnd',{...context(t,a,m),successful,first});"
+  },
+  {
+    "old": "E.SOULS.run('actionEnd',{...context(a,t,m),successful});",
+    "replacement": "E.SOULS.run('actionEnd',{...context(a,t,m),successful,first});"
+  },
+  {
+    "old": "    function context(a,t,m=null,ailmentOrigin='soul')",
+    "replacement": "    function poemEntries1791(a,t,move,outcome,patch={}){return (move.operations??[]).filter(op=>{if(op.phase!=='poem1791')return false;const rule=E.WIKI.effectsEngine.registry[op.effectId];if(typeof rule?.poemCondition!=='function')throw Error('缺少真实空元之诗条件 '+op.effectId);return rule.poemCondition({...skillContext(a,t,move),...patch,m:move,poem1791:true,poemOutcome1791:outcome,effectInstanceIndex:op.index},op.params);});}\n    function context(a,t,m=null,ailmentOrigin='soul')"
+  },
+  {
+    "old": "return {a,t,m,effectUseCount()",
+    "replacement": "return {a,t,m,poemEntries1791:(move,outcome,patch)=>poemEntries1791(a,t,move,outcome,patch),executePoem1791(move,outcome,patch={}){const entries=poemEntries1791(a,t,move,outcome,patch);a.soulState.emptyPoemExecutingMove1791=move;try{return E.WIKI.effectsEngine.run('poem1791',entries,{...skillContext(a,t,move),...patch,m:move,poem1791:true,poemOutcome1791:outcome,heal:(f,n,label)=>heal(f,n,label,'skill'),hurt:(f,n,label,type,bypass)=>withDamageOrigin('skill',()=>inflict(a,actualFighter(f),n,label,type,bypass))});}finally{delete a.soulState.emptyPoemExecutingMove1791;}},effectUseCount()"
+  }
+]

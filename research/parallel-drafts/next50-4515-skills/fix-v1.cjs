@@ -1,0 +1,1 @@
+const fs=require('fs'),p=__dirname+'/4515-skills.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace("if(m.alwaysHit&&m.kind!=='status')", "if(m.alwaysHit&&m.kind!=='status'&&m.power>0)").replace("timer(s,1,'机械领域');", "timer(s,1,'机械领域',{fraction:1});");fs.writeFileSync(p,s);

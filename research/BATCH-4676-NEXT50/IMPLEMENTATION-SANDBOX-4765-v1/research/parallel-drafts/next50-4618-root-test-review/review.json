@@ -1,0 +1,70 @@
+{
+  "at": "2026-10-25T18:17:19.280Z",
+  "mode": "read-only; no tests/no external query/no shared mutation",
+  "testFile": "tests/next50-4618-main-interactions.test.cjs",
+  "sha256": "02363a1ffa43dab5ee3c74bb6e33281518cb5eba3f9a4507caeed5cb683866a4",
+  "helperState": {
+    "productionPath": "tests/helpers/4618-battle.cjs",
+    "exists": false,
+    "readOnlyCandidate": "research/parallel-drafts/next50-4618-skills/4618-battle.cjs"
+  },
+  "findings": [
+    {
+      "severity": "fixture-error",
+      "tests": [
+        2,
+        3,
+        4
+      ],
+      "problem": "1553所在37200真实special；aStats仅atk3000不能保证基础攻击超过501，攻击伤害上限不抬高伤害。",
+      "source": {
+        "move": 37200,
+        "kind": "special",
+        "power": 130
+      },
+      "engine": "dist/souls.js attackStat=m.kind===special?spa:atk，defenseStat special用spd",
+      "suggestion": "将这三测试aStats:{atk:3000}改为aStats:{spa:3000}，保留所有501/150/199/0断言。"
+    },
+    {
+      "severity": "integration-prerequisite",
+      "problem": "生产helper尚未复制，当前require路径不存在，不能直接运行。",
+      "suggestion": "主线整合时复制候选helper，改dist/snapshot相对路径，之后再运行六项。"
+    }
+  ],
+  "accepted": [
+    {
+      "test": 1,
+      "reason": "真实1490实例仅编译原index，魂印真实grantGaze后局部防御不改fighter.type；实际非天敌草条件与解放无异常害怕相交有意义，PP检查正确。"
+    },
+    {
+      "test": 2,
+      "reason": "修spa夹具后4499/4500/4501严格阈值覆盖，501*30%=150.3后真实伤害取整150。"
+    },
+    {
+      "test": 3,
+      "reason": "修spa后保1完整501与HP损199独立，附伤150保1实际0；对应完整结算/保1两个用户泛确认，不是由代码新造机制。"
+    },
+    {
+      "test": 4,
+      "reason": "修spa后固定百分比免疫不免本体，完整免攻导致本体0按造成伤害比例附伤0；独立无魂印避免1824未决零伤受攻妨碍技能验证。"
+    },
+    {
+      "test": 5,
+      "reason": "zero、ordinary shield1/300、attackShield1、barrier300区分数值盾与护罩；same seeded controls仅排除2100原index，倍率最终取整允许1差有数学依据，不降低HP/PP断言。"
+    },
+    {
+      "test": 6,
+      "reason": "己方speed1敌speed500真实排序；1点盾被普通攻击耗尽才出手，2100读取出手时现有shieldValue而非回合初缓存；对照同样先消盾可比。"
+    }
+  ],
+  "limitations": [
+    "候选skills/helper尚未冻结，之后若变动需重新核差异。",
+    "不将当前代码对护盾/护罩分类当新用户确认，只核测试实际运行接口与既有项目分类相符。",
+    "没有运行任何测试，不能报告六项通过。"
+  ],
+  "mainFollowup": {
+    "received": "parent confirmed three1553 fixtures changed tospa3000; helper copy reserved for integration",
+    "currentTestSha256": "02363a1ffa43dab5ee3c74bb6e33281518cb5eba3f9a4507caeed5cb683866a4",
+    "testsRun": false
+  }
+}

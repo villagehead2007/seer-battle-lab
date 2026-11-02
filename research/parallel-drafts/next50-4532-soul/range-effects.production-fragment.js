@@ -1,0 +1,1 @@
+for(const id of [46,570,1288]){const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){if(c.a.soulState.jiKeNullify1745>0&&c.a.counts.attackNullify>0)throw Error('Q-N50-4511-006：其他攻免覆盖刻免攻待确认');if(!(c.a.counts.attackNullify>0))delete c.a.soulState.jiKeNullify1745;return old.execute(c,p);}});}

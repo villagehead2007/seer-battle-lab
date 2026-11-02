@@ -1,0 +1,34 @@
+'use strict';
+const fs=require('fs'),path=require('path');
+const root=path.resolve(__dirname,'../../..');process.chdir(root);
+const P=require(path.join(root,'completion-policy.cjs'));
+const dir='research/BATCH-4676-NEXT50/4676',archive=path.relative(root,__dirname).replaceAll('\\','/');
+const snapshot=JSON.parse(fs.readFileSync(dir+'/snapshot.json'));
+snapshot.source.storage='local';snapshot.deployment={...snapshot.deployment,scope:'single',status:'pending-formal-validation',answerArchive:archive};
+const inventory=P.inventory(snapshot),audit=JSON.parse(fs.readFileSync(dir+'/INSTANCE-AUDIT.json'));
+const reviewPath='SINGLE-STAGE-REVIEWS.json',reviews=JSON.parse(fs.readFileSync(reviewPath));
+if(!fs.existsSync(archive+'/4676-reviews-before.json'))fs.writeFileSync(archive+'/4676-reviews-before.json',JSON.stringify(Object.fromEntries(Object.entries(reviews.entries).filter(([k])=>k.startsWith('4676:'))),null,2)+'\n');
+const extraFile='tests/next50-4676-answers.test.cjs',extra=fs.readFileSync(extraFile,'utf8');
+const extraNames=[...extra.matchAll(/test\('([^']+)'/g)].map(m=>m[1]);
+const refFor=name=>({file:extraFile,name});
+function evidence(ref){const text=fs.readFileSync(ref.file,'utf8'),start=text.indexOf("test('"+ref.name+"'");if(start<0)throw Error('Missing named test: '+ref.name);const next=text.indexOf("\ntest('",start+1),body=text.slice(start,next<0?text.length:next);const assertions=body.match(/assert\.[^;\n]+/g)||[];if(!assertions.length)throw Error('No state assertions '+ref.name);return {...ref,assertion:'具名测试验证：'+ref.name+'；实际状态断言：'+assertions.join('；')};}
+for(const item of inventory){const a=audit.items.find(x=>x.key===item.key);if(!a)throw Error('Audit absent '+item.key);let refs=a.tests.map(x=>({...x}));
+  if(item.key==='4676:skill:37511:4')refs=[refFor(extraNames.find(x=>x.includes('1827')))];
+  if(item.kind==='soul')refs.push(refFor(extraNames.find(x=>x.includes('锁层在'))));
+  if(item.raw.instance?.id===2212)refs.push(refFor(extraNames.find(x=>x.includes('2212'))));
+  if(item.raw.instance?.id===907)refs.push(refFor(extraNames.find(x=>x.includes('907'))));
+  if(item.raw.instance?.id===2213)refs.push(refFor(extraNames.find(x=>x.includes('自爆'))));
+  if(item.raw.instance?.id===906)refs.push(refFor(extraNames.find(x=>x.includes('次数免疫攻击'))));
+  const ev=refs.map(evidence),r={sourceDigest:item.sourceDigest,scope:a.scope,reviewedBy:'Codex explicit-answer implementation audit',reviewedAt:new Date().toISOString(),rationale:'按逐项真实来源、原参数和已归档用户答案审核；复用当前具名战斗状态断言，不将预部署或结构检查作为正式认证。',singleBehavior:a.singleBehavior|| (item.kind==='move'?'真实技能编号、配招、初始PP、基础消耗、受控与零PP禁止行动、攻击造成HP变化；其各效果由独立实例审核。':item.raw.instance?.description),implementation:item.kind==='move'?['dist/engine.js','dist/souls.js']:['dist/range-effects.js','dist/range-souls.js','dist/souls.js','dist/effect-registry.js'],tests:{success:ev,failure:ev,boundary:ev,interaction:ev},userConfirmation:archive+'/USER-CONFIRMATIONS.json',formalAcceptance:'not-yet-validated'};
+  if(item.kind==='soul')r.singleBehavior='首次登场封属与攻击禁异常弱化；对手用招随机两项弱化、失败三类减伤；攻击后下轮先制必中、属性后附伤及易伤；在场锁层在原命中等级上逐层减1。';
+  if(a.scope!=='single')Object.assign(r,{deferredBehavior:a.deferredBehavior,trigger:a.trigger,futureMechanisms:a.futureMechanisms});
+  if(item.raw.instance?.id===2213)r.singleBehavior='消耗自身HP并记录下只登场盾罩的真实消耗基数；本招击败对手时按用户补充保留1HP，未击败自耗死亡则停止同招后续独立词条。';
+  if(item.key==='4676:skill:37511:4')Object.assign(r,{scope:'mixed',singleBehavior:'本次技能实际击败当前目标后记录一次队伍共享封属；当前承载者使用属性技能时消费并无效。',deferredBehavior:'真正换宠后对方队伍共享封属次数传递至其他成员。',trigger:'技能击败对手后对方其他成员出场并使用属性技能',futureMechanisms:['队伍共享状态','真实换宠及属性行动消费']});
+  const errors=P.validateReview?P.validateReview(item,r,root):[];if(errors?.length)throw Error(JSON.stringify(errors));
+  reviews.entries[item.key]=r;
+}
+fs.writeFileSync(reviewPath,JSON.stringify(reviews,null,2)+'\n');
+if(fs.existsSync('data/species/4676.json'))throw Error('Unexpected existing local species; inspect before overwrite');
+fs.writeFileSync('data/species/4676.json',JSON.stringify(snapshot,null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(archive+'/4676-review-preparation.json',JSON.stringify({at:new Date().toISOString(),entries:inventory.length,status:'pending-formal-validation',sourceOriginalUnchanged:true},null,2)+'\n');
+console.log('Prepared '+inventory.length+' reviews and local candidate; NOT accepted.');

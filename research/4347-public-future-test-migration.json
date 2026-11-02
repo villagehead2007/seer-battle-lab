@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-22T21:10:41.432Z",
+  "question": "Q-N20-4329-006",
+  "reason": "共享已答直接归零机制取消旧pending/throw诊断，改为真实HP和非伤害execution断言；原随机范围、587/72及其他未推进实现断点断言保留。仅公共回归迁移，不部署或推进这些后续目标。",
+  "referencesUpdated": 28,
+  "changes": [
+    {
+      "file": "tests/deployed-4454-independent.test.cjs",
+      "oldName": "4454 691十五概率未核实秒杀类型只记录真实触发不猜死亡，未触发仍真实基础攻击非占位完成",
+      "newName": "4454公共691真实15%成功直接归零无附加伤害事件，失败保留基础攻击与HP",
+      "oldLine": "test('4454 691十五概率未核实秒杀类型只记录真实触发不猜死亡，未触发仍真实基础攻击非占位完成',()=>{let yes=false,no=false;for(let seed=0;seed<100;seed++){const s=make(pick(691)[0],{seed}),o=turn(s);assert.ok(sum(o)>0);assert.ok(o.fighters[1].hp>0);if(o.fighters[0].soulState.pendingInstantKill){yes=true;assert.equal(o.fighters[0].soulState.pendingInstantKill.question,'Q-N20-4329-006');}else no=true;}assert.ok(yes&&no);});",
+      "newLine": "test('4454公共691真实15%成功直接归零无附加伤害事件，失败保留基础攻击与HP',()=>{let yes=false,no=false;for(let seed=0;seed<100;seed++){const s=make(pick(691)[0],{seed}),o=turn(s);assert.ok(sum(o)>0);const loss=(o.healthLossEvents??[]).find(e=>e.type==='execution'&&e.targetSide===1);assert.equal((o.damageEvents??[]).filter(e=>e.type!=='attack').length,0);if(loss){yes=true;assert.equal(o.fighters[1].hp,0);assert.equal(loss.hpLoss,loss.requested);assert.ok(loss.hpLoss>0);}else{no=true;assert.ok(o.fighters[1].hp>0);}}assert.ok(yes&&no);});"
+    },
+    {
+      "file": "tests/deployed-4482-independent.test.cjs",
+      "oldName": "4482 1627实际随机5至10攻击不当单次，最大10仅保留秒杀类型待答且不伪杀，控制未用不掷",
+      "newName": "4482公共1627真实5至10段保留随机边界，最大10才直接归零且无秒杀伤害事件",
+      "oldLine": "test('4482 1627实际随机5至10攻击不当单次，最大10仅保留秒杀类型待答且不伪杀，控制未用不掷',()=>{const seen=new Set();for(let seed=0;seed<80;seed++){const s=make(pick(1627)[0],{seed}),o=turn(s),n=o.damageEvents.filter(e=>e.type==='attack').length;seen.add(n);assert.ok(n>=5&&n<=10);assert.equal(!!o.fighters[0].soulState.pendingInstantKill,n===10);if(n===10){assert.equal(o.fighters[0].soulState.pendingInstantKill.effectId,1627);assert.ok(o.fighters[1].hp>0);}}assert.equal(seen.size,6);});",
+      "newLine": "test('4482公共1627真实5至10段保留随机边界，最大10才直接归零且无秒杀伤害事件',()=>{const seen=new Set();for(let seed=0;seed<80;seed++){const s=make(pick(1627)[0],{seed}),o=turn(s),n=o.damageEvents.filter(e=>e.type==='attack').length;seen.add(n);assert.ok(n>=5&&n<=10);const loss=(o.healthLossEvents??[]).find(e=>e.type==='execution'&&e.targetSide===1);assert.equal(!!loss,n===10);assert.equal((o.damageEvents??[]).filter(e=>e.type!=='attack').length,0);if(n===10){assert.equal(o.fighters[1].hp,0);assert.equal(loss.hpLoss,loss.requested);assert.ok(loss.hpLoss>0);}else assert.ok(o.fighters[1].hp>0);}assert.equal(seen.size,6);});"
+    },
+    {
+      "file": "tests/deployed-4482-independent.test.cjs",
+      "oldName": "4482 587五回真实被敌击败才记录500/最低1未答类型，62延迟未达触发时间不动HP、到期显式待答不伪造真伤",
+      "newName": "4482 587五回真实被敌击败才记录500/最低1未答类型，公共62到期直接归零无伤害，587历史实现断点保留",
+      "oldLine": "test('4482 587五回真实被敌击败才记录500/最低1未答类型，62延迟未达触发时间不动HP、到期显式待答不伪造真伤',()=>{let s=turn(make(pick(587)[0],{hp:100}));timer(s,1,'攻击最低伤害',{amount:500});const o=turn(s,920031,920040);assert.equal(o.fighters[0].hp,0);assert.deepEqual(o.fighters[0].soulState.pending587Damage,{question:'Q-N20-4482-003',amount:500,minimumHp:1,round:2});assert.equal(o.fighters[1].hp,s.fighters[1].hp);s=turn(make(pick(62)[0]));assert.equal(s.fighters[0].effects['延迟决胜'].start,6);const enemyHp=s.fighters[1].hp;for(let i=0;i<4;i++)s=turn(s,920031);assert.equal(s.fighters[1].hp,enemyHp);assert.throws(()=>turn(s,920031),/Q-N20-4482-002/);});",
+      "newLine": "test('4482 587五回真实被敌击败才记录500/最低1未答类型，公共62到期直接归零无伤害，587历史实现断点保留',()=>{let s=turn(make(pick(587)[0],{hp:100}));timer(s,1,'攻击最低伤害',{amount:500});const o=turn(s,920031,920040);assert.equal(o.fighters[0].hp,0);assert.deepEqual(o.fighters[0].soulState.pending587Damage,{question:'Q-N20-4482-003',amount:500,minimumHp:1,round:2});assert.equal(o.fighters[1].hp,s.fighters[1].hp);s=turn(make(pick(62)[0]));assert.equal(s.fighters[0].effects['延迟决胜'].start,6);const enemyHp=s.fighters[1].hp;for(let i=0;i<4;i++)s=turn(s,920031);assert.equal(s.fighters[1].hp,enemyHp);const end=turn(s,920031),loss=end.healthLossEvents.find(e=>e.type==='execution'&&e.targetSide===1);assert.equal(end.fighters[1].hp,0);assert.equal(loss.requested,enemyHp);assert.equal(loss.hpLoss,enemyHp);assert.equal((end.damageEvents??[]).filter(e=>e.targetSide===1&&e.type!=='attack').length,0);});"
+    },
+    {
+      "file": "tests/deployed-4482-independent.test.cjs",
+      "oldName": "4482 1318未触发90%全弱/10%成功仅保留源秒杀待答，1013每正级类别50盾不按段数，1773双方负级绝对段数×50",
+      "newName": "4482公共1318真实10%直接归零与90%全弱，1013每正级类别50盾不按段数，1773双方负级绝对段数×50",
+      "oldLine": "test('4482 1318未触发90%全弱/10%成功仅保留源秒杀待答，1013每正级类别50盾不按段数，1773双方负级绝对段数×50',()=>{const result=new Set();for(let seed=0;seed<80;seed++){const s=make(pick(1318)[0],{seed}),o=turn(s),pending=!!o.fighters[0].soulState.pendingInstantKill;result.add(pending);assert.equal(o.fighters[1].stages.atk,pending?0:-1);assert.ok(o.fighters[1].hp>0);}assert.equal(result.size,2);const q=make(pick(1013)[0]);q.fighters[0].stages.atk=6;q.fighters[0].stages.def=1;assert.equal(turn(q).fighters[0].suitState.shield,100);const a=make(pick(1773)[0]);a.fighters[0].stages.atk=-2;a.fighters[1].stages.spe=-3;assert.equal(sum(turn(a),'fixed'),250);});",
+      "newLine": "test('4482公共1318真实10%直接归零与90%全弱，1013每正级类别50盾不按段数，1773双方负级绝对段数×50',()=>{const result=new Set();for(let seed=0;seed<80;seed++){const s=make(pick(1318)[0],{seed}),o=turn(s),pending=!!(o.healthLossEvents??[]).find(e=>e.type==='execution'&&e.targetSide===1);result.add(pending);assert.equal(o.fighters[1].stages.atk,pending?0:-1);if(pending)assert.equal(o.fighters[1].hp,0);else assert.ok(o.fighters[1].hp>0);assert.equal((o.damageEvents??[]).filter(e=>e.type!=='attack').length,0);}assert.equal(result.size,2);const q=make(pick(1013)[0]);q.fighters[0].stages.atk=6;q.fighters[0].stages.def=1;assert.equal(turn(q).fighters[0].suitState.shield,100);const a=make(pick(1773)[0]);a.fighters[0].stages.atk=-2;a.fighters[1].stages.spe=-3;assert.equal(sum(turn(a),'fixed'),250);});"
+    },
+    {
+      "file": "tests/deployed-4489-independent.test.cjs",
+      "oldName": "4489 72普通命中率MISS真实直接失去全部HP，不伪造伤害；控制未用不触，命中36只记秒杀待答；失明分类显式待答",
+      "newName": "4489 72普通命中率MISS真实直接失去全部HP，不伪造伤害；控制未用不触，公共36命中100%直接归零；72失明历史实现断点保留",
+      "oldLine": "test('4489 72普通命中率MISS真实直接失去全部HP，不伪造伤害；控制未用不触，命中36只记秒杀待答；失明分类显式待答',()=>{const s=make(pick(72)[0],{hit:false,seed:1});let o=turn(s);assert.equal(o.fighters[0].hp,0);assert.equal(o.healthLossEvents[0].type,'direct');assert.equal(o.healthLossEvents[0].requested,9000);assert.equal((o.damageEvents??[]).filter(e=>e.targetSide===0).length,0);const q=make(pick(36)[0],{seed:0});o=turn(q);assert.equal(o.fighters[0].soulState.pendingInstantKill.question,'Q-N20-4329-006');assert.equal(o.fighters[1].hp,9000);const p=make(pick(72)[0],{hit:false});p.fighters[0].ailments['失明']=3;p.rng=0;assert.throws(()=>turn(p),/Q-N20-4472-002/);assert.equal(p.fighters[0].hp,9000);});",
+      "newLine": "test('4489 72普通命中率MISS真实直接失去全部HP，不伪造伤害；控制未用不触，公共36命中100%直接归零；72失明历史实现断点保留',()=>{const s=make(pick(72)[0],{hit:false,seed:1});let o=turn(s);assert.equal(o.fighters[0].hp,0);assert.equal(o.healthLossEvents[0].type,'direct');assert.equal(o.healthLossEvents[0].requested,9000);assert.equal((o.damageEvents??[]).filter(e=>e.targetSide===0).length,0);const q=make(pick(36)[0],{seed:0});o=turn(q);const execution=o.healthLossEvents.find(e=>e.type==='execution'&&e.targetSide===1);assert.equal(o.fighters[1].hp,0);assert.equal(execution.requested,9000);assert.equal(execution.hpLoss,9000);const attacks=(o.damageEvents??[]).filter(e=>e.targetSide===1&&e.type==='attack');assert.equal(attacks.length,1);assert.equal(attacks[0].settledDamage,0);assert.equal(attacks[0].hpLoss,0);assert.equal((o.damageEvents??[]).filter(e=>e.targetSide===1&&e.type!=='attack').length,0);const p=make(pick(72)[0],{hit:false});p.fighters[0].ailments['失明']=3;p.rng=0;assert.throws(()=>turn(p),/Q-N20-4472-002/);assert.equal(p.fighters[0].hp,9000);});"
+    }
+  ],
+  "fixtureCorrection": "真实36506为physical/power0，保留一条0伤害攻击事件；禁止秒杀添加其他伤害事件，不删除原攻击事件。"
+}

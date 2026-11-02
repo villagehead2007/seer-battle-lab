@@ -1,0 +1,991 @@
+{
+  "generatedAt": "2026-10-14T13:01:09.842Z",
+  "status": "project-rules-implemented-verified",
+  "sourceRevision": 388558,
+  "sourceHash": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8",
+  "sourceDatabase": "data/statuses/statuses.json",
+  "previousAudit": "research/status-system-audit.json",
+  "scope": {
+    "reviewedExistingStates": 24,
+    "commonModuleStates": [
+      "麻痹",
+      "中毒",
+      "烧伤",
+      "冻伤",
+      "害怕",
+      "疲惫",
+      "睡眠",
+      "石化",
+      "混乱",
+      "冰封"
+    ],
+    "priorStatesNotModified": [
+      "寄生",
+      "狂暴",
+      "流血",
+      "瘫痪",
+      "失明",
+      "焚烬",
+      "诅咒",
+      "烈焰诅咒",
+      "致命诅咒",
+      "虚弱诅咒",
+      "感染",
+      "星哲",
+      "神游",
+      "渐冻"
+    ],
+    "speciesSpecificLogicChanged": false,
+    "validatorChanged": false,
+    "effect2074Implemented": false,
+    "batchResumed": false
+  },
+  "changes": [
+    {
+      "status": "烧伤",
+      "change": "在攻击伤害公式前对最终威力乘0.5，覆盖物理/特殊攻击并与威力强化叠加；不会把最终伤害简单除2。",
+      "evidence": "攻击技能的威力会减少50%"
+    },
+    {
+      "status": "冰封",
+      "change": "自然到期经公共能力变化入口速度-1；缺少转化持续时间和免疫语义，冻伤未擅自施加，写入pendingStatusTransitions并记录战斗日志。",
+      "completion": "partial-blocked",
+      "evidence": "冰封结束后会转化为冻伤、速度等级-1"
+    },
+    {
+      "status": "公共基础状态",
+      "change": "抽取真实时长写入、行动阻止、攻击命中解除睡眠、混乱命中及概率伤害、三种持续伤害和清除入口；原免疫/抗性流程复用，新增正整数持续时长校验。"
+    }
+  ],
+  "states": [
+    {
+      "id": 0,
+      "name": "麻痹",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false,
+      "latestFollowUp": {
+        "report": "research/status-high-frequency-review.json",
+        "status": "verified-public-behavior-with-open-source-semantics",
+        "complete": false,
+        "defaultDurationTurns": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "中毒",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false,
+      "latestFollowUp": {
+        "report": "research/status-high-frequency-review.json",
+        "status": "verified-public-behavior-with-open-source-semantics",
+        "complete": false,
+        "defaultDurationTurns": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "烧伤",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "已有扣血，未找到状态本身导致攻击技能威力减少50%的处理。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "威力减半及既有1/8扣血通过测试。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 4,
+      "name": "寄生",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 5,
+      "name": "冻伤",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 6,
+      "name": "害怕",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false,
+      "latestFollowUp": {
+        "report": "research/status-high-frequency-review.json",
+        "status": "verified-public-behavior-with-open-source-semantics",
+        "complete": false,
+        "defaultDurationTurns": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "疲惫",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 8,
+      "name": "睡眠",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "interactions"
+      ],
+      "complete": false,
+      "latestFollowUp": {
+        "report": "research/status-high-frequency-review.json",
+        "status": "verified-public-behavior-with-open-source-semantics",
+        "complete": false,
+        "defaultDurationTurns": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "石化",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 10,
+      "name": "混乱",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "来源明确的基础行为通过专项分支验证；无来源的附加效果未补造。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "未新增无来源的转化；来源未说明不等于证明无转化。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false,
+      "latestFollowUp": {
+        "report": "research/status-high-frequency-review.json",
+        "status": "verified-public-behavior-with-open-source-semantics",
+        "complete": false,
+        "defaultDurationTurns": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "狂暴",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 15,
+      "name": "冰封",
+      "status": "verified-clauses-with-open-semantics",
+      "previousGaps": [
+        "已有无法行动，未找到结束后转为冻伤及速度-1的处理。"
+      ],
+      "lifecycle": {
+        "application": "共享状态写入及原真实效果入口；石化仅覆盖状态写入/控制，尚无本次真实技能施加测试。",
+        "actionPhase": "控制类跳过行动不扣PP；混乱仅影响非必中攻击命中，睡眠受未MISS攻击解除。",
+        "damageAndStages": "到期速度下降已实现；目标冻伤未施加。",
+        "duration": "显式正整数时长按绝对结束回合保存并覆盖边界；未注明时长仍沿用RULES.md的旧实验1–3回合，未获来源认证。",
+        "clear": "真实清异常技能和公共清除入口；保持既有主动清除与自然到期分离的约定。",
+        "conversion": "blocked: 转为冻伤的持续时间及是否重走免疫待核实。",
+        "immunity": "复用原免异常、次数免疫、抗性窗口和反弹；八种状态有真实入口交互测试，石化/疲惫未独立覆盖全部免疫分支。"
+      },
+      "unknownSourceFields": [
+        "damageRules",
+        "immunityConditions",
+        "clearConditions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 16,
+      "name": "流血",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 19,
+      "name": "瘫痪",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "只有无法行动；主动切换限制需要未来换宠系统，本次不实现。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 20,
+      "name": "失明",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 22,
+      "name": "焚烬",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "当前转化烧伤传2回合；Wiki本表未给出烧伤持续时间。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 23,
+      "name": "诅咒",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "当前随机三选一并写后续2回合；本表未给选择权重与转化后的持续时间。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 24,
+      "name": "烈焰诅咒",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 25,
+      "name": "致命诅咒",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 26,
+      "name": "虚弱诅咒",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions",
+        "behaviorRules"
+      ],
+      "complete": false
+    },
+    {
+      "id": 27,
+      "name": "感染",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "当前转化中毒硬编码后续2回合；Wiki本表未给出中毒持续时间。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 34,
+      "name": "星哲",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "本次只读审查；未认证全部成功/失败/边界/交互分支。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "immunityConditions",
+        "clearConditions",
+        "interactions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 39,
+      "name": "神游",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "转为失神已有分支，但失神的属性技能50%无效未找到。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions"
+      ],
+      "complete": false
+    },
+    {
+      "id": 43,
+      "name": "渐冻",
+      "status": "existing-partial-not-modified",
+      "previousGaps": [
+        "转为3回合冰封已有分支，但冰封结束后的后续规则缺失。"
+      ],
+      "lifecycle": {
+        "application": "原实现，未补全",
+        "actionPhase": "原实现，未补全",
+        "damageAndStages": "原实现，未补全",
+        "duration": "原实验时长及转化硬编码缺口保留。",
+        "clear": "原实现，未补全",
+        "conversion": "原实现/缺口见previousGaps。",
+        "immunity": "原实现，未全面复核。"
+      },
+      "unknownSourceFields": [
+        "triggerMethods",
+        "durationRules",
+        "damageRules",
+        "immunityConditions",
+        "clearConditions",
+        "behaviorRules"
+      ],
+      "complete": false
+    }
+  ],
+  "tests": {
+    "file": "tests/status-rules.test.cjs",
+    "names": [
+      "十种基础状态按显式时长写入真实回合，零回合拒绝且倒下目标不施加",
+      "真实效果入口施加八种基础状态，并实际影响对手行动或血量",
+      "八种基础状态均受公共免异常、次数免疫及反弹限制",
+      "状态抗性成功产生免疫窗口，失败才实际施加，免疫窗口结束后可重新施加",
+      "六种控制状态逐回合阻止行动和PP消耗，期满后恢复行动",
+      "烧伤降低最终攻击技能威力而非伤害直接减半，物攻特攻都生效",
+      "烧伤威力修正和公共威力强化叠加，清除后不再降低威力",
+      "中毒烧伤冻伤每回合各扣八分之一，不互相覆盖，结束后停止扣血",
+      "持续伤害沿用百分比免疫与抗性，已倒下目标不重复扣血",
+      "真实清异常技能清除持续伤害，未到期控制也可被公共清除且不触发到期转化",
+      "睡眠命中攻击即解除，零伤害仍解除，MISS或属性技能不解除",
+      "睡眠解除不清除同时存在的其它控制，期满恢复不修改前一回合快照",
+      "混乱影响非必中攻击的命中，不降低属性技能或必中招命中",
+      "混乱5%扣血成功与失败边界、免伤及到期后停止",
+      "冰封自然到期速度下降有边界及免弱，未知冻伤时长显式阻塞而非编造",
+      "倒下精灵冰封到期不产生弱化或待转化，状态实例相互独立",
+      "来源编码绑定及浏览器脚本加载顺序与Node端产生相同状态结果",
+      "疲惫显式时长经真实效果入口生效，清异常技能恢复状态而不引发转化"
+    ],
+    "targeted": {
+      "passed": 18,
+      "total": 18,
+      "log": "research/status-rules-targeted.log"
+    },
+    "regression": {
+      "passed": 1013,
+      "total": 1013,
+      "log": "research/status-rules-npm-test.log"
+    },
+    "browser": "按index.html脚本顺序在无CommonJS浏览器环境加载并比较真实回合HP/状态，与Node端一致。",
+    "initialFailures": [
+      {
+        "log": "research/status-rules-targeted-initial-failure.log",
+        "cause": "新增夹具误用756混乱参数（原验证不支持）；烧伤到期后伤害比较未对齐下一回合随机序列。",
+        "fix": "混乱改用原已允许的1975真实入口，保留状态与免疫断言；用相同下一回合随机序列对照。没有修改验证规则。"
+      },
+      {
+        "log": "research/status-rules-targeted-fixture-failure.log",
+        "cause": "混乱夹具改为受击触发后仍检查未使用的等待招PP。",
+        "fix": "检查实际使用的攻击招PP，仍断言准确扣1。"
+      }
+    ]
+  },
+  "remainingEvidence": [
+    "冰封转化后冻伤持续时间、是否重新检查免疫/抗性、自然到期与被清除是否同样转化。",
+    "未注明时长的各异常默认持续回合；本次测试验证旧实验契约，不认证它为真实规则。",
+    "Wiki本表仅称每回合扣血，未统一规定所有异常的精确结算时点；保持既有回合末契约。",
+    "其它14个既有状态仍有未逐项认证的行为与交互；17个此前没有状态行为的条目本次未开发。"
+  ],
+  "scopeCheck": {
+    "existingFilesChecked": 390,
+    "changedExistingFiles": [
+      "dist/index.html",
+      "dist/souls.js"
+    ],
+    "sharedEditsReversedToExactOriginal": true,
+    "allOtherProtectedFilesUnchanged": true
+  },
+  "artifacts": [
+    {
+      "file": "dist/status-rules.js",
+      "sha256": "c65fb075d83f99feda9bc97f758ae7fc047136fe590dd6d3dd79bc43fe5d5009"
+    },
+    {
+      "file": "dist/souls.js",
+      "sha256": "6d7e3f690d30425336a87b939728780d4ae901a539663b2fc579d64054fcbcd0"
+    },
+    {
+      "file": "dist/index.html",
+      "sha256": "5f79dc8dfebee00c5213ce33728add7dd8742b4d379ed146ce89502f2cc029ab"
+    },
+    {
+      "file": "tests/status-rules.test.cjs",
+      "sha256": "ea80e9ab116637620f2065782a5913056fda1f54bb9c060bd01cb367053eaa90"
+    }
+  ],
+  "note": "不宣称完整状态系统完成，不恢复3667/3670，不将状态目录作为2074随机池。",
+  "latestFollowUp": {
+    "at": "2026-10-14T13:13:47.948Z",
+    "report": "research/status-high-frequency-review.json",
+    "status": "partial-state-system",
+    "validation": {
+      "newTargeted": {
+        "total": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "log": "research/status-high-frequency-targeted.log"
+      },
+      "existingStatusAndDatabase": {
+        "total": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "log": "research/status-high-frequency-existing.log"
+      },
+      "regression": {
+        "total": 1029,
+        "passed": 1029,
+        "failed": 0,
+        "skipped": 0,
+        "log": "research/status-high-frequency-npm-test.log"
+      }
+    },
+    "note": "原静态观察、来源与上轮测试记录保留为历史；五种状态最新实现及证据边界以此报告为准。"
+  },
+  "userRuleConfirmation": {
+    "sourceType": "user_confirmed",
+    "importedAt": "2026-10-14T15:57:56.824Z",
+    "sourceFile": "research/user-rule-confirmation-3667.json",
+    "answers": [
+      {
+        "id": "Q009",
+        "question": "冰封结束所转化的冻伤持续多少回合？",
+        "answer": "2",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q009"
+        }
+      },
+      {
+        "id": "Q012",
+        "question": "焚烬结束转化的烧伤持续多少回合？",
+        "answer": "2",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q012"
+        }
+      },
+      {
+        "id": "Q013",
+        "question": "感染结束转化的中毒持续多少回合？",
+        "answer": "2",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q013"
+        }
+      },
+      {
+        "id": "Q014",
+        "question": "神游结束转化的失神持续多少回合？",
+        "answer": "2",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q014"
+        }
+      },
+      {
+        "id": "Q015",
+        "question": "诅咒结束转成烈焰诅咒、致命诅咒、虚弱诅咒后，各持续多少回合？",
+        "answer": "三者相同，均为2",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q015"
+        }
+      },
+      {
+        "id": "Q016",
+        "question": "主动清除这些状态时，是否也执行其结束转化及伴随能力下降？",
+        "answer": "主动清除不转化，不执行能力下降",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q016"
+        }
+      },
+      {
+        "id": "Q017",
+        "question": "状态转化时，新状态是否重新检查异常免疫、次数免疫、抗性和反弹？",
+        "answer": "全部绕过",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q017"
+        }
+      },
+      {
+        "id": "Q018",
+        "question": "回合末转化为n回合新状态时，n是否从下一回合开始完整计算？",
+        "answer": "是",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q018"
+        }
+      },
+      {
+        "id": "Q019",
+        "question": "转化目标状态已存在时，是新时长覆盖、取最大值、累加时长，还是保留旧状态？",
+        "answer": "取最大值",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q019"
+        }
+      },
+      {
+        "id": "Q021",
+        "question": "这些周期异常分别在哪个时点结算一次伤害？",
+        "answer": "回合结束时",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q021"
+        }
+      },
+      {
+        "id": "Q036",
+        "question": "诅咒结束转成烈焰诅咒、致命诅咒、虚弱诅咒的概率分别是多少？",
+        "answer": "等概率",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q036"
+        }
+      }
+    ],
+    "implementationStatus": "verified",
+    "note": "原始来源与历史未确认结论保留；本次按用户回答更新当前项目规则，不伪造Wiki/API来源。"
+  },
+  "supplementalConfirmations": [
+    {
+      "ruleId": "yanmei-whiteboard-v1",
+      "sourceType": "user_confirmed",
+      "source": "project_rule/user_confirmed",
+      "confirmedAt": "2026-10-14T16:05:38.377Z",
+      "originalUserText": "魇寐受咱们的对局效果影响，改成无效果的白板异常状态吧，就是显示为异常状态，但是实际没有效果",
+      "canonicalName": "魇昧",
+      "inputName": "魇寐",
+      "behavior": "保留异常身份、正常名称和回合显示；沿用公共施加、刷新、到期、清除和免疫；不遮蔽显示，不控制行动，不改变伤害、属性、PP，不产生专属转化。",
+      "supersedes": "Wiki显示遮蔽规则仅作为原始来源保留，不用于本项目当前对局。"
+    }
+  ],
+  "conclusionHistory": [
+    {
+      "at": "2026-10-14T16:20:56.918Z",
+      "status": "partial-state-system",
+      "remainingEvidence": [
+        "冰封转化后冻伤持续时间、是否重新检查免疫/抗性、自然到期与被清除是否同样转化。",
+        "未注明时长的各异常默认持续回合；本次测试验证旧实验契约，不认证它为真实规则。",
+        "Wiki本表仅称每回合扣血，未统一规定所有异常的精确结算时点；保持既有回合末契约。",
+        "其它14个既有状态仍有未逐项认证的行为与交互；17个此前没有状态行为的条目本次未开发。"
+      ]
+    }
+  ],
+  "currentProjectImplementation": {
+    "at": "2026-10-14T16:20:56.918Z",
+    "sourceType": "user_confirmed",
+    "evidence": "research/user-rule-confirmation-3667.json",
+    "status": "verified",
+    "modules": [
+      "dist/status-rules.js",
+      "dist/status-pools.js",
+      "dist/pp-rules.js",
+      "dist/souls.js"
+    ],
+    "testLogs": [
+      "research/3667-user-rules-npm-second.log",
+      "research/3667-confirmed-targeted.log",
+      "research/3667-status-final-new.log"
+    ],
+    "historicalFields": "未确认/缺口/分类原文的旧字段保留为历史资料；当前项目依据本节与userRuleConfirmation。",
+    "verificationReport": "research/3667-user-rules-verification.json"
+  }
+}

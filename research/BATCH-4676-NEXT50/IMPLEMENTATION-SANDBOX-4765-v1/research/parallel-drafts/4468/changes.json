@@ -1,0 +1,73 @@
+[
+  {
+    "file": "dist/range-souls.js",
+    "before": "partial:true,unimplemented:['Q-N20-4468-001：魂印三玺恢复PP字段冲突'],",
+    "after": "",
+    "baselineSha256": "24d117fe71d18134cc799b3a6387b21f1eb0915fb9385c1097deff1837d701b3",
+    "currentBaselineSha256": "24d117fe71d18134cc799b3a6387b21f1eb0915fb9385c1097deff1837d701b3",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/range-souls.js",
+    "before": "const conflicts=[];for(const k of c.a.moves){if(c.a.pp[k]===0)c.a.pp[k]=1;else if(c.a.pp[k]!==1)conflicts.push({move:k,pp:c.a.pp[k]});}if(conflicts.length)st.pendingEmperorPPRestore={question:'Q-N20-4468-001',round:c.round,conflicts};",
+    "after": "for(const k of c.a.moves)if(c.a.pp[k]===0)c.a.pp[k]=1;",
+    "baselineSha256": "24d117fe71d18134cc799b3a6387b21f1eb0915fb9385c1097deff1837d701b3",
+    "currentBaselineSha256": "24d117fe71d18134cc799b3a6387b21f1eb0915fb9385c1097deff1837d701b3",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "add(35,'beforeDamage',c=>{const pair=c.m.kind==='special'?['spa','spd']:['atk','def'];c.power+=20*pair.reduce((n,k)=>n+Math.max(0,c.t.stages[k]),0);});",
+    "after": "// Q-N20-4468-005 public punishment: six positive stages, +1 power per level, no negative offset or extra power cap.\nadd(35,'beforeDamage',c=>{c.power+=['atk','def','spa','spd','spe','acc'].reduce((n,k)=>n+Math.max(0,c.t.stages[k]),0);});",
+    "baselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentBaselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "{const old=registry[35];registry[35]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===36384&&(c.m.hash==='76f1330e'||c.m.revision==='seerapi:76f1330e')&&Object.values(c.t.stages).some(n=>n>0))throw Error('Q-N20-4468-005：35惩罚等级范围与增威公式缺来源');old.execute(c,p);}});}",
+    "after": "",
+    "baselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentBaselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "add(1906,'afterHit',c=>{const st=c.a.soulState;if(st.emperorFifthUsed)throw Error('Q-N20-4468-004：1906重复使用的基础攻击范围未确认');st.emperorFifthUsed=true;c.clear(c.t);c.consumeShields(c.t,c.a);c.consumeBarrier(c.t);c.heal(c.a,c.a.stats.maxHp,c.m.name+'回复全部');c.restorePP(c.a,99);st.yongchang=6;st.emperorFreezeEnd=c.round+6;},[],undefined,undefined,{beforeUse(c){if(c.a.soulState.emperorFifthUsed)throw Error('Q-N20-4468-004：1906重复使用的基础攻击范围未确认');}});",
+    "after": "add(1906,'afterHit',c=>{const st=c.a.soulState;if(st.emperorFifthUsed)return;st.emperorFifthUsed=true;c.clear(c.t);c.consumeShields(c.t,c.a);c.consumeBarrier(c.t);c.heal(c.a,c.a.stats.maxHp,c.m.name+'回复全部');c.restorePP(c.a,99);st.yongchang=6;st.emperorFreezeEnd=c.round+6;});registry[1906]=Object.freeze({...registry[1906],selectable:f=>!f.soulState.emperorFifthUsed});",
+    "baselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentBaselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/effect-registry.js",
+    "before": "function acceptsSourceParameterConflict(move,index,instance,metadata){",
+    "after": "function acceptsSourceParameterConflict(move,index,instance,metadata){\n if(move?.id===36391){const expected={\"id\":\"4468-36391-4-1767-user-confirmed\",\"record\":\"research/4468-user-confirmed-rules.json\",\"speciesId\":4468,\"petHash\":\"80f1440f\",\"skillId\":36391,\"skillHash\":\"f88eb61a\",\"effectId\":1767,\"instanceIndex\":4,\"effectRevision\":\"seerapi:d25219b2\",\"metadataArgsNum\":0,\"args\":[3,37],\"semantics\":\"多余[3,37]无额外战斗含义，原参数保留，按1767零参语义执行\"};return move.provider==='seerapi'&&move.hash==='f88eb61a'&&move.revision==='seerapi:f88eb61a'&&index===4&&instance?.id===1767&&metadata?.id===1767&&metadata.argsNum===0&&metadata.revision==='seerapi:d25219b2'&&metadata.template===registry[1767].template&&instance.description===registry[1767].template&&JSON.stringify(instance.args)==='[3,37]'&&JSON.stringify(move.sourceParameterConfirmation)===JSON.stringify(expected);}",
+    "baselineSha256": "afbddddb912ea38bb8244c6356f1964cefec84208ae51ede9598d134d7cd4203",
+    "currentBaselineSha256": "afbddddb912ea38bb8244c6356f1964cefec84208ae51ede9598d134d7cd4203",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "add(1767,'beforeOrder',c=>{if(c.m.kind!=='status'&&c.m.kind!=='item')c.a.soulState.opponentBoostsAsWeakThis=true;},[]);",
+    "after": "add(1767,'beforeOrder',c=>{if(c.m.kind!=='status'&&c.m.kind!=='item')c.a.soulState.opponentBoostsAsWeakThis=true;},[]);\n{const old=registry[1767];registry[1767]=Object.freeze({...old,validate(p,m,i){if(m?.id===36391){if(m.provider!=='seerapi'||m.hash!=='f88eb61a'||m.revision!=='seerapi:f88eb61a'||i!==4||JSON.stringify(p)!=='[3,37]')throw Error('4468 1767原始实例必须精确匹配');return old.validate([],m,i);}return old.validate(p,m,i);}});}",
+    "baselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentBaselineSha256": "d200c0ec94095a74ea476747beb8d67dc54e3765642a6b30265296c841e1a6b8",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "seerapi.cjs",
+    "before": "function reviewedTargets(m){const entry={",
+    "after": "function reviewedTargets(m){const entry={36388:['1ea5cdc8',6],",
+    "baselineSha256": "0c84bd4dc72637fff8124d95bb37fd3badc233f3003535f38620761cd23c2975",
+    "currentBaselineSha256": "0c84bd4dc72637fff8124d95bb37fd3badc233f3003535f38620761cd23c2975",
+    "currentAnchorCount": 1
+  },
+  {
+    "file": "seerapi.cjs",
+    "before": "...(reviewedTargets(m)?[{field:'atk_num'",
+    "after": "...(reviewedTargets(m)&&!(m.id===36388&&m.hash==='1ea5cdc8'&&m.atk_num===6)?[{field:'atk_num'",
+    "currentBaselineSha256": "0c84bd4dc72637fff8124d95bb37fd3badc233f3003535f38620761cd23c2975",
+    "currentAnchorCount": 1
+  }
+]

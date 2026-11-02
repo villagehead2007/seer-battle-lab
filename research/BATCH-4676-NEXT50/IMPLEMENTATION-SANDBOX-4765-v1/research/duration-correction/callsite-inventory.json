@@ -1,0 +1,1126 @@
+{
+  "reviewed": [
+    {
+      "file": "dist/status-rules.js",
+      "line": 9,
+      "code": "  const active=(f,k,r)=>Number.isFinite(f.ailments?.[k])&&f.ailments[k]>=r;"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 11,
+      "code": "  function apply(f,k,r,n){validateDuration(n);if(f.hp<=0)return false;f.ailments[k]=r+n-1;return true;}"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 14,
+      "code": "  function attempt(f,k,r,{duration=null,bypass=false,gate=()=>true,resistanceChance=()=>0,random,"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 15,
+      "code": "    durationFallback=null,merge='max-remaining',source=null,notify=()=>{}}={}){"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 22,
+      "code": "    if(duration===null&&!durationFallback)durationFallback={origin:'user-confirmed-default-2-3',resolve:pools.defaultDuration};"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 27,
+      "code": "    const n=k==='衰弱'?3:(duration??durationFallback.resolve(random));validateDuration(n);"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 28,
+      "code": "    const details={duration:n,durationOrigin:duration===null?durationFallback.origin:'explicit',chance};"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 48,
+      "code": "      const applied=c.ailment(c.t,selected.name,c.a,false,false,selected.duration,{effectId,merge:'max-remaining',sourceType});"
+    },
+    {
+      "file": "dist/status-rules.js",
+      "line": 60,
+      "code": "  function expire(f,r,onExpire=()=>{}){const removed=[];for(const [k,end]of Object.entries(f.ailments))if(end<=r&&f.ailments[k]<=r){const sourceSide=f.statusState?.sources?.[k];clear(f,k);removed.push(k);onExpire(k,sourceSide);}return removed;}"
+    },
+    {
+      "file": "dist/status-pools.js",
+      "line": 14,
+      "code": "  function defaultDuration(random){return rule.duration.min+integer(random,rule.duration.max-rule.duration.min+1);}"
+    },
+    {
+      "file": "dist/status-pools.js",
+      "line": 24,
+      "code": "      const duration=defaultDuration(random);"
+    },
+    {
+      "file": "dist/status-pools.js",
+      "line": 36,
+      "code": "  return Object.freeze({pool,defaultDuration,draw,drawFromNames,configuration,drawForEffect,sourceType:rule.sourceType,ruleId:rule.ruleId});"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 115,
+      "code": "    function suitShieldBreak(f,opponent){const war=f.soulState.warShieldBreak;if(war){delete f.soulState.warShieldBreak;if(opponent.hp>0){inflict(f,opponent,war.amount,'战狂护盾消失','fixed');if(opponent.hp>0&&rng(s)<war.chance/100)ailment(opponent,war.ailment,f);}}if(f.soulId===870&&f.soulState.cassisBrokenRound!==r){f.soulState.cassisBrokenRound=r;clear(opponent);for(const k of Object.keys(opponent.stages))if(opponent.stages[k]>0)opponent.stages[k]=0;const pool=opponent.moves.slice();for(let i=0;i<2&&pool.length;i++)opponent.pp[pool.splice(Math.floor(rng(s)*pool.length),1)[0]]=0;emit(`${name(f)} 圣地卡修斯魂印：护盾消失，清除对手回合效果与强化并随机清空2项PP。`);}if(f.soulState.xShieldBlockCount){opponent.counts.nextAttackInvalid=(opponent.counts.nextAttackInvalid??0)+f.soulState.xShieldBlockCount;delete f.soulState.xShieldBlockCount;}const e=f.soulState.pandoraShieldBreak;if(!e)return;delete f.soulState.pandoraShieldBreak;f.counts.nextAttackBoost=(f.counts.nextAttackBoost??0)+e.attacks;f.soulState.nextAttackBoostFraction=1;if(opponent.hp>0)inflict(f,opponent,e.damage,'潘多拉护盾破裂','fixed');}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 150,
+      "code": "    function inflict(a,t,n,source,type='true',bypass=false,reflected=false){if(type==='direct')return hurt(t,n,source,type,true,false,t);if(statusRules.preventsDamage(a,t,type,r))return 0;return hurt(t,n*(a!==t&&a.soulId===1825&&['fixed','percent'].includes(type)?1+(a.soulState.jasmineCore??0)*.1:1)*(a!==t&&on(a,'全伤害翻倍')?2:1)*(a!==t?(E.SOULS.trait(a,'damageMultiplier')??1):1)*(a!==t&&['fixed','percent'].includes(type)&&a.ailments['星哲']>=r?1.3:1)*(a!==t&&!bypass&&on(a,'伤害输出降低')?1-a.effects['伤害输出降低'].fraction:1),source,type,bypass,reflected,a);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 152,
+      "code": "    function boostRemoved(f,by,method='clear'){E.SOULS.run('boostRemoved',{...context(f,by),method});f.soulState.boostRemovedRound=r;if(on(f,'强化消失清回合'))clear(by);if(on(f,'强化消失封属'))timed(by,'statusBlock',Math.max(1,f.effects['强化消失封属'].end-r+1),{},r+1);if(on(f,'强化被清封属'))timed(by,'statusBlock',f.effects['强化被清封属'].duration,{},r+1);if(on(f,'强化被清弱化'))stage(by,-f.effects['强化被清弱化'].amount);if(on(f,'强化被清追加'))inflict(f,by,by.stats.maxHp*f.effects['强化被清追加'].fraction,'强化被清追加','percent');if(on(f,'强化被清吸取')&&by.hp>0){const n=inflict(f,by,by.stats.maxHp*f.effects['强化被清吸取'].fraction,'强化被清吸取','percent');heal(f,n,'强化被清吸取','skill');}if(on(f,'强化被清惩罚')){const e=f.effects['强化被清惩罚'];if(rng(s)<e.chance/100)ailment(by,e.ailment,f,false,false,e.duration);}}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 161,
+      "code": "    function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 165,
+      "code": "        source,durationFallback:statusPolicy?.durationFallback??null,"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 167,
+      "code": "        if(t.soulState.hypnosReflect&&['睡眠','疲惫'].includes(k)){emit(`${name(t)} 零时诳语免疫${k}${source&&source!==t&&!reflected?'并反弹':''}。`);if(source&&source!==t&&!reflected){t.soulState.hypnosReflected=true;ailment(source,k,t,false,true,duration,statusPolicy);}return false;}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 168,
+      "code": "        if(on(t,'免异常反弹除星哲')&&k!=='星哲'){emit(`${name(t)} 免疫${k}${reflected?'':'并反弹'}。`);if(!reflected)ailment(source,k,t,false,true,duration,statusPolicy);return false;}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 171,
+      "code": "        if(on(t,'reflect')){emit(`${name(t)} 免疫${k}${reflected?'':'并反弹'}。`);if(!reflected)ailment(source,k,t,false,true,duration,statusPolicy);return false;}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 199,
+      "code": "      if(!ailment(t,'麻痹',f,false,false,1))inflict(f,t,t.stats.maxHp/6,'腐蚀未控补偿','percent');"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 237,
+      "code": "      if(a.ailments['虚弱诅咒']>=r)modifier*=.5;if(t.ailments['致命诅咒']>=r)modifier*=1.5;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 250,
+      "code": "      if(a.ailments['狂暴']>=r)modifier*=2;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 275,
+      "code": "      if(!rage&&t.soulState.hypnosReductionRound===r&&!t.soulState.hypnosReflected&&raw>0&&raw*4<300&&a.hp>0)ailment(a,'睡眠',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 322,
+      "code": "      if(!rage&&t.hp>0&&a.hp>0&&on(t,'光惩持续')){const e=t.effects['光惩持续'];if(!ailment(a,e.fatigue,t)){const n=inflict(t,a,a.stats.maxHp/e.denominator,'光之惩戒受击吸取','percent');heal(t,n,'光之惩戒受击吸取','skill');}}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 323,
+      "code": "      if(!rage&&t.hp>0&&a.hp>0&&on(t,'受击疲惫或固伤')){const e=t.effects['受击疲惫或固伤'];if(!(rng(s)<e.chance/100&&ailment(a,'疲惫',t)))inflict(t,a,e.amount,'罗兰剑语未触发疲惫','fixed');}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 324,
+      "code": "      if(!rage&&t.hp>0&&a.hp>0&&on(t,'诅咒受击反应')){const e=t.effects['诅咒受击反应'];if(!(rng(s)<e.chance&&ailment(a,e.ailment,t)))stage(a,-e.drop);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 338,
+      "code": "      if(!rage&&a.hp>0&&on(t,'受击低伤异常')&&dealt<t.effects['受击低伤异常'].threshold)ailment(a,t.effects['受击低伤异常'].ailment,t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 348,
+      "code": "      if(!rage&&t.hp>0&&on(t,'受击异常')&&rng(s)<t.effects['受击异常'].chance/100)ailment(a,t.effects['受击异常'].ailment,t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 350,
+      "code": "      if(!rage&&t.hp>0&&a.hp>0&&on(t,'幽蝶命中异常')){const pool=t.effects['幽蝶命中异常'].ailments;ailment(a,pool[Math.floor(rng(s)*pool.length)],t);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 375,
+      "code": "        case 'emperor150':case 30380: if(t.hp>0){if(dealt<280)ailment(t,'疲惫',a);set(t,'attackBlock',1,r+1);}break;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 382,
+      "code": "        case 'king150':if(t.hp>0&&rng(s)<.5+.08*boosted(a).length)ailment(t,'麻痹',a);break;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 392,
+      "code": "        case 'emperor150':case 30380:if(!(rng(s)<.5&&ailment(t,'失明',a,true)))set(t,'statusBlock',2+(a.side!==first?1:0));break;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 421,
+      "code": "      if(a.side===first&&on(a,'先手附加异常'))ailment(t,a.effects['先手附加异常'].ailment,a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 441,
+      "code": "      if(m.kind!=='status'&&on(a,'攻击随机异常')&&rng(s)<a.effects['攻击随机异常'].chance/100)ailment(t,['麻痹','害怕','睡眠','烧伤','冻伤','中毒'][Math.floor(rng(s)*6)],a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 449,
+      "code": "      const blind=m.kind!=='status'&&a.ailments['失明']>=r&&rng(s)<.5;"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 465,
+      "code": "      if(m.kind!=='status'&&a.counts.nextAttackMissAilment){const k=a.counts.nextAttackMissAilment;delete a.counts.nextAttackMissAilment;if(invalid&&!blocked)ailment(a,k,t);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 469,
+      "code": "          ailment(t,invalidResponseThis.ailment,a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 476,
+      "code": "        for(let hitIndex=0;hitIndex<useContext.hits&&a.hp>0&&t.hp>0;hitIndex++){const hit=m.kind==='status'?{dealt:0,crit:false}:damage(a,t,m,false,false);if(hit.invalid)continue;landed=true;total+=hit.dealt;crit ||=hit.crit;normalEffect(a,t,m,hit.dealt,hit.crit);if(m.id===30502&&t.hp>0&&rng(s)<(a.soulState.phoenixHitChance??0)/100)ailment(t,'焚烬',a);if(hitIndex===0)E.SOULS.run('afterHit',{...context(a,t,m),...hit,first});}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 479,
+      "code": "          if(a.hp>0&&t.hp>0&&on(a,'高伤概率异常')){const e=a.effects['高伤概率异常'];if(total>e.threshold&&rng(s)<e.chance/100)ailment(t,e.ailment,a);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 480,
+      "code": "          if(on(a,'攻击附加异常')){statusRules.markExecution(a,r);const e=a.effects['攻击附加异常'];if(rng(s)<e.chance/100)ailment(t,e.ailment,a);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 486,
+      "code": "          if(a.soulState.blakeBuffRound===r&&t.hp>0&&rng(s)<(E.SOULS.trait(a,'dodgeFearChance')??0)/100)ailment(t,'害怕',a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 488,
+      "code": "          if(on(a,'攻击概率异常')&&t.hp>0&&rng(s)<a.effects['攻击概率异常'].chance/100)ailment(t,a.effects['攻击概率异常'].ailment,a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 495,
+      "code": "          if(t.hp>0&&m.kind!=='status'&&on(t,'攻击后效果')){const e=t.effects['攻击后效果'];if(rng(s)<.5)ailment(a,e.ailment==='9'?'石化':e.ailment,t);else timed(a,'statusBlock',e.statusBlock,{},r+1);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 497,
+      "code": "      if(curseThis&&a.hp>0&&t.hp>0&&rng(s)<curseThis.chance)ailment(t,curseThis.ailment,a);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 498,
+      "code": "      if(a.hp>0&&t.hp>0&&m.kind!=='status'&&on(t,'茉蕊攻击后感染')&&!ailment(a,'感染',t))timed(a,'statusBlock',t.effects['茉蕊攻击后感染'].statusBlock,{},r+1);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 499,
+      "code": "      if(a.hp>0&&t.hp>0&&m.kind!=='status'&&on(t,'兰斯攻击后瘫痪')&&!ailment(a,'瘫痪',t))timed(a,'statusBlock',t.effects['兰斯攻击后瘫痪'].statusBlock,{},r+1);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 500,
+      "code": "      if(a.hp>0&&t.hp>0&&m.kind!=='status'&&on(t,'3580攻击后异常')){const e=t.effects['3580攻击后异常'];if(!ailment(a,e.ailment,t))timed(a,'statusBlock',e.statusBlock,{},r+1);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 507,
+      "code": "      if(a.hp>0&&t.hp>0&&a.side===first&&on(a,'托鲁克先手害怕')&&rng(s)<a.effects['托鲁克先手害怕'].chance/100)ailment(t,'害怕',a,false,false,null,{durationFallback:{origin:'source-effect-117-explicit-1-3',resolve:random=>1+Math.floor(random()*3)}});"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 508,
+      "code": "      if(a.hp>0&&t.hp>0&&on(a,'托鲁克先手控制清回合')){const e=a.effects['托鲁克先手控制清回合'];if(!(a.side===first&&rng(s)<e.chance/100&&ailment(t,e.ailment,a)))clear(t);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 509,
+      "code": "      if(a.hp>0&&t.hp>0&&on(a,'用招失明或粉伤')){const e=a.effects['用招失明或粉伤'];if(!(rng(s)<e.chance/100&&ailment(t,e.ailment,a)))inflict(a,t,t.stats.maxHp/e.denominator,'光之惩戒未触发','percent');}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 522,
+      "code": "      if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性后睡眠或削血')&&!ailment(a,'睡眠',t))inflict(t,a,a.stats.maxHp*t.effects['对手属性后睡眠或削血'].fraction,'对手属性技能未触发睡眠','percent');"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 524,
+      "code": "      if(t.hp>0&&m.kind==='status'&&on(t,'对手属性后指定异常')&&rng(s)<t.effects['对手属性后指定异常'].chance/100)ailment(a,t.effects['对手属性后指定异常'].ailment,t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 526,
+      "code": "      if(t.hp>0&&m.kind==='status'&&on(t,'对手属性后异常'))ailment(a,['烧伤','冻伤','中毒','麻痹','害怕','睡眠'][Math.floor(rng(s)*6)],t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 533,
+      "code": "      if(t.hp>0&&m.kind!=='status'&&on(t,'对手攻击后随机异常')){const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<t.effects['对手攻击后随机异常'].count&&pool.length;i++)success=ailment(a,pool.splice(Math.floor(rng(s)*pool.length),1)[0],t)||success;if(!success)clear(a);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 534,
+      "code": "      if(t.hp>0&&m.kind==='physical'&&on(t,'受物攻概率烧伤')&&rng(s)<t.effects['受物攻概率烧伤'].chance/100)ailment(a,'烧伤',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 535,
+      "code": "      if(t.hp>0&&m.kind!=='status'&&on(t,'对手攻击后焚烬'))ailment(a,'焚烬',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 536,
+      "code": "      if(t.hp>0&&m.kind!=='status'&&on(t,'赛伯攻击后瘫痪'))ailment(a,'瘫痪',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 537,
+      "code": "      if(t.hp>0&&m.kind!=='status'&&on(t,'茉蕊用攻感染')&&rng(s)<t.effects['茉蕊用攻感染'].chance/100)ailment(a,'感染',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 538,
+      "code": "      if(t.hp>0&&m.kind!=='status'&&on(t,'对手攻击概率疲惫')&&rng(s)<t.effects['对手攻击概率疲惫'].chance/100)ailment(a,'疲惫',t);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 561,
+      "code": "      if(a.hp>0&&on(a,'2230持续')){const e=a.effects['2230持续'],before=a.hp;heal(a,a.stats.maxHp/e.denominator,'2230持续回复','skill');if(a.hp===before&&t.hp>0&&rng(s)<e.chance/100)ailment(t,'疲惫',a);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 571,
+      "code": "      if(t.hp>0&&a.hp>0&&on(t,'hathawayReaction')){const e=t.effects.hathawayReaction;if(m.kind==='status')stage(a,-e.drop);else if(rng(s)<e.chance/100)ailment(a,e.ailment,t);}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 594,
+      "code": "    if(!s.finished)for(const f of fs)if(on(f,'用招追加异常')&&fs[1-f.side].hp>0&&rng(s)<f.effects['用招追加异常'].chance/100)ailment(fs[1-f.side],f.effects['用招追加异常'].ailment,f);"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 595,
+      "code": "    if(!s.finished)for(const f of fs)if(f.hp>0&&f.ailments['寄生']>=r){const other=fs[1-f.side],n=inflict(other,f,f.stats.maxHp/8,'寄生','percent');heal(other,n,'寄生','skill');}"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 614,
+      "code": "    if(!s.finished)for(const f of fs)if(f.hp>0&&f.ailments['星哲']>=r)heal(f,f.stats.maxHp/4,'星哲回合回复');"
+    },
+    {
+      "file": "dist/souls.js",
+      "line": 616,
+      "code": "    if(!s.finished)for(const f of fs)if(f.hp>0&&f.soulState.oscarBlessings){let removed=0;for(const group of [['烧伤','焚烬'],['冻伤','冰封'],['混乱','麻痹']]){let hit=false;for(const k of group)if(f.ailments[k]>=r){delete f.ailments[k];hit=true;emit(`${name(f)} ${k}受到奥斯卡加护解除。`);}if(hit)removed++;}if(removed){f.soulState.oscarPriority={round:r+1,amount:removed};emit(`${name(f)} 奥斯卡加护：下回合先制 +${removed}。`);}}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 135,
+      "code": "add(2123,'afterHit',(c,p)=>{if(c.clear(c.t)){const hit=c.ailment(c.t,'感染',c.a);for(const k of ['中毒','睡眠','寄生'].slice(0,c.a.soulState.jasmineCore??0))c.ailment(c.t,k,c.a);if(!hit)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent'),c.m.name);}},[[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 140,
+      "code": "add(756,'afterHit',(c,p)=>{if(!ailments[p[1]])throw Error('异常类型尚未实现');if(statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 157,
+      "code": "add(936,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.t,'statusBlock',p[2],{});},[pct,[0,20],turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 180,
+      "code": "  for(let i=0;i<count;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 185,
+      "code": "  if(statusRoll(c,p[0]))c.ailment(c.t,'麻痹',c.a);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 193,
+      "code": "add(15,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'害怕',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 198,
+      "code": "add(12,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'烧伤',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 220,
+      "code": "add(97,'beforeDamage',c=>{if(c.t.ailments['冻伤']>=c.round)c.power*=2;});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 239,
+      "code": "add(451,'afterHit',(c,p)=>{if(!statusRoll(c,p[0]))return;const pool=['烧伤','冻伤','中毒'];for(let i=0;i<p[1];i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.ailment(c.t,k,c.a);}},[pct,[1,3]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 243,
+      "code": "add(14,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'冻伤',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 249,
+      "code": "add(609,'beforeDamage',(c,p)=>{if(c.t.ailments[ailments[p[0]]]>=c.round)c.power*=2;},[[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 252,
+      "code": "add(733,'afterHit',(c,p)=>{let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.a.stages[k]*=-1;changed=true;}if(changed)c.ailment(c.t,ailments[p[0]],c.a);},[[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 275,
+      "code": "add(517,'afterHit',(c,p)=>{const chance=p[0]+Math.floor((c.a.stats.maxHp-c.a.hp)*100/c.a.stats.maxHp/p[1])*p[2];if(statusRoll(c,chance))c.ailment(c.t,'害怕',c.a);},[pct,[1,100],pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 290,
+      "code": "add(16,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'睡眠',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 291,
+      "code": "add(22,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'疲惫',c.a,false,false,p[1]+1);},[pct,[0,98]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 296,
+      "code": "add(453,'afterHit',(c,p)=>{if(![6,7].includes(p[0]))throw Error('453 异常枚举尚未核对');if(c.clearBoost(c.t))c.ailment(c.t,ailments[p[0]],c.a);},[[6,7]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 299,
+      "code": "add(553,'afterAttack',(c,p)=>{if(c.crit&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[6,7]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 347,
+      "code": "add(11,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,'中毒',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 357,
+      "code": "add(434,'afterHit',(c,p)=>{if(![6,19].includes(p[1]))throw Error('434 异常枚举尚未核对');if(Object.values(c.a.stages).some(n=>n>0)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[6,19]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 402,
+      "code": "add(889,'afterHit',(c,p)=>{if(c.clear(c.t))c.ailment(c.t,ailments[p[0]],c.a);},[[0,27]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 416,
+      "code": "add(719,'afterAttack',(c,p)=>{if(c.t.hp>0&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[2,2]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 419,
+      "code": "add(680,'afterHit',(c,p)=>{if(c.a.side===c.first&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a,false,p[2]);},[pct,[6,6],turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 436,
+      "code": "add(737,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'回合末削血',1,{fraction:1/p[2]});},[pct,[8,8],[1,9999]],undefined,'未触发按未成功施加异常处理，包括免疫、抗性抵抗。');"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 442,
+      "code": "add(909,'afterHit',(c,p)=>{if(!(c.a.side===c.first&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.hurt(c.t,p[2],c.m.name,'fixed');},[pct,[0,0],[0,99999]],undefined,'未触发按未成功施加异常处理，后手亦走固伤分支。');"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 455,
+      "code": "add(937,'afterHit',(c,p)=>{if(![6,7,19,23].includes(p[1]))throw Error('937 异常枚举尚未核对');if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.t,'id984',p[2],{amount:-p[3]},c.round+1);},[pct,[6,23],turns,[0,10]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 458,
+      "code": "add(181,'afterHit',(c,p)=>{if(![0,2,5,6].includes(p[1]))throw Error('181 异常枚举尚未核对');if(statusRoll(c,Math.min(p[3],p[0]+Math.max(0,(c.a.consecutiveUses??1)-1)*p[2])))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,6],pct,pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 464,
+      "code": "add(472,'afterHit',(c,p)=>{if(c.t.ailments[ailments[p[0]]]>=c.round)c.heal(c.a,c.dealt,c.m.name);},[[6,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 472,
+      "code": "add(973,'afterHit',(c,p)=>{if(c.clear(c.t)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 478,
+      "code": "add(982,'afterHit',(c,p)=>{if(statusRoll(c,p[0]+Object.values(c.a.stages).filter(x=>x>0).length*p[2]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,7],pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 479,
+      "code": "add(603,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a,false,false,p[2]);},[pct,[0,16],turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 484,
+      "code": "add(993,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[1]))throw Error('异常类型尚未核对');c.stage(c.a,p[0]*(c.t.ailments[ailments[p[1]]] >= c.round?2:1));},[[1,6],[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 485,
+      "code": "add(968,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[1]))throw Error('异常类型尚未核对');if(statusRoll(c,Math.min(100,p[0]*(c.a.side===c.first?2:1))))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,23]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 496,
+      "code": "add(119,'afterAttack',c=>{if(c.dealt%2&&statusRoll(c,30))c.ailment(c.t,'疲惫',c.a,false,false,1);else if(c.dealt>0&&c.dealt%2===0&&roll(c,30))c.stage(c.a,1,['spe']);});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 501,
+      "code": "add(1030,'afterHit',(c,p)=>{if(![6,23].includes(p[0]))throw Error('1030 异常枚举尚未核对');let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.stage(c.t,c.a.stages[k],[k]);c.a.stages[k]=0;changed=true;}if(changed)c.ailment(c.t,p[0]===23?'诅咒':'害怕',c.a);},[[0,23]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 509,
+      "code": "add(1035,'afterHit',(c,p)=>{if(!([7,8,23].includes(p[1])&&[6,7,8].includes(p[4])))throw Error('1035 异常枚举尚未核对');if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'攻击概率异常',p[2],{chance:p[3],ailment:ailments[p[4]]},c.round+1);},[pct,[7,23],turns,pct,[6,8]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 510,
+      "code": "add(786,'afterHit',(c,p)=>{const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封','流血'];for(let i=0;i<p[0]&&pool.length;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);},[[1,7]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 526,
+      "code": "add(636,'afterHit',(c,p)=>{if(p[0]!==0||![6,8].includes(p[1]))throw Error('636 状态枚举尚未核对');if(c.clearBoost(c.t))c.ailment(c.t,ailments[p[1]],c.a);},[[0,0],[6,8]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 527,
+      "code": "add(176,'afterHit',(c,p)=>{if(!statusRoll(c,p[0])||c.t.hp<=0)return;const pool=['烧伤','冻伤','中毒','麻痹','害怕','睡眠'];c.ailment(c.t,pool[Math.floor(c.random()*pool.length)],c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 540,
+      "code": "add(194,'afterAttack',(c,p)=>{if(c.dealt>0)c.heal(c.a,c.dealt/(c.t.ailments[ailments[p[1]]]>=c.round?p[2]:p[0]),c.m.name+'吸血');},[[1,9999],[0,20],[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 541,
+      "code": "add(782,'afterHit',(c,p)=>{if(![6,20].includes(p[1]))throw Error('782 异常枚举尚未核对');const uses=c.a.soulState.skillUses?.[c.m.id]??1;if(statusRoll(c,Math.min(p[3],p[0]+(uses-1)*p[2])))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,20],pct,pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 544,
+      "code": "add(687,'afterAttack',(c,p)=>{if(p[0]!==20)throw Error('687 异常枚举尚未核对');if(c.dealt>0&&c.t.ailments['失明']>=c.round)c.heal(c.a,c.dealt*p[1]/100,c.m.name+'失明吸血');},[[20,20],pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 549,
+      "code": "add(1399,'afterHit',(c,p)=>{if(p[0]!==0)throw Error('1399 异常枚举尚未核对');if(c.clear(c.t))c.ailment(c.t,'麻痹',c.a);else c.a.counts.immune=(c.a.counts.immune??0)+p[1];},[[0,0],[1,10]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 551,
+      "code": "add(595,'afterHit',(c,p)=>{if(p[1]!==6)throw Error('595 异常枚举尚未核对');if(statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a))return;p.slice(2).forEach((n,i)=>{if(n)c.stage(c.t,n,[stats[i]]);});},[pct,[6,6],...Array(6).fill(stage)]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 584,
+      "code": "add(20,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.a,'疲惫',c.a,false,false,p[1]);},[pct,turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 590,
+      "code": "add(500,'beforeDamage',c=>{if(c.t.ailments['害怕']>=c.round)c.modifier*=2;});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 604,
+      "code": "add(465,'afterHit',(c,p)=>{const uses=(c.a.soulState.effect465Uses??={}),n=uses[c.m.id]??0;uses[c.m.id]=n+1;if(statusRoll(c,Math.min(p[3],p[0]+p[2]*n)))c.ailment(c.t,'疲惫',c.a,false,false,p[1]);},[pct,turns,pct,pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 632,
+      "code": "add(1210,'afterHit',(c,p)=>{if(p[1]!==0)throw Error('1210 异常枚举尚未核对');if(statusRoll(c,p[0]*(c.a.hp<c.t.hp?2:1)))c.ailment(c.t,'麻痹',c.a);},[pct,[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 638,
+      "code": "add(2478,'afterHit',(c,p)=>{if(p[1]!==0)throw Error('2478 异常枚举尚未核对');if(c.a.hp<c.t.hp&&statusRoll(c,p[0]))c.ailment(c.t,'麻痹',c.a);},[pct,[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 644,
+      "code": "add(2485,'afterHit',(c,p)=>{if(p[0]!==0||p[1]!==22)throw Error('2485 异常枚举尚未核对');if(c.t.suitState.shield>0&&c.t.suitState.barrier>0){c.t.suitState.shield=0;c.t.suitState.barrier=0;c.ailment(c.t,'麻痹',c.a);c.ailment(c.t,'焚烬',c.a);}},[[0,0],[22,22]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 656,
+      "code": "add(948,'afterHit',(c,p)=>{if(![6,19].includes(p[0]))throw Error('948 异常枚举尚未核对');const positive=Object.keys(c.t.stages).filter(k=>c.t.stages[k]>0);c.steal(c.a,c.t,'技能');if(positive.some(k=>c.t.stages[k]===0))c.ailment(c.t,ailments[p[0]],c.a);},[[6,19]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 658,
+      "code": "add(1003,'afterHit',(c,p)=>{if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))c.stage(c.t,-p[2]);},[pct,[0,20],[1,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 670,
+      "code": "add(1187,'afterHit',(c,p)=>{if(![6,7].includes(p[1]))throw Error('1187 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))c.clear(c.t);},[pct,[6,7]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 673,
+      "code": "add(1843,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 688,
+      "code": "add(916,'afterHit',(c,p)=>{if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))c.heal(c.a,c.a.stats.maxHp,c.m.name+'未控回满');},[pct,[8,8]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 693,
+      "code": "add(1047,'afterHit',(c,p)=>{if(![6,19,23].includes(p[1]))throw Error('1047 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a))c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp/p[2],c.m.name+'未控吸取','percent'),c.m.name+'未控吸取');},[pct,[6,23],[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 721,
+      "code": "add(1138,'afterHit',(c,p)=>{if(![0,6,8,19,20].includes(p[1]))throw Error('1138 异常枚举尚未核对');if(c.clear(c.t)){if(!statusRoll(c,p[0])||!c.ailment(c.t,ailments[p[1]],c.a)){if(statusRoll(c,p[2]))c.ailment(c.t,ailments[p[3]],c.a);}}},[pct,[0,20],pct,[2,22]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 722,
+      "code": "add(1139,'afterHit',(c,p)=>{if(p[1]!==2||p[2]!==2)throw Error('1139 烧伤枚举尚未核对');c.clear(c.a);c.clear(c.t);c.ailment(c.a,'烧伤',c.t,false,false,p[0]);c.ailment(c.t,'烧伤',c.a,false,false,p[0]);c.a.soulState.phoenixBurnHeal=true;},[turns,[2,2],[2,2]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 732,
+      "code": "add(1116,'afterHit',(c,p)=>{const kinds=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<p[0]&&kinds.length;i++){const k=kinds.splice(Math.floor(c.random()*kinds.length),1)[0];success=c.ailment(c.t,k,c.a)||success;}if(!success)c.clear(c.t);},[[1,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 747,
+      "code": "add(1122,'afterHit',(c,p)=>{const before=Object.values(c.t.stages).join(',');c.stage(c.t,-p[0]);if(Object.values(c.t.stages).join(',')===before)c.ailment(c.t,ailments[p[1]],c.a);},[[1,6],[6,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 762,
+      "code": "add(1106,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 770,
+      "code": "add(1092,'afterAttack',(c,p)=>{if(c.a.side===c.first||c.t.hp<=0)return;if(!c.ailment(c.t,ailments[p[0]],c.a))c.hurt(c.t,c.a.hp/p[1],c.m.name+'未触发追加','percent');},[[15,15],[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 817,
+      "code": "add(2557,'afterHit',(c,p)=>{if(p.join(',')!=='22,15,0')throw Error('2557 异常枚举尚未核对');if(c.clear(c.t))for(const k of p)c.ailment(c.t,ailments[k],c.a);},[[22,22],[15,15],[0,0]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 818,
+      "code": "add(2558,'afterHit',(c,p)=>{if(p.join(',')!=='2,5,10')throw Error('2558 异常枚举尚未核对');if(c.clearBoost(c.t))for(const k of p)c.ailment(c.t,ailments[k],c.a);},[[2,2],[5,5],[10,10]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 823,
+      "code": "add(2562,'afterHit',(c,p)=>{if(p[0]!==39)throw Error('2562 异常枚举尚未核对');if(c.a.soulState.noAilmentLastEnd&&c.clear(c.t))c.ailment(c.t,'神游',c.a);},[[39,39]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 825,
+      "code": "add(2563,'afterHit',(c,p)=>{if(p[1]!==34)throw Error('2563 异常枚举尚未核对');if(!c.ailment(c.a,'星哲',c.a,false,false,p[0]))c.timed(c.t,'statusBlock',p[2],{});},[turns,[34,34],turns],undefined,'未触发时按属性技能无效近似属性技能命中效果失效。');"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 830,
+      "code": "add(2193,'afterHit',(c,p)=>{if(p.join(',')!=='100,14,3,0,1,1,1,1,1,1,2')throw Error('2193 参数尚未核对');if(Object.values(c.a.stages).some(n=>n>0))return;if(c.ailment(c.t,'狂暴',c.a,false,false,3))c.timed(c.a,'hypnosGrowth',p[2],{stages:p.slice(4,10)},c.round);else c.timed(c.t,'statusBlock',p[10],{});},[pct,[14,14],turns,[0,0],...Array(6).fill([0,6]),turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 831,
+      "code": "add(2445,'afterHit',(c,p)=>{if(p.join(',')!=='100,8,3')throw Error('2445 参数尚未核对');if(!Object.values(c.a.stages).some(n=>n>0))return;if(!c.ailment(c.a,'睡眠',c.a,false,false,3))c.timed(c.a,'hypnosBoostProtect',p[2],{});},[pct,[8,8],turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 840,
+      "code": "add(1929,'afterHit',(c,p)=>{if(p[1]!==15)throw Error('1929 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'冰封',c.a)){const pool=['烧伤','冻伤','麻痹','害怕','睡眠','疲惫'];for(let i=0;i<p[2]&&pool.length;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);}},[pct,[15,15],[1,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 850,
+      "code": "add(1277,'afterHit',c=>{const n=c.a.hp;if(n>c.t.hp){c.hurt(c.a,n-1,c.m.name+'保留1点消耗','true',true);if(c.t.hp>0)c.hurt(c.t,350+Math.floor(c.random()*201),c.m.name+'随机固定伤害','fixed');}else if(n<c.t.hp){c.hurt(c.a,n,c.m.name+'全部体力消耗','true',true);if(c.t.hp>0){c.hurt(c.t,Math.min(n,Math.max(0,c.t.hp-1)),c.m.name+'体力消耗反馈','fixed');c.ailment(c.t,'瘫痪',c.a,false,false,2);}}},[]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 852,
+      "code": "add(155,'afterHit',(c,p)=>{c.heal(c.a,c.a.stats.maxHp,c.m.name+'回满');c.clearNegative(c.a);c.ailment(c.a,'睡眠',c.a,false,false,p[0]);},[turns]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 853,
+      "code": "add(1278,'afterHit',(c,p)=>{if(p[1]!==6)throw Error('1278 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'害怕',c.a)){c.a.counts.attackNullify=(c.a.counts.attackNullify??0)+p[2];c.a.soulState.hunterReflect=(c.a.soulState.hunterReflect??0)+p[2];}},[pct,[6,6],[1,99]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 858,
+      "code": "add(1274,'afterHit',(c,p)=>{const chance=Math.min(1,(p[0]??0)/100*(Object.values(c.t.stages).some(n=>n<0)?2:1));if(c.t.hp>0&&(c.markStatusEffect?.(),c.random())<chance)c.ailment(c.t,(['麻痹','中毒','烧伤','冻伤','害怕','睡眠'][p[1]]??'害怕'),c.a);},[[0,100],[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 862,
+      "code": "add(1374,'afterHit',(c)=>{if(c.t.hp>0)c.hurt(c.t,c.t.hp,c.m.name+'秒杀','true',true);},[],undefined,undefined,{onMiss(c){c.a.hp=0;c.clear(c.t);c.ailment(c.t,'冰封',c.a);}});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 872,
+      "code": "add(1376,'afterHit',(c,p)=>{if(c.t.hp>0&&(c.markStatusEffect?.(),c.random())<p[1]/100)c.ailment(c.t,'害怕',c.a);else if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/(p[3]||1),c.m.name+'吸取','percent');},[[1,10],[0,100],[0,20],[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 873,
+      "code": "add(1539,'afterHit',(c,p)=>{if(c.dealt>p[0]&&(c.markStatusEffect?.(),c.random())<p[1]/100)c.ailment(c.t,(['害怕','麻痹','睡眠'][p[2]]??'害怕'),c.a);else c.clear(c.t);},[[0,9999],[0,100],[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 879,
+      "code": "add(1321,'afterHit',(c,p)=>{const ok=c.clearNegative(c.a)||c.clearBoost(c.t);if(ok&&c.t.hp>0&&(c.markStatusEffect?.(),c.random())<p[0]/100)c.ailment(c.t,(['麻痹','中毒','烧伤','冻伤','害怕','睡眠'][p[1]]??'害怕'),c.a);},[[0,100],[0,20]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 915,
+      "code": "add(1864,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.ailment(c.t,p[1]===26?'虚弱诅咒':'狂暴',c.a);else c.ailment(c.a,p[3]===26?'虚弱诅咒':'狂暴',c.a);},[[0,100],[0,26],[0,100],[0,26]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 921,
+      "code": "add(1297,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[0]))throw Error('1297 异常枚举尚未核对');const cleared=c.clear(c.t);if(p[0]===23){if(cleared&&!c.ailment(c.t,'诅咒',c.a)){const n=c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'诅咒未触发吸取','percent');c.heal(c.a,n,c.m.name+'诅咒未触发吸取');}}else if(cleared)c.ailment(c.t,ailments[p[0]],c.a);else{const n=c.hurt(c.t,c.t.stats.maxHp/p[1],c.m.name+'未消回合吸取','percent');c.heal(c.a,n,c.m.name+'未消回合吸取');}},[[0,23],[1,99]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 924,
+      "code": "add(1040,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;if(!((c.markStatusEffect?.(),c.random())<p[0]/100&&c.ailment(c.t,ailments[p[1]]??'疲惫',c.a)))c.stage(c.a,p[2]);},[[0,100],[0,20],[0,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 928,
+      "code": "add(1334,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;if(!(c.dealt<p[0]&&statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a))){c.a.counts.nextSkillCurse=p[3];c.a.soulState.nextSkillCurse={chance:p[4]/100,ailment:ailments[p[5]]};}},[[0,99999],[0,100],[0,26],[1,10],[0,100],[0,26]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 935,
+      "code": "add(594,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[23,23]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 936,
+      "code": "add(1333,'afterHit',(c,p)=>{if(Object.values(c.a.stages).some(n=>n>0)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[23,23]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 960,
+      "code": "add(1337,'afterHit',(c,p)=>{if(!(c.a.hp>c.t.hp&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.clear(c.t);},[pct,[6,6],[6,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 993,
+      "code": "add(2201,'afterHit',(c,p)=>{const n=c.a.soulState.butterflyMoveTypes;if(n.light!==n.shadow&&statusRoll(c,p[0]))c.ailment(c.t,n.light>n.shadow?'疲惫':'害怕',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1007,
+      "code": "add(941,'beforeUse',(c,p)=>{if((c.markStatusEffect?.(),c.random())<c.a.hp/c.a.stats.maxHp)c.ailment(c.t,ailments[p[0]],c.a);},[[6,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1009,
+      "code": "add(449,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n<0)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[27,27]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1019,
+      "code": "add(851,'afterHit',(c,p)=>{const pool=['害怕','失明','烧伤','冻伤','中毒'];for(let i=0;i<p[0];i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);},[[1,5]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1028,
+      "code": "add(1201,'afterHit',(c,p)=>{if(c.a.side===c.first&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'id984',p[2],{amount:p[3]},c.round+1);},[pct,[15,15],turns,[0,10]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1032,
+      "code": "add(966,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.stage(c.a,p[2]);},[pct,[19,19],[1,6]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1062,
+      "code": "add(121,'afterHit',(c,p)=>{if(c.a.type===c.t.type&&statusRoll(c,p[0]))c.ailment(c.t,'麻痹',c.a);},[pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1131,
+      "code": "add(1365,'afterHit',(c,p)=>{const lost=Math.floor((c.a.stats.maxHp-c.a.hp)*100/c.a.stats.maxHp/p[2]);if(roll(c,Math.min(100,p[0]+lost*p[3])))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[8,8],[1,100],pct]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1166,
+      "code": "add(1074,'afterAttack',(c,p)=>{if(![6].includes(p[2])||![6,7].includes(p[5]))throw Error('1074异常枚举未核对');if(c.t.hp>0&&!(c.dealt>p[0]&&statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))c.timed(c.a,'攻击概率异常',p[3],{chance:p[4],ailment:ailments[p[5]]},c.round+1);},[[0,99999],pct,[6,6],turns,pct,[6,7]]);"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 11,
+      "code": "registry[374]={name:'樱',sourceHash:'eceb56f4',traits:{},hooks:{afterAttack(c){if(c.t.hp>0&&c.random()<.2+.1*positive(c.t))c.ailment(c.t,'冰封',c.a);}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 13,
+      "code": "registry[377]={name:'逍',sourceHash:'d2ba1235',traits:{},hooks:{afterAttack(c){if(c.dealt>300&&c.t.hp>0&&c.random()<.5)c.ailment(c.t,'害怕',c.a);else if(c.dealt<300)c.heal(c.a,200,'圣逍魂印回复');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 20,
+      "code": "registry[384]={name:'血',sourceHash:'c78935d0',traits:{},hooks:{beforeUse(c){if(c.m.kind!=='status'){if(c.random()<.5)c.ailment(c.t,'烧伤',c.a);if(c.random()<.3)c.ailment(c.t,'麻痹',c.a);}},beforeDamage(c){if(Object.values(c.t.ailments).some(end=>end>=c.round))c.power*=2;}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 32,
+      "code": "registry[389]={name:'炽',sourceHash:'6de770f4',traits:{},hooks:{beforeUse(c){if(c.random()<(c.m.kind==='status'?.8:.2))c.ailment(c.t,c.m.kind==='status'?'烧伤':'麻痹',c.a);}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 36,
+      "code": "registry[394]={name:'焰',sourceHash:'8f1e18c',traits:{},hooks:{beforeUse(c){if(Object.values(c.t.stages).some(n=>n>0))c.ailment(c.t,'烧伤',c.a);},afterUse(c){if(c.a.hp>0&&c.t.hp>0)c.hurt(c.t,150,'克拉德诺魂印追加','fixed');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 40,
+      "code": "registry[392]={name:'威',sourceHash:'49f42234',traits:{},hooks:{beforeUse(c){if(c.a.side===c.first&&c.random()<.3)c.ailment(c.t,'害怕',c.a);},afterUse(c){if(c.a.side!==c.first&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,150,'神威后手追加','fixed');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 47,
+      "code": "registry[416]={name:'鬼焰',sourceHash:'b4cc9a0',traits:{skillPriority:f=>f.soulState.luxunBurning?1:0},hooks:{roundStart(c){c.a.soulState.luxunBurning=c.t.ailments['烧伤']>=c.round;},beforeDamage(c){if(c.t.ailments['烧伤']>=c.round)c.power*=2;}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 49,
+      "code": "registry[425]={name:'圣甲雷',sourceHash:'ba3a5753',traits:{},hooks:{beforeUse(c){if(c.a.hp>c.a.stats.maxHp/2&&c.random()<.5)c.ailment(c.t,'麻痹',c.a);},afterAttack(c){if(c.a.hp>0&&c.t.hp>0)c.heal(c.a,c.hurt(c.t,c.t.stats.maxHp*(c.a.hp<c.a.stats.maxHp/2?.4:.2),'圣甲雷伊吸取','percent'),'圣甲雷伊吸取');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 53,
+      "code": "for(const [id,hash,priority] of [[480,'2abaceaa',2],[611,'312a1a2f',3]])registry[id]={name:id===611?'冥 · 强化':'冥',sourceHash:hash,traits:{firstRoundSurvive:true,skillPriority:f=>f.soulState.hadesLow?2:0,attackPriority:f=>f.soulState.hadesBonus?priority:0},hooks:{roundStart(c){c.a.soulState.hadesLow=c.a.hp<c.t.hp;c.a.soulState.hadesBonus=c.a.soulState.hadesRewardRound===c.round;},receivedAttack(c){if(c.a.soulState.hadesLow)c.ailment(c.t,'害怕',c.a);},afterAttack(c){if(c.a.soulState.hadesBonus&&c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/3,'哈迪斯保命后追加','fixed');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 55,
+      "code": "for(const [id,hash,bonus] of [[492,'21b67b02',.5],[528,'5989e77b',.75]])registry[id]={name:id===528?'雷祖 · 强化':'雷祖',sourceHash:hash,traits:{},hooks:{roundStart(c){c.a.soulState.glauriLow=c.a.hp<c.a.stats.maxHp/2;c.a.soulState.glauriHigh=c.a.hp>c.a.stats.maxHp/2;},roundEnd(c){if(c.a.soulState.glauriLow&&c.t.hp>0)c.ailment(c.t,'麻痹',c.a,false,false,2);if(c.a.soulState.glauriHigh&&c.a.hp>0)c.timed(c.a,'id913',1,{bonus},c.round+1);}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 68,
+      "code": "for(const [id,hash,turns] of [[523,'40d8f8b9',1],[532,'ac2bb518',2]])registry[id]={name:id===532?'冥王 · 强化':'冥王',sourceHash:hash,traits:{},hooks:{roundEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.hp<c.a.stats.maxHp/2)c.ailment(c.t,'害怕',c.a);else if(c.a.hp>c.a.stats.maxHp/2)c.timed(c.a,'免异常',turns,{},c.round+1);}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 71,
+      "code": "  beforeUse(c){if(c.m.kind!=='status')c.a.soulState.museSleepingAtAttack=c.t.ailments['睡眠']>=c.round;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 72,
+      "code": "  afterAttack(c){if(c.a.soulState.museSleepingAtAttack&&c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp/3,'王瞳魂印追加','fixed');if(c.t.hp<=0)return;if(c.random()<sleep/100)c.ailment(c.t,'睡眠',c.a);else{c.stage(c.a,1,['spa','spe']);if(c.random()<clear/100)c.clear(c.t);}}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 100,
+      "code": "  opponentAfterUse(c){if(c.m.kind==='status')return;c.a.soulState.whiteTigerAttackedRound=c.round;if(c.on(c.a,'受物攻概率麻痹')&&c.m.kind==='physical'&&c.random()<c.a.effects['受物攻概率麻痹'].chance/100)c.ailment(c.t,'麻痹',c.a);},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 101,
+      "code": "  roundEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.soulState.whiteTigerAttackedRound===c.round){if(c.random()<.6)c.ailment(c.t,'麻痹',c.a);}else c.a.counts.nextCrit=(c.a.counts.nextCrit??0)+1;}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 141,
+      "code": "  afterUse(c){if(c.a.soulState.leoDifferent&&c.a.hp>0&&c.t.hp>0){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'列奥尼达魂印回复');c.hurt(c.t,c.a.hp-before,'列奥尼达魂印追加','fixed');}if((c.a.soulState.leoSame||c.a.soulState.leoDifferent)&&c.t.hp>0){if(c.random()<.5){const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];c.ailment(c.t,pool[Math.floor(c.random()*pool.length)],c.a);}else c.a.soulState.leoFixedRound=c.round;}c.a.soulState.leoLastKind=c.m.kind;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 151,
+      "code": "  beforeUse(c){if(!advanced&&!c.a.soulState.xilanAilment&&c.t.hp>0&&c.random()<.35)c.ailment(c.t,'害怕',c.a,false,false,1);},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 152,
+      "code": "  afterUse(c){if(!advanced||c.a.soulState.xilanAilment||c.t.hp<=0)return;if(c.random()<.35)c.ailment(c.t,'害怕',c.a);else c.timed(c.a,'攻击先制',1,{amount:1},c.round+1);},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 171,
+      "code": "  afterAttack(c){if(c.t.hp<=0)return;if(c.a.soulState.holyReyFixed)c.hurt(c.t,c.a.soulState.holyReyFixed,'圣霆雷伊魂印追加','fixed');else if(c.random()<c.t.hp/c.t.stats.maxHp)c.ailment(c.t,'麻痹',c.a);},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 177,
+      "code": "  afterAttack(c){if(c.a.soulState.glaBurnNext>0&&c.t.hp>0){c.a.soulState.glaBurnNext--;if(c.random()<.8)c.ailment(c.t,'焚烬',c.a);}},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 178,
+      "code": "  roundEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.hp<c.t.hp){if(c.ailment(c.t,'麻痹',c.a,false,false,2))c.ailment(c.t,'烧伤',c.a,false,false,3);else{c.a.counts.nextAttackPriority=(c.a.counts.nextAttackPriority??0)+2;c.a.soulState.nextAttackPriorityAmount=2;c.a.soulState.glaBurnNext=2;}}if(c.a.soulState.glaTargetAiling){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'格劳恩斯魂印回复');if(c.t.hp>0)c.hurt(c.t,c.a.hp-before,'格劳恩斯魂印追加','percent');}}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 183,
+      "code": "  afterAttack(c){if(c.a.soulState.glaBurnNext>0&&c.t.hp>0){c.a.soulState.glaBurnNext--;c.ailment(c.t,'焚烬',c.a);}},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 184,
+      "code": "  roundEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.hp<c.t.hp){if(c.ailment(c.t,'麻痹',c.a,false,false,3))c.ailment(c.t,'烧伤',c.a,false,false,3);else c.a.soulState.hundredFires=(c.a.soulState.hundredFires??0)+1;}if(Object.values(c.a.ailments).some(end=>end>=c.round)||Object.values(c.t.ailments).some(end=>end>=c.round))c.heal(c.a,c.a.stats.maxHp/3,'格劳恩斯强化魂印回复');if(c.a.hp>c.t.hp&&!(c.a.soulState.lightningReleaseEnd>=c.round)){c.t.soulState.nextStatusPriorityPenalty=(c.t.soulState.nextStatusPriorityPenalty??0)+2;c.t.soulState.nextStatusNoAilment=(c.t.soulState.nextStatusNoAilment??0)+2;}if(c.a.hp<c.t.hp&&!(c.t.ailments['烧伤']>=c.round)){c.a.counts.nextAttackPriority=(c.a.counts.nextAttackPriority??0)+2;c.a.soulState.nextAttackPriorityAmount=2;c.a.soulState.glaBurnNext=2;}}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 205,
+      "code": "  roundStart(c){const s=c.a.soulState;s.currentRound=c.round;if(c.random()<.5){const pool=['烧伤','冻伤','中毒','麻痹','害怕','睡眠'];c.ailment(c.t,pool[Math.floor(c.random()*pool.length)],c.a);}else s.odinFailedRound=c.round;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 207,
+      "code": "  roundEnd(c){if(c.a.hp<=0)return;const s=c.a.soulState;if(s.odinFailedRound===c.round){c.heal(c.a,c.a.stats.maxHp/3,'奥丁魂印回复');s.odinPriorityRound=c.round+1;}if(c.t.hp>0&&c.a.hp>c.t.hp)for(const k of Object.keys(c.t.ailments))if(c.t.ailments[k]>=c.round)c.t.ailments[k]=c.round+3;}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 218,
+      "code": "  afterAttack(c){if(c.t.hp>0&&c.random()<c.a.soulState.kronFearChance&&c.ailment(c.t,'害怕',c.a))c.a.soulState.kronFearRound=c.round;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 223,
+      "code": "  beforeDamage(c){c.a.soulState.museTargetAsleep=c.t.ailments['睡眠']>=c.round;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 225,
+      "code": "  afterAttack(c){if(c.t.hp<=0)return;if(c.random()<.4){if(c.ailment(c.t,'睡眠',c.a))return;}c.a.soulState.musePriorityRound=c.round+1;},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 226,
+      "code": "  opponentAfterUse(c){if(c.m.kind==='status'||c.a.hp<=0||c.t.hp<=0)return;if(c.random()<.5){if(c.ailment(c.t,'睡眠',c.a))return;}const n=c.hurt(c.t,c.t.stats.maxHp/3,'圣瞳缪斯魂印吸取','percent');c.heal(c.a,n,'圣瞳缪斯魂印吸取');},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 231,
+      "code": "  afterUse(c){if(c.m.kind==='status'||c.a.hp<=0||c.t.hp<=0)return;const s=c.a.soulState,uses=(s.scarAttackUses??0)+1;s.scarAttackUses=uses;if(c.random()<Math.min(1,.7+.1*(uses-1))){c.ailment(c.t,'失明',c.a);return;}if(c.clear(c.t))c.emit(c.name(c.a)+' 圣光斯嘉丽魂印：消除对手回合效果。');c.timed(c.a,'id913',1,{bonus:1},c.round+1);}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 234,
+      "code": "  roundStart(c){const s=c.a.soulState;s.xConvertRound=Object.values(c.a.ailments).some(end=>end>=c.round)?c.round:0;if(s.xRetaliateRound===c.round){if(c.random()<.5)c.ailment(c.t,'害怕',c.a);else c.stage(c.a,2,['spa']);}},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 261,
+      "code": "  roundEnd(c){const s=c.a.soulState;if(s.chaosDeathSaveRound===c.round&&c.t.hp>0)c.ailment(c.t,'害怕',c.a);if(s.chaosDodgeFailedRound===c.round&&c.t.hp>0)c.hurt(c.t,c.effective(c.a,'atk')*.5,'混沌布莱克闪避未触发追加','percent');}\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 266,
+      "code": "  attackDamageTaken(c){if(c.dealt>300&&c.t.hp>0)c.ailment(c.t,'冰封',c.a);},\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 296,
+      "code": "registry[984]={name:'守护者',sourceHash:'406c6ed4',traits:{},hooks:{afterUse(c){if(c.a.side===c.first&&c.t.hp>0)c.hurt(c.t,c.a.stats.spe*.5,'守护者魂印','percent');else if(c.a.side!==c.first)c.timed(c.a,'守护者先制',1,{amount:2},c.round+1);const n=Math.floor(c.random()*5);if(n===0)c.stage(c.t,-1);else if(n===1)c.stage(c.a,1);else if(n===2&&c.random()<.6)c.ailment(c.t,'害怕',c.a);else if(n===3)c.a.shield=(c.a.shield??0)+300;else c.a.soulState.guaranteedCrit=1;},beforeDamage(c){if(c.a.soulState?.guaranteedCrit)c.crit=true;}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 298,
+      "code": "registry[862]={name:'邪灵主宰',sourceHash:'d9571d43',traits:{},hooks:{afterAttack(c){if(c.t.hp<=0)return;if(c.dealt>300)c.ailment(c.t,'害怕',c.a);else c.timed(c.a,'魂印先制',1,{amount:3},c.round+1);},roundEnd(c){if(c.t.hp>0)c.hurt(c.t,c.a.hp<c.t.hp?300:150,'邪灵主宰魂印','fixed');}}};\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 301,
+      "code": "for(const [id,hash,chance,multiplier] of [[864,'8b107b1',.6,2],[912,'741d06d2',.7,2.5]])registry[id]={name:'霸'+(id===912?' · 强化':''),sourceHash:hash,traits:{skillPriority:f=>f.soulState.xiangPriority?1:0},hooks:{roundStart(c){const boosted=Object.values(c.t.stages).some(n=>n>0);c.a.soulState.xiangPriority=!boosted;if(boosted){c.clearBoost(c.t);if(c.random()<chance)c.ailment(c.t,'焚烬',c.a);}},beforeUse(c){c.a.soulState.xiangDouble=c.m.kind!=='status'&&c.random()<.4;},beforeDamage(c){if(c.a.soulState.xiangDouble)c.modifier*=multiplier;},afterAttack(c){if(!c.a.soulState.xiangDouble)c.timed(c.t,'statusBlock',2,{});}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 316,
+      "code": "    for(const [ailment,end] of activeAilments)c.ailment(c.t,ailment,c.a,false,false,Math.max(1,end-c.round+1));\r"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 359,
+      "code": " roundStart(c){const boosted=Object.values(c.t.stages).some(n=>n>0);c.a.soulState.aisharaPriority=!boosted;if(boosted&&c.clearBoost(c.t))c.ailment(c.t,'睡眠',c.a);},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 361,
+      "code": " battlePhaseEnd(c){if(c.a.hp>0||c.t.hp<=0)return;const cleared=c.clear(c.t),boosts=c.clearBoost(c.t);if(cleared||boosts)c.ailment(c.t,'睡眠',c.a);}"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 15,
+      "code": "   const applied=c.random()<chance/100&&c.ailment(c.t,'睡眠',c.a);"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 30,
+      "code": "  afterUse(c){if(c.a.hp<=0||c.t.hp<=0||c.m.kind==='item')return;c.markStatusEffect?.();if(c.random()<(c.a.soulState.serpentSleepChance??30)/100)c.ailment(c.t,'睡眠',c.a);}\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 64,
+      "code": "  boostRemoved(c){if(c.method==='steal')return;if(c.t.hp>0&&!c.ailment(c.t,'瘫痪',c.a)){c.clear(c.t);c.timed(c.t,'必定暴击',1,{},c.round+1);}}\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 69,
+      "code": "  boostRemoved(c){if(c.t.hp>0&&!c.ailment(c.t,'瘫痪',c.a)){c.clear(c.t);c.t.counts.nextCrit=(c.t.counts.nextCrit??0)+1;}},\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 83,
+      "code": "  beforeUse(c){if(c.m.kind==='status'&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.clear(c.t);}\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 110,
+      "code": "  beforeUse(c){if(c.m.kind!=='status'&&c.a.hp>0&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 111,
+      "code": "  attackDamageTaken(c){if(c.dealt>0&&c.a.hp>0&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 143,
+      "code": "  beforeUse(c){if(c.a.soulState.curseHigh&&c.m.kind==='status')c.clear(c.t);if(c.on(c.a,'咒怨反应')&&c.m.kind!=='status'){if(!(c.random()<.6&&c.ailment(c.t,'诅咒',c.a))){c.a.counts.nextSkillPriority=2;c.a.soulState.nextSkillPriorityAmount=1;}}},\r"
+    },
+    {
+      "file": "dist/soul-registry.js",
+      "line": 144,
+      "code": "  opponentBeforeUse(c){if(c.on(c.a,'强化诅咒')&&c.m.kind==='status')c.ailment(c.t,'诅咒',c.a);},\r"
+    },
+    {
+      "file": "dist/effect-registry.js",
+      "line": 8,
+      "code": "const duration=x=>bounded(x,1,99),amount=x=>bounded(x,-6,6),percent=x=>bounded(x,0,100)/100,denominator=x=>bounded(x,1,9999);\r"
+    },
+    {
+      "file": "dist/effect-registry.js",
+      "line": 15,
+      "code": "add(10,'命中后&#123;0&#125;%令对方麻痹',1,/命中后(\\d+)%令对方麻痹/,'afterHit',m=>({chance:percent(m[1])}),(c,p)=>{if(c.t.hp>0&&p.chance>0&&(p.chance===1||c.random()<p.chance))c.ailment(c.t,'麻痹',c.a);});\r"
+    },
+    {
+      "file": "dist/effect-registry.js",
+      "line": 62,
+      "code": "add(1007,\"{0}回合内每次攻击都有{1}%概率令对手{2}，未触发则对手全属性-{3}\",4,/.*/,'afterHit',()=>({}),(c,p)=>{if(c.m.kind==='status'||c.t.hp<=0)return;c.markStatusEffect?.();if(c.random()<p[1]/100)c.ailment(c.t,['麻痹','中毒','烧伤','冻伤','害怕','睡眠'][p[2]]??'害怕',c.a);else c.stage(c.t,-p[3]);});\r"
+    },
+    {
+      "file": "dist/effect-registry.js",
+      "line": 66,
+      "code": "add(957,\"使对手全属性-{0}，若对手处于{1}状态则自身额外全属性+{2}\",3,/.*/,'afterHit',()=>({}),(c,p)=>{c.stage(c.t,-p[0]);if(c.t.ailments['害怕']>=c.round)c.stage(c.a,p[2]);});"
+    }
+  ],
+  "conclusion": "生产代码默认施加统一souls.ailment→attempt；pool先独立抽样duration再传显式值。未见精灵私有默认1–3生成器。唯一明确1–3为117；其余Math.random/随机表达式按候选、伤害、PP、概率分类未修改。 收尾逐条比较固定时长入口与实际词条，发现魂印701和效果2193/2445把触发窗口误当异常时长，现已移除本地固定补值。",
+  "exceptions": [
+    {
+      "path": "dist/status-rules.js convert/fireHit",
+      "classification": "已核实转化固定时长与超频1/2，非默认，保留"
+    },
+    {
+      "path": "dist/range-souls.js 207",
+      "classification": "奥丁延长现有状态结束回合，非新施加默认，保留"
+    },
+    {
+      "path": "dist/range-souls.js 316",
+      "classification": "复制剩余时间Math.max(1,end-round+1)，保留合法剩余1"
+    },
+    {
+      "path": "dist/range-effects.js 20/22/119/603/465/1139/2563/1277/155",
+      "classification": "真实词条包含明确异常持续时间，保留；2193/2445另列默认补值纠正。"
+    },
+    {
+      "path": "dist/range-souls.js 固定时长魂印与souls.js腐蚀1回合",
+      "classification": "显式来源机制，保留"
+    }
+  ],
+  "correctedLocalDefaults": [
+    {
+      "species": 3388,
+      "soulId": 701,
+      "sourceHash": "ee6d9233",
+      "original": "当回合自身使用技能时35%令对手害怕",
+      "oldLocalDuration": 1,
+      "reason": "当回合限定触发窗口，未规定害怕时长",
+      "certification": "尚无当前single-stage完整认证，不新增完成宣称"
+    },
+    {
+      "species": 3491,
+      "skillId": 29330,
+      "effectId": 2193,
+      "sourceHash": "4fa289c2",
+      "oldLocalDuration": 3,
+      "reason": "3回合是强化触发窗口，不是狂暴持续时间",
+      "certification": "尚无当前single-stage完整认证"
+    },
+    {
+      "species": 3491,
+      "skillId": 29330,
+      "effectId": 2445,
+      "sourceHash": "5446aab1",
+      "oldLocalDuration": 3,
+      "reason": "3回合是强化保护窗口，不是睡眠持续时间",
+      "certification": "尚无当前single-stage完整认证"
+    }
+  ],
+  "specialSoulEvidence": [
+    {
+      "id": 492,
+      "quote": "回合结束后使对手麻痹2回合"
+    },
+    {
+      "id": 528,
+      "quote": "回合结束后使对手麻痹2回合"
+    },
+    {
+      "id": 722,
+      "quote": "100%使对手麻痹2回合；若触发麻痹则令对手烧伤3回合"
+    },
+    {
+      "id": 2093,
+      "source": "research/selected-3407.json",
+      "hash": "1d8519cd",
+      "quote": "令对手对手麻痹3回合，触发成功则令对手烧伤3回合"
+    }
+  ]
+}

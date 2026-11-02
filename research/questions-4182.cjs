@@ -1,0 +1,10 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),s=require('./4182-reviewed-snapshot.json'),p='research/BATCH-3940-4068-AND-NEXT40-QUESTIONS.md';
+assert.ok(!fs.readFileSync(p,'utf8').includes('## Q-A60-4182-041'));
+const soul=s.souls[0],m=s.moves.find(m=>m.id===34882),x=m.effectInstances[1];
+let text='\n\n## Q-A60-4182-041 · 堕魂·格特鲁德 · 魂印1406 / 效果1776：未触发害怕后的忽防时机\n\n';
+text+='完整原文：'+soul.description+'\n\n实例及版本：魂印1406 hash='+soul.hash+'，效果1776 参数'+JSON.stringify(soul.args)+'，精灵4182 hash='+s.source.revision+'。\n来源：https://api.seerapi.com/v1/soulmark/1406；https://api.seerapi.com/v1/skill_effect_type/1776；本地 research/4182-source-check.json、4182-reviewed-snapshot.json、4182-extra-api-source.json、4182-wiki-source.json（魂印页面revision319943）。\n';
+text+='已查：原始说明、实际参数、格式说明、效果类型及Wiki。格式说明下限10%与原文/实际参数/Wiki的15%不一致，按三者一致的15%-30%保存，不改原文。未找到忽防生效时机的说明。\n具体疑问：“攻击命中后50%令对手害怕，未触发则随机忽略对手15%-30%的双防值”的忽防影响刚刚命中的本次攻击，还是后续攻击？若后续，持续本回合还是下次攻击/其他时长？“未触发”是否包含命中异常概率但对手免疫？\n不同解释与战斗差异：本次立即忽防会改变本次基础伤害，需要预先抽签并在伤害前应用；仅后续攻击则本次伤害不变，连续多段/同回合追加攻击与下一回合伤害不同。免疫是否进入补偿也影响先制+1。\n影响：仅4182当前魂印无异常回合的害怕/忽防/次回合先制联动；不扩大到其他魂印。已完成独立25%攻击增伤及回合开始异常快照的最低1倍克制；真实背包阵亡分支独立登记多精灵延期。被阻塞：该联动完整执行。\n我的回答：\n\n处理状态：待确认；未猜测忽防时机，未宣称魂印或精灵验收。\n';
+text+='\n## Q-A60-4182-042 · 堕魂·格特鲁德 · 惩戒龙爪34882 / 效果441实例1：致命概率累积范围\n\n完整词条：'+x.description+'\n完整技能：'+m.effectInstances.map(x=>x.description).join('；')+'\n';
+text+='实例及版本：技能34882 hash='+m.hash+'，441参数'+JSON.stringify(x.args)+'，效果类型hash=67c8d32c，精灵hash='+s.source.revision+'。\n来源：https://api.seerapi.com/v1/skill/34882；https://api.seerapi.com/v1/skill_effect_type/441；本地 research/4182-source-check.json、4182-extra-api-source.json（8553致命一击标签hash b7b555f2）、4182-wiki-source.json（效果441 revision342902）。\n';
+text+='已查：API词条、解析字段/标签及Wiki，均未明确累积范围和第一击。具体疑问：每次攻击是仅使用惩戒龙爪计数，还是自身所有攻击均计数？增加仅作用于此技能还是所有攻击？首击已加10%还是攻击后增加？上限50%指额外增加量还是最终暴击概率？是否须连续使用，切换技能是否重置？\n不同解释与战斗差异：基础6.25%时首击可能为6.25%或16.25%，封顶可能50%或56.25%；穿插其他技能可能继续累加、重置或影响其他技能暴击。\n影响：4182效果441及其与必定暴击/第五732和1356的交互；不改变已有“每次使用”效果696。已完成独立200~300固定附伤及其他有据分支，未注册441占位处理器。被阻塞：441及整招/整只正式验收。\n我的回答：\n\n处理状态：待确认。\n';
+fs.appendFileSync(p,text);console.log({questions:['Q-A60-4182-041','Q-A60-4182-042']});

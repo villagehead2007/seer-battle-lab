@@ -1,0 +1,3 @@
+'use strict';const fs=require('fs'),p='tests/deployed-4327-answers.test.cjs';let s=fs.readFileSync(p,'utf8').replace('H.op(s,1751,[],920040)','H.op(s,699,[],920040)').replace("if(mode!=='pierce')assert.equal(sum(o,'attack',0),0);","if(mode!=='pierce')assert.equal(sum(o,'attack',0),0);else assert.ok(sum(o,'attack',0)>0);");s+=`
+test('4327公共038同源旧3223真实气定神闲被纯反转也封下两回合属性，旧源不更改',()=>{const h=require('./helpers/3223-1025-battle.cjs'),s=h.make(h.pick(834)[0]);s.fighters[0].stages.atk=2;h.op(s,143,[]);const o=h.turn(s,s.auditMoveId,920042);assert.equal(o.fighters[0].stages.atk,-2);assert.deepEqual(o.fighters[1].effects.statusBlock,{start:2,end:3});});
+`;fs.writeFileSync(p,s);

@@ -1,0 +1,1 @@
+const fs=require('fs');let s=fs.readFileSync('research/check-4394-terms.cjs','utf8').replaceAll('4394','4395').replace('效果:1343|伤害转化|魂印:1612','效果:1391|效果:1832|魂印:1613').replace('祭空墟祖 伤害 转化','海棠教皇 冰洁明心 造成伤害前');fs.writeFileSync('research/check-4395-terms.cjs',s);

@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto'),read=p=>JSON.parse(fs.readFileSync(p)),base='research/parallel-drafts/next50-4612-',record='research/4612-question-append-evidence.json';
+assert.ok(!fs.existsSync(record),'already appended');
+for(const kind of ['soul','skills']){const files=read(base+kind+'/FREEZE.json').files;for(const e of Array.isArray(files)?files:Object.entries(files).map(([file,sha256])=>({file,sha256})))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(base+kind+'/'+e.file)).digest('hex'),e.sha256);}
+const soul=read(base+'soul/questions.draft.json'),questions=[...soul.questions,...read(base+'skills/questions.draft.json')];assert.deepEqual(questions.map(x=>x.id),['Q-N50-4612-001','Q-N50-4612-002','Q-N50-4612-003']);
+let text='\n\n## 4612 魂弦 · 本只新增问题与公共实例关联\n\n17项基础、27个技能效果实例与1820逐项审核；有疑问实例仅部分实现，未正式部署验收。明确输入载荷测试不表示自然未知机制已确定。\n';
+for(const original of questions){const q=structuredClone(original);if(q.id==='Q-N50-4612-001')q.question='普通技能攻击的盾增伤已明确；1820的该增伤对固定伤害、百分比伤害、真实伤害和独立属性追加分别是否适用？';assert.ok(q.gap&&q.question);assert.equal(q['我的回答：'],'');text+='\n\n### '+q.id+' · '+(q.title??q.moveName??'魂弦')+'\n\n完整相关原文、原参数、来源URL/hash、核查范围和实际差异：\n\n```json\n'+JSON.stringify(q,null,2)+'\n```\n\n明确问题：'+q.question+'\n\n我的回答：\n';}
+const shared=new Map();for(const a of [...soul.shared,...read(base+'skills/shared-associations.draft.json')]){const id=a.id??a.question;assert.ok(id);if(!shared.has(id))shared.set(id,[]);shared.get(id).push(a);}
+for(const[id,associations]of shared)text+='\n\n### '+id+' · 4612新增关联实例\n\n沿用该公共问题，仅关联尚未明确的缺口；已有确认的范围和理论回复等独立部分不重复询问。\n\n```json\n'+JSON.stringify({question:id,associations},null,2)+'\n```\n';
+const path='research/BATCH-4509-NEXT50-QUESTIONS.md',before=fs.readFileSync(path);fs.appendFileSync(path,text);assert.ok(fs.readFileSync(path).subarray(0,before.length).equals(before));
+fs.writeFileSync(record,JSON.stringify({at:new Date().toISOString(),newQuestions:questions.map(x=>x.id),sharedQuestions:[...shared.keys()],originalPrefixBytes:before.length,originalPrefixSha256:crypto.createHash('sha256').update(before).digest('hex'),appendedBytes:Buffer.byteLength(text),answerHandling:'只按字节保留既有内容，未读取解释落实新填MD回答',draftNote:'001正式明确问题缩为尚未确定的伤害类型；普通技能攻击共同分支无需重复答，冻结原稿保持原样'},null,2)+'\n');
+console.log(JSON.stringify({newQuestions:questions.map(x=>x.id),sharedQuestions:[...shared.keys()],preservedBytes:before.length}));

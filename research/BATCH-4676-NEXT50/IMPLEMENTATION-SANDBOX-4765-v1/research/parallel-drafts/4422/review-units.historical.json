@@ -1,0 +1,3349 @@
+{
+  "4422:soul:1639": {
+    "sourceDigest": "7ffceb813fd718f66e9e275872bb06779b44619060a3723af0d1ef7cbd624aff",
+    "scope": "mixed",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "每次登场首回合开始时若对手不处于能力提升状态且当回合使用攻击技能，则使用后消除对手回合类效果且战斗阶段结束时获得等同于自身最大体力1/3的护盾，若消除成功则额外100%令对手疲惫；|战斗阶段结束时自身每有1项技能PP值不为满，则直至下回合结束受到的固定伤害和百分比伤害减少20%，若自身所有技能PP值均不为满，则恢复自身所有技能1点PP值并触发天奔释罪：消除对手能力提升状态、恢复自身最大体力的1/3、解除自身弱化类异常状态且直至下回合结束免疫所有受到的弱化类异常状态|（boss无效）",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印仅首回合对手无正且实际用攻击才清回合疲惫与战阶给三分一护盾",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印对手用攻击未命中仍给盾，清失败不给疲惫，首回快照不被当次提升追改",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印末PP非满项快照20至100粉减伤，满项才恢复1及释罪，恢复后不追改快照",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印真实次回固定与百分比按非满项减伤，普通攻击与真实伤害不受该粉减伤",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422天奔释罪仅弱化类解除并免疫至次回合末，能力负级和控制类保留且到期恢复可施加",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422首回合给盾真实值3000且攻击免疫仍算使用，粉减伤不等于攻击免疫，5项0PP释罪禁疗不拦解弱化和消强",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印仅首回合对手无正且实际用攻击才清回合疲惫与战阶给三分一护盾",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印对手用攻击未命中仍给盾，清失败不给疲惫，首回快照不被当次提升追改",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印末PP非满项快照20至100粉减伤，满项才恢复1及释罪，恢复后不追改快照",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印真实次回固定与百分比按非满项减伤，普通攻击与真实伤害不受该粉减伤",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422天奔释罪仅弱化类解除并免疫至次回合末，能力负级和控制类保留且到期恢复可施加",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422首回合给盾真实值3000且攻击免疫仍算使用，粉减伤不等于攻击免疫，5项0PP释罪禁疗不拦解弱化和消强",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印仅首回合对手无正且实际用攻击才清回合疲惫与战阶给三分一护盾",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印对手用攻击未命中仍给盾，清失败不给疲惫，首回快照不被当次提升追改",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印末PP非满项快照20至100粉减伤，满项才恢复1及释罪，恢复后不追改快照",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印真实次回固定与百分比按非满项减伤，普通攻击与真实伤害不受该粉减伤",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422天奔释罪仅弱化类解除并免疫至次回合末，能力负级和控制类保留且到期恢复可施加",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422首回合给盾真实值3000且攻击免疫仍算使用，粉减伤不等于攻击免疫，5项0PP释罪禁疗不拦解弱化和消强",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印仅首回合对手无正且实际用攻击才清回合疲惫与战阶给三分一护盾",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印对手用攻击未命中仍给盾，清失败不给疲惫，首回快照不被当次提升追改",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印末PP非满项快照20至100粉减伤，满项才恢复1及释罪，恢复后不追改快照",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422魂印真实次回固定与百分比按非满项减伤，普通攻击与真实伤害不受该粉减伤",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422天奔释罪仅弱化类解除并免疫至次回合末，能力负级和控制类保留且到期恢复可施加",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422首回合给盾真实值3000且攻击免疫仍算使用，粉减伤不等于攻击免疫，5项0PP释罪禁疗不拦解弱化和消强",
+          "assertion": "对手无正首回快照、实际攻击/MISS/控制/免攻、3000盾、1至5非满项与100%粉减、恢复前快照/0PP、弱化类定向解除及免疫/到期、能力负级和控制保留/禁疗独立"
+        }
+      ]
+    },
+    "deferredBehavior": "每次真实再次登场重新执行首回合条件/对手实际用攻击后的清回合与疲惫及末给盾；当前首次入场全分支已实现",
+    "trigger": "真实换宠后自身再次登场首回合",
+    "futureMechanisms": [
+      "换宠/再次登场事件及该次登场首回合标识"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "switch",
+        "quote": "每次登场首回合"
+      }
+    ]
+  },
+  "4422:move:36133": {
+    "sourceDigest": "3ea5256cca87dfca25c3aaafdeb760959d44f59c7931fa24ec915522b0f381c6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；直接造成等同于对手防御值的固定伤害",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36133:0": {
+    "sourceDigest": "afa72b7997401f06bc9678c68c589e1219eb09f35e6eb1017976b162734606bc",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36133:1": {
+    "sourceDigest": "2d87b4bcfd2b8886498b20c8559667eacf535ac403ea7060c69732ddc67a182e",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "直接造成等同于对手防御值的固定伤害",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36134": {
+    "sourceDigest": "36047849fdfb1bebc8d6199b2d3e611d27ef01fc34e5d80d1a74830f940e65d6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；随机附加1种异常状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36134:0": {
+    "sourceDigest": "b2ebc3eefc8ce70c300061c6d09f01819c2656495c9404809009533befeed274",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36134:1": {
+    "sourceDigest": "1cd2b28b24c0ed2974074ff6ca4f46b329a050d6562bbdb8cae732378702dc3b",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "随机附加1种异常状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 786全PVP随机池含限制不含山神守护，免疫不补抽且异常2或3回合",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422随机异常免疫不补抽保留抽样记录，1862自身PP保护不阻基础费用，1737免固时真伤与粉免独立",
+          "assertion": "免疫不补抽、保留真实抽样事件；星赎在末回合自己延时不冒充原抽样时长"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 786全PVP随机池含限制不含山神守护，免疫不补抽且异常2或3回合",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422随机异常免疫不补抽保留抽样记录，1862自身PP保护不阻基础费用，1737免固时真伤与粉免独立",
+          "assertion": "免疫不补抽、保留真实抽样事件；星赎在末回合自己延时不冒充原抽样时长"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 786全PVP随机池含限制不含山神守护，免疫不补抽且异常2或3回合",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422随机异常免疫不补抽保留抽样记录，1862自身PP保护不阻基础费用，1737免固时真伤与粉免独立",
+          "assertion": "免疫不补抽、保留真实抽样事件；星赎在末回合自己延时不冒充原抽样时长"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 786全PVP随机池含限制不含山神守护，免疫不补抽且异常2或3回合",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422随机异常免疫不补抽保留抽样记录，1862自身PP保护不阻基础费用，1737免固时真伤与粉免独立",
+          "assertion": "免疫不补抽、保留真实抽样事件；星赎在末回合自己延时不冒充原抽样时长"
+        }
+      ]
+    }
+  },
+  "4422:move:36135": {
+    "sourceDigest": "e2347f8a912fd9e5905a42725e80cdf8a19286f518a3807e9aa0f2451df3b5d6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；未击败对手则下回合自身所有技能先制+2",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36135:0": {
+    "sourceDigest": "44c08bb6987d6fc9d31d57bca8dd0165c9b0e69c60023e8ad4e9b738e77a6f96",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36135:1": {
+    "sourceDigest": "cecdce7963da5dbd9a4c77be530ee5ae3f303a56112c0d77fac9f14d7de7e11f",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "未击败对手则下回合自身所有技能先制+2",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36136": {
+    "sourceDigest": "058b25f45df3d47605d1098e47d9419e830b7eb1efb846e1a59c541acd97b787",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "reviewed",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。 复核发现2026-10-15-drain-rule-correction.json已明确对手最大HP比例吸取理论回复，1257属于已确认范围，原关联1709的未答问题不适用；只是移除本地误列限制，不改来源和原用户回答。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；对手不处于异常状态则吸取对手最大体力的1/3",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ]
+    }
+  },
+  "4422:skill:36136:0": {
+    "sourceDigest": "753db5422168150367cc32d090fc62f8f7d367c3c91988fea51367f79f6c23cc",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36136:1": {
+    "sourceDigest": "7bc9287d79c8de2cc0f8bbaf80fe97b576bca9e073353c5b41d3d4f7328999a8",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "reviewed",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。 复核发现2026-10-15-drain-rule-correction.json已明确对手最大HP比例吸取理论回复，1257属于已确认范围，原关联1709的未答问题不适用；只是移除本地误列限制，不改来源和原用户回答。",
+    "singleBehavior": "对手不处于异常状态则吸取对手最大体力的1/3",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257复用2026-10-15已确认最大HP比例吸取理论回复，低HP/基础击败/百分免/护罩均不减3000，技能禁疗与倍率照常",
+          "assertion": "明确既有确认范围：最大HP比例吸取3000理论回复，目标先被基础招击败/免百分比/护罩仍3000，禁疗0/倍率半1500正常"
+        }
+      ]
+    }
+  },
+  "4422:move:36137": {
+    "sourceDigest": "84395e7a488d5c0d51575e138f23e251c171f4a649378ca13d5c542f96b8e5dd",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；体力低于1/4时威力4倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36137:0": {
+    "sourceDigest": "a764224ac714ef0d269a77a468c1de2afb96c8b2c1a4c76f915f630b1d58828c",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36137:1": {
+    "sourceDigest": "1ded5c359a67d6391afaffb630c1540fc83c766357587f84b8ea9d08f54049b5",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "体力低于1/4时威力4倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36138": {
+    "sourceDigest": "02d8bf2bdc1dfa245282ba56f191265a83f05d2bd66595aaded30b2a32846fe2",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；5回合对手无法使自身能力出现提升状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36138:0": {
+    "sourceDigest": "c85d9b1f661bb1fd33758341c448ecbda11f95e5e7f57f72464d74dc170570b6",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36138:1": {
+    "sourceDigest": "f90f6dfc7493779e6f5919db0c7286ce524e2ff432914dc8c8b6aa29147cc05c",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "5回合对手无法使自身能力出现提升状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 984未击败次回先制2，645严格低于四分一威力4倍，765禁强实际拦对手不拦自己",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36139": {
+    "sourceDigest": "dccc4b03c235d95838e5549b7db26322b840375ca5d7e4731eddf626546dc36d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；命中时6%的概率秒杀对方",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4329-006"
+    ],
+    "pendingSingleBehavior": [
+      "死亡/秒杀普通无免疫共同结局与6%概率、7回合时序及清除已测，类型和保命边界仍待原主问题"
+    ]
+  },
+  "4422:skill:36139:0": {
+    "sourceDigest": "979c68920d57fed886af8191af1310daf1162bfcb8369f4a1b78f694b97542b8",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36139:1": {
+    "sourceDigest": "056e2be5c9f6abed210953593d0a0441aea4f8cdbceaa14065957959f960e6b0",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "命中时6%的概率秒杀对方",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4329-006"
+    ],
+    "pendingSingleBehavior": [
+      "死亡/秒杀普通无免疫共同结局与6%概率、7回合时序及清除已测，类型和保命边界仍待原主问题"
+    ]
+  },
+  "4422:move:36140": {
+    "sourceDigest": "93147317463e2800677776a83545228067431f9afe48cdccc6532a3da3564fd2",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；7回合后若对方没有将自己击败，则对方死亡",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4329-006"
+    ],
+    "pendingSingleBehavior": [
+      "死亡/秒杀普通无免疫共同结局与6%概率、7回合时序及清除已测，类型和保命边界仍待原主问题"
+    ]
+  },
+  "4422:skill:36140:0": {
+    "sourceDigest": "316216ac028ecaf2ab5984a6e384a40c1a904ef8e83e0a68eae37cca0c657d76",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36140:1": {
+    "sourceDigest": "52cea82ecdf77e2f6ec7610774cea8503351657ea07d84b0ab724c880e23d479",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "7回合后若对方没有将自己击败，则对方死亡",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 36真实6%概率存在不触与击败共同结果，62七回合计时/可清除已实现而死亡类型已公共回答，新增交互草稿覆盖",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4329-006"
+    ],
+    "pendingSingleBehavior": [
+      "死亡/秒杀普通无免疫共同结局与6%概率、7回合时序及清除已测，类型和保命边界仍待原主问题"
+    ]
+  },
+  "4422:move:36141": {
+    "sourceDigest": "d1b23199c16f6d4b7612d2264039a23001ddd7118244794546e2e67ff1b08d97",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；技能无效时，消除对手回合类效果且100%令对手沉默3回合；消除对手回合类效果，消除成功则令对手沉默；自身不处于能力提升状态则吸取对手200点体力，若先出手则额外吸取200点体力",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4358-003"
+    ],
+    "pendingSingleBehavior": [
+      "明确封锁的无效分支已做，未命中范围不选解释且拒绝"
+    ]
+  },
+  "4422:skill:36141:0": {
+    "sourceDigest": "5eaec0764fa81c1a94c69c03fa68d7401bb056aeaf055d4166e0bc37acdea8eb",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36141:1": {
+    "sourceDigest": "bfd9e6cb81d545c3097dc9e9cceb23436430905fe79e4b0fe57cf89fd965ca2b",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "partial-awaiting-user",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "技能无效时，消除对手回合类效果且100%令对手沉默3回合",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    },
+    "questions": [
+      "Q-N20-4358-003"
+    ],
+    "pendingSingleBehavior": [
+      "明确封锁的无效分支已做，未命中范围不选解释且拒绝"
+    ]
+  },
+  "4422:skill:36141:2": {
+    "sourceDigest": "eadda0c6bec7d73aa2719062c0f49530ce01edd30024658254209f616df2ed86",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "消除对手回合类效果，消除成功则令对手沉默",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 889消回合成功沉默失败不触，1861明确封锁与MISS均不依赖清回合成功也沉默3",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36141:3": {
+    "sourceDigest": "ff4cb3c4c60dc78bc071f3d1a82ae10db76a22763e32b4cb24f53f85b594649a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态则吸取对手200点体力，若先出手则额外吸取200点体力",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1257异常条件不符不吸，普通无截断共同量粉伤3000回复3000，1613无正先后400或200理论固定吸取",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36142": {
+    "sourceDigest": "9b0c0c4e6f50ae88051a08228dc946eef45e993a98323ea92e1ecc08baa9baba",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；无视护盾效果；自身不处于能力提升状态则造成的伤害提升100%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36142:0": {
+    "sourceDigest": "4b8ac6e472e3f228808d3adc723c054f899ae84632a4e1d31cf38badbfdc3752",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36142:1": {
+    "sourceDigest": "2e768ba8764752845bd0c3fd79f07fa7f4ec842808466f18ee10aab4ee5ed5d3",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "无视护盾效果",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36142:2": {
+    "sourceDigest": "260bb8e04ecc20fbcbaf5cc4828cce06ca5580d2a8cdcc623693eb9b9ab4e62e",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态则造成的伤害提升100%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36143": {
+    "sourceDigest": "ed2474f9c40827a549737fd6605a5b48987417e3a3ac5ea9e5eff7930fb5cedf",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；无视护盾效果；自身不处于能力提升状态则造成的伤害提升100%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36143:0": {
+    "sourceDigest": "3c6ce16493bb05c17692dfede3a0632c3d779f277d81a1d2889587866341f37d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36143:1": {
+    "sourceDigest": "2364c2d348f73ab1f6ece2629d9148b6bd0f82611271ac3eb73021294196cdc2",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "无视护盾效果",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36143:2": {
+    "sourceDigest": "8f9521595df4e0869b75918470c6410ec17327a8177f6c42f3a6ad50d8a1229a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态则造成的伤害提升100%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36144": {
+    "sourceDigest": "6664a7c923f28a576581ec490cf096b82c39aaf5c42e298d92e28703350a3c76",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；无视护盾效果；自身不处于能力提升状态则造成的伤害翻倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36144:0": {
+    "sourceDigest": "f6c2cf7b49ba6289a16eece78e8f496fa9acb487e4480c8e765ca7f952c343c8",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36144:1": {
+    "sourceDigest": "9af76df5cfce039d400af9c371971dc5dd7d4ef06cb28657099fe88567c34820",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "无视护盾效果",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36144:2": {
+    "sourceDigest": "ca3157a86775a068ec6b27e57f1811aabc76e8a638e353dc702550a968338505",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态则造成的伤害翻倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36145": {
+    "sourceDigest": "9b62d20052ef68069bbdb5e8a2d64f386608b27c43388f68e69918708c298195",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；无视护盾效果；自身不处于能力提升状态则造成的伤害翻倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36145:0": {
+    "sourceDigest": "b7576f13aa10282e6fef05c75010a75fcbf53bf610b5f5fc1b7276135f357d21",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36145:1": {
+    "sourceDigest": "80c7f17ff0c40d00ec403932d072ed37cda0f801b6a572787bdecdfd5aa69573",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "无视护盾效果",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 423防御固定独立0威力，1568无视护盾不耗盾且正负能力级伤害差异真实",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36145:2": {
+    "sourceDigest": "b02fd82c311ef01e801b8e6b7f483720c0515a8e4c5f366d06dbef92b8f5ad39",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态则造成的伤害翻倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1152与1178无正攻伤翻倍不翻固定附伤，正级存在不翻倍",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:28090": {
+    "sourceDigest": "daef79b9b35737d8dd52fc06ee246fb4adef2e90490b40de8f7401b55bbd1d53",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；4回合内免疫并反弹所有受到的异常状态；使对手全属性-1，未触发则对手沉默；100%令对手冰封，未触发则降低自身所有技能2点PP值；4回合内若自身回合类效果被消除则100%令对手冰封",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28090:0": {
+    "sourceDigest": "bd143273d747e4d0fd8b03c3a943f547e8317caaf947e8f58ae7371aba30725d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28090:1": {
+    "sourceDigest": "1d3fe337bbe1d18679cc9fde320aad2d6ec80aed41d8d3e63ef4bbd4c9b8cee8",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "4回合内免疫并反弹所有受到的异常状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28090:2": {
+    "sourceDigest": "2527f18b637732c65e08a8a1be793a21661b2f51305d71de56055647f6b97fd1",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "使对手全属性-1，未触发则对手沉默",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28090:3": {
+    "sourceDigest": "21af1157f0649b99904ecc355b2611f60f7f2a8913f70f5c778158b4e0fafe98",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "100%令对手冰封，未触发则降低自身所有技能2点PP值",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 191真实反弹，1122全弱失败沉默，1862冰封失败自己全PP减2并尊重PP保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28090:4": {
+    "sourceDigest": "63d11bc2b93dceb3284c1a099bbfe43e5da17cf60a88875acbcc0e917d0b4b8d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "4回合内若自身回合类效果被消除则100%令对手冰封",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:28091": {
+    "sourceDigest": "987b146ca39535fda1110b20b91bf9d46203d8dad4901bb64e6e36276ec3328a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；消除双方能力提升状态，消除任意一方成功则自身免疫下1次异常状态且令对手随机2个技能PP值归零；4回合内每回合使用技能额外恢复自身最大体力的1/1，若自身不处于能力提升状态则附加对手最大体力1/3的百分比伤害；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28091:0": {
+    "sourceDigest": "ac2fd82df7e09b86aa695130af74c1497a7d3a4099390a7c7ccf88cc266dbf62",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28091:1": {
+    "sourceDigest": "6f4cd01dd6ffdb613199c03cec79e9cb7bde115da5174124ba397dc0019eaa19",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "消除双方能力提升状态，消除任意一方成功则自身免疫下1次异常状态且令对手随机2个技能PP值归零",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1400真实回合被清后冰封且不触时不冰，1419双消任一成功免一次异常并无放回清2技能PP，保护不挡自身免疫",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28091:2": {
+    "sourceDigest": "a57044212af890c66aa23880bdad5c9dd716794300c6c3be4618266ddcb811f1",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "4回合内每回合使用技能额外恢复自身最大体力的1/1，若自身不处于能力提升状态则附加对手最大体力1/3的百分比伤害",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1855真源4回合回满并无正3000百分比追加，禁疗只拦回复，未行动不触且回合可清",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1855真源4回合回满并无正3000百分比追加，禁疗只拦回复，未行动不触且回合可清",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1855真源4回合回满并无正3000百分比追加，禁疗只拦回复，未行动不触且回合可清",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1855真源4回合回满并无正3000百分比追加，禁疗只拦回复，未行动不触且回合可清",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28091:3": {
+    "sourceDigest": "3c509e2bcb0ceaf3c99365d3609691904fe29781f750262ba75ed967eec92776",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "下2回合自身造成的攻击伤害翻倍",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:28091:4": {
+    "sourceDigest": "188cfdaabd8746351c558ce64eaebc37036f6cfd94dadf301a7f789ec0d0a66a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "下2回合令自身所有技能先制+2",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36146": {
+    "sourceDigest": "2d285743a60e6369bdb38198cfb548cabecdc5b91f46fceefe21687b96410790",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中；先出手时使对手2回合属性技能无效；双方任意一方处于能力下降状态均会附加400点固定伤害，同时解除自身能力下降状态；附加自身最大体力20%的百分比伤害，每次使用增加10%，最高40%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36146:0": {
+    "sourceDigest": "25c0d190c720d8308171f916f474d6faf824b6090d1ca67fbee2b8f3769bcd56",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时先制+1且必定命中",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1860无正状态先制1必中，正级不触，所有16实例各自保留而第五没有该条",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36146:1": {
+    "sourceDigest": "249a4856d78d73ea41f3771c62db84ed2dad2e514bf4530ce99ed67c4eb01da4",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "先出手时使对手2回合属性技能无效",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36146:2": {
+    "sourceDigest": "23c8fc9f265eb35691491a8942461e99a58cac749c783fe32dd78e5367d9aa84",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "双方任意一方处于能力下降状态均会附加400点固定伤害，同时解除自身能力下降状态",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 776次2攻击翻倍和843次2先制，1284先手2回合封属，684双方负任一附400并仅清自身负",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36146:3": {
+    "sourceDigest": "d967c8e9ab4aaa06193a25cf09305359c5f596cf96b58d5b56ab4cdc72b31f99",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "附加自身最大体力20%的百分比伤害，每次使用增加10%，最高40%",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:move:36147": {
+    "sourceDigest": "0fd07ba016078afacb7e51ec79b9a5909c58fa384e97f7b44cd70ea94959835a",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时则攻击+1，防御+1，特攻+1，特防+1，速度+1，命中+1；1回合做7次攻击，自身每有1项技能PP值不为满则连击次数+7；附加自身已损失PP值总和x40的固定伤害，对手免疫固定伤害时额外附加等量的真实伤害；击败对手则恢复自身全部体力和所有技能PP值",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全部17真实技能基础PP物特伤害与0威力控制边界，每项独立指令均实际编译",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        }
+      ]
+    }
+  },
+  "4422:skill:36147:0": {
+    "sourceDigest": "aa8a61665273080dab6ad2b5755082c8c298172efce0d6ea5fd035a4c9d5d451",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "自身不处于能力提升状态时则攻击+1，防御+1，特攻+1，特防+1，速度+1，命中+1",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ]
+    }
+  },
+  "4422:skill:36147:1": {
+    "sourceDigest": "a0da728732bdb82fa6a8e0c4417342549b8f050b84a192f647f9ccf77c3fab71",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "1回合做7次攻击，自身每有1项技能PP值不为满则连击次数+7",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1206按使用累计20至40上限，763仅无正时全升1，1863按实际非满项7至42击含当前已付PP",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ]
+    }
+  },
+  "4422:skill:36147:2": {
+    "sourceDigest": "93e874cdd1888591e56c0f38aa769f54c55a89e0003962ad043a214fb54cc2c2",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "附加自身已损失PP值总和x40的固定伤害，对手免疫固定伤害时额外附加等量的真实伤害",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ]
+    }
+  },
+  "4422:skill:36147:3": {
+    "sourceDigest": "1239ebd9b7d5fd3540b8df1623062c2a3aad62ea673f3c8dc1780ded0e6bdc0e",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-22T00:09:41.084Z",
+    "reviewStatus": "independent-state-tested",
+    "rationale": "API各原文/hash/实例参数及Wiki补充逐项核对；首回合主语按API格式化明确为对手实际使用攻击。弱化类异常采用现有来源分类，非能力等级弱化。普通复用与新缺口真实执行；未答的既有公共主问题不以代码默认或测试充当来源。",
+    "singleBehavior": "击败对手则恢复自身全部体力和所有技能PP值",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/range-souls.js",
+      "dist/souls.js",
+      "dist/status-rules.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422 1737损失PP固定追加，免固才等量真伤不把普通护盾当免疫，1156击败恢复全部HP和PP尊重禁疗保护",
+          "assertion": "真实HP、完整伤害/实际损失、PP、等级、异常、先制、护盾、概率及消费；成功失败边界/公共交互。公共未答子分支未作认证"
+        },
+        {
+          "file": "tests/deployed-4422-independent.test.cjs",
+          "name": "4422全第五源链在每个实际命中段按实时PP附伤、7至42基础连击和击败全恢复，记录完整伤害不截断",
+          "assertion": "真实36147完整链、实际基础PP7支付1后非满项与损失PP、击败同击全回复和完整伤害"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2 @@
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict'),check=require('./helpers/assert-597-nominal-after-kill.cjs');
+test('597全部21只真实旧来源及新1785：基础攻击击败后名义持续吸取回复仍执行，免疫/溢出/禁疗独立',()=>{for(const id of [3025,3102,3141,3223,3242,3318,3322,3443,3532,3578,3613,3626,3629,3840,3865,3879,3888,3954,3979,4002,4113,4135]){const o=check(id);assert.ok(o.fighters[0].hp>0);assert.equal(o.fighters[1].hp,0);}});

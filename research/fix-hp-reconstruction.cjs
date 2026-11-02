@@ -1,0 +1,3 @@
+const fs=require('fs'),p='dist/range-souls.js';let s=fs.readFileSync(p,'utf8').replaceAll('c.a.hp+(c.settledDamage??c.dealt)===c.a.stats.maxHp','c.a.hp+(c.hpLoss??c.dealt)===c.a.stats.maxHp');fs.writeFileSync(p,s);
+// Compare executable hooks rather than guessing owners from textual registration layout.
+const vm=require('vm'),path=require('path');function loadOld(filename){const original=path.resolve('dist',filename),code=fs.readFileSync('research/damage-settlement-before/'+filename,'utf8'),m={exports:{}};vm.runInNewContext('(function(require,module,exports){'+code+'\n})',{console})(require('module').createRequire(original),m,m.exports);return m.exports;}console.log(Object.keys(loadOld('range-souls.js')));

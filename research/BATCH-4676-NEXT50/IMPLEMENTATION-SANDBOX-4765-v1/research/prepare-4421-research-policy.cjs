@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/helpers/4421-battle.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace('s.auditMoveId=move.id;',"s.auditMoveId=move.id;if(original.hpExchangePolicy){s.moveDefinitions[key(move.id)].hpExchangePolicy=original.hpExchangePolicy;s.moveDefinitions[key(move.id)].hpExchangeQuestion=original.hpExchangeQuestion;}");fs.writeFileSync(p,s);

@@ -1,0 +1,37 @@
+{
+  "question": "Q-N20-4333-005",
+  "example": {
+    "skill": 36696,
+    "hash": "62da0896",
+    "effect": 1959,
+    "args": [
+      100,
+      8
+    ],
+    "source": "https://api.seerapi.com/v1/skill/36696",
+    "sourceRecord": "research/4329-source-check.json"
+  },
+  "newConfirmedRule": "Q-N20-4333-003：公共技能效果在攻击免疫时失效；魂印吸取是明确例外",
+  "existingConfirmedRule": "Q-N20-4329-005：1959睡眠先于攻击伤害判定、失败本招翻倍",
+  "observed": {
+    "enemyHp": 8752,
+    "sleep": 2,
+    "damage": [
+      {
+        "settledDamage": 248,
+        "hpLoss": 248,
+        "type": "attack",
+        "targetSide": 1,
+        "sourceSide": 0,
+        "round": 1
+      }
+    ]
+  },
+  "gap": "命中载荷会先清掉定时攻击免疫，因此当前实际攻击并未免疫；若1959失败翻倍本身改变阈值免疫结果，先行门控需要明确免疫判定采用何时、含哪些本招条件增伤的伤害。源文与现有回答都没明确这种依赖顺序。",
+  "proposal": "先按不执行清除/附异常等状态载荷的候选伤害及当前免疫状态确定免疫（候选伤害仍包含本招条件增伤的判定结果）；若免疫，则锁定此次免疫、不执行技能效果、不消耗该技能异常判定的免疫次数；若不免疫，再按真实效果顺序执行。该方案只用于消除循环依赖，不能自行确认。",
+  "userConfirmation": {
+    "at": "2026-10-22T17:41:43.509Z",
+    "source": "human reply in current chat",
+    "answer": "先执行状态效果再判断免疫"
+  }
+}

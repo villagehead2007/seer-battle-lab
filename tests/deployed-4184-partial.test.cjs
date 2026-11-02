@@ -1,0 +1,113 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4184-battle.cjs'),{E,make,pick,turn,timer,key,keys}=H;
+test('4184 双真实魂印领域500边界、三回合期限和结束500盾罩',()=>{
+ for(const soul of [1408,1580])for(const hp of [500,501]){const s=make({moveId:10157,index:null},{soul,bStats:{maxHp:hp}});const f=s.fighters[0],name=hp===500?'次元领域':'机械领域';assert.equal(f.effects[name].end,3);let o=turn(s,920031);o=turn(o,920031);assert.equal(o.fighters[0].suitState.barrier,0);o=turn(o,920031);assert.equal(o.fighters[0].suitState.barrier,500);assert.equal(o.fighters[0].suitState.shield,500);assert.equal(o.fighters[0].effects[name],undefined);const end=turn(o,920031);assert.equal(end.fighters[0].suitState.barrier,500);}
+});
+test('4184 双魂印机械领域仅攻击封顶60/40%，完整伤害按已限制值记录',()=>{
+ for(const [soul,n] of [[1408,600],[1580,400]]){const s=make({moveId:10157,index:null},{soul,aStats:{maxHp:1000},bStats:{atk:9999}});const o=turn(s,920031,920040);assert.equal(o.fighters[0].hp,1000-n);assert.equal(o.fighters[0].roundSettledAttackDamage,n);assert.equal(o.fighters[0].effects['领域次回合全技能先制'].amount,soul===1408?1:2);assert.equal(o.fighters[0].effects['领域次回合全技能先制'].start,2);}
+ const s=make({moveId:10157,index:null},{soul:1408});H.op(s,29,[6000],920042);const o=turn(s,920031,920042);assert.equal(o.fighters[0].hp,3000);assert.equal(o.fighters[0].effects['领域次回合全技能先制'],undefined);
+});
+test('4184 双魂印先手扣全PP、后手随机归零、PP保护及控制不能伪造出手',()=>{
+ for(const soul of [1408,1580]){const s=make({moveId:10157,index:null},{soul}),n=soul===1408?1:2,o=turn(s,920031);assert.equal(o.fighters[1].pp[key(920040)],99-n);assert.equal(o.fighters[1].pp[key(920041)],98-n);
+ const late=make({moveId:10157,index:null},{soul,aStats:{spe:50},bStats:{spe:900}}),l=turn(late,920031);assert.equal(l.fighters[1].moves.filter(k=>l.fighters[1].pp[k]===0).length,1);
+ const blocked=make({moveId:10157,index:null},{soul});timer(blocked,1,'PP保护');const b=turn(blocked,920031);assert.equal(b.fighters[1].pp[key(920040)],99);
+ const asleep=make({moveId:10157,index:null},{soul});asleep.fighters[0].ailments['睡眠']=4;const a=turn(asleep,920031);assert.equal(a.fighters[1].pp[key(920040)],99);}
+});
+test('4184 双魂印次元领域禁技能回血但魂印吸取按理论最大体力三分之一',()=>{
+ for(const soul of [1408,1580]){const s=make({moveId:10157,index:null},{soul,bStats:{maxHp:500}});H.op(s,43,[2],920042);s.fighters[1].hp=100;const o=turn(s,920031,920042);assert.equal(o.fighters[1].hp,100);
+ const attack=make({moveId:10157,index:null},{soul,bStats:{maxHp:500}});attack.fighters[0].hp=3000;const o2=turn(attack,920031,920040),loss=o2.fighters[0].roundAttackDamage;assert.equal(o2.fighters[0].hp,3000-loss+166);assert.equal(o2.fighters[1].hp,334);
+ const immune=make({moveId:10157,index:null},{soul,bStats:{maxHp:500}});immune.fighters[0].hp=3000;timer(immune,1,'固定百分比免疫');const o3=turn(immune,920031,920040);assert.equal(o3.fighters[1].hp,500);assert.equal(o3.fighters[0].hp,3000-o3.fighters[0].roundAttackDamage+166);}
+});
+test('4184 1666两真实范围逐段攻击5~10或5~15、8~10或8~16，领域到期还原',()=>{
+ for(const e of pick(1666))for(const domain of [false,true]){const counts=new Set();for(let seed=0;seed<60;seed++){const s=make(e,{seed,soul:domain?1408:false}),o=turn(s),n=o.damageEvents.filter(x=>x.type==='attack').length;assert.ok(n>=e.params[0]&&n<=(domain?e.params[2]:e.params[1]));counts.add(n);}assert.ok(counts.has(e.params[0]));assert.ok(counts.has(domain?e.params[2]:e.params[1]));}
+});
+test('4184 2539真实携带在领域内0PP仍能用，未携带和领域结束仍受限制',()=>{
+ const e=pick(2539)[0];const s=make(e,{carry:true,soul:1408});s.fighters[0].pp[key(s.auditMoveId)]=0;const o=turn(s);assert.ok(o.fighters[1].hp<9000);assert.equal(o.fighters[0].pp[key(s.auditMoveId)],0);
+ const b=make(e,{soul:1408});b.fighters[0].pp[key(b.auditMoveId)]=0;assert.ok(!E.availableMoves(b.fighters[0],1).includes(key(b.auditMoveId)));assert.throws(()=>turn(b),/有 PP/);
+ const exp=make(e,{carry:true,soul:1408});delete exp.fighters[0].effects['机械领域'];exp.fighters[0].pp[key(exp.auditMoveId)]=0;assert.ok(!E.availableMoves(exp.fighters[0],1).includes(key(exp.auditMoveId)));assert.throws(()=>turn(exp),/有 PP/);
+});
+test('4184 2539携带封对手技能回PP，但药剂恢复不属于技能',()=>{
+ const e=pick(2539)[0],s=make(e,{carry:true,soul:1408});H.op(s,87,[],920042);s.fighters[1].pp[key(920040)]=0;const o=turn(s,920031,920042);assert.equal(o.fighters[1].pp[key(920040)],0);
+ const base=make(e,{soul:1408});H.op(base,87,[],920042);base.fighters[1].pp[key(920040)]=0;assert.equal(turn(base,920031,920042).fighters[1].pp[key(920040)],99);
+ const potion=make(e,{carry:true,soul:1408});potion.fighters[1].pp[key(920040)]=0;const a=E.resolveTurn(potion,[key(920031),'potion:pp']);assert.ok(a.fighters[1].pp[key(920040)]>0);
+});
+test('4184 2229伙伴自身用招全强化与消回合、消强、吸强触发真实登场选择新领域',()=>{
+ const e=pick(2229)[0];for(const id of [180,33,85]){let s=turn(make(e,{soul:1408}));for(const k of keys)assert.equal(s.fighters[0].stages[k],1);s.fighters[1].hp=500;H.op(s,id,[],920042);const o=turn(s,920031,920042);assert.equal(o.fighters[0].effects['次元领域'].start,2);assert.equal(o.fighters[0].effects['次元领域'].end,4);assert.equal(o.fighters[0].effects['机械领域'],undefined);}
+ const z=make(e,{soul:1408});timer(z,0,'禁强化');const o=turn(z);for(const k of keys)assert.equal(o.fighters[0].stages[k],0);
+});
+test('4184 2229纯反转按公共038解释一触发当前原地登场',()=>{
+ const s=turn(make(pick(2229)[0],{soul:1408}));s.fighters[1].hp=500;H.op(s,143,[],920042);const o=turn(s,920031,920042);assert.equal(o.fighters[0].effects['次元领域'].start,2);assert.equal(o.fighters[0].effects['次元领域'].end,4);assert.equal(o.fighters[0].effects['机械领域'],undefined);for(const k of keys)assert.equal(o.fighters[0].stages[k],-2);
+});
+test('4184 1635立即500、3回合后回满、满血上限和技能禁疗',()=>{
+ const e=pick(1635)[0],s=turn(make(e,{hp:1000}));assert.equal(s.fighters[0].hp,1500);assert.equal(s.fighters[0].effects['延迟技能回满'].start,4);let o=turn(s,920031);o=turn(o,920031);assert.equal(o.fighters[0].hp,1500);o=turn(o,920031);assert.equal(o.fighters[0].hp,9000);
+ const z=make(e,{hp:1000});timer(z,0,'技能禁疗');const b=turn(z);assert.equal(b.fighters[0].hp,1000);const full=turn(make(e));assert.equal(full.fighters[0].hp,9000);
+});
+test('4184 2540使用真实双方当回合先制值，零方数0/1/2对应次回合减少',()=>{
+ const e=pick(2540)[0];for(const n of [0,1,2]){const s=make(e);s.moveDefinitions[key(s.auditMoveId)].priority=n===2?0:1;s.moveDefinitions[key(920041)].priority=n===0?1:0;const o=turn(s);const effect=o.fighters[1].effects['次回合先制降低'];if(n===0)assert.equal(effect,undefined);else{assert.equal(effect.amount,n);assert.equal(effect.start,2);assert.equal(effect.end,2);}}
+});
+test('4184 1668当前PP损失总和固定附伤、完全免疫补真、0基数不造伤害',()=>{
+ const e=pick(1668)[0],s=make(e),base=make(e,{omit:true});for(const f of [s.fighters[1],base.fighters[1]])for(const k of f.moves)f.pp[k]=90;const a=turn(s),b=turn(base);assert.equal(b.fighters[1].hp-a.fighters[1].hp,1350);
+ const z=make(e);for(const k of z.fighters[1].moves)z.fighters[1].pp[k]=90;timer(z,1,'固定百分比免疫');const o=turn(z);assert.equal(o.damageEvents.filter(x=>x.type==='true').at(-1).settledDamage,1350);
+ const zero=turn(make(e));assert.equal(zero.damageEvents.filter(x=>x.type==='fixed'||x.type==='true').length,0);
+});
+test('4184 1667独立束缚成功/免疫，不伪造第三领域；59自身体力耗尽真实执行',()=>{
+ const e=pick(1667)[0],s=turn(make(e));assert.ok(s.fighters[1].ailments['束缚']>=1);assert.equal(s.fighters[0].effects['时空漩涡'],undefined);assert.equal(E.WIKI.effectsEngine.registry[1667].partial,undefined);
+ const z=make(e);timer(z,1,'免异常');assert.equal(turn(z).fighters[1].ailments['束缚'],undefined);
+ const dead=turn(make(pick(59)[0]));assert.equal(dead.fighters[0].hp,0);assert.equal(dead.winner,1);
+});
+test('4184 4与5重复实例按原序号独立强化/弱化，禁强化免弱边界',()=>{
+ for(const e of [...pick(4),...pick(5)]){const s=turn(make(e)),side=e.id===4?0:1,k=keys[e.params[0]];assert.equal(s.fighters[side].stages[k],e.params[2]);const z=make(e);timer(z,side,e.id===4?'禁强化':'免弱');assert.equal(turn(z).fighters[side].stages[k],0);}
+});
+test('4184 35惩罚随敌方正能力增威，188异常目标增威消除对应双防，514按已损失HP',()=>{
+ const e=pick(35)[0],s=make(e);s.fighters[1].stages.atk=3;assert.ok(turn(s).fighters[1].hp<turn(make(e)).fighters[1].hp);
+ const p=pick(188)[0],a=make(p);a.fighters[1].ailments['失明']=9;a.fighters[1].stages.def=2;a.fighters[1].stages.spd=2;const o=turn(a);assert.equal(o.fighters[1].stages.def,0);assert.equal(o.fighters[1].stages.spd,2);const clean=make(p);clean.fighters[1].stages.def=2;assert.equal(turn(clean).fighters[1].stages.def,2);
+ const x=pick(514)[0],z=turn(make(x,{targetHp:6000})),b=turn(make(x,{targetHp:6000,omit:true}));assert.equal(b.fighters[1].hp-z.fighters[1].hp,Math.floor((9000-b.fighters[1].hp)*.2));
+});
+test('4184 889消回合成功疲惫，948真实吸强成功麻痹及无强化失败',()=>{
+ const e=pick(889)[0],s=make(e);timer(s,1,'免弱');const o=turn(s);assert.equal(o.fighters[1].effects['免弱'],undefined);assert.ok(o.fighters[1].ailments['疲惫']>=1);assert.equal(turn(make(e)).fighters[1].ailments['疲惫'],undefined);
+ const p=pick(948)[0],z=make(p);z.fighters[1].stages.atk=2;const b=turn(z);assert.equal(b.fighters[0].stages.atk,2);assert.equal(b.fighters[1].stages.atk,0);assert.ok(b.fighters[1].ailments['麻痹']>=1);assert.equal(turn(make(p)).fighters[1].ailments['麻痹'],undefined);
+});
+test('4184 31与612真实逐段次数，33真实消强，471先手免异常与后手不触发',()=>{
+ for(const id of [31,612]){const counts=new Set();for(let seed=0;seed<35;seed++){const o=turn(make(pick(id)[0],{seed})),n=o.damageEvents.filter(e=>e.type==='attack').length;counts.add(n);assert.ok(id===31?n>=3&&n<=6:n===1||n===3);}assert.ok(counts.size>1);}
+ const s=make(pick(33)[0]);s.fighters[1].stages.def=2;assert.equal(turn(s).fighters[1].stages.def,0);
+ const a=turn(make(pick(471)[0]));assert.equal(a.fighters[0].effects['免异常'].end,2);const late=make(pick(471)[0],{aStats:{spe:10},bStats:{spe:900}});assert.equal(turn(late).fighters[0].effects['免异常'],undefined);
+});
+test('4184 406真实受击回复200与506保留1HP完整伤害不截断',()=>{
+ const s=turn(make(pick(406)[0],{hp:3000})),o=turn(s,920031,920040);assert.equal(o.fighters[0].hp,3000-o.fighters[0].roundAttackDamage+200);
+ let z=turn(make(pick(506)[0]));z.fighters[0].hp=200;z.moveDefinitions[key(920040)].power=9999;const a=turn(z,920031,920040);assert.equal(a.fighters[0].hp,1);assert.equal(a.fighters[0].roundAttackDamage,199);assert.ok(a.fighters[0].roundSettledAttackDamage>200);
+});
+test('4184 470真实枚举3对应4回合，191反弹、1077攻击后瘫痪失败封属性',()=>{
+ const o=turn(make(pick(470)[0]));assert.equal(o.fighters[0].effects['攻击附加异常'].end,4);
+ const reflect=make(pick(191)[0]);H.op(reflect,15,[100],920042);const r=turn(reflect,reflect.auditMoveId,920042);assert.equal(r.fighters[0].ailments['害怕'],undefined);assert.ok(r.fighters[1].ailments['害怕']>=1);
+ const a=turn(make(pick(1077)[0]));const b=turn(a,920031,920040);assert.ok(b.fighters[1].ailments['瘫痪']>=2);const z=turn(make(pick(1077)[0]));timer(z,1,'免异常');const c=turn(z,920031,920040);assert.equal(c.fighters[1].effects['属性技能命中效果失效'].start,3);assert.equal(c.fighters[1].effects['属性技能命中效果失效'].end,4);
+});
+test('4184 971按理论百分比吸取回复及低半血翻倍、免伤不降低回复基数',()=>{
+ const e=pick(971)[0],s=turn(make(e,{hp:1000}));assert.equal(s.fighters[0].hp,7000);assert.equal(s.fighters[1].hp,3000);const z=make(e,{hp:1000});timer(z,1,'固定百分比免疫');const o=turn(z);assert.equal(o.fighters[0].hp,7000);assert.equal(o.fighters[1].hp,9000);
+});
+test('4184 1283先手全强化翻倍与440实际三倍消耗、776和843次两回合期限',()=>{
+ const e=pick(1283)[0],s=turn(make(e));for(const k of keys)assert.equal(s.fighters[0].stages[k],2);const z=make(e,{aStats:{spe:10},bStats:{spe:900}}),a=turn(z);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);
+ const p=pick(440)[0],o=turn(make(p),p.moveId,920041);assert.equal(o.fighters[1].pp[key(920041)],96);
+ assert.equal(turn(make(pick(776)[0])).fighters[0].effects.doubleDamage.start,2);assert.equal(turn(make(pick(843)[0])).fighters[0].effects.id984.end,3);
+});
+test('4184 881弱化先制、1441解除弱化后抽2技能清PP及PP保护，795累计增伤封顶',()=>{
+ const e=pick(881)[0],s=make(e,{aStats:{spe:10},bStats:{spe:900}});s.fighters[0].stages.acc=-1;const o=turn(s);assert.equal(o.turns.at(-1).first,0);
+ const p=pick(1441)[0],z=make(p);z.fighters[0].stages.atk=-1;const a=turn(z);assert.equal(a.fighters[0].stages.atk,0);assert.equal(a.fighters[1].moves.filter(k=>a.fighters[1].pp[k]===0).length,2);
+ const b=make(p);b.fighters[0].stages.atk=-1;timer(b,1,'PP保护');assert.equal(turn(b).fighters[1].moves.filter(k=>turn(b).fighters[1].pp[k]===0).length,0);
+ const g=pick(795)[0];let c=make(g);const damages=[];for(let i=0;i<7;i++){if(c.fighters[0].pp[key(c.auditMoveId)]===0)c=E.resolveTurn(c,['potion:pp',key(920041)]);c.rng=0;c=turn(c);damages.push(c.fighters[0].lastSettledAttackDamage);}assert.ok(damages[1]>damages[0]);assert.equal(damages[6],damages[5]);
+});
+test('4184 1258完整攻击大于300给一次异常免疫，1423和1471成功状态/失败回复',()=>{
+ const e=pick(1258)[0],s=turn(make(e,{aStats:{atk:900}}));assert.equal(s.fighters[0].counts.immune,1);assert.equal(turn(make(e)).fighters[0].counts.immune,undefined);
+ for(const id of [1423,1471]){const p=pick(id)[0],z=make(p,{hp:1000});if(id===1423)timer(z,1,'免弱');else z.fighters[1].stages.atk=2;const a=turn(z);assert.ok(a.fighters[1].ailments[id===1423?'疲惫':'麻痹']>=1);const fail=make(p,{hp:1000});if(id===1423)timer(fail,1,'免弱');else fail.fighters[1].stages.atk=2;fail.fighters[1].counts.immune=1;const b=turn(fail);assert.equal(b.fighters[0].hp,5500);}
+ const dead=turn(make(pick(672)[0],{hp:1000,targetHp:1}));assert.equal(dead.fighters[0].hp,9000);
+});
+test('4184 全部19真实技能本地配招初始化与原版强化选择，伙伴为自身强化不是多精灵',()=>{
+ assert.equal(H.source.moves.length,19);assert.deepEqual(H.source.souls.map(s=>s.id),[1408,1580]);assert.deepEqual(H.source.moves.filter(m=>m.sourceFlags.is_special).map(m=>m.id),[29019,38461]);assert.equal(H.source.moves.find(m=>m.id===38461).fifth,false);
+ for(const m of H.source.moves){const s=make({moveId:m.id,index:null},{omit:true}),o=turn(s);assert.ok(s.fighters[0].moves.includes(key(m.id)));assert.ok(o.fighters[0].pp[key(m.id)]<s.fighters[0].pp[key(m.id)]);}
+});
+test('4184 新状态源绑定1423/1471参数不接受其他hash、序号或未核实异常',()=>{
+ const m=H.source.moves.find(m=>m.id===38461);for(const [id,i,args]of [[1423,1,[100,7,2]],[1471,2,[100,0,2]]]){const r=E.WIKI.effectsEngine.registry[id];assert.doesNotThrow(()=>r.validate(args,m,i));assert.throws(()=>r.validate(args,{...m,hash:'bad'},i));assert.throws(()=>r.validate(args,m,9));}
+ const r=E.WIKI.effectsEngine.registry[1666];assert.throws(()=>r.validate([5,4,15]));assert.throws(()=>r.validate([5,10,8]));
+ const partner=H.source.moves.find(m=>m.id===29019),entry=E.WIKI.effectsEngine.registry[2229];assert.doesNotThrow(()=>entry.validate([3],partner,0));assert.throws(()=>entry.validate([3],{...partner,hash:'bad'},0));assert.throws(()=>entry.validate([3],{...partner,id:28867},0));
+});
+test('4184 2539领域到期后技能回PP恢复，0PP入口也同步停止',()=>{
+ const s=make(pick(2539)[0],{carry:true,soul:1408});H.op(s,87,[],920042);let o=turn(s,920031);o=turn(o,920031);o=turn(o,920031);assert.equal(o.round,4);o.fighters[1].pp[key(920040)]=0;const b=turn(o,920031,920042);assert.equal(b.fighters[1].pp[key(920040)],99);o.fighters[0].pp[key(o.auditMoveId)]=0;assert.ok(!E.availableMoves(o.fighters[0],4).includes(key(o.auditMoveId)));
+});

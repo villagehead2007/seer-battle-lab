@@ -1,0 +1,6 @@
+'use strict';const fs=require('fs'),assert=require('assert/strict');function edit(p,a,b){const s=fs.readFileSync(p,'utf8');assert.ok(s.includes(a),a);fs.writeFileSync(p,s.replaceAll(a,b));}
+edit('dist/range-souls.js',"registry[1482]={name:'环·源',sourceHash:'e8fc42fa',partial:true","registry[1482]={name:'环·源',sourceHash:'e8fc42fa',traits:{},partial:true");
+edit('dist/range-souls.js',"registry[2139]={name:'环·源·执行者',sourceHash:'f102f34c',partial:true","registry[2139]={name:'环·源·执行者',sourceHash:'f102f34c',traits:{},partial:true");
+edit('dist/range-souls.js',"c.timed(c.t,'priorityAll',1,{amount:-1},c.round+1)","c.timed(c.t,'id984',1,{amount:-1},c.round+1)");
+const p='tests/deployed-4258-partial.test.cjs';edit(p,'effects.priorityAll','effects.id984');edit(p,"timer(s,0,'禁强')","timer(s,0,'禁强化')");edit(p,"timer(s,1,'immune')","timer(s,1,'免异常')");edit(p,'s.fighters[1].stages.def=6;const o=turn(s),z=turn(b);','s.fighters[1].stages.spd=6;b.fighters[1].stages.spd=6;const o=turn(s),z=turn(b);');edit(p,"assert.equal(o.fighters[1].hp,1000);s=exact(make(pick(1265)[0])","assert.equal(o.fighters[1].hp,1000-sum(o));s=exact(make(pick(1265)[0])");edit(p,"effects['消回合攻击增伤'].fraction","effects.id913.bonus");
+console.log('Fixed native traits initialization and id984 priority key; fixtures use actual 禁强化/免异常 keys, special-defense, base damage and native id913');

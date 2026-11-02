@@ -1,0 +1,98 @@
+[
+  {
+    "before": "  E.STATUS_RULES=statusRules;",
+    "after": "  E.STATUS_RULES=statusRules;\n  const ppRules=typeof module==='object'&&module.exports?require('./pp-rules.js'):globalThis.BattlePPRules;\n  E.PP_RULES=ppRules;"
+  },
+  {
+    "before": "      if(f.hp<=0)return 0;\n      if(!bypass",
+    "after": "      if(f.hp<=0)return 0;\n      if(type==='direct'){const dealt=Math.min(f.hp,Math.max(0,Math.floor(n)));f.hp-=dealt;f.roundDamageTaken+=dealt;emit(`${name(f)} ${source}：直接损失 ${dealt} 点体力。`,'damage');return dealt;}\n      if(!bypass"
+  },
+  {
+    "before": "if(v>0){deathRetaliate(f,origin??fs[1-f.side]);",
+    "after": "if(v>0){if(type==='true')statusRules.trueDamageTaken(f,r,v,heal);deathRetaliate(f,origin??fs[1-f.side]);"
+  },
+  {
+    "before": "function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){",
+    "after": "function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){\n      if(!reflected)statusRules.markExecution(source,r);"
+  },
+  {
+    "before": "merge:statusPolicy?.merge??'replace'",
+    "after": "merge:statusPolicy?.merge??'max-remaining'"
+  },
+  {
+    "before": "// Existing experimental compatibility policy; not a source-confirmed default.",
+    "after": "// Default duration now follows Q001 project_rule/user_confirmed."
+  },
+  {
+    "before": "source,durationFallback:{origin:'legacy-experimental-1-3',resolve:random=>1+Math.floor(random()*3)},",
+    "after": "source,"
+  },
+  {
+    "before": "if(statusPolicy?.effectId===2074)",
+    "after": "if([2074,1348].includes(statusPolicy?.effectId))"
+  },
+  {
+    "before": "type:'application',effectId:2074",
+    "after": "type:'application',effectId:statusPolicy.effectId"
+  },
+  {
+    "before": "{effectId:2074,name:k",
+    "after": "{effectId:statusPolicy.effectId,name:k"
+  },
+  {
+    "before": "restorePP(f,n){for(const id of f.moves)f.pp[id]=Math.min(battleMoves[id].pp,f.pp[id]+n);}",
+    "after": "restorePP(f,n){return ppRules.restore(f,battleMoves,n);},markStatusEffect(){statusRules.markExecution(a,r);},absorbPP(receiver,donor,n){return ppRules.absorb(receiver,donor,n,battleMoves,{blocked:on(donor,'PP保护')||on(donor,'免疫PP削减')||!!E.SOULS.trait(donor,'ppReductionImmune')});}"
+  },
+  {
+    "before": "statusRules.attackMultiplier(a,r)",
+    "after": "statusRules.attackMultiplier(a,r)*statusRules.incomingMultiplier(t,r)"
+  },
+  {
+    "before": "raw>0?statusRules.minimumAttackDamage(t,r,crit):0,",
+    "after": ""
+  },
+  {
+    "before": "statusRules.fireHit(t,r,m.type,unresolvedStatus);",
+    "after": "statusRules.fireHit(t,r,m.type,{random:()=>rng(s),stage,source:a});"
+  },
+  {
+    "before": "      if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);",
+    "after": "      if(power>0)remaining=Math.max(remaining,statusRules.minimumAttackDamage(t,r,crit));\n      if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);"
+  },
+  {
+    "before": "      if(t.ailments['流血']>=r&&t.hp>0){inflict(a,t,80,'流血','fixed');if(t.hp<=0){finish();break;}}\n",
+    "after": ""
+  },
+  {
+    "before": "if(on(a,'攻击附加异常')){const e=a.effects['攻击附加异常'];",
+    "after": "if(on(a,'攻击附加异常')){statusRules.markExecution(a,r);const e=a.effects['攻击附加异常'];"
+  },
+  {
+    "before": "if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性后随机异常清回合')){const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<t.effects['对手属性后随机异常清回合'].count&&pool.length;i++)success=ailment(a,pool.splice(Math.floor(rng(s)*pool.length),1)[0],t)||success;if(!success)clear(a);}",
+    "after": "if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性后随机异常清回合')){const results=statusRules.randomAilments({a:t,t:a,round:r,random:()=>rng(s),ailment,record:event=>{s.randomStatusEvents??=[];s.randomStatusEvents.push(event);}},t.effects['对手属性后随机异常清回合'].count,1348);if(!results.some(x=>x.applied))clear(a);}"
+  },
+  {
+    "before": "E.SOULS.run('opponentAfterUse',{...context(t,a,m),first});",
+    "after": "E.SOULS.run('opponentAfterUse',{...context(t,a,m),first,attackDamage:a.lastAttackDamage??0});"
+  },
+  {
+    "before": "used[side]=true;",
+    "after": "used[side]=true;a.lastAttackDamage=0;"
+  },
+  {
+    "before": "    if(!s.finished)for(const f of fs)if(f.hp>0&&f.ailments['烈焰诅咒']>=r)inflict(fs[1-f.side],f,f.stats.maxHp/8,'烈焰诅咒','percent');\n",
+    "after": ""
+  },
+  {
+    "before": "statusRules.damageOverTime(f,r,(target,n,k,type)=>inflict(fs[1-f.side],target,n,k,type))",
+    "after": "statusRules.damageOverTime(f,r,(target,n,k,type)=>inflict(fs[f.statusState?.sources?.[k]??f.side],target,n,k,type))"
+  },
+  {
+    "before": "    for(const f of fs)statusRules.roundEnd(f,r);",
+    "after": "    for(const f of fs){if(f.hp>0&&statusRules.active(f,'星赐',r))ppRules.restore(f,battleMoves,2);statusRules.roundEnd(f,r);}"
+  },
+  {
+    "before": "statusRules.expire(f,r,k=>{statusRemoved(f,k);emit(`${name(f)} ${k}解除。`);if(k==='冰封')statusRules.iceExpired(f,r,stage,issue=>{s.pendingStatusTransitions??=[];s.pendingStatusTransitions.push(issue);emit(`${name(f)} 冰封结束：冻伤转化的持续时间及免疫规则待核实，未擅自施加。`);});if(k==='感染'&&f.hp>0){for(const stat of ['atk','spa'])f.stages[stat]=Math.max(-6,f.stages[stat]-1);f.ailments['中毒']=r+2;}if(k==='焚烬'){stage(f,-1,['acc']);ailment(f,'烧伤',fs[1-f.side],false,false,2);}if(k==='渐冻')ailment(f,'冰封',fs[1-f.side],false,false,3);if(k==='诅咒'&&f.hp>0){const next=['烈焰诅咒','致命诅咒','虚弱诅咒'][Math.floor(rng(s)*3)];f.ailments[next]=r+2;emit(`${name(f)} 诅咒转化为${next}（后续2回合）。`);}if(k==='神游')ailment(f,'失神',fs[1-f.side]);",
+    "after": "statusRules.expire(f,r,(k,sourceSide)=>{statusRemoved(f,k);emit(`${name(f)} ${k}解除。`);statusRules.convert(f,k,r,{random:()=>rng(s),stage,source:fs[sourceSide??f.side]});"
+  }
+]

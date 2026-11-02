@@ -1,0 +1,247 @@
+{
+  "at": "2026-11-01T14:26:56.220Z",
+  "status": "diagnosed-pending-current-full-run-completion",
+  "doNotMutateFrozenInputs": true,
+  "confirmation56": {
+    "number": 56,
+    "title": "## 56. 龙琰 · 冥龙之契龙焉目标与能力及穿盾",
+    "originalIds": [
+      "Q-4712-005"
+    ],
+    "answerOriginal": "仅己方；六；仅红伤\n        护盾只抵挡红伤啊，护罩才抵挡粉伤",
+    "status": "answered-not-implemented",
+    "sectionOriginal": "## 56. 龙琰 · 冥龙之契龙焉目标与能力及穿盾\n\n战斗开始场上敌方龙焉是否也获得契约，还是仅己方龙焉？全能力值+70包括最大HP（六项）还是五项战斗面板？攻击技能无视护盾是否仅红伤，还是连同该攻击技能追加固定/百分比伤害？\n\n答：仅己方；六；仅红伤\n        护盾只抵挡红伤啊，护罩才抵挡粉伤\n\n原编号：Q-4712-005。\n来源记录：[龙琰](C:/Users/villa/Desktop/seer-battle-lab/research/BATCH-4676-NEXT50/4712/questions.json)。\n\n"
+  },
+  "primarySource": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/damage-shield-source.json",
+  "preexistingProduction": "same shield type logic exists in 4765-before-souls.js before this continuation",
+  "diagnosticLogs": [
+    "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3516.log",
+    "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3584.log"
+  ],
+  "proposed": [
+    {
+      "files": [
+        "tests/damage-settlement.test.cjs"
+      ],
+      "change": "Use barrier for fixed damage mitigation/full-block fixtures; retain settled300/hpLoss100 and zero-event expectations."
+    },
+    {
+      "files": [
+        "tests/deployed-3516.test.cjs"
+      ],
+      "change": "Fixed damage must not deduct ordinary shield. Preserve strict MAX/3 boundary by testing3000/3001; test actual red to trigger shield gone and PP zero in mirrored real Soul versions."
+    },
+    {
+      "files": [
+        "tests/helpers/assert-1752-source-shield.cjs"
+      ],
+      "change": "Replace status fixed packet used to break ordinary shield with actual physical attack capped to exact source shield amount; preserve heal amount, twoPP0, source consumption and independent old layer assertions."
+    },
+    {
+      "files": [
+        "tests/helpers/assert-939-nominal-heal.cjs"
+      ],
+      "change": "Keep nominal reply4000 on landed zero-red via explicit attack damage immunity. Separately assert legacy full-move guard consumes count and skips hit payload (HP1000/target200).",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "diagnosis": "2161 timed listener does not retain original grant source. grantBoost4714 defaults to current action move id/revision, so cast failure and later IDLE failure produce two records from same original effect.",
+      "change": "Persist original grant source key (move wikiId/revision/instance index) in2161 timed effect, pass stable key to grantBoost4714 both generic and4671 listener. Retain all existing test assertions incl count1 and partial success; add explicit different-current-move and independent-source interaction assertions.",
+      "reproduction": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3667-partial.log",
+      "initialWrongSelectorLog": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3667.log",
+      "initialWrongSelectorIsNotEvidence": true
+    },
+    {
+      "files": [
+        "tests/deployed-3716-independent.test.cjs"
+      ],
+      "diagnosis": "1769 percent packet fixture expects ordinary shield to absorb it, contradicting original56 and glossary372/112.",
+      "change": "Retain exact reduction/boundary semantics but assert settled percent and actual HP loss directly; ordinary shield remains3000 and does not absorb percent.",
+      "reproduction": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3716-independent.log",
+      "wrongSelectorIsNotEvidence": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T12-12-59-889Z/diagnose-3716.log"
+    },
+    {
+      "files": [
+        "tests/deployed-3739.test.cjs",
+        "tests/helpers/assert-1697-actual-immunity.cjs"
+      ],
+      "diagnosis": "Positive zero-red cases currently use legacy attackNullify, which short-circuits landed callbacks.",
+      "change": "Use explicit timed attack-damage immunity for landed zero red; retain gains200/300/400, healing bans/expiry/death and1697 percent packet state assertions. Add separate unambiguous whole-move invalid negative if required.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-3740-awakened.test.cjs"
+      ],
+      "source": {
+        "soul": 1932,
+        "hash": "ed0e3e1c",
+        "quote": "此护盾存在时自身受到的固定伤害、百分比伤害不超过此护盾的数值"
+      },
+      "diagnosis": "Fixed581 is wrongly expected to consume ordinary shield.",
+      "change": "Assert initial fixed600 capped400 but ordinary source shield remains400 (END heals the HP). For LIFO source200 test, add actual red600 before fixed packet, then assert source200 and fixed cap200. Source consumed and independent100 later must not revive entry source; fixed600 remains600, independent shield100 remains."
+    },
+    {
+      "files": [
+        "tests/deployed-3788-soul.test.cjs"
+      ],
+      "diagnosis": "fixed1000 sharing fixture consumes ordinary shield200",
+      "change": "Use proper barrier200 for fixed mitigation to preserve HP8680/Xin8520; add ordinary shield200 negative showing it remains and fixed1000 splits after no shield mitigation. Keep true/self exclusion assertions."
+    },
+    {
+      "files": [
+        "tests/deployed-4002-partial.test.cjs"
+      ],
+      "diagnosis": "Both1754 repeated-instance and3396 old-source tests use effect29 fixed200/100/500 to consume ordinary shield.",
+      "change": "Use actual physical attack capped exactly200 then100 (or500) to consume newest source. Preserve shield100, enemy8970/8950, boost2/3 and source3396 independent shield400/counter300/boost1 assertions."
+    },
+    {
+      "files": [
+        "tests/deployed-4048-partial.test.cjs",
+        "tests/deployed-4050-partial.test.cjs"
+      ],
+      "diagnosis": "456 threshold and447 min-damage zero-red cases set attackNullify, which skips hit payload entirely.",
+      "change": "Use explicit timed attack-damage immunity for landed-zero-red positive fixtures; keep target299 dies /300 survives, min300 settlement/hpLoss200 and immune red0 assertions. Add HP/actual-use checks and a separate whole invalid negative; do not change production mechanics merely to satisfy old counter fixtures.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-4068-partial.test.cjs",
+        "tests/deployed-4069-partial.test.cjs",
+        "tests/deployed-4109-partial.test.cjs"
+      ],
+      "diagnosis": "1592 erosion wind attack-immune modes and456 threshold fixtures use whole-move short-circuit attackNullify, not landed zero-red.",
+      "change": "Only replace attack-immune/all-immune positive setup with timed attack-damage immunity. Keep explicit nextSkillInvalid/MISS/control cases intact, retain opportunity consumption0/stage2/independent2250 powder and no repeat; retain456 exact199/200 and259/260 state assertions.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-4125-answers.test.cjs"
+      ],
+      "diagnosis": "First zero-red event test uses attackNullify (whole-move short circuit). Second explicitly assumes burn is blocked by ordinary round-start shield, contradicting original56.",
+      "change": "First use explicit timed attack damage immunity while hit effects disabled, retain B-first/def1/zero red and independent Soul layers. Second capture HP4000 at battlePhaseEnd after theoretical3000 drain, then separately assert burn damage and final HP using verified DOT (likely1125=>2875); keep control/no-branch/no-first-use drain cases intact.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-4147-partial.test.cjs"
+      ],
+      "diagnosis": "1754 source-shield400 is attacked with fixed29[600] and wrongly expected to disappear.",
+      "change": "Use actual physical red600 (exact output cap) to exhaust source shield and preserve fixed400 reaction, boost1 and next attack doubling assertions; retain679 skill/potion source restrictions."
+    },
+    {
+      "files": [
+        "dist/range-effects.js",
+        "tests/helpers/assert-1752-source-shield.cjs"
+      ],
+      "diagnosis": "Generic1752 uses round+serial as new source on every grant and addShield, violating original10/29 same-source refresh. 4785 exact handler already refreshes, generic older owners do not.",
+      "change": "Stable source identity original skill wikiId/revision/instance index and refreshShield. Regrant preserves one source/callback and refresh amount, no disappearance reaction. Update obsolete double-grant helper expectations to one refreshed shield, one disappearance callback and no second callback; keep separate independent old800 layer case and add independent-source/duplicate-index state assertions.",
+      "authority": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/COMMON-SHIELD-IMMUNITY-2026-10-29.json"
+    },
+    {
+      "files": [
+        "dist/range-effects.js"
+      ],
+      "diagnosis": "Generic1661,1387,1755 also use round/serial grant identities and addShield;1752 same issue. Explicit normal grant should follow Oct29 source refresh.",
+      "change": "For four normal grant handlers use original skill wikiId/revision/instance index stable source and refreshShield, keeping payload/params/status IDs validated. Add actual cast-twice one-source refresh and no-disappearance tests, actual red source break once, independent old layer retention, and different original skill/instance source separation. Do not mechanically alter1545 shield transfer or1859 paid shield value increment without their distinct semantics."
+    },
+    {
+      "files": [
+        "tests/deployed-4189-partial.test.cjs",
+        "tests/deployed-4200-partial.test.cjs",
+        "tests/deployed-4222.test.cjs",
+        "tests/deployed-4233-answers.test.cjs",
+        "tests/deployed-4233-partial.test.cjs",
+        "tests/deployed-4239-partial.test.cjs",
+        "tests/deployed-4247-partial.test.cjs",
+        "tests/deployed-4278-partial.test.cjs",
+        "tests/deployed-4287-partial.test.cjs",
+        "tests/deployed-4288-partial.test.cjs",
+        "tests/deployed-4289-answers.test.cjs"
+      ],
+      "status": "pending-full-failure-trace-and-focused-verification",
+      "preliminary": "Several clear fixed29 packets improperly consume ordinary shields, or attackNullify is used for landed-zero-red.4222 effective stage double-defense fixed basis is already correct and must retain level assertions; likely last legacy counter branch only.4278 repeated same source is incorrectly treated as two sources; must assert refresh once and separately genuine independent sources.4287/4288/4289 ordinary shield must not stop fixed/percent, barrier may; verify separate full settlement, hpLoss and HP, retain immunity/floor cases.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-4333.test.cjs"
+      ],
+      "diagnosis": "Most assertions already migrated to positive immune branch (ok normal/immune) but setup remains legacy attackNullify short-circuit; titles also obsolete. Ordinary-shield Soul percent expected0 is stale.",
+      "change": "Replace only positive immune/attack-immune setups with timed attack damage immunity, keep MISS/control/skillBlock negatives. Retain heal/stage/PP/ailment/fixed/percent actual assertions; relocate old count-consumption assertion to separate explicit whole-move guard negative. Soul percent behind ordinary shield should3000, not0. Update obsolete titles and exact review refs if renamed.",
+      "attackNullifyFixtureDiagnosisRetracted": true
+    },
+    {
+      "files": [
+        "tests/deployed-4329-partial.test.cjs",
+        "tests/deployed-4347.test.cjs",
+        "tests/deployed-4353.test.cjs",
+        "tests/deployed-4354-independent.test.cjs",
+        "tests/deployed-4373.test.cjs",
+        "tests/deployed-4401-independent.test.cjs",
+        "tests/deployed-4444.test.cjs"
+      ],
+      "status": "pending-final-traces-and-targeted-actual-state-verification",
+      "preliminary": "Old ordinary-shield absorption of fixed/percent appears in several.4347 true partner36519 red ignore shield leaves ordinary5000, percent drain3000 should not be shield-stopped.4353 ordinary shield3000 should remain and target6000; add barrier equivalent.4354 ordinary shield not block2700 percent, barrier may without immune-to-true fallback.4373 shield does not stop percent target damage, theory healing unchanged.4444 ordinary shield should not block direct fixed/percent; add true barrier control, keep damage reductions/immune assertions.4401 inspect exact source and failure position before altering red/shield expectations."
+    }
+  ],
+  "formalAccepted": 0,
+  "pendingTraceGroups": [
+    {
+      "namedFailures": [
+        "✖ 4474 1173未KO战后最大三分一，自身被反击死仍追加；582未KO次2回必暴且KO不授",
+        "✖ 4500普通次数免攻整招缓存仍先于红鳞，多段后续段不能重复消费红鳞",
+        "✖ 4501精确1617命中零伤反制、MISS不触发、整回合一次；保1完整正伤实际0仍反制",
+        "✖ 4501 1845 genuineuse snapshot missingHP notsameattackHP loss,odd floor,bothhitsegments once,shield andHPfloor independent;immune andsealed suppresspayload",
+        "✖ 4501 1486 realprobability rolls oncewhole-round acrossmultihit,shieldfirstguarantees andsharedroll stable;1617hit0/MISS onceperround andimmunityfailure stages",
+        "✖ 4503 1594新源单次受攻50%两分支，禁强化未提升补全弱，命中零伤触发且整回合多段仅一次"
+      ],
+      "instructions": "Inspect actual failing line/value after full run before classifying.4474 old title explicitly allows ordinary dead actor suffix, now original23 should stop; retain alive branch and provenance.4500/4501/4503 could be zero-red fixtures or probability/lifetime mismatch; no speculative expected-value edits. Audit probability-immunity unit under original6 per actual skill use, preserving explicit source exceptions and full validation; do not infer solely from title."
+    },
+    {
+      "namedFailures": [
+        "✖ 4511 用户确认2008纯反转触发免异，2007已有盾抵挡后仍按理论300授盾",
+        "✖ 4511用户确认2007：理论300授盾不因免疫或剩余200HP截断，已有容量独立抵挡后再授300",
+        "✖ 4511用户确认免攻来源：重复46只刷新自身2次，保留2006，完整多段只消费最新2006一次",
+        "✖ 4514 1749五项全0PP上界与护盾全挡固定后补真实，108烧伤免疫失败"
+      ],
+      "instructions": "Inspect4511 exact2007 raw description/user confirmation and actual failing line. Keep theoretical300 shield grant and same-source attack immunity refresh/independent2006/multihit one consumption assertions. Do not change resource semantics merely from title.4514 may use ordinary shield to zero fixed damage; verify proper barrier/actual immunity vs no-damage compensation definition before fixture change."
+    },
+    {
+      "namedFailures": [
+        "✖ 4514 1749五项全0PP上界与护盾全挡固定后补真实，108烧伤免疫失败",
+        "✖ 4516 1871当前HP较低才给最大HP绝对差盾、等HP失败及同最大值零盾，真实吸收粉伤",
+        "✖ 4516 2019加1677与1554先免后转，两次数同次消费，零伤禁疗盾罩均消费转体",
+        "✖ 4516用户002：完整28337先消费1554免攻再消费1677零伤转换，禁疗不阻止消费"
+      ],
+      "instructions": "4516 real1554 then1677 conversion is decisive source evidence for global counter damage-immunity fix; retain resource assertions.1871 ordinary shield absorption of powder still needs current56 correction. Inspect full traces first."
+    },
+    {
+      "namedFailures": [
+        "✖ 1764真实命中受攻事件0结算仍响应圣诰，MISS不响应；标记对非1764持有者生效",
+        "✖ 1778下次攻击免疫真实消费并清本来源标记，0伤仍触发吸取，下次攻击重新造成红伤",
+        "✖ 1791卌真实吸取击败1603后减攻标记仍保留，原对手真实复活的下次攻击输出60%",
+        "✖ 1809三道攻击克制至少1且护盾失效不破坏盾剩余",
+        "✖ 1810低体接收固伤先减60再由真实护盾抵挡，盾300最终仅减100HP",
+        "✖ 1810高体输出1000增至1300再过300盾，敌余200仍记录完整1000伤害"
+      ],
+      "instructions": "Preserve originals.1764/1778 likely directly exercise landed0 source reactions fixed by removing attackNullify invalid return.1791 actor/target death and true same-target resurrection must inspect source and failing line; do not apply actor-death-stop to living actor merely because target died.1809 shield invalidation must preserve stored shield amounts; inspect actual failure.1810 fixed damage may use ordinary shield incorrectly, but check real source for exceptions before changing expected values."
+    }
+  ],
+  "criticalCorrection": {
+    "at": "2026-11-01T16:05:24.834Z",
+    "supersedesAllAttackNullifyFixtureReplacementAdvice": true,
+    "reason": "Real4516 user002 pipeline requires1554 immunity then1677 conversion even on zero damage. Actual templates46 resist next attacks,1554 immunity next attacks,2006 grants immunity on invalid and boosts enemy on immunity; none says the immunity makes whole skill invalid. Prior diagnosis confused implementation early-return with verified semantic authority.",
+    "action": "Fix generic attackNullify damage path to zero remaining damage and continue normal landed pipeline, preserve whole-use immunity cache/one source consumption, no positive damage event at0, later conversion resource consumption, and real skill-invalid guards. Keep original positive immunity assertions, do not merely replace counters with timed immunity. Source-specific original46 first-attack-resource consumption policy can remain local; must not globally turn damage immunity into invalid skill.",
+    "authority": [
+      "current user AGENTS已命中零伤统一规则",
+      "real4516 prior user002",
+      "SeerAPI registry templates46/1554/1677/2006"
+    ],
+    "stillValid": "Ordinary-shield-vs-fixed/percent fixture corrections backed by original56 and glossary; stable same-source refresh fixes1752/1661/1387/1755;2161 original-grant identity; ordinary-death stop original23."
+  }
+}

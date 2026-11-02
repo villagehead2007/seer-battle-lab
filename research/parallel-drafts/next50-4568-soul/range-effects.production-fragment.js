@@ -1,0 +1,2 @@
+// Public Q-N50-4511-006 remains unresolved; keep 1778 source ownership explicit.
+for(const id of [46,570,1288,2006]){const old1778=registry[id];registry[id]=Object.freeze({...old1778,execute(c,p){if(c.a.soulState.jiegeNullify1778>0&&c.a.counts.attackNullify>0)throw Error('Q-N50-4511-006：其他免攻覆盖1778来源计数待确认');if(!(c.a.counts.attackNullify>0))delete c.a.soulState.jiegeNullify1778;return old1778.execute(c,p);}});}

@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('fs'),path=require('path'),text=fs.readFileSync(path.resolve(__dirname,'../../../dist/souls.js'),'utf8'),patches=[];
+const add=(label,old,replacement)=>{if(text.split(old).length!==2)throw Error('1849 exact anchor '+label);patches.push({label,target:'dist/souls.js',old,replacement});};
+const panel="return e&&e.start<=r&&e.end>=r&&Object.hasOwn(e.values??{},k)?e.values[k]:f.stats[k];};E.panelStat=panelStat;";
+add('1849 original higher attack panels view before independent ability stages',panel,"const raw1849=key=>e&&e.start<=r&&e.end>=r&&Object.hasOwn(e.values??{},key)?e.values[key]:f.stats[key];return f.soulId===1849&&E.SOULS.registry[1849]?.sourceHash==='8e17ffc7'&&['atk','spa'].includes(k)?Math.max(raw1849('atk'),raw1849('spa')):raw1849(k);};E.panelStat=panelStat;");
+const heal="function healingMultiplier(f){";
+add('1849 live starFlare holder all healing multiplier zero preserving other factors',heal,heal+"if(f.soulState.starFlare1849?.sourceHash==='8e17ffc7'&&E.SOULS.registry[1849]?.sourceHash==='8e17ffc7'&&E.SOULS.registry[1849].abilities.healingFactor({a:f,round:r})===0)return 0;");
+const entry="const other=s.fighters[1-f.side],life=";
+add('1849 entry healing respects any live starFlare holder independent of soul id',entry,"if(f.soulState.starFlare1849?.sourceHash==='8e17ffc7'&&E.SOULS.registry[1849]?.sourceHash==='8e17ffc7'&&E.SOULS.registry[1849].abilities.healingFactor({a:f,round:1})===0)return 0;"+entry);
+const event="E.SOULS.run('attackDamageTaken',{...context(t,a,m),defeatedByAttack,dealt,hpLoss:dealt,settledDamage,attackImmune:hitImmune,shieldDamage:(t.roundShieldDamage??0)-shieldAtAttackStart});";
+add('1849 live mark positive complete red50percent plus independent conditional100true',event,event+"if(settledDamage>0&&t.soulState.starFlare1849?.sourceHash==='8e17ffc7'&&E.SOULS.registry[1849]?.sourceHash==='8e17ffc7')E.SOULS.registry[1849].abilities.receivedAttack({...context(a,t,m),settledDamage,hpLoss:dealt,isWaterType1849(f){const parts=s.typeChart.aliases?.[f.type];if(!Array.isArray(parts))throw Error('1849真实属性成分未覆盖');return parts.includes('水');}});");
+fs.writeFileSync(path.join(__dirname,'souls.production-edits.json'),JSON.stringify(patches,null,2)+'\n');

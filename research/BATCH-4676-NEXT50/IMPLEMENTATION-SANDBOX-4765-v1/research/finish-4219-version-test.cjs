@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),f='tests/deployed-4219-versions.test.cjs';let t=fs.readFileSync(f,'utf8').replace('m.effectIds.includes(1821)?2:0','m.effectIds.includes(1821)?2:m.id===35071&&g.soulId===1438?1:0');fs.writeFileSync(f,t);

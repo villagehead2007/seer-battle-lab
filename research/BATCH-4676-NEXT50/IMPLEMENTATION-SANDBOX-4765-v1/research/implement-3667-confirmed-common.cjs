@@ -1,0 +1,27 @@
+const fs=require('fs'),assert=require('assert');let t=fs.readFileSync('dist/souls.js','utf8').replace(/\r\n/g,'\n');const edits=[];function rep(a,b){assert(t.includes(a),a);edits.push({before:a,after:b});t=t.replace(a,b);}
+rep('  E.STATUS_RULES=statusRules;','  E.STATUS_RULES=statusRules;\n  const ppRules=typeof module===\'object\'&&module.exports?require(\'./pp-rules.js\'):globalThis.BattlePPRules;\n  E.PP_RULES=ppRules;');
+rep("      if(f.hp<=0)return 0;\n      if(!bypass", "      if(f.hp<=0)return 0;\n      if(type==='direct'){const dealt=Math.min(f.hp,Math.max(0,Math.floor(n)));f.hp-=dealt;f.roundDamageTaken+=dealt;emit(`${name(f)} ${source}：直接损失 ${dealt} 点体力。`,'damage');return dealt;}\n      if(!bypass");
+rep('if(v>0){deathRetaliate(f,origin??fs[1-f.side]);',"if(v>0){if(type==='true')statusRules.trueDamageTaken(f,r,v,heal);deathRetaliate(f,origin??fs[1-f.side]);");
+rep("function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){", "function ailment(t,k,source,bypass=false,reflected=false,duration=null,statusPolicy=null){\n      if(!reflected)statusRules.markExecution(source,r);");
+rep("merge:statusPolicy?.merge??'replace'", "merge:statusPolicy?.merge??'max-remaining'");
+rep("// Existing experimental compatibility policy; not a source-confirmed default.","// Default duration now follows Q001 project_rule/user_confirmed.");
+rep("source,durationFallback:{origin:'legacy-experimental-1-3',resolve:random=>1+Math.floor(random()*3)},",'source,');
+rep("if(statusPolicy?.effectId===2074)","if([2074,1348].includes(statusPolicy?.effectId))");
+rep("type:'application',effectId:2074", "type:'application',effectId:statusPolicy.effectId");
+rep("{effectId:2074,name:k", "{effectId:statusPolicy.effectId,name:k");
+rep('restorePP(f,n){for(const id of f.moves)f.pp[id]=Math.min(battleMoves[id].pp,f.pp[id]+n);}',"restorePP(f,n){return ppRules.restore(f,battleMoves,n);},markStatusEffect(){statusRules.markExecution(a,r);},absorbPP(receiver,donor,n){return ppRules.absorb(receiver,donor,n,battleMoves,{blocked:on(donor,'PP保护')||on(donor,'免疫PP削减')||!!E.SOULS.trait(donor,'ppReductionImmune')});}");
+rep('statusRules.attackMultiplier(a,r)','statusRules.attackMultiplier(a,r)*statusRules.incomingMultiplier(t,r)');
+rep('raw>0?statusRules.minimumAttackDamage(t,r,crit):0,','');
+rep('statusRules.fireHit(t,r,m.type,unresolvedStatus);','statusRules.fireHit(t,r,m.type,{random:()=>rng(s),stage,source:a});');
+rep('      if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);',"      if(power>0)remaining=Math.max(remaining,statusRules.minimumAttackDamage(t,r,crit));\n      if(!rage&&!effectContext.ignoreLimit)remaining=preventLethal(t,remaining);");
+rep("      if(t.ailments['流血']>=r&&t.hp>0){inflict(a,t,80,'流血','fixed');if(t.hp<=0){finish();break;}}\n",'');
+rep("if(on(a,'攻击附加异常')){const e=a.effects['攻击附加异常'];", "if(on(a,'攻击附加异常')){statusRules.markExecution(a,r);const e=a.effects['攻击附加异常'];");
+rep("if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性后随机异常清回合')){const pool=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<t.effects['对手属性后随机异常清回合'].count&&pool.length;i++)success=ailment(a,pool.splice(Math.floor(rng(s)*pool.length),1)[0],t)||success;if(!success)clear(a);}","if(t.hp>0&&a.hp>0&&m.kind==='status'&&on(t,'对手属性后随机异常清回合')){const results=statusRules.randomAilments({a:t,t:a,round:r,random:()=>rng(s),ailment,record:event=>{s.randomStatusEvents??=[];s.randomStatusEvents.push(event);}},t.effects['对手属性后随机异常清回合'].count,1348);if(!results.some(x=>x.applied))clear(a);}");
+rep("E.SOULS.run('opponentAfterUse',{...context(t,a,m),first});", "E.SOULS.run('opponentAfterUse',{...context(t,a,m),first,attackDamage:a.lastAttackDamage??0});");
+rep('used[side]=true;', 'used[side]=true;a.lastAttackDamage=0;');
+rep("    if(!s.finished)for(const f of fs)if(f.hp>0&&f.ailments['烈焰诅咒']>=r)inflict(fs[1-f.side],f,f.stats.maxHp/8,'烈焰诅咒','percent');\n",'');
+rep('statusRules.damageOverTime(f,r,(target,n,k,type)=>inflict(fs[1-f.side],target,n,k,type))','statusRules.damageOverTime(f,r,(target,n,k,type)=>inflict(fs[f.statusState?.sources?.[k]??f.side],target,n,k,type))');
+rep('    for(const f of fs)statusRules.roundEnd(f,r);',"    for(const f of fs){if(f.hp>0&&statusRules.active(f,'星赐',r))ppRules.restore(f,battleMoves,2);statusRules.roundEnd(f,r);}");
+const start=t.indexOf('statusRules.expire(f,r,k=>'),end=t.indexOf("if(k==='烧伤'",start);assert(start>=0&&end>start);const old=t.slice(start,end);rep(old,"statusRules.expire(f,r,(k,sourceSide)=>{statusRemoved(f,k);emit(`${name(f)} ${k}解除。`);statusRules.convert(f,k,r,{random:()=>rng(s),stage,source:fs[sourceSide??f.side]});");
+fs.writeFileSync('dist/souls.js',t);fs.writeFileSync('research/3667-common-integration-edits.json',JSON.stringify(edits,null,2)+'\n');
+let html=fs.readFileSync('dist/index.html','utf8');assert(html.includes('src="souls.js"'));html=html.replace('<script src="souls.js"','<script src="pp-rules.js"></script>\n  <script src="souls.js"');fs.writeFileSync('dist/index.html',html);

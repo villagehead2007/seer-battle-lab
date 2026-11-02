@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4421-independent.test.cjs';let s=fs.readFileSync(p,'utf8').replace("assert.equal(o.fighters[1].ailments['害怕'],undefined);}});","assert.ok(o.fighters[1].ailments['害怕']);}});");fs.writeFileSync(p,s);

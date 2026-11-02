@@ -1,0 +1,102 @@
+{
+  "at": "2026-10-25T22:28:30.473Z",
+  "source": "research/FIXED60-ANSWER-USER-CONFIRMATIONS.json",
+  "sourceSha256": "19214432c2e911d203171d42a9261f1484b317bc7ea793fc5d1742f7e310ba45",
+  "record": {
+    "questionId": "Q-A60-4147-035",
+    "primarySpeciesId": 4147,
+    "heading": "## Q-A60-4147-035 · 双月同调27395/1633体力百分比对调边界",
+    "originalSection": "## Q-A60-4147-035 · 双月同调27395/1633体力百分比对调边界\n\n精灵4147（月冕）pet hash=a6a942e；技能双月同调 https://api.seerapi.com/v1/skill/27395 hash=5f61b0e4，效果https://api.seerapi.com/v1/skill_effect_type/1633 hash=bb5f5160，实例2 args=[100,20]。\n完整技能原文：3回合内对手无法通过自身技能恢复体力；获得400点护盾，护盾消失时附加400点固定伤害同时使自身下1次攻击造成的伤害翻倍；使自身体力百分比与对手体力百分比对调，自身体力百分比高于对手时100%令对手失明\n完整效果原文：使自身体力百分比与对手体力百分比对调，自身体力百分比高于对手时100%令对手失明\n本地证据research/4147-source-check.json、4147-source-manifest.json、4147-reviewed-snapshot.json、4147-wiki-source.json、4147-effect-wiki-source.json；API原始/当前analyze和Wiki均已核对，无额外解释。Wiki效果1633 revision344091、技能27395 revision305780同文。已有705“交换当前体力”是绝对量交换，不能拿来定义此百分比交换。\n疑问：①“自身百分比高于对手时100%失明”按交换前还是交换后比较？双方原80%/20%，交换后20%/80%，两解释会决定是否失明。②按各自最大HP乘对方原百分比后如何取整？极低比例造成计算值不足1HP时，取0可直接死亡还是至少保留1？③对调属于直接调整HP，还是增加部分算回复/减少部分算伤害，是否受禁疗、回复倍率、伤害减免/护盾及伤害事件影响？示例禁疗时自身20%交换成80%是否照常获得；若当伤害会额外触发反伤和完整/实际伤害记录。上游未说明这些交互，不以旧直接交换代码猜测。本词条未注册处理器；同招679技能禁疗和1754来源盾消失分支照常独立实现并测试，不写占位。\n\n我的回答：调换前；向上取整；保留1；算调整hp\n\n",
+    "answerLines": [
+      {
+        "line": "我的回答：调换前；向上取整；保留1；算调整hp",
+        "index": 8
+      }
+    ],
+    "status": "answered-implemented-and-accepted-single-stage",
+    "sourceType": "human-user-confirmation",
+    "upstreamSourceUnchanged": true,
+    "implementationBySpecies": {
+      "4147": {
+        "state": "implemented-and-accepted-single-stage",
+        "implemented": true,
+        "id": 4147,
+        "acceptedAt": "2026-10-20T17:35:31.375Z",
+        "gateLog": "research/answered-4147-gate-v1.log",
+        "result": "research/answered-4147-gate-v1-result.json",
+        "exitCode": 0,
+        "singleStage": true,
+        "completeMechanisms": false,
+        "children": [
+          {
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+              "--test",
+              "C:\\Users\\villa\\Desktop\\seer-battle-lab\\tests\\deployed-4147.test.cjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "log": "research/answered-4147-gate-v1-child-1.log",
+            "tests": 29,
+            "passed": 29
+          },
+          {
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+              "--test",
+              "C:\\Users\\villa\\Desktop\\seer-battle-lab\\tests\\local-integration.test.cjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "log": "research/answered-4147-gate-v1-child-2.log",
+            "tests": 1,
+            "passed": 1
+          },
+          {
+            "command": "cmd.exe",
+            "args": [
+              "/d",
+              "/s",
+              "/c",
+              "npm test"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "log": "research/answered-4147-gate-v1-child-3.log",
+            "tests": 4224,
+            "passed": 4224
+          }
+        ],
+        "acceptedSingleStage": true,
+        "evidence": "research/answered-4147-gate-v1-result.json",
+        "scope": "全部当前在场单精灵分支；真实多精灵分支仍按逐项审核延期，不标为已实现。"
+      }
+    },
+    "statusBeforeFinalAnswerCompletion": "answered-reviewed-not-yet-implemented"
+  },
+  "newBinding": {
+    "species": 4633,
+    "moveId": 37303,
+    "hash": "16d304f7",
+    "index": 1,
+    "effect": {
+      "id": 1633,
+      "args": [
+        100,
+        30
+      ],
+      "description": "使自身体力百分比与对手体力百分比对调，自身体力百分比高于对手时100%令对手沉默"
+    },
+    "definition": {
+      "id": 1633,
+      "argsNum": 2,
+      "template": "使自身体力百分比与对手体力百分比对调，自身体力百分比高于对手时{0}%令对手{1}",
+      "revision": "seerapi:bb5f5160"
+    }
+  },
+  "scopeDecision": "同effect1633同definition hashbb5f5160，参数仅异常20失明变30沉默，百分比对调定义未改；精确复用对调前比较/向上取整/保1/直接调整HP四项，不把失明写入新源，不扩大到705或其他交换/命中/异常规则，不读liveMD新答",
+  "newLiveAnswersProcessed": false
+}

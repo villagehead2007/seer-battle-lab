@@ -1,0 +1,1231 @@
+{
+  "generatedAt": "2026-10-14T13:13:47.948Z",
+  "status": "project-rules-implemented-verified",
+  "scope": {
+    "names": [
+      "中毒",
+      "麻痹",
+      "睡眠",
+      "害怕",
+      "混乱"
+    ],
+    "speciesSpecificLogicChanged": false,
+    "validatorChanged": false,
+    "automationChanged": false,
+    "effect2074Implemented": false,
+    "batchResumed": false
+  },
+  "changes": [
+    "将通用次数免疫、抗性窗口、抗性成败及时长写入集中到status-rules.attempt",
+    "缺时长的新公共入口返回needs-source，无默认猜测；旧引擎通过显式带标签的兼容策略保持原实验行为",
+    "到期遍历及544单状态清除接入公共模块；没有修改状态默认参数、精灵专属分支或随机池"
+  ],
+  "states": [
+    {
+      "id": 1,
+      "name": "中毒",
+      "status": "verified-public-behavior-with-open-source-semantics",
+      "complete": false,
+      "source": {
+        "urls": [
+          "https://api.seerapi.com/v1/skill_effect_param/1",
+          "https://wiki.biligame.com/seer/index.php?oldid=388558"
+        ],
+        "revision": 388558,
+        "hashes": {
+          "enum": "27df2271",
+          "wiki": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8"
+        },
+        "originalDescription": "弱化类异常状态，该状态下每回合都会扣除等同于最大体力的1/8的体力",
+        "evidence": {
+          "source": "wiki-mechanics",
+          "statusName": "中毒",
+          "quote": "弱化类异常状态，该状态下每回合都会扣除等同于最大体力的1/8的体力"
+        }
+      },
+      "confirmedParameters": {
+        "defaultDurationTurns": null,
+        "maxHpFraction": 0.125,
+        "triggerProbability": null,
+        "flatDamage": null,
+        "accuracyMultiplier": null
+      },
+      "interpretationParameters": {},
+      "lifecycle": {
+        "application": {
+          "implementation": "效果注册表确认命中/触发概率后调用公共attempt；倒下目标不施加。精灵魂印专属门禁仍通过调用方gate注入，原分支未改。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "真实零概率施加不写入异常也不消耗免疫次数"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "actionPhase": {
+          "implementation": "不因中毒阻止行动；每回合末调用damageOverTime，按当前最大体力1/8交给现有百分比伤害入口，体力不足时扣至0。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "中毒用最大体力计算且受百分比抗性，后加异常免疫不清除既有毒"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "中毒",
+            "quote": "弱化类异常状态，该状态下每回合都会扣除等同于最大体力的1/8的体力"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "duration": {
+          "defaultDurationTurns": null,
+          "status": "needs-source",
+          "implementation": "显式正整数n保存为当前回合+n-1；没有时长及兼容策略时返回needs-source，状态/免疫次数/随机数不变。既有引擎显式注入legacy-experimental-1-3保持兼容，仅为旧实验规则。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "旧实验时长必须显式注入并带来源标签，不成为状态默认值"
+            }
+          ]
+        },
+        "damageAndControl": {
+          "implementation": "不因中毒阻止行动；每回合末调用damageOverTime，按当前最大体力1/8交给现有百分比伤害入口，体力不足时扣至0。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "中毒用最大体力计算且受百分比抗性，后加异常免疫不清除既有毒"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "中毒",
+            "quote": "弱化类异常状态，该状态下每回合都会扣除等同于最大体力的1/8的体力"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "clear": {
+          "implementation": "公共clear/clearAll处理主动清除；expire处理自然到期，主动清除不触发到期回调；544清除三种持续伤害改走公共clear。睡眠另有来源确认的攻击命中解除。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "中毒用最大体力计算且受百分比抗性，后加异常免疫不清除既有毒"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "immunity": {
+          "implementation": "公共attempt先执行调用方免疫/反弹门禁，再处理次数免疫和抗性窗口；抗性成功写入等长免疫窗口；显式绕过不消费这些保护。门禁、概率、顺序沿用旧实验契约。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态抗性概率边界及等时免疫窗口由公共模块实际写入"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "显式绕过免疫不消费免疫次数、抗性窗口或概率，仍使用给定时长"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "interaction": {
+          "implementation": "百分比抗性/免伤沿用公共伤害契约；后加异常免疫只阻止新增施加，不自动清掉既有中毒；与睡眠、混乱共存。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "中毒用最大体力计算且受百分比抗性，后加异常免疫不清除既有毒"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "conversion": {
+          "outgoingConversion": null,
+          "status": "needs-source-not-inferred",
+          "implementation": "没有新增此状态自身到期转化。null表示未取得规则，不能解释为证实没有转化。中毒的感染转入路径保持原代码，不在本次认证范围。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            }
+          ]
+        }
+      },
+      "unknown": {
+        "defaultDurationTurns": null,
+        "immunityConditions": null,
+        "conversion": null,
+        "repeatApplicationPolicy": null,
+        "preciseTickPhase": null
+      },
+      "pendingEvidence": [
+        "默认持续回合；同名状态重复施加采用覆盖/刷新/叠加的真实策略",
+        "通用免疫、抗性和清除的完整来源证据",
+        "每回合扣血的精确时点",
+        "百分比伤害免伤/减伤的完整真实语义",
+        "感染转化为中毒的时长及是否重新经过免疫（既有专属分支未修改）"
+      ],
+      "implementation": [
+        "dist/status-rules.js",
+        "dist/souls.js（公共适配与调用点）",
+        "dist/range-effects.js:544（公共清除入口）"
+      ]
+    },
+    {
+      "id": 0,
+      "name": "麻痹",
+      "status": "verified-public-behavior-with-open-source-semantics",
+      "complete": false,
+      "source": {
+        "urls": [
+          "https://api.seerapi.com/v1/skill_effect_param/1",
+          "https://wiki.biligame.com/seer/index.php?oldid=388558"
+        ],
+        "revision": 388558,
+        "hashes": {
+          "enum": "27df2271",
+          "wiki": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8"
+        },
+        "originalDescription": "控制类异常状态，该状态下精灵无法行动",
+        "evidence": {
+          "source": "wiki-mechanics",
+          "statusName": "麻痹",
+          "quote": "控制类异常状态，该状态下精灵无法行动"
+        }
+      },
+      "confirmedParameters": {
+        "defaultDurationTurns": null,
+        "blocksAction": true,
+        "maxHpFraction": null,
+        "triggerProbability": null,
+        "flatDamage": null
+      },
+      "interpretationParameters": {},
+      "lifecycle": {
+        "application": {
+          "implementation": "效果注册表确认命中/触发概率后调用公共attempt；倒下目标不施加。精灵魂印专属门禁仍通过调用方gate注入，原分支未改。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "真实零概率施加不写入异常也不消耗免疫次数"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "actionPhase": {
+          "implementation": "blocksAction在行动阶段阻止行动，不消耗所选技能PP；到期清除后下一回合恢复。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "麻痹",
+            "quote": "控制类异常状态，该状态下精灵无法行动"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "duration": {
+          "defaultDurationTurns": null,
+          "status": "needs-source",
+          "implementation": "显式正整数n保存为当前回合+n-1；没有时长及兼容策略时返回needs-source，状态/免疫次数/随机数不变。既有引擎显式注入legacy-experimental-1-3保持兼容，仅为旧实验规则。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "旧实验时长必须显式注入并带来源标签，不成为状态默认值"
+            }
+          ]
+        },
+        "damageAndControl": {
+          "implementation": "blocksAction在行动阶段阻止行动，不消耗所选技能PP；到期清除后下一回合恢复。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "麻痹",
+            "quote": "控制类异常状态，该状态下精灵无法行动"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "clear": {
+          "implementation": "公共clear/clearAll处理主动清除；expire处理自然到期，主动清除不触发到期回调；544清除三种持续伤害改走公共clear。睡眠另有来源确认的攻击命中解除。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "immunity": {
+          "implementation": "公共attempt先执行调用方免疫/反弹门禁，再处理次数免疫和抗性窗口；抗性成功写入等长免疫窗口；显式绕过不消费这些保护。门禁、概率、顺序沿用旧实验契约。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态抗性概率边界及等时免疫窗口由公共模块实际写入"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "显式绕过免疫不消费免疫次数、抗性窗口或概率，仍使用给定时长"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "interaction": {
+          "implementation": "受攻击不采用睡眠解除规则；能力等级保持原值；与其它异常共存。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "conversion": {
+          "outgoingConversion": null,
+          "status": "needs-source-not-inferred",
+          "implementation": "没有新增此状态自身到期转化。null表示未取得规则，不能解释为证实没有转化。中毒的感染转入路径保持原代码，不在本次认证范围。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            }
+          ]
+        }
+      },
+      "unknown": {
+        "defaultDurationTurns": null,
+        "immunityConditions": null,
+        "conversion": null,
+        "repeatApplicationPolicy": null,
+        "preciseTickPhase": null
+      },
+      "pendingEvidence": [
+        "默认持续回合；同名状态重复施加采用覆盖/刷新/叠加的真实策略",
+        "通用免疫、抗性和清除的完整来源证据",
+        "控制期间药品使用等完整行动边界",
+        "受击及清除交互的完整来源证据"
+      ],
+      "implementation": [
+        "dist/status-rules.js",
+        "dist/souls.js（公共适配与调用点）",
+        "dist/range-effects.js:544（公共清除入口）"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "睡眠",
+      "status": "verified-public-behavior-with-open-source-semantics",
+      "complete": false,
+      "source": {
+        "urls": [
+          "https://api.seerapi.com/v1/skill_effect_param/1",
+          "https://wiki.biligame.com/seer/index.php?oldid=388558"
+        ],
+        "revision": 388558,
+        "hashes": {
+          "enum": "27df2271",
+          "wiki": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8"
+        },
+        "originalDescription": "控制类异常状态，该状态下精灵无法行动，对手使用攻击技能且未MISS时解除",
+        "evidence": {
+          "source": "wiki-mechanics",
+          "statusName": "睡眠",
+          "quote": "控制类异常状态，该状态下精灵无法行动，对手使用攻击技能且未MISS时解除"
+        }
+      },
+      "confirmedParameters": {
+        "defaultDurationTurns": null,
+        "blocksAction": true,
+        "wakeOnOpponentAttackHit": true,
+        "minimumWakeDamage": 0,
+        "maxHpFraction": null
+      },
+      "interpretationParameters": {},
+      "lifecycle": {
+        "application": {
+          "implementation": "效果注册表确认命中/触发概率后调用公共attempt；倒下目标不施加。精灵魂印专属门禁仍通过调用方gate注入，原分支未改。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "真实零概率施加不写入异常也不消耗免疫次数"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "actionPhase": {
+          "implementation": "blocksAction阻止行动；对手攻击命中经过attackHit清除睡眠，包括攻击最终伤害0。MISS及属性技能不唤醒。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "先行动者睡眠被后手攻击解除不会补行动，下回合物攻特攻都可恢复"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "睡眠",
+            "quote": "控制类异常状态，该状态下精灵无法行动，对手使用攻击技能且未MISS时解除"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "duration": {
+          "defaultDurationTurns": null,
+          "status": "needs-source",
+          "implementation": "显式正整数n保存为当前回合+n-1；没有时长及兼容策略时返回needs-source，状态/免疫次数/随机数不变。既有引擎显式注入legacy-experimental-1-3保持兼容，仅为旧实验规则。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "旧实验时长必须显式注入并带来源标签，不成为状态默认值"
+            }
+          ]
+        },
+        "damageAndControl": {
+          "implementation": "blocksAction阻止行动；对手攻击命中经过attackHit清除睡眠，包括攻击最终伤害0。MISS及属性技能不唤醒。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "先行动者睡眠被后手攻击解除不会补行动，下回合物攻特攻都可恢复"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "睡眠",
+            "quote": "控制类异常状态，该状态下精灵无法行动，对手使用攻击技能且未MISS时解除"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "clear": {
+          "implementation": "公共clear/clearAll处理主动清除；expire处理自然到期，主动清除不触发到期回调；544清除三种持续伤害改走公共clear。睡眠另有来源确认的攻击命中解除。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "先行动者睡眠被后手攻击解除不会补行动，下回合物攻特攻都可恢复"
+            }
+          ],
+          "evidence": [
+            {
+              "text": "对手使用攻击技能且未MISS时解除",
+              "scope": "state-rule",
+              "evidence": {
+                "source": "wiki-mechanics",
+                "statusName": "睡眠",
+                "quote": "对手使用攻击技能且未MISS时解除"
+              }
+            }
+          ],
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "immunity": {
+          "implementation": "公共attempt先执行调用方免疫/反弹门禁，再处理次数免疫和抗性窗口；抗性成功写入等长免疫窗口；显式绕过不消费这些保护。门禁、概率、顺序沿用旧实验契约。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态抗性概率边界及等时免疫窗口由公共模块实际写入"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "显式绕过免疫不消费免疫次数、抗性窗口或概率，仍使用给定时长"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "interaction": {
+          "implementation": "中毒/混乱的回合末伤害不调用攻击命中解除；已经错过的行动不补行动；同时有其它控制时仍被阻止。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "先行动者睡眠被后手攻击解除不会补行动，下回合物攻特攻都可恢复"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "conversion": {
+          "outgoingConversion": null,
+          "status": "needs-source-not-inferred",
+          "implementation": "没有新增此状态自身到期转化。null表示未取得规则，不能解释为证实没有转化。中毒的感染转入路径保持原代码，不在本次认证范围。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            }
+          ]
+        }
+      },
+      "unknown": {
+        "defaultDurationTurns": null,
+        "immunityConditions": null,
+        "conversion": null,
+        "repeatApplicationPolicy": null,
+        "preciseTickPhase": null
+      },
+      "pendingEvidence": [
+        "默认持续回合；同名状态重复施加采用覆盖/刷新/叠加的真实策略",
+        "通用免疫、抗性和清除的完整来源证据",
+        "被其它异常伤害/反伤/转化唤醒的完整来源证据",
+        "行动机会已经错过时是否补行动的真实时序"
+      ],
+      "implementation": [
+        "dist/status-rules.js",
+        "dist/souls.js（公共适配与调用点）",
+        "dist/range-effects.js:544（公共清除入口）"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "害怕",
+      "status": "verified-public-behavior-with-open-source-semantics",
+      "complete": false,
+      "source": {
+        "urls": [
+          "https://api.seerapi.com/v1/skill_effect_param/1",
+          "https://wiki.biligame.com/seer/index.php?oldid=388558"
+        ],
+        "revision": 388558,
+        "hashes": {
+          "enum": "27df2271",
+          "wiki": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8"
+        },
+        "originalDescription": "控制类异常状态，该状态下精灵无法行动",
+        "evidence": {
+          "source": "wiki-mechanics",
+          "statusName": "害怕",
+          "quote": "控制类异常状态，该状态下精灵无法行动"
+        }
+      },
+      "confirmedParameters": {
+        "defaultDurationTurns": null,
+        "blocksAction": true,
+        "maxHpFraction": null,
+        "triggerProbability": null,
+        "flatDamage": null
+      },
+      "interpretationParameters": {},
+      "lifecycle": {
+        "application": {
+          "implementation": "效果注册表确认命中/触发概率后调用公共attempt；倒下目标不施加。精灵魂印专属门禁仍通过调用方gate注入，原分支未改。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "真实零概率施加不写入异常也不消耗免疫次数"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "actionPhase": {
+          "implementation": "blocksAction在行动阶段阻止行动，不消耗所选技能PP；到期清除后下一回合恢复。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "害怕",
+            "quote": "控制类异常状态，该状态下精灵无法行动"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "duration": {
+          "defaultDurationTurns": null,
+          "status": "needs-source",
+          "implementation": "显式正整数n保存为当前回合+n-1；没有时长及兼容策略时返回needs-source，状态/免疫次数/随机数不变。既有引擎显式注入legacy-experimental-1-3保持兼容，仅为旧实验规则。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "旧实验时长必须显式注入并带来源标签，不成为状态默认值"
+            }
+          ]
+        },
+        "damageAndControl": {
+          "implementation": "blocksAction在行动阶段阻止行动，不消耗所选技能PP；到期清除后下一回合恢复。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "害怕",
+            "quote": "控制类异常状态，该状态下精灵无法行动"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "clear": {
+          "implementation": "公共clear/clearAll处理主动清除；expire处理自然到期，主动清除不触发到期回调；544清除三种持续伤害改走公共clear。睡眠另有来源确认的攻击命中解除。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "immunity": {
+          "implementation": "公共attempt先执行调用方免疫/反弹门禁，再处理次数免疫和抗性窗口；抗性成功写入等长免疫窗口；显式绕过不消费这些保护。门禁、概率、顺序沿用旧实验契约。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态抗性概率边界及等时免疫窗口由公共模块实际写入"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "显式绕过免疫不消费免疫次数、抗性窗口或概率，仍使用给定时长"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "interaction": {
+          "implementation": "攻击命中不按睡眠规则解除害怕；能力等级不自动变化；害怕控制期间混乱仍可触发回合末扣血。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "conversion": {
+          "outgoingConversion": null,
+          "status": "needs-source-not-inferred",
+          "implementation": "没有新增此状态自身到期转化。null表示未取得规则，不能解释为证实没有转化。中毒的感染转入路径保持原代码，不在本次认证范围。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            }
+          ]
+        }
+      },
+      "unknown": {
+        "defaultDurationTurns": null,
+        "immunityConditions": null,
+        "conversion": null,
+        "repeatApplicationPolicy": null,
+        "preciseTickPhase": null
+      },
+      "pendingEvidence": [
+        "默认持续回合；同名状态重复施加采用覆盖/刷新/叠加的真实策略",
+        "通用免疫、抗性和清除的完整来源证据",
+        "控制期间药品使用等完整行动边界",
+        "受击及清除交互的完整来源证据"
+      ],
+      "implementation": [
+        "dist/status-rules.js",
+        "dist/souls.js（公共适配与调用点）",
+        "dist/range-effects.js:544（公共清除入口）"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "混乱",
+      "status": "verified-public-behavior-with-open-source-semantics",
+      "complete": false,
+      "source": {
+        "urls": [
+          "https://api.seerapi.com/v1/skill_effect_param/1",
+          "https://wiki.biligame.com/seer/index.php?oldid=388558"
+        ],
+        "revision": 388558,
+        "hashes": {
+          "enum": "27df2271",
+          "wiki": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8"
+        },
+        "originalDescription": "弱化类异常状态，该状态下每回合都会有5%的概率扣除50点体力，而且攻击技能的命中率减少80%",
+        "evidence": {
+          "source": "wiki-mechanics",
+          "statusName": "混乱",
+          "quote": "弱化类异常状态，该状态下每回合都会有5%的概率扣除50点体力，而且攻击技能的命中率减少80%"
+        }
+      },
+      "confirmedParameters": {
+        "defaultDurationTurns": null,
+        "damageChance": 0.05,
+        "flatDamage": 50,
+        "accuracyReductionPercent": 80,
+        "maxHpFraction": null
+      },
+      "interpretationParameters": {
+        "accuracyMultiplierInterpretation": 0.2
+      },
+      "lifecycle": {
+        "application": {
+          "implementation": "效果注册表确认命中/触发概率后调用公共attempt；倒下目标不施加。精灵魂印专属门禁仍通过调用方gate注入，原分支未改。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "真实零概率施加不写入异常也不消耗免疫次数"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "actionPhase": {
+          "implementation": "物理/特殊攻击命中率沿用×0.2解释，属性技能和必中流程保持原处理；回合末以<0.05判断扣50点体力，经公共固伤入口。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱降低物攻及特攻命中，清除恢复命中且不清除其它异常"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "混乱",
+            "quote": "弱化类异常状态，该状态下每回合都会有5%的概率扣除50点体力，而且攻击技能的命中率减少80%"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "duration": {
+          "defaultDurationTurns": null,
+          "status": "needs-source",
+          "implementation": "显式正整数n保存为当前回合+n-1；没有时长及兼容策略时返回needs-source，状态/免疫次数/随机数不变。既有引擎显式注入legacy-experimental-1-3保持兼容，仅为旧实验规则。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态缺少时长时公共入口返回待核实，不消费免疫次数或随机数"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态显式时长施加并持续到边界，非法时长不消费已有免疫"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "旧实验时长必须显式注入并带来源标签，不成为状态默认值"
+            }
+          ]
+        },
+        "damageAndControl": {
+          "implementation": "物理/特殊攻击命中率沿用×0.2解释，属性技能和必中流程保持原处理；回合末以<0.05判断扣50点体力，经公共固伤入口。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱降低物攻及特攻命中，清除恢复命中且不清除其它异常"
+            }
+          ],
+          "evidence": {
+            "source": "wiki-mechanics",
+            "statusName": "混乱",
+            "quote": "弱化类异常状态，该状态下每回合都会有5%的概率扣除50点体力，而且攻击技能的命中率减少80%"
+          },
+          "sourceStatus": "source-confirmed-clause-with-tested-engine-interpretation"
+        },
+        "clear": {
+          "implementation": "公共clear/clearAll处理主动清除；expire处理自然到期，主动清除不触发到期回调；544清除三种持续伤害改走公共clear。睡眠另有来源确认的攻击命中解除。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱降低物攻及特攻命中，清除恢复命中且不清除其它异常"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "immunity": {
+          "implementation": "公共attempt先执行调用方免疫/反弹门禁，再处理次数免疫和抗性窗口；抗性成功写入等长免疫窗口；显式绕过不消费这些保护。门禁、概率、顺序沿用旧实验契约。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态共用策略阻挡、次数免疫和抗性窗口，按原顺序且只消费一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态抗性概率边界及等时免疫窗口由公共模块实际写入"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "显式绕过免疫不消费免疫次数、抗性窗口或概率，仍使用给定时长"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态真实施加遇双向反弹终止，不消费后续次数免疫"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "interaction": {
+          "implementation": "固伤抗性/免伤生效、百分比抗性不减此50点伤害；与控制状态共存；清除恢复攻击命中而保留中毒。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "睡眠不被中毒或混乱自损唤醒，持续伤害照常结算"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱自损沿用固伤抗性而非百分比抗性，并与控制状态共存"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "混乱降低物攻及特攻命中，清除恢复命中且不清除其它异常"
+            }
+          ],
+          "evidence": null,
+          "sourceStatus": "existing-engine-contract-source-details-unconfirmed"
+        },
+        "conversion": {
+          "outgoingConversion": null,
+          "status": "needs-source-not-inferred",
+          "implementation": "没有新增此状态自身到期转化。null表示未取得规则，不能解释为证实没有转化。中毒的感染转入路径保持原代码，不在本次认证范围。",
+          "tests": [
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "五种状态主动清除与到期独立，清除幂等且到期回调只触发一次"
+            },
+            {
+              "file": "tests/status-high-frequency.test.cjs",
+              "name": "公共到期遍历不会把回调新施加的状态在同一轮再次到期"
+            }
+          ]
+        }
+      },
+      "unknown": {
+        "defaultDurationTurns": null,
+        "immunityConditions": null,
+        "conversion": null,
+        "repeatApplicationPolicy": null,
+        "preciseTickPhase": null
+      },
+      "pendingEvidence": [
+        "默认持续回合；同名状态重复施加采用覆盖/刷新/叠加的真实策略",
+        "通用免疫、抗性和清除的完整来源证据",
+        "命中减少80%在全部命中修正中的准确运算顺序",
+        "每回合5%判定的精确时点",
+        "50点扣血的完整免伤/固伤抗性语义"
+      ],
+      "implementation": [
+        "dist/status-rules.js",
+        "dist/souls.js（公共适配与调用点）",
+        "dist/range-effects.js:544（公共清除入口）"
+      ]
+    }
+  ],
+  "validation": {
+    "newTargeted": {
+      "total": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "log": "research/status-high-frequency-targeted.log"
+    },
+    "existingStatusAndDatabase": {
+      "total": 22,
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "log": "research/status-high-frequency-existing.log"
+    },
+    "regression": {
+      "total": 1029,
+      "passed": 1029,
+      "failed": 0,
+      "skipped": 0,
+      "log": "research/status-high-frequency-npm-test.log"
+    }
+  },
+  "scopeCheck": {
+    "existingFilesChecked": 350,
+    "changedExistingFiles": [
+      "dist/range-effects.js",
+      "dist/souls.js",
+      "dist/status-rules.js",
+      "PROGRESS.md"
+    ],
+    "speciesGatesUnchanged": true,
+    "otherSoulsCodeUnchanged": true,
+    "otherEffectAndValidatorCodeUnchanged": true,
+    "allOtherProtectedFilesUnchanged": true
+  },
+  "remaining": "五种状态可复用公共行为已有专项状态变化测试，但默认时长与若干交互仍缺完整来源，均不标为完全实现。冰封缺口未处理，3667/2074继续暂停。",
+  "artifacts": [
+    {
+      "file": "dist/status-rules.js",
+      "sha256": "718550b2556ba716c8614776b77a5e4fe51d1606358b789df30881f7b5d00730"
+    },
+    {
+      "file": "dist/souls.js",
+      "sha256": "e1185ba8d0b4202863d75bc9ee50e62534a3490a4c71ee37f05ca941d6a689e1"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "sha256": "4676a2fa091de298eeca6f4005848910b0f09636bd5e5a500c7693074932bb72"
+    },
+    {
+      "file": "tests/status-high-frequency.test.cjs",
+      "sha256": "68a6f4f740e69503aeadf63c7a14464ad0b975b9a8b45a9d02c0d66a09a4d55d"
+    }
+  ],
+  "userRuleConfirmation": {
+    "sourceType": "user_confirmed",
+    "importedAt": "2026-10-14T15:57:56.824Z",
+    "sourceFile": "research/user-rule-confirmation-3667.json",
+    "answers": [
+      {
+        "id": "Q003",
+        "question": "睡眠受到异常扣血、技能附加固定/百分比伤害、反弹伤害或真实伤害时，是否解除？",
+        "answer": "不解除",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q003"
+        }
+      },
+      {
+        "id": "Q004",
+        "question": "先手精灵因睡眠跳过行动，随后被后手攻击唤醒，本回合是否补执行原选技能？",
+        "answer": "否",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q004"
+        }
+      },
+      {
+        "id": "Q022",
+        "question": "混乱每回合5%的扣血判定，是回合开始、行动前、行动后，还是回合结束？",
+        "answer": "回合结束",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q022"
+        }
+      },
+      {
+        "id": "Q049",
+        "question": "混乱触发的50点自损属于固定伤害、真实伤害，还是直接扣体力？",
+        "answer": "直接扣体力，不受全伤害免疫影响",
+        "followUpConfirmations": [],
+        "sourceType": "user_confirmed",
+        "evidence": {
+          "file": "research/user-rule-confirmation-3667.md",
+          "sha256": "06a8a85f502615afe2bf20c86936ff79f3e8ccc939d003a83e90a691454f2fd3",
+          "heading": "Q049"
+        }
+      }
+    ],
+    "implementationStatus": "verified",
+    "note": "原始来源与历史未确认结论保留；本次按用户回答更新当前项目规则，不伪造Wiki/API来源。"
+  },
+  "conclusionHistory": [
+    {
+      "at": "2026-10-14T16:20:56.918Z",
+      "status": "partial-state-system"
+    }
+  ],
+  "currentProjectImplementation": {
+    "at": "2026-10-14T16:20:56.918Z",
+    "sourceType": "user_confirmed",
+    "evidence": "research/user-rule-confirmation-3667.json",
+    "status": "verified",
+    "modules": [
+      "dist/status-rules.js",
+      "dist/status-pools.js",
+      "dist/pp-rules.js",
+      "dist/souls.js"
+    ],
+    "testLogs": [
+      "research/3667-user-rules-npm-second.log",
+      "research/3667-confirmed-targeted.log",
+      "research/3667-status-final-new.log"
+    ],
+    "historicalFields": "未确认/缺口/分类原文的旧字段保留为历史资料；当前项目依据本节与userRuleConfirmation。",
+    "verificationReport": "research/3667-user-rules-verification.json"
+  }
+}

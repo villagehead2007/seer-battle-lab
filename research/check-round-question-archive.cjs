@@ -1,0 +1,1 @@
+const fs=require('fs'),crypto=require('crypto'),assert=require('node:assert/strict');const index=require('./QUESTION-ARCHIVE-INDEX.json'),p='research/BATCH-3883-NEXT-60-QUESTIONS.2026-10-19T07-35-59-585Z.archive.md';const hash=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');assert.equal(hash,'44037238b2ee276ef9862ab50a1303ffef66341694be6a9386fed06d10c7669a');

@@ -1,0 +1,52 @@
+[
+  {
+    "label": "4644 PP no-consume source needs real resolved first side",
+    "old": "const ppConsumptionPolicy={...skillContext(a,t,m),noPPConsumption:false};",
+    "replacement": "const ppConsumptionPolicy={...skillContext(a,t,m),first,noPPConsumption:false};"
+  },
+  {
+    "label": "4644 source-bound actual extra-action after owner actionEnd",
+    "old": "E.SOULS.run('actionEnd',{...context(a,t,m),successful,first});",
+    "replacement": "E.SOULS.run('actionEnd',{...context(a,t,m),successful,first});if(m.operations?.some(op=>op.effectId===2154&&['28724','37355','37356','37358'].includes(String(m.wikiId??m.id))))E.WIKI.effectsEngine.run('actionEnd',m.operations,{...skillContext(a,t,m),successful,first});"
+  },
+  {
+    "label": "4644 actual used1892 listener at common action end including MISS",
+    "old": "function endAction(a,t,m,successful=false){",
+    "replacement": "function endAction(a,t,m,successful=false){if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'构造用招吸取')){const e=a.effects['构造用招吸取'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===a.soulState.skillUses?.[m.id];let trigger=true;if(same){const policy=a.soulState.qualifiedFirst18924644;if(!['immediate','next-use'].includes(policy))throw Error('Q-N50-4625-011：4644新1892授予当次实际使用是否触发待确认');trigger=policy==='immediate';}if(trigger){const n=e.amount*(a.hp<a.stats.maxHp*e.threshold?2:1);a.soulState.construct1892Active4644={round:r,move:m.id,use:a.soulState.skillUses?.[m.id],grantMove:e.grantMove,grantUse:e.grantUse,beforeHP:t.hp};try{withDamageOrigin('skill',()=>{drainFixed(a,t,n,'构造实际用招固定吸取');if(!(t.roundSettledFixedDamageTaken>0))inflict(a,t,e.failureDamage,'构造本轮未受固定伤补真','true');});}finally{delete a.soulState.construct1892Active4644;}}}"
+  },
+  {
+    "label": "4644 reset only this actual-action output multiplier",
+    "old": "a.soulState.emptyOutputAttackThis1791=0;",
+    "replacement": "a.soulState.emptyOutputAttackThis1791=0;a.soulState.constructOutputThis4644=0;"
+  },
+  {
+    "label": "4644 actual used attack consumes sourced outgoing reduction once",
+    "old": "if(m.kind!=='status'&&m.kind!=='item'&&a.soulState.emptyNextAttackOutput1791>0)",
+    "replacement": "if(m.kind!=='status'&&m.kind!=='item'&&a.soulState.constructNextOutput4644){a.soulState.constructOutputThis4644=a.soulState.constructNextOutput4644.fraction;a.soulState.constructOutputToken4644={...a.soulState.constructNextOutput4644,round:r,move:m.id,use:a.soulState.skillUses?.[m.id]};(a.soulState.constructOutputConsumed4644??=[]).push({...a.soulState.constructOutputToken4644});delete a.soulState.constructNextOutput4644;}if(m.kind!=='status'&&m.kind!=='item'&&a.soulState.emptyNextAttackOutput1791>0)"
+  },
+  {
+    "label": "4644 actual attack outgoing reduction independent of target defence",
+    "old": "let modifier=(1-(a.soulState.emptyOutputAttackThis1791??0))*timedDamageMultiplier",
+    "replacement": "let modifier=(1-(a.soulState.constructOutputThis4644??0))*(1-(a.soulState.emptyOutputAttackThis1791??0))*timedDamageMultiplier"
+  },
+  {
+    "label": "4644 source immunity actual overlap only at incoming ailment",
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&((on(t,'reflect')&&t.effects.reflect.construct191&&(t.counts.immune>0||on(t,'免异常')||E.SOULS.trait(t,'ailmentImmune')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))||(t.soulState.constructImmunity4644>0&&(t.counts.immune!==t.soulState.constructImmunity4644||on(t,'reflect')||on(t,'免异常')||E.SOULS.trait(t,'ailmentImmune')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))))throw Error('Q-N50-4511-006：4644免异次数/反弹实际多源重合消费待确认');let explicitImmunity=false;const immuneGate="
+  },
+  {
+    "label": "4644 actual count-immunity consumes source marker with actual counter",
+    "old": "if(reason==='count-immunity')emit(`${name(t)} 消耗 1 次异常免疫，抵挡${k}。`);",
+    "replacement": "if(reason==='count-immunity'&&t.soulState.constructImmunity4644>0){if(--t.soulState.constructImmunity4644===0)delete t.soulState.constructImmunity4644;}if(reason==='count-immunity')emit(`${name(t)} 消耗 1 次异常免疫，抵挡${k}。`);"
+  },
+  {
+    "label": "4644 actual consumed attack token nonred scope retains independent question",
+    "old": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){",
+    "replacement": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){const constructOutput=a.soulState.constructOutputToken4644;if(n>0&&t.hp>0&&a!==t&&currentActorSide===a.side&&constructOutput?.round===r&&constructOutput.move===battleMoves[choices[a.side]]?.id&&constructOutput.use===a.soulState.skillUses?.[constructOutput.move]&&(damageSourceOrigin==='skill'||damageSourceOrigin===null&&skillPhase)&&['fixed','percent','true'].includes(type)){const policy=a.soulState.qualified2150Scope4644,commonZero=(damageImmune(t,type)||['fixed','percent'].includes(type)&&t.counts.nextPinkImmunity>0)&&!context(a,t,battleMoves[choices[a.side]]).immunityReaction1820(t,type);if(!commonZero&&!['red-only','all'].includes(policy)){const error=Error('Q-N50-4612-001：4644构造II下次攻击造成伤害减50%是否覆盖真实非红附伤待确认');error.construct2150Scope4644={token:{...constructOutput},type,nominal:n,hp:t.hp,actorPP:{...a.pp}};throw error;}(a.soulState.constructOutputLedger4644??=[]).push({token:{...constructOutput},type,nominal:n,policy:policy??'common-immune-zero',commonZero});if(policy==='all')n*=1-constructOutput.fraction;}"
+  },
+  {
+    "label": "4644 previously granted1892 actual lateKO never masquerades as current1156 bodyKO",
+    "old": "function resolveDeath(f,defeater=null){",
+    "replacement": "function resolveDeath(f,defeater=null){if(f.hp<=0&&!f.soulState.deathResolved&&defeater?.soulId===1845&&used[defeater.side]&&currentActorSide===defeater.side&&defeater.side===1-f.side){const m=battleMoves[choices[defeater.side]],flag=defeater.soulState.construct1892Active4644,body=defeater.soulState.constructFifthKO1845,use=defeater.soulState.skillUses?.[m.id];if((m.wikiId??m.id)===37358&&m.revision==='seerapi:a58dfb49'&&flag?.round===r&&flag.move===m.id&&flag.use===use&&flag.beforeHP>0&&!(body?.round===r&&body.move===m.id&&body.use===use&&body.skillKO)){const error=Error('Q-N50-4589-004：4644此前1892监听末杀是否承接当前37358/1156本体奖励待确认');error.construct1892LateKO4644={flag:{...flag},hp:f.hp,pp:defeater.pp[m.id]};throw error;}}"
+  }
+]

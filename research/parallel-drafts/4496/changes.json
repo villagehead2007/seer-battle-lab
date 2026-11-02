@@ -1,0 +1,32 @@
+[
+  {
+    "file": "dist/range-souls.js",
+    "before": "registry[1711]={name:'箫澈',sourceHash:'58b6e759',partial:true,unimplemented:['Q-N20-4438-001：每次受伤与下一次免疫的多段单位待答'],traits:{},hooks:{damageTaken(c){if(c.a.hp<=0)return;const type=c.type??'attack',n=c.settledDamage??0;if(n>0&&['attack','fixed','percent'].includes(type))c.a.soulState.xiaoPositiveDamageRound=c.round;if(n<300)return;if(type==='attack'){if((c.t.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-N20-4438-001：1711多段阈值单位待答');c.a.counts.nextPinkImmunity=(c.a.counts.nextPinkImmunity??0)+1;if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/3,'哀霆之声','percent');}else if(['fixed','percent'].includes(type)){c.a.counts.attackNullify=(c.a.counts.attackNullify??0)+1;c.heal(c.a,c.a.stats.maxHp/3,'悲龙之鸣回复');}},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;const st=c.a.soulState;if(st.xiaoPositiveDamageRound===c.round)return;const rounds=c.clear(c.t),boost=c.clearBoost(c.t);if(rounds||boost)c.randomAilmentsFrom(1,['麻痹','害怕'],2099);},attackDamageTaken(c){if((c.settledDamage??0)>0)c.a.soulState.xiaoPositiveDamageRound=c.round;}}};",
+    "after": "registry[1711]={name:'箫澈',sourceHash:'58b6e759',traits:{},hooks:{damageTaken(c){if(c.a.hp<=0)return;const type=c.type??'attack',n=c.settledDamage??0,st=c.a.soulState;if(n>0&&['attack','fixed','percent'].includes(type))st.xiaoPositiveDamageRound=c.round;if(type==='attack'){if((c.a.roundSettledAttackDamage??0)<300||st.xiaoAttackThresholdRound===c.round)return;st.xiaoAttackThresholdRound=c.round;c.a.counts.nextPinkImmunity=(c.a.counts.nextPinkImmunity??0)+1;if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/3,'哀霆之声','percent');}else if(n>=300&&['fixed','percent'].includes(type)){c.a.counts.xiaoAttackImmunity=(c.a.counts.xiaoAttackImmunity??0)+1;c.heal(c.a,c.a.stats.maxHp/3,'悲龙之鸣回复');}},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.a.soulState.xiaoPositiveDamageRound===c.round)return;const rounds=c.clear(c.t),boost=c.clearBoost(c.t);if(rounds||boost)c.randomAilmentsFrom(1,['麻痹','害怕'],2099);},attackDamageTaken(c){if((c.settledDamage??0)>0)c.a.soulState.xiaoPositiveDamageRound=c.round;}}};",
+    "baselineSha256": "5cd2e64ad3c189121c0a130ce2d97b1c9183b37f861347f011121bf809a28764"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "{const old=registry[1768];registry[1768]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===36543&&(c.m.hash==='baf2b4d6'||c.m.revision==='seerapi:baf2b4d6'))c.a.soulState.attackShieldConversionQuestion='Q-N20-4438-001';}});}",
+    "after": "{const old=registry[1768];registry[1768]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===36543&&(c.m.hash==='baf2b4d6'||c.m.revision==='seerapi:baf2b4d6')){if(c.effectInstanceIndex===0&&JSON.stringify(p)==='[1,300]')c.a.soulState.attackShieldConversionPerRound=true;};}});}",
+    "baselineSha256": "19793d1b3b3a6a773a60b6d441ac0042fee79d8a497ab07bf5cf75e92453b86b"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "||t.counts.attackNullify>0||t.counts.attackReflect>0",
+    "after": "||t.counts.attackNullify>0||t.counts.xiaoAttackImmunity>0||t.soulState.xiaoAttackImmuneRound===r||t.counts.attackReflect>0",
+    "baselineSha256": "df07db764db0060233afcf170ce889d0f07d168a018e353dd9b198de69158111"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "      if(!rage&&!effectContext.ignoreImmunity&&!warImmunity&&(t.counts.attackNullify>0||t.soulState.nullifyUse===reflectKey))",
+    "after": "      if(!rage&&!effectContext.ignoreImmunity&&!warImmunity&&(t.counts.xiaoAttackImmunity>0||t.soulState.xiaoAttackImmuneRound===r)){if(t.soulState.xiaoAttackImmuneRound!==r){t.counts.xiaoAttackImmunity--;t.soulState.xiaoAttackImmuneRound=r;}remaining=(hitImmune=true,minimumSuppressed=true,0);}\n      if(!rage&&!effectContext.ignoreImmunity&&!warImmunity&&(t.counts.attackNullify>0||t.soulState.nullifyUse===reflectKey))",
+    "baselineSha256": "df07db764db0060233afcf170ce889d0f07d168a018e353dd9b198de69158111"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "if(!effectContext.ignoreImmunity&&!warImmunity&&remaining>0&&t.counts.nextAttackShieldConversion>0){if(t.soulState.attackShieldConversionQuestion&&(a.soulState.attackSegmentsThisUse??1)>1)throw Error(t.soulState.attackShieldConversionQuestion+'：1768下次伤害转盾的多段单位待确认');t.counts.nextAttackShieldConversion--;shieldRules.add(t,Math.floor(Math.min(remaining,t.soulState.attackShieldConversionCap??0)),'attack-shield-conversion');remaining=(hitImmune=true,minimumSuppressed=true,0);}",
+    "after": "if(!effectContext.ignoreImmunity&&!warImmunity&&remaining>0&&(t.counts.nextAttackShieldConversion>0||t.soulState.attackShieldConversionPerRound&&t.soulState.attackShieldConvertedRound===r)){const st=t.soulState,roundly=st.attackShieldConversionPerRound;if(!roundly||st.attackShieldConvertedRound!==r){t.counts.nextAttackShieldConversion--;if(roundly){st.attackShieldConvertedRound=r;st.attackShieldConvertedAmount=0;}}const amount=Math.floor(Math.min(remaining,Math.max(0,(st.attackShieldConversionCap??0)-(roundly?st.attackShieldConvertedAmount:0))));shieldRules.add(t,amount,'attack-shield-conversion');if(roundly)st.attackShieldConvertedAmount+=amount;remaining=(hitImmune=true,minimumSuppressed=true,0);}",
+    "baselineSha256": "df07db764db0060233afcf170ce889d0f07d168a018e353dd9b198de69158111"
+  }
+]

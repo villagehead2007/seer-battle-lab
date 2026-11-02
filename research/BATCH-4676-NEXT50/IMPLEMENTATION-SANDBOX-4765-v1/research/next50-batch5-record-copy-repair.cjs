@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict'),base='research/next50-answer-takeover-2026-10-26T17-09-55-144Z/',read=p=>JSON.parse(fs.readFileSync(p)),write=(p,v)=>fs.writeFileSync(p,JSON.stringify(v,null,2)+'\n');
+const failure='research/next50-batch5-formal-2026-10-29T14-20-11-882Z-result.json',repair='research/next50-batch5-copy-repair-v1-result.json',p=read(failure),r=read(repair);assert.equal(p.npm.fail,1);assert.equal(r.pass,4);assert.equal(r.exitCode,0);
+const reason='完整npm 8913项通过8912、失败1。json-copy-equivalence使用整份10月27日旧魂印引擎作为复制基准；37个回放的146处差异全部为本批新增的bionicCapUseStart4658和actualMoveThisRound4658状态字段，非复制差异。本次改为在当前相同引擎中仅替换copy定义为原生JSON复制，验证替换唯一且实际被调用，保留37份全状态摘要一致性和全部原战斗断言。未改战斗实现；原测试备份和逐字段诊断完整保留。第一种修复方案专项4/4通过，须新完整冻结验收后才可正式计入。';
+for(const file of ['research/BATCH-4509-NEXT50-STATUS.json',base+'TAKEOVER.json']){const s=read(file);(s.batch5ValidationFailures??=[]).push({at:new Date().toISOString(),proof:failure,reason,repairProof:repair,diagnosis:'research/next50-batch5-copy-diagnosis.json',originalTest:'research/next50-batch5-copy-equivalence-before.test.txt',attempt:1});s.activeWork='第五批复制等价测试基准修复4/4通过，等待重新冻结逐只预检和完整npm。';s.nextAction='运行第五批v3完整验收；正式仍40/50。';write(file,s);}
+for(const file of ['PROGRESS.md','research/BATCH-4509-NEXT50-CHECKPOINT.md'])fs.writeFileSync(file,'## 2026-10-29 第五批整库单项失败与修复\n\n'+reason+'\n\n'+fs.readFileSync(file,'utf8'));
+console.log(reason);

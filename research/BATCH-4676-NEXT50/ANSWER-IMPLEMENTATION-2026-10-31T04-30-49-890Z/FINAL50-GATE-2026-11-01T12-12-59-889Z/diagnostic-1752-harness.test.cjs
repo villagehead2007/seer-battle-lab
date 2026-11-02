@@ -1,0 +1,1 @@
+const test=require('node:test');for(const id of[3516,4239,4785])test('diagnostic real1752 '+id,()=>require("C:\\Users\\villa\\Desktop\\seer-battle-lab\\tests\\helpers\\assert-1752-source-shield.cjs")(id));

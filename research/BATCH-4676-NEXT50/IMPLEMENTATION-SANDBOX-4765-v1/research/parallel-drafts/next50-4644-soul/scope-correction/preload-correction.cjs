@@ -1,0 +1,4 @@
+'use strict';
+// Current production does not yet contain1845. Load the unchanged frozen base + two seams, then correction.
+const fs=require('fs'),path=require('path'),Module=require('module'),old=Module.prototype._compile,range=path.resolve(__dirname,'../../../../dist/range-souls.js'),souls=path.resolve(__dirname,'../../../../dist/souls.js');
+Module.prototype._compile=function(code,file){if(path.resolve(file)===range){const at=code.lastIndexOf('\n});');if(at<0)throw Error('1845 scope correction closing anchor');code=code.slice(0,at)+fs.readFileSync(path.join(__dirname,'../range-souls.production-fragment.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'range-souls.correction-fragment.js'),'utf8')+'\n'+code.slice(at);}if(path.resolve(file)===souls)for(const e of require('../souls.production-edits.json')){if(code.split(e.old).length!==2)throw Error('1845 unchanged origin seam '+e.label);code=code.replace(e.old,e.replacement);}return old.call(this,code,file);};

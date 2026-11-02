@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),p='tests/helpers/assert-597-nominal-after-kill.cjs';let s=fs.readFileSync(p,'utf8');const a="s.fighters[0].hp=1000;s.fighters[1].hp=mode==='immune'?9000:1;";assert.ok(s.includes(a));fs.writeFileSync(p,s.replace(a,"s.damageEvents=[];s.fighters[0].hp=1000;s.fighters[1].hp=mode==='immune'?9000:1;"));

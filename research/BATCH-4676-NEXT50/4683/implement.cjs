@@ -1,0 +1,13 @@
+const fs=require('fs'),assert=require('assert/strict'),base='research/BATCH-4676-NEXT50/4683/',s=require('./snapshot.json');for(const f of['range-souls','range-effects'])fs.copyFileSync('dist/'+f+'.js',base+f+'.before.js');function append(f,code){let t=fs.readFileSync(f,'utf8'),n=t.lastIndexOf('});');assert.ok(n>0);fs.writeFileSync(f,t.slice(0,n)+code+'\n'+t.slice(n));}
+append('dist/range-souls.js',`
+function water1882(c){return c.typeParts(c.m.type).includes('水');}
+registry[1882]={name:'帕诺·海啸武装',sourceHash:'7678821e',partial:true,unimplemented:['Q-4683-001：所有技能PP不足2时的消耗与清强资格'],traits:{},hooks:{roundStart(c){c.a.soulState.tsunami1882={round:c.round,boosted:Object.values(c.a.stages).some(n=>n>0)};},beforeIncomingAttack(c){if(water1882(c)&&!c.attackImmunityIgnored){c.immuneAttack=true;c.a.soulState.tsunamiNext1882=true;}if(c.a.soulState.tsunami1882?.boosted)c.reduction=1-(1-c.reduction)*.5;},beforeDamage(c){if(c.a.soulState.tsunamiNext1882)c.modifier*=2;},afterAttack(c){if((c.settledDamage??c.dealt)>0)c.a.soulState.tsunamiNext1882=false;},opponentBeforeUse(c){if(!['physical','special'].includes(c.m.kind)||water1882(c)||c.a.hp<=0)return;const enough=c.a.moves.every(k=>c.a.pp[k]>=2),policy=c.a.soulState.ppCost1882;if(!enough&&!['truncate-clear','require-all','truncate-no-clear'].includes(policy))throw Error('Q-4683-001：海啸魂印部分技能不足2PP时是否能清强待确认');if(!enough&&policy==='require-all')return;for(const k of c.a.moves)c.a.pp[k]=Math.max(0,c.a.pp[k]-2);if(enough||policy==='truncate-clear')c.clearBoost(c.t);},afterUse(c){if(c.actualUsed&&c.m.kind!=='item'&&c.a.hp>0&&c.t.hp>0&&!c.a.soulState.tsunami1882?.boosted)c.ailment(c.t,'冻伤',c.a);}}};
+`);
+append('dist/range-effects.js',`
+metadata[1238]={info:'全属性+{0}，对手不为水系时强化效果翻倍',args_num:2};
+add(1238,'afterHit',(c,p)=>c.stage(c.a,p[0]*(c.typeParts(c.t.type).includes('水')?1:p[1])),[[1,1],[2,2]]);
+metadata[915]={info:'消除对手回合类效果，消除成功则自身下{0}回合攻击有{1}%使对手{2}',args_num:3};
+add(915,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.a,'攻击附加异常',p[0],{chance:p[1],ailment:ailments[p[2]]},c.round+1);},[turns,pct,[15,15]]);
+{const old=registry[553];registry[553]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37561&&m.revision==='${s.moves.find(m=>m.id===37561).revision}'&&i===1&&JSON.stringify(p)==='[100,15]')return;return old.validate(p,m,i);}});}
+`);
+let h=fs.readFileSync('tests/helpers/4680-battle.cjs','utf8');for(const[a,b]of[['4680','4683'],['37523','37560'],['28814','28837'],['28815','28838'],['37524','37561'],['37525','37562']])h=h.replaceAll(a,b);fs.writeFileSync('tests/helpers/4683-battle.cjs',h);console.log(require('../../../local-species.cjs').issues(s));

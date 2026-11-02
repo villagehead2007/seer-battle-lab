@@ -1,0 +1,3 @@
+'use strict';
+const fs=require('fs'),path=require('path'),Module=require('module'),old=Module.prototype._compile,range=path.resolve(__dirname,'../../../dist/range-souls.js'),souls=path.resolve(__dirname,'../../../dist/souls.js');
+Module.prototype._compile=function(code,file){if(path.resolve(file)===range){const at=code.lastIndexOf('\n});');if(at<0)throw Error('1849 closing anchor');code=code.slice(0,at)+'\nregistry[1849]=require('+JSON.stringify(path.join(__dirname,'soul1849.static.draft.cjs'))+');\n'+code.slice(at);}if(path.resolve(file)===souls)for(const e of require('./souls.production-edits.json')){if(code.split(e.old).length!==2)throw Error('1849 seam '+e.label);code=code.replace(e.old,e.replacement);}return old.call(this,code,file);};

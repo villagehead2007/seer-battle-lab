@@ -1,0 +1,1 @@
+const fs=require('fs'),p='research/parallel-drafts/4468/';let c=require('./changes.json');c.push({file:'seerapi.cjs',before:"...(reviewedTargets(m)?[{field:'atk_num'",after:"...(reviewedTargets(m)&&!(m.id===36388&&m.hash==='1ea5cdc8'&&m.atk_num===6)?[{field:'atk_num'"});fs.writeFileSync(p+'changes.json',JSON.stringify(c,null,2)+'\n');

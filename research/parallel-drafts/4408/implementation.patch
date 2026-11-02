@@ -1,0 +1,16 @@
+--- a/dist/range-souls.js
++++ b/dist/range-souls.js
+@@ -1081,1 +1081,1 @@
+-registry[1626]={name:'派利尔',sourceHash:'d2f7eed',partial:true,unimplemented:['Q-N20-4408-001：交换值超出目的最大体力的边界待确认'],traits:{attackPriority:f=>(f.soulState.palielDefenceRound??0)>0&&f.soulState.palielDefenceRound===f.soulState.calculationRound?1:0,allDamageReduction:f=>(f.soulState.palielDefenceRound??0)>0&&f.soulState.palielDefenceRound===f.soulState.calculationRound?.5:0},hooks:{
++registry[1626]={name:'派利尔',sourceHash:'d2f7eed',partial:false,unimplemented:[],traits:{attackPriority:f=>(f.soulState.palielDefenceRound??0)>0&&f.soulState.palielDefenceRound===f.soulState.calculationRound?1:0,allDamageReduction:f=>(f.soulState.palielDefenceRound??0)>0&&f.soulState.palielDefenceRound===f.soulState.calculationRound?.5:0},hooks:{
+@@ -1082,1 +1082,1 @@
+-combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;c.swapCurrentHP({overflowQuestion:'Q-N20-4408-001'});if(c.a.hp>c.t.hp){c.ailment(c.t,'沉默',c.a,false,false,null,{probabilityPercent:100});if(c.a.hp>0)c.clearAilments(c.a);}else if(c.a.hp<c.t.hp)c.a.soulState.palielDefenceRound=c.round+1;}
++combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;c.swapCurrentHP();if(c.a.hp>c.t.hp){c.ailment(c.t,'沉默',c.a,false,false,null,{probabilityPercent:100});if(c.a.hp>0)c.clearAilments(c.a);}else if(c.a.hp<c.t.hp)c.a.soulState.palielDefenceRound=c.round+1;}
+--- a/dist/range-effects.js
++++ b/dist/range-effects.js
+@@ -2497,1 +2497,1 @@
+-add(1522,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;const n=c.settledDamage??c.dealt;c.hurt(c.t,p[0]*(n>p[1]?2:1),c.m.name+'阈值追加','fixed');},[[0,99999],[0,99999]]);
++add(1522,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;const n=c.outgoingSettledDamage('attack');c.hurt(c.t,p[0]*(n>p[1]?2:1),c.m.name+'阈值追加','fixed');},[[0,99999],[0,99999]]);
+@@ -2944,1 +2944,1 @@
+-{const old=registry[1522];registry[1522]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===36435&&(c.m.hash==='b4162dac'||c.m.revision==='seerapi:b4162dac')){const current=c.settledDamage??c.dealt,total=c.a.roundSettledDamageDealt??current;if((current>p[1])!==(total>p[1]))throw Error('Q-N20-4442-001：1522当回合伤害统计类型/时点未确认');}old.execute(c,p);}});}
++// Q-N20-4442-001: 1522统计当回合完整红伤，不计自身固定附伤。

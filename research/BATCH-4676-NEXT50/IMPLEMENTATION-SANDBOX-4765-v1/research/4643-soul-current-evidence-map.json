@@ -1,0 +1,146 @@
+{
+  "species": 4643,
+  "soulId": 1844,
+  "status": "prepared-integration-evidence-main-run-pending",
+  "branches": [
+    {
+      "part": "战斗开始记录实际异常抗性唯一最高项及本次登场最大HP",
+      "success": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844实际抗性睡眠50中毒20唯一最高记录睡眠，原始配置与全免5分量独立保存",
+          "assertion": "实际记录睡眠、初始maxHP9000、分别0.55及0.05抗性"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844并列最高或未配置项目不伪造记录，无记录不会把普通成功异常改为星赐",
+          "assertion": "并列/空项记录null，成功害怕保留，未生成星赐"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844星执记录是战斗开始快照，行动中改变抗性配置不重选记录",
+          "assertion": "行动中把中毒提升为最高后仍记录原睡眠，成功进入后仍转星赐"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844真实1797敌初登场烧伤在星执记录后进入并转星赐，不延迟到回合初才处理",
+          "assertion": "真实1797初始烧伤事件通过后被星执即时转换；初始HP9000保留"
+        }
+      ]
+    },
+    {
+      "part": "原记录异常成功进入后转换为3回合星赐；失败不转换，Q017转换新状态绕过新门禁",
+      "success": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844原睡眠通过抗性门禁才转3回合星赐，原控制不阻止真实用招并消费PP",
+          "assertion": "睡眠移除、星赐持续3、实际用招PP19随后回末恢复至20"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844原异常抗性真实成功时不进入异常不转星赐且保留公共抗性免异窗口",
+          "assertion": "原异常被真实抗性阻挡，无睡眠/星赐，产生抗性免疫窗口，PP实际19"
+        },
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844次数免异先阻止原异常并真实消费一次，不转换也不伪造成功记录",
+          "assertion": "次数免异1减0且施加失败，无星赐和转换记录"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844星赐同名按公共最大剩余时间合并，已有5回合不被新3回合缩短",
+          "assertion": "既有5回合星赐保留至5，新转换记录一条"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844记录感染转星赐不会在原感染结束后降低攻击特攻或产生中毒",
+          "assertion": "经过原感染应到期的回合仍无中毒/感染，攻击特攻0，HP9000"
+        },
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844转星赐绕过新状态门禁且保留原状态成功返回，不再次消费免异次数",
+          "assertion": "原施加notify后新增1次免异仍保持1，转换星赐3回合成功"
+        },
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844既有状态转化进入被记录冻伤仍转3回合星赐，不保留原冰封和冻伤DOT",
+          "assertion": "真实冰封转冻伤再转星赐，两个原异常都移除且HP未受DOT"
+        }
+      ]
+    },
+    {
+      "part": "星赐对当前自身真实攻击增伤30%、各技能PP回末+2及3回合到期",
+      "success": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844星赐真实回末恢复每招2PP，真实攻击增伤1.3与无星赐同RNG对照",
+          "assertion": "同RNG有星赐红伤增加，攻击PP10用后回至11，对照为9"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844原异常抗性真实成功时不进入异常不转星赐且保留公共抗性免异窗口",
+          "assertion": "未生成星赐则用招后PP19，不伪造回末2PP"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844三回合星赐到期恢复停止，第四轮真实攻击PP不再回复2",
+          "assertion": "三次使用PP10至13，到期后第四次降12"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4643-main-interactions.test.cjs",
+          "name": "4643完整原生17招与1844抗性记录使真实22410害怕转星赐并执行魔音，未记录对照保留害怕",
+          "assertion": "真实敌方22410害怕转换后自身魔音执行命中+1；未记录对照害怕阻行动等级0，双方实际PP符合消费/星赐回复"
+        }
+      ]
+    },
+    {
+      "part": "当前被敌方击败后释放星执、消逝自身并锁定本次登场最大HP初始能量；001和007未知不推定",
+      "success": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844敌方真实红伤击败释放星执并消逝，maxHP归0且记录登场9000初始能量",
+          "assertion": "敌方红伤致死，HP/maxHP均0、vanished为真、星执关闭，初始能量9000"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844自然自损致死被击败归属001精确诊断，已扣技能PP及实际HP归0而不默授能量",
+          "assertion": "真实37350自损扣PP10至9、HP0/max9000，001守卫前未伪造星执者"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4643-soul.test.cjs",
+          "name": "1844敌方真实红伤击败释放星执并消逝，maxHP归0且记录登场9000初始能量",
+          "assertion": "死亡前当前maxHP变化至10000仍以登场9000为初始能量"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4643-main-interactions.test.cjs",
+          "name": "4643完整原生被敌红伤击败与已授1463临死回复实际共存时007先保护，明确研究时序才消逝",
+          "assertion": "原始已授1463前提：真实红伤致死先007保护HP0/max9000；仅明确研究before-revival时max0/消逝/能量9000，敌PP实际39"
+        }
+      ]
+    }
+  ]
+}

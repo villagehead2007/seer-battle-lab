@@ -1,0 +1,39 @@
+'use strict';
+require('./deployed-4105-partial.test.cjs');
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {make,turn,pick,key,timer,E}=require('./helpers/4105-battle.cjs');
+function multi(s,count){const m=s.moveDefinitions[key(900040)],rule=E.WIKI.effectsEngine.registry[31],c=E.WIKI.effectsEngine.compileInstances([{id:31,args:[count,count],description:rule.template}],[{id:31,argsNum:rule.argsNum,template:rule.template}],m);assert.equal(c.issue,'');m.operations=c.operations;}
+test('4105魂印无强附伤按攻击前HP百分之25每招一次，MISS封攻不附，反转与无负增伤互斥',()=>{
+ for(const mode of ['hit','miss','invalid']){const s=make(undefined,{soul:1340,hit:mode!=='miss'});if(mode==='miss'){s.moveDefinitions[key(s.auditMoveId)].accuracy=0;s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;}if(mode==='invalid')s.fighters[0].counts.nextAttackInvalid=1;
+  const o=turn(s),ds=(o.damageEvents??[]).filter(e=>e.type==='percent');assert.equal(ds.length,mode==='hit'?1:0);if(ds.length)assert.equal(ds[0].settledDamage,2250);
+ }
+ const s=make(undefined,{soul:1340});s.fighters[0].stages.def=-2;const o=turn(s,900031);assert.equal(o.fighters[0].stages.def,2);assert.equal(o.fighters[0].effects.reflect.start,2);assert.equal(o.fighters[0].effects['魔眼下回合攻击增伤'],undefined);
+});
+test('4105魂印25%附伤不被其攻击增伤放大，多段仅一次且按第一段前HP取值',()=>{
+ const s=make(undefined,{soul:1340});timer(s,0,'魔眼下回合攻击增伤',{bonus:1});
+ const m=s.moveDefinitions[key(s.auditMoveId)],rule=E.WIKI.effectsEngine.registry[31],c=E.WIKI.effectsEngine.compileInstances([{id:31,args:[2,2],description:rule.template}],[{id:31,argsNum:rule.argsNum,template:rule.template}],m);assert.equal(c.issue,'');m.operations=c.operations;
+ const o=turn(s);assert.equal(o.damageEvents.filter(e=>e.type==='attack').length,2);const ds=o.damageEvents.filter(e=>e.type==='percent');assert.equal(ds.length,1);assert.equal(ds[0].settledDamage,2250);
+});
+test('4105 1612只累计完整攻击，两个200不触发、两个100只一次反制、免疫仅一次补300',()=>{
+ for(const n of [100,200])for(const immune of [false,true]){const s=make(pick(1612)[0],{bStats:{spa:9999}});s.moveDefinitions[key(900040)].power=400;multi(s,2);timer(s,0,'攻击伤害上限',{amount:n});if(immune)timer(s,1,'免异常');const o=turn(s,undefined,900040);
+  assert.equal(o.damageEvents.filter(e=>e.type==='attack').reduce((sum,e)=>sum+e.settledDamage,0),n*2);
+  assert.equal(!!o.fighters[1].ailments['诅咒'],n===100&&!immune);
+  assert.equal(o.damageEvents.filter(e=>e.type==='fixed'&&e.sourceSide===0&&e.settledDamage===300).length,n===100&&immune?1:0);
+ }
+});
+test('4105洞见概率免疫仍抽样，失败时吸取并照常降双防，成功时穿透但不吸取',()=>{
+ const seen=new Set;for(let seed=0;seed<30;seed++){
+  const s=make(pick(2313)[0],{hp:1000,seed});timer(s,1,'概率攻击免疫',{chance:50,failureStages:[0,-1,0,-1,0,0]});const o=turn(s),immune=o.fighters[1].soulState.immunityRoll;seen.add(immune);
+  assert.ok(o.damageEvents.find(e=>e.type==='attack').settledDamage>0);assert.equal(o.fighters[0].hp,immune?1000:4000);
+  assert.equal(o.fighters[0].stages.def,immune?0:-1);assert.equal(o.fighters[0].stages.spd,immune?0:-1);
+ }
+ assert.deepEqual([...seen].sort(),[false,true]);
+});
+test('4105洞见条件免疫按本次满足与否，存在但条件不满足仍名义吸取且不消费免疫载体',()=>{
+ for(const kind of ['大额攻击免疫','小额攻击免疫'])for(const active of [false,true]){
+  const s=make(pick(2313)[0],{hp:1000}),threshold=kind==='大额攻击免疫'?(active?0:99999):(active?99999:0);timer(s,1,kind,{threshold});
+  const o=turn(s);assert.ok(o.damageEvents.find(e=>e.type==='attack').settledDamage>0);assert.equal(o.fighters[0].hp,active?1000:4000);assert.equal(o.fighters[1].effects[kind].threshold,threshold);
+ }
+});
+
+require('./4387-public826.test.cjs');

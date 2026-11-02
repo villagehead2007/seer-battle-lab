@@ -1,0 +1,5 @@
+'use strict';const fs=require('fs'),{createClient}=require('../wiki-client.cjs');
+const file='research/4589-source-supplement.json',report=JSON.parse(fs.readFileSync(file)),url=new URL('https://wiki.biligame.com/seer/api.php');
+for(const[k,v]of Object.entries({action:'query',format:'json',prop:'revisions',rvprop:'ids|timestamp|content',rvslots:'main',titles:'精灵:4589|吸取|能力等级|伤害|击败'}))url.searchParams.set(k,v);
+const client=createClient(async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(25000)});return{status:r.status,body:await r.json()};},{interval:5000,label:'4589-source-detail'});
+(async()=>{if(report.records.some(r=>r.url===url.href)){console.log('already cached');return;}try{report.records.push({url:url.href,data:await client.request(url.href),loadedAt:new Date().toISOString()});console.log('saved actual pet and terminology pages');}catch(e){report.failures.push({url:url.href,error:e.message,cause:e.cause?.code,at:new Date().toISOString()});process.exitCode=1;}finally{fs.writeFileSync(file,JSON.stringify(report,null,2)+'\n');}})();

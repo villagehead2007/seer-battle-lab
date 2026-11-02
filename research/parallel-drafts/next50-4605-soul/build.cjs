@@ -1,0 +1,1 @@
+const fs=require('fs'),path=require('path'),dir=__dirname;fs.writeFileSync(path.join(dir,'souls.production-edits.json'),'[]\n');let draft=fs.readFileSync(path.join(dir,'soul1810.draft.cjs'),'utf8').replace(/^'use strict';\r?\n/,'').replace('module.exports=','registry[1810]=');fs.writeFileSync(path.join(dir,'range-souls.production-fragment.js'),draft);

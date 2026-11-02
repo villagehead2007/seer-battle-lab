@@ -1,0 +1,11 @@
+--- a/dist/range-effects.js
++++ b/dist/range-effects.js
+@@ -2767,1 +2767,7 @@
+-metadata[1861]={info:'技能无效时，消除对手回合类效果且100%令对手沉默3回合',args_num:0};add(1861,'onInvalid',c=>{c.clear(c.t);c.ailment(c.t,'沉默',c.a,false,false,3);});
++metadata[1861]={info:'技能无效时，消除对手回合类效果且100%令对手沉默3回合',args_num:0};add(1861,'onInvalid',c=>{c.clear(c.t);c.ailment(c.t,'沉默',c.a,false,false,3);});
++// Q-N20-4358-003 + Q-N20-4333-003: retain only this sourced invalid-skill compensation.
++{const old=registry[1861];
++const exact=c=>(c.m.wikiId??c.m.id)===36141&&c.m.revision==='seerapi:38d93981'&&c.m.operations?.some(op=>op.effectId===1861&&op.index===1&&Array.isArray(op.params)&&op.params.length===0&&Array.isArray(op.sourceArgs)&&op.sourceArgs.length===0);
++const retained=c=>{if(!exact(c))return;c.clear(c.t);c.ailment(c.t,'沉默',c.a,false,false,3,{probabilityPercent:100});c.syncStages?.();};
++registry[1861]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id===36141&&(m.hash!=='38d93981'||m.revision!=='seerapi:38d93981'||i!==1))throw Error('4422 1861精确来源不匹配');},hooks:{...old.hooks,afterAttack(c){if(c.attackImmune||c.hitEffectsDisabled)retained(c);}},retainedHitHooks:{...old.retainedHitHooks,onInvalid:retained,afterAttack:retained}});
++}

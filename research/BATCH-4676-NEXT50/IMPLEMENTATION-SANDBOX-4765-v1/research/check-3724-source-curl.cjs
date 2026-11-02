@@ -1,0 +1,8 @@
+'use strict';
+const fs=require('fs'),{createClient}=require('../wiki-client.cjs');
+const file='research/3724-source-check-curl.json';
+const report=fs.existsSync(file)&&process.argv.includes('--resume')?JSON.parse(fs.readFileSync(file)):{checkedAt:new Date().toISOString(),records:[],failures:[]};
+const {spawnSync}=require('node:child_process');
+const client=createClient(async url=>{const p=spawnSync('curl.exe',['--silent','--show-error','--max-time','25','--write-out','\n%{http_code}','--header','Accept: application/json',url],{encoding:'utf8',windowsHide:true,maxBuffer:20*1024*1024});if(p.status!==0)throw Error('curl exit '+p.status+': '+p.stderr);const at=p.stdout.lastIndexOf('\n');const status=Number(p.stdout.slice(at+1));let body;try{body=JSON.parse(p.stdout.slice(0,at));}catch(e){throw Error('HTTP '+status+' JSON parse: '+e.message);}return {status,body};},{interval:15000,label:'SeerAPI'});
+async function get(resource){const url='https://api.seerapi.com/v1/'+resource,old=report.records.find(r=>r.url===url);if(old)return old.data;try{const data=await client.request(url);report.records.push({url,loadedAt:new Date().toISOString(),data});console.log(resource,data.hash??'',data.name??'');return data;}catch(e){report.failures.push({url,error:e.message,cause:e.cause?.message,code:e.cause?.code});throw e;}finally{fs.writeFileSync(file,JSON.stringify(report,null,2)+'\n');}}
+(async()=>{const p=await get('pet/3724');for(const soul of p.soulmark)await get('soulmark/'+soul.id);await get('pet_advance/12');for(const id of [1394,1839,2054,2056,604,944])await get('skill_effect_type/'+id);})().catch(e=>{console.error(e.message);process.exitCode=1;});

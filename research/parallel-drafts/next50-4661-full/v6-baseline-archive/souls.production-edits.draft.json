@@ -1,0 +1,56 @@
+[
+  {
+    "name": "1862 actual-source context methods",
+    "target": "dist/souls.js",
+    "find": "return {a,t,m,vanish1844(f)",
+    "replace": "return {a,t,m,selectedMoveKey4661:f=>choices[actualFighter(f).side],hasRoundEffects4661:f=>Object.values(actualFighter(f).effects).some(e=>statusRules.timedPresent(e,r)),consumeAllOwnPP4661(){if(!(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014')||!m)throw Error('1862 PP cost source required');const n=a.pp[m.id]??0;ppRules.consume(a,m.id,n,true);return n;},executeForcedPayload1862(move,phases,patch={}){if(!(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014'))throw Error('1862 forced payload source required');for(const phase of phases)E.WIKI.effectsEngine.run(phase,move.operations,{...skillContext(a,t,move),...patch,m:move,hitEffectsDisabled:false,attackImmune:false});},executeWuwei1862(move,op){if(!(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014')||op.effectId!==2190)throw Error('1862 source-bound 无为 required');return E.WIKI.effectsEngine.run('wuwei1862',[op],{...skillContext(a,t,move),m:move,hitEffectsDisabled:false,attackImmune:false});},vanish1844(f)"
+  },
+  {
+    "name": "1862 source replaces ordinary PP cost, does not duplicate base consume",
+    "target": "dist/souls.js",
+    "find": "if(a.soulId===1850&&E.SOULS.registry[1850]?.sourceHash==='68420e15')E.SOULS.run('beforeConsume1850',ppConsumptionPolicy);",
+    "replace": "if(a.soulId===1850&&E.SOULS.registry[1850]?.sourceHash==='68420e15')E.SOULS.run('beforeConsume1850',ppConsumptionPolicy);if(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014')ppConsumptionPolicy.noPPConsumption=true;"
+  },
+  {
+    "name": "1862 actual-use snapshot and positive-PP cleanse",
+    "target": "dist/souls.js",
+    "find": "a.soulState.skillUses[m.id]=(a.soulState.skillUses[m.id]??0)+1;",
+    "replace": "a.soulState.skillUses[m.id]=(a.soulState.skillUses[m.id]??0)+1;if(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014'){const c=context(a,t,m);E.SOULS.registry[1862].abilities.beginUse(c);E.SOULS.registry[1862].abilities.positiveUse(c);}if(on(t,'源4661对手用攻束缚'))E.WIKI.effectsEngine.registry[663].reactAttack4661(context(t,a,m),'before-use');"
+  },
+  {
+    "name": "1862 effect39 forbids actual selected zeroPP enemy action",
+    "target": "dist/souls.js",
+    "find": "if(a.soulState.oracleAnnihilation1764?.round===r){",
+    "replace": "if(a.soulState.actionForbidden1862?.round===r){emit(`${name(a)} 毋行动：所选技能PP归0，本轮无法行动。`,'miss');E.SOULS.run('actionSkipped',{...context(a,t,m),reason:'source39-selected-zeroPP'});endAction(a,t,m,false);finish();continue;}if(a.soulState.oracleAnnihilation1764?.round===r){"
+  },
+  {
+    "name": "1862 actual enemy defeat resets condition cancellation before reactions",
+    "target": "dist/souls.js",
+    "find": "f.soulState.deathResolved=true;f.soulState.lastDefeatRound=r;",
+    "replace": "f.soulState.deathResolved=true;f.soulState.lastDefeatRound=r;if(defeater?.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014'&&defeater.side===1-f.side){E.SOULS.registry[1862].abilities.reset(context(defeater,f,used[defeater.side]&&currentActorSide===defeater.side?battleMoves[choices[defeater.side]]:null));defeater.soulState.wuweiKO1862={round:r,target:f.side};}"
+  },
+  {
+    "name": "1862 source corpse vanish after normal death reactions; real revival intersection remains shared007",
+    "target": "dist/souls.js",
+    "find": "context(defeater,f).restorePP(defeater,Infinity,'skill');}}\n    const stageViews",
+    "replace": "context(defeater,f).restorePP(defeater,Infinity,'skill');}if(defeater?.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014'&&defeater.side===1-f.side&&defeater.soulState.wuweiKO1862?.round===r&&defeater.soulState.wuweiKO1862.target===f.side){if(f.hp>0||f.soulState.kingRevivalRound)throw Error('Q-N50-4604-007：1862击败后消逝与真实复活顺序待确认');statusRules.vanish(s,f,r);}}\n    const stageViews"
+  },
+  {
+    "name": "1862 PP0 invalid classification boundary before hit payload",
+    "target": "dist/souls.js",
+    "find": "const invalid=confirmedTeamAttackInvalid||confirmedTeamStatusInvalid||!forceCriticalHit&&(blocked||blind||miss||forcedMiss||evaded);",
+    "replace": "const invalid=confirmedTeamAttackInvalid||confirmedTeamStatusInvalid||!forceCriticalHit&&(blocked||blind||miss||forcedMiss||evaded);if(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014')E.SOULS.registry[1862].abilities.forcedBoundary({...skillContext(a,t,m),invalid});"
+  },
+  {
+    "name": "1862 PP0 immune/hit-disabled boundary before original afterHit effects",
+    "target": "dist/souls.js",
+    "find": "E.WIKI.effectsEngine.run('afterHit',m.operations,{...skillContext(a,t,m),attackImmune,heal:(f,n,",
+    "replace": "if(a.soulId===1862&&E.SOULS.registry[1862]?.sourceHash==='9320d014')E.SOULS.registry[1862].abilities.forcedBoundary({...skillContext(a,t,m),attackImmune});E.WIKI.effectsEngine.run('afterHit',m.operations,{...skillContext(a,t,m),attackImmune,heal:(f,n,"
+  },
+  {
+    "name": "4661 previously granted actual-use absorption and opponent attack reaction",
+    "target": "dist/souls.js",
+    "find": "function endAction(a,t,m,successful=false){",
+    "replace": "function endAction(a,t,m,successful=false){if(used[a.side]&&m.kind!=='item'&&on(t,'源4661对手用攻束缚'))E.WIKI.effectsEngine.registry[663].reactAttack4661(context(t,a,m),'use-end');if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'源4661用招低体双吸')){const e=a.effects['源4661用招低体双吸'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===(a.soulState.skillUses?.[m.id]??0),policy=a.soulState.qualified1647First1862;if(same&&!['immediate','next-use'].includes(policy))throw Error('Q-N50-4625-011：4661/1647首次授予同招触发待确认');if(!same||policy==='immediate'){const n=t.stats.maxHp*e.fraction*(a.hp<a.stats.maxHp*e.threshold?2:1),immune=damageImmune(t,'percent');if(t.hp>0)withDamageOrigin('skill',()=>inflict(a,t,n,'无为既授低体比例吸取','percent'));heal(a,n,'无为既授低体理论回复','skill');if(immune&&a.hp>0&&t.hp>0)withDamageOrigin('skill',()=>inflict(a,t,e.immuneTrueDamage,'无为百分免疫额外','true'));}}"
+  }
+]

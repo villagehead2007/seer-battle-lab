@@ -1,0 +1,9 @@
+
+(()=>{
+'use strict';
+function state1867(c){return c.a.soulState.tiger1867??(c.a.soulState.tiger1867={layers:0,postCapUses:0,capReached:false,sourceHash:'c1e16cab'});}
+function probability1867(c){const e=state1867(c);let arrival=0;if(e.capReached){const p=c.a.soulState.qualified1867CapProbability;if(!['arrival','subsequent'].includes(p))throw Error('Q-N50-4663-001：首次达到120%时是否同时增加焚烬概率待确认');arrival=p==='arrival'?1:0;}return Math.min(1,.5+.1*(e.postCapUses+arrival));}
+function use1867(c){if(!['physical','special'].includes(c.m?.kind)||c.a.hp<=0)return;const e=state1867(c),before=e.layers;if(before>=3)e.postCapUses++;else e.layers++;if(e.layers===3)e.capReached=true;(e.uses??=[]).push({round:c.round,move:c.m.id,before,layers:e.layers,postCapUses:e.postCapUses});
+ if(e.burnStart&&c.round>=e.burnStart){let apply=c.round===e.burnStart;if(!apply){const p=c.a.soulState.qualified1867BurnDuration;if(!['next-round','persistent'].includes(p))throw Error('Q-N50-4663-002：未触发补偿的用攻烧伤是否仅下回合待确认');apply=p==='persistent';}if(apply)c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:100});}}
+registry[1867]={name:'凌虎·关银屏',sourceHash:'c1e16cab',partial:true,unimplemented:['Q-N50-4663-001：首次达到层数上限的概率增量时点','Q-N50-4663-002：未触发补偿烧伤的持续范围'],deferred:['真实换下和再次登场：本次在场攻击增伤重置与本场概率增量保留；当前在场叠层/概率/异常/先制均单精灵实现'],traits:{skillPriority:f=>f.soulState.tiger1867?.priorityRound===f.soulState.calculationRound?1:0},abilities:{actualUse:use1867,probability:probability1867},hooks:{battleStart:state1867,beforeDamage(c){c.modifier*=1+.4*state1867(c).layers;},battlePhaseEnd(c){if(c.a.hp<=0||c.t.hp<=0||(c.t.roundSettledAttackDamage??0)>0)return;const e=state1867(c),probability=probability1867(c),roll=c.random(),applied=roll<probability&&c.ailment(c.t,'焚烬',c.a,false,false,null,{probabilityPercent:probability*100});(e.rolls??=[]).push({round:c.round,probability,roll,applied:!!applied});if(!applied){e.priorityRound=c.round+1;e.burnStart=c.round+1;}}}};
+})();

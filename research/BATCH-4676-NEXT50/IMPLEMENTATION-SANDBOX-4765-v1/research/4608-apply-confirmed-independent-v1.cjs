@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict');
+assert.ok(!fs.existsSync('research/.next50-batch-validation.lock'));
+assert.equal(JSON.parse(fs.readFileSync('research/BATCH-4509-NEXT50-STATUS.json')).formalCompletedCount,20);
+const replace=(p,a,b)=>{const t=fs.readFileSync(p,'utf8');assert.equal(t.split(a).length,2,'exactly one match: '+p+' '+a.slice(0,90));fs.writeFileSync(p,t.replace(a,b));};
+replace('dist/range-souls.js',"if(operation==='reverse'&&fields1813.some(k=>c.a.stages[k]>0))throw Error('Q-N50-4511-002：1813高体防清/防吸与纯反转保护范围待确认');",'');
+replace('dist/range-souls.js',"if(c.on(t,'强化保护')||c.on(t,'幽蝶强化保护')||c.weaknessBlocked(t)||['消强按项反击','用招强化登场反应','南霜清强免异常','强化消失清回合','强化消失封属','强化被清封属','强化被清弱化','强化被清追加','强化被清吸取','强化被清惩罚','同步能力变化'].some(k=>c.on(t,k)||c.on(c.a,k)))throw Error('Q-N50-4511-002：1813死亡反转与特殊能力保护/反制交互待确认');",'');
+replace('dist/effect-registry.js',"if(loss===Math.floor(nominal)&&healed===Math.floor(nominal)){c.addShield(c.a,Math.floor(nominal));return;}throw Error('Q-N50-4608-003：1327吸取与回复已执行，附盾基数待确认');","c.addShield(c.a,Math.floor(nominal));");
+replace('dist/range-effects.js',"if(c.a.counts.attackNullify>0)throw Error('Q-N50-4511-006：972已有次数再授待确认');c.a.counts.attackNullify=p[0];c.a.soulState.saffron972=true;","c.grantAttackNullify(c.a,p[0],'972');c.a.soulState.saffron972=true;");
+replace('dist/range-effects.js',"if(id===191&&c.on(c.a,'reflect')||id===1204&&c.a.counts.nextCrit>0)throw Error('Q-N50-4511-006：4608免反/必暴重复授予待确认');","if(id===1204&&c.a.counts.nextCrit>0)throw Error('Q-N50-4511-006：4608必暴重复授予待直接确认');");
+replace('dist/souls.js',"if(on(t,'reflect')&&t.effects.reflect.saffron191&&(t.counts.immune>0||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length||on(t,'免异常')||on(t,'控制异常反弹')&&statusRules.isControl(k)))throw Error('Q-N50-4511-006：4608回合反弹与其他免异混源待确认');",'');
+replace('dist/souls.js',"if(e.saffron1924&&n!==e.amount&&!e.qualifiedDamageBasis4608)throw Error('Q-N50-4521-002：1924回复后等量固定伤害基数待确认');",'');
+replace('dist/souls.js',"if(immunitySource.kind==='1778'&&--t.soulState.jiegeNullify1778===0)","if(immunitySource.kind==='972'&&!t.soulState.attackNullifySources.some(e=>e.kind==='972'))delete t.soulState.saffron972;if(immunitySource.kind==='1778'&&--t.soulState.jiegeNullify1778===0)");
+console.log('4608 confirmed independent branches applied; 741/929/1204 and state validation remain pending.');

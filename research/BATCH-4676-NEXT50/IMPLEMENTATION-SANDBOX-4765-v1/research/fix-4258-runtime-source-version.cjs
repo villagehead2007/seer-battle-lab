@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),f='dist/range-effects.js';let t=fs.readFileSync(f,'utf8').replace("c.m.hash==='2f9ba897'&&Object.values(c.a.effects)","c.m.revision==='seerapi:2f9ba897'&&Object.values(c.a.effects)");fs.writeFileSync(f,t);

@@ -1,0 +1,111 @@
+{
+  "confirmation": "research/zero-damage-hit-2026-10-29/confirmation.json",
+  "status": "targeted-verification-passed",
+  "plan": [
+    {
+      "file": "tests/helpers/assert-597-nominal-after-kill.cjs",
+      "scope": null,
+      "before": "expected=['heal-ban','attack-immune'].includes(mode)?1000:",
+      "after": "expected=mode==='heal-ban'?1000:",
+      "reason": "命中免攻仍执行持续吸取及理论回复"
+    },
+    {
+      "file": "tests/helpers/assert-597-nominal-after-kill.cjs",
+      "scope": null,
+      "before": "else assert.equal(o.fighters[1].hp,9000);",
+      "after": "else assert.equal(o.fighters[1].hp,mode==='attack-immune'?9000-9000/x.args[1]:9000);",
+      "reason": "仅攻击免疫不免疫百分比吸取"
+    },
+    {
+      "file": "tests/deployed-3575-state.test.cjs",
+      "scope": "3575 回合923先手吸150",
+      "before": "assert.equal(turn(imm).fighters[0].hp,1000)",
+      "after": "assert.equal(turn(imm).fighters[0].hp,1150)",
+      "reason": "零伤命中仍授用招吸取且理论回复150"
+    },
+    {
+      "file": "tests/deployed-3580-mechanisms.test.cjs",
+      "scope": "3580 固伤29追加75",
+      "before": "timer(immune,1,'鬼王攻击免疫');assert.equal(turn(immune).fighters[1].hp,9000)",
+      "after": "timer(immune,1,'鬼王攻击免疫');assert.equal(turn(immune).fighters[1].hp,8925)",
+      "reason": "仅攻击免疫保留75固定附伤"
+    },
+    {
+      "file": "tests/deployed-3580-mechanisms.test.cjs",
+      "scope": "3580 固伤29追加75",
+      "before": "攻击免疫取消本招固伤",
+      "after": "攻击免疫仍执行本招固伤",
+      "reason": "更新被新规则覆盖的测试标题"
+    },
+    {
+      "file": "tests/deployed-3580-mechanisms.test.cjs",
+      "scope": "3580 低伤1018",
+      "before": "assert.deepEqual(hp(f),[9000,9000])",
+      "after": "assert.deepEqual(hp(f),[9000,8925])",
+      "reason": "免攻保留75固伤，低伤反馈按实际发生伤害执行"
+    },
+    {
+      "file": "tests/deployed-3584-mechanisms.test.cjs",
+      "scope": "3584 后手939",
+      "before": "assert.deepEqual(hp(turn(im)),[1000,9000])",
+      "after": "assert.deepEqual(hp(turn(im)),[4000,9000])",
+      "reason": "命中后吸取伤害免疫但理论回复3000"
+    },
+    {
+      "file": "tests/deployed-3586-mechanisms.test.cjs",
+      "scope": "3586 护盾1017",
+      "before": "assert.equal(o.fighters[0].suitState.shield,400)",
+      "after": "assert.equal(o.fighters[0].suitState.shield,0)",
+      "reason": "已命中执行耗盾转固，固伤仍可被全伤免疫"
+    },
+    {
+      "file": "tests/deployed-3586-mechanisms.test.cjs",
+      "scope": "3586 减伤811",
+      "before": "assert.equal(turn(im).fighters[0].counts.nextDamageReduction,undefined)",
+      "after": "assert.equal(turn(im).fighters[0].counts.nextDamageReduction,0)",
+      "reason": "已命中仍登记按本次0伤计算的0减伤"
+    },
+    {
+      "file": "tests/deployed-3592-extra.test.cjs",
+      "scope": "3592 固伤29真实追加50",
+      "before": "timer(s,1,'鬼王攻击免疫');assert.equal(turn(s).fighters[1].hp,9000)",
+      "after": "timer(s,1,'鬼王攻击免疫');assert.equal(turn(s).fighters[1].hp,8950)",
+      "reason": "仅攻击免疫保留50固定附伤"
+    },
+    {
+      "file": "tests/deployed-3613-new.test.cjs",
+      "scope": "3613 1680无异常",
+      "before": "timer(s,1,'鬼王攻击免疫');assert.equal(turn(s).fighters[1].hp,9000)",
+      "after": "timer(s,1,'鬼王攻击免疫');assert.equal(turn(s).fighters[1].hp,8800)",
+      "reason": "仅攻击免疫保留200真实附伤；有异常及封招条件仍检查"
+    },
+    {
+      "file": "tests/deployed-3613-reused.test.cjs",
+      "scope": "3613 回复1按实际",
+      "before": "assert.deepEqual(hp(turn(immune)),[1000,9000])",
+      "after": "assert.deepEqual(hp(turn(immune)),[e.id===870?1100:1000,9000])",
+      "reason": "吸血1按0红伤仍回0，870固定吸取理论回复100"
+    },
+    {
+      "file": "tests/helpers/assert-939-nominal-heal.cjs",
+      "scope": null,
+      "before": "assert.equal(stopped.fighters[0].hp,1000);assert.equal(stopped.fighters[1].hp,200);",
+      "after": "assert.equal(stopped.fighters[0].hp,4000);assert.equal(stopped.fighters[1].hp,0);",
+      "reason": "攻击被免疫仍命中，939吸取3000并理论回复3000"
+    },
+    {
+      "file": "tests/deployed-3705-independent.test.cjs",
+      "scope": "3705 1425七参数",
+      "before": "assert.equal(z.fighters[0].stages.spe,0)",
+      "after": "assert.equal(z.fighters[0].stages.spe,2)",
+      "reason": "已命中0伤低于300，按真实参数速度+2"
+    }
+  ],
+  "appliedAt": "2026-10-29T00:50:49.244Z",
+  "validation": {
+    "proof": "research/zero-hit-reviewed-assertions-v1-result.json",
+    "tests": 316,
+    "pass": 316,
+    "fail": 0
+  }
+}

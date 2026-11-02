@@ -1,0 +1,42 @@
+[
+  {
+    "label": "2067 early clear unresolved only this new source",
+    "old": "if(effect.oracle2067Source)throw Error('Q-N50-4554-007：提前清除是否触发结束回复待确认');",
+    "replacement": "if(effect.belle2067)throw Error('Q-N50-4554-007：4643闪避提前清除是否触发PP与体力回复待确认');if(effect.oracle2067Source)throw Error('Q-N50-4554-007：提前清除是否触发结束回复待确认');"
+  },
+  {
+    "label": "2067 natural expiry restore exactly2PP and maxHP third",
+    "old": "if(f.hp>0&&e.expireFullHeal){",
+    "replacement": "if(f.hp>0&&e.belle2067){context(f,fs[1-f.side]).restorePP(f,e.expireRestorePP,'skill');heal(f,f.stats.maxHp*e.expireHealFraction,'蓓丽闪避到期回复','skill');}if(f.hp>0&&e.expireFullHeal){"
+  },
+  {
+    "label": "1314 precise conversion overlap and source marker",
+    "old": "if(t.soulState.panConversion1677>0&&t.counts.nextAttackHealing>t.soulState.panConversion1677)",
+    "replacement": "if(t.soulState.belle1314>0){if(t.counts.nextAttackHealing!==t.soulState.belle1314)throw Error('Q-N50-4511-006：1314攻击转回复与其他来源共存待确认');if(!effectContext.ignoreImmunity&&!warImmunity&&((t.soulState.panNullify1554&&t.counts.attackNullify>0)||remaining<=0||on(t,'当回合免伤')||on(t,'攻击伤害免疫')||on(t,'技能禁疗')||context(t,a,m).shieldValue(t)>0||(t.suitState.barrier??0)>0))throw Error('Q-N50-4516-002：1314与免攻/零结算/护盾/技能禁疗交互待确认');}if(t.soulState.panConversion1677>0&&t.counts.nextAttackHealing>t.soulState.panConversion1677)"
+  },
+  {
+    "label": "1314 consume source marker once",
+    "old": "t.counts.nextAttackHealing--;if(t.soulState.panConversion1677>0",
+    "replacement": "t.counts.nextAttackHealing--;if(t.soulState.belle1314>0&&--t.soulState.belle1314===0)delete t.soulState.belle1314;if(t.soulState.panConversion1677>0"
+  },
+  {
+    "label": "191 source overlap actual other immune paths",
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&on(t,'reflect')&&t.effects.reflect.belle191&&(t.counts.immune>0||on(t,'免异常')||E.SOULS.trait(t,'ailmentImmune')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：4643反弹与次数/其他免异常实际重叠待确认');let explicitImmunity=false;const immuneGate="
+  },
+  {
+    "label": "1203 current actual nonred settled ledger",
+    "old": "if(skillPhase)target.roundSettledSkillDamageTaken+=settledDamage;",
+    "replacement": "if(source?.side===currentActorSide&&target.side===1-source.side&&type!=='attack'&&source.soulState.belle1203Collect4643?.round===r&&source.soulState.belle1203Collect4643.use===source.soulState.skillUses?.[battleMoves[choices[source.side]].id])source.soulState.belleNonRedThisUse4643=(source.soulState.belleNonRedThisUse4643??0)+settledDamage;if(skillPhase)target.roundSettledSkillDamageTaken+=settledDamage;"
+  },
+  {
+    "label": "2168 532 2102 actual used payload and1203 final scope qualified",
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))",
+    "replacement": "if(used[a.side]&&m.kind!=='item'&&a.hp>0){\nconst first4643=(id,e)=>{const same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount();if(!same)return true;const p=a.soulState.qualifiedFirstUse4643?.[id];if(!['immediate','next-use'].includes(p))throw Error('Q-N50-4625-011：4643已授用招效果在授予本次使用后是否首触待确认');return p==='immediate';};\nif(on(a,'星垂附伤')){const e=a.effects['星垂附伤'],policy=a.soulState.qualified2168Trigger4643,attackHit=m.kind!=='status'&&actionPayloadAllowed;if(!attackHit&&!['used','attack-hit'].includes(policy))throw Error('Q-N50-4643-010：2168持续附伤是否要求攻击命中或实际使用待确认');if((attackHit||policy==='used')&&first4643(2168,e)){if(t.hp>0)inflict(a,t,e.amount,'星垂持续附伤',e.recordKind==='non-control'?'true':'fixed');if(e.recordKind==='control')heal(a,e.amount,'星垂记录控制额外回复','skill');}}\nif(on(a,'星河用招回血粉伤')&&first4643(532,a.effects['星河用招回血粉伤'])){const e=a.effects['星河用招回血粉伤'],n=heal(a,a.stats.maxHp*e.fraction,'星河用招回复','skill')??0;if(n>0&&t.hp>0)inflict(a,t,n,'星河等量百分比','percent');}\nif(on(a,'星执用招随机弱化')&&first4643(2102,a.effects['星执用招随机弱化'])){const e=a.effects['星执用招随机弱化'],chance=celestialRules.probability(s,a,e.chance,r);if(chance>=100||rng(s)*100<chance){const names=statusPools.pool(undefined,{includeRestricted:true}).map(x=>x.name).filter(statusRules.isWeakening);statusRules.randomAilments({...skillContext(a,t,m),a,t,random:()=>rng(s)},e.count,2102,names);}}\nconst pending=a.soulState.belle1203Pending4643;if(pending?.round===r&&pending.move===m.id&&pending.use===context(a,t,m).effectUseCount()){const red=pending.red,all=red+(a.soulState.belleNonRedThisUse4643??0),policy=a.soulState.qualified1203Basis4643;if((red<pending.threshold)!==(all<pending.threshold)&&!['attack','all'].includes(policy))throw Error('Q-N50-4643-011：1203低伤害是否包括本次非红结算待确认');if((policy==='all'?all:red)<pending.threshold){if((a.counts.nextSkillPriority??0)>0)throw Error('Q-N50-4511-006：1203下次先制未消费重授/混源待确认');a.counts.nextSkillPriority=pending.count;a.soulState.nextSkillPriorityAmount=pending.amount;}delete a.soulState.belle1203Pending4643;}\n}\nif(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))"
+  },
+  {
+    "label": "2169 pure reverse not presumed protected or unprotected",
+    "old": "function rewriteStageValues(f,values,kind,actor=null){f=actualFighter(f);",
+    "replacement": "function rewriteStageValues(f,values,kind,actor=null){f=actualFighter(f);if(kind==='reverse'&&on(f,'强化保护')&&f.effects['强化保护'].belle2169&&Object.entries(values).some(([k,v])=>f.stages[k]>0&&v<=0))throw Error('Q-N50-4511-002：2169无法消除吸取是否保护纯反转待确认');"
+  }
+]

@@ -1,0 +1,38 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {make,turn,pick,timer,key}=require('./helpers/3740-battle.cjs');
+const e=id=>pick(id)[0];
+test('3740 数值护盾来源层按后获得先消耗，耗尽后新盾不复活登场来源',()=>{
+ const shields=require('../dist/shield-rules.js');
+ const s=make(e(1751),{bStats:{spa:6000}});shields.add(s.fighters[0],400,'entry');
+ const plain=make(e(1751),{bStats:{spa:6000}}),ref=turn(plain,900031,900040),damage=9000-ref.fighters[0].hp;
+ assert.ok(damage>400&&damage<800);
+ const o=turn(s,s.auditMoveId,900040);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].suitState.shield,800-damage);assert.equal(shields.sourceValue(o.fighters[0],'entry'),800-damage);
+ o.fighters[0].suitState.shield=0;assert.equal(shields.sourceValue(o.fighters[0],'entry'),0);o.fighters[0].suitState.shield+=400;assert.equal(shields.sourceValue(o.fighters[0],'entry'),0);assert.equal(o.fighters[0].suitState.shieldLayers.at(-1).amount,400);
+ const c=make(e(2263));shields.add(c.fighters[0],400,'entry');c.fighters[0].suitState.shield+=400;const end=turn(c);assert.equal(shields.sourceValue(end.fighters[0],'entry'),0);assert.equal(end.fighters[1].soulState.inkTears,3);
+});
+test('3740 581比较技能与自身属性，异系失败固定抗性免疫与封招',()=>{
+ for(const same of [true,false]){const s=make(e(581));s.fighters[0].type=same?s.moveDefinitions[key(s.auditMoveId)].type:'火';s.moveDefinitions[key(s.auditMoveId)].power=0;const o=turn(s);assert.equal(o.fighters[1].hp,same?8400:9000);}
+ const s=make(e(581));s.moveDefinitions[key(s.auditMoveId)].power=0;s.fighters[1].build.resistance.fixed=50;assert.equal(turn(s).fighters[1].hp,8700);s.fighters[1].soulId=622;s.fighters[1].ailments['疲惫']=1;assert.equal(turn(s).fighters[1].hp,9000);const b=make(e(581));timer(b,0,'skillBlock');assert.equal(turn(b).fighters[1].hp,9000);
+});
+test('3740 2098下两回合动态含自身加成，零与负先制边界及到期',()=>{
+ const start=turn(make(e(2098),{aStats:{spe:1}}));assert.equal(start.turns[0].first,1);assert.equal(start.fighters[0].effects['动态条件先制'].start,2);assert.equal(start.fighters[0].effects['动态条件先制'].end,3);
+ for(const [base,total]of [[0,3],[-1,2],[-2,0],[-3,-1]]){const s=structuredClone(start);s.moveDefinitions[key(900031)].priority=base;s.moveDefinitions[key(900041)].priority=total-1;const o=turn(s,900031);assert.equal(o.turns[1].first,0);assert.ok(o.turns[1].events.some(x=>x.text.includes('先制 '+total+' / '+(total-1))));}
+ const next=turn(start,900031),last=turn(next,900031);assert.equal(last.turns[2].first,0);assert.equal(last.fighters[0].effects['动态条件先制'],undefined);assert.equal(turn(last,900031).turns[3].first,1);const no=make(e(2098));timer(no,0,'skillBlock');assert.equal(turn(no).fighters[0].effects['动态条件先制'],undefined);
+});
+test('3740 2117冻伤转冰封继承余时，绕过附加免疫并按时转化到期',()=>{
+ const s=make(e(2117));s.fighters[1].ailments['冻伤']=3;s.fighters[1].counts.immune=1;timer(s,1,'免异常');const o=turn(s);assert.equal(o.fighters[1].ailments['冻伤'],undefined);assert.equal(o.fighters[1].ailments['冰封'],3);assert.equal(o.fighters[1].counts.immune,1);assert.equal(o.fighters[1].pp[key(900041)],99);
+ const n=turn(turn(o,900031),900031);assert.equal(n.fighters[1].ailments['冰封'],undefined);assert.equal(n.fighters[1].ailments['冻伤'],5);assert.equal(n.fighters[1].stages.spe,-1);
+ const no=turn(make(e(2117)));assert.equal(no.fighters[1].ailments['冰封'],undefined);const block=make(e(2117));block.fighters[1].ailments['冻伤']=3;timer(block,0,'skillBlock');assert.equal(turn(block).fighters[1].ailments['冰封'],undefined);
+});
+test('3740 2263消耗全部数值盾，250整除次数决定泪和累计冻伤时长',()=>{
+ for(const [shield,count]of [[0,0],[249,0],[250,1],[400,1],[500,2],[1000,4],[1250,5]]){const s=make(e(2263));s.fighters[0].suitState.shield=shield;const o=turn(s);assert.equal(o.fighters[0].suitState.shield,0);assert.equal(o.fighters[1].soulState.inkTears??0,Math.min(4,count));assert.equal(o.fighters[1].ailments['冻伤'],count?count*2:undefined);}
+ const im=make(e(2263));im.fighters[0].suitState.shield=500;im.fighters[1].counts.immune=1;const o=turn(im);assert.equal(o.fighters[1].ailments['冻伤'],undefined);assert.equal(o.fighters[1].soulState.inkTears,2);assert.equal(o.fighters[1].counts.immune,0);
+ const old=make(e(2263));old.fighters[0].suitState.shield=250;old.fighters[1].ailments['冻伤']=6;assert.equal(turn(old).fighters[1].ailments['冻伤'],6);
+ const b=make(e(2263));b.fighters[0].suitState.shield=500;b.fighters[0].suitState.barrier=300;timer(b,0,'skillBlock');const no=turn(b);assert.equal(no.fighters[0].suitState.shield,500);assert.equal(no.fighters[0].suitState.barrier,300);assert.equal(no.fighters[1].soulState.inkTears,undefined);
+});
+test('3740 2264百分比真伤独立拆分，吸取按总理论量回复500而非实际伤害',()=>{
+ for(const immune of [false,true])for(const [water,tears]of [[0,0],[0,2],[4,2],[8,4]]){const s=make(e(2264),{hp:1000,aStats:{maxHp:4000}});s.moveDefinitions[key(s.auditMoveId)].power=0;s.fighters[0].soulState.eternalWater=water;s.fighters[1].soulState.inkTears=tears;s.moveDefinitions[key(s.auditMoveId)].power=0;if(immune){s.fighters[1].soulId=622;s.fighters[1].ailments['疲惫']=1;}const o=turn(s);assert.equal(o.fighters[0].hp,1000+1000*tears/4);assert.equal(o.fighters[1].hp,9000-(immune?1000*water/8:1000));}
+ const b=make(e(2264),{hp:1000,aStats:{maxHp:4000}});b.fighters[0].soulState.eternalWater=4;b.fighters[1].soulState.inkTears=2;b.moveDefinitions[key(b.auditMoveId)].power=0;timer(b,0,'技能禁疗');assert.equal(turn(b).fighters[0].hp,1000);assert.equal(turn(b).fighters[1].hp,8000);
+ const cap=make(e(2264),{hp:3999,aStats:{maxHp:4000},targetHp:100});cap.fighters[1].soulState.inkTears=2;cap.moveDefinitions[key(cap.auditMoveId)].power=0;const o=turn(cap);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[1].hp,0);timer(cap,0,'skillBlock');assert.equal(turn(cap).fighters[0].hp,3999);
+});

@@ -1,0 +1,1 @@
+const fs=require('fs');fs.writeFileSync('research/check-4401-terms.cjs',fs.readFileSync('research/check-4394-terms.cjs','utf8').replaceAll('4394','4401').replace('效果:1343|伤害转化|魂印:1612','模板:效果说明|模块:效果说明|巫祖之眸|效果:2035').replace('祭空墟祖 伤害 转化','巫祖之眸'));

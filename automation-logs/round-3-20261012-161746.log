@@ -1,0 +1,956 @@
+
+=== round 3 phase engine species 3575 attempt 1 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12f30-76c8-7570-818e-6fbc6612a638
+--------
+user
+在 seer-battle-lab 中只处理当前阶段的一个明确子任务。先读取 AGENTS.md、PROGRESS.md、AUTO-PROGRESS.json 并核对磁盘现状。当前精灵 3575，阶段 engine，子任务：实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证。
+阶段顺序严格为 source -> engine -> tests -> verify；只有独立验证成功后调度器才会推进到下一只精灵。本次只完成一个可核验子任务：source 核实真实资料和来源证据；engine 实现对应真实机制；tests 编写状态变化专项测试；verify 修复验证器指出的缺口。不要一次调用跨阶段或处理整只精灵。
+不得编造资料、弱化测试、修改 AGENTS.md、删除进度或修改无关核心逻辑。完成后原子更新 AUTO-PROGRESS.json 的 phase、subtask、completedSubtasks、pendingEffects、sources、lastFailure 等字段，并更新 PROGRESS.md。
+
+2026-10-12T08:17:52.705308Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out
+codex
+我先核对项目指令、进度文件和磁盘现状，再定位 3575 的 642/1331/2162 效果与现有验证缺口；随后只改动这一个子任务涉及的资料、引擎、专项测试和进度记录。
+exec
+/bin/bash -lc "pwd && ls -la && printf '\\n--- AGENTS.md ---\\n' && cat AGENTS.md && printf '\\n--- PROGRESS.md ---\\n' && cat PROGRESS.md && printf '\\n--- AUTO-PROGRESS.json ---\\n' && cat AUTO-PROGRESS.json" in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ succeeded in 21ms:
+/mnt/c/Users/villa/Desktop/seer-battle-lab
+total 1664
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 12 16:18 .
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 12 15:56 ..
+dr-xr-xr-x 2 villagehead villagehead     40 Oct 12 16:18 .agents
+dr-xr-xr-x 2 villagehead villagehead     40 Oct 12 16:18 .aws
+dr-xr-xr-x 2 villagehead villagehead     40 Oct 12 16:18 .codex
+dr-xr-xr-x 2 villagehead villagehead     40 Oct 12 16:18 .git
+-rwxrwxrwx 1 villagehead villagehead   3344 Oct  9 15:53 ADAPTATION-2987-3000.md
+-rwxrwxrwx 1 villagehead villagehead   4519 Oct  9 16:22 ADAPTATION-3001-3010.md
+-rwxrwxrwx 1 villagehead villagehead   6475 Oct  9 19:23 ADAPTATION-3011-3020.md
+-rwxrwxrwx 1 villagehead villagehead   5092 Oct 10 00:09 ADAPTATION-3021-3030.md
+-rwxrwxrwx 1 villagehead villagehead   4564 Oct 10 00:19 ADAPTATION-3031-3040.md
+-rwxrwxrwx 1 villagehead villagehead   1860 Oct 10 07:43 ADAPTATION-3043.md
+-rwxrwxrwx 1 villagehead villagehead   5588 Oct 10 17:48 ADAPTATION-SELECTED-3046-3142.md
+-rwxrwxrwx 1 villagehead villagehead   5832 Oct 11 21:35 AGENTS.md
+-rwxrwxrwx 1 villagehead villagehead   1889 Oct 12 16:17 AUTO-PROGRESS.json
+-rwxrwxrwx 1 villagehead villagehead  12245 Oct 11 18:18 MULTI-PET-TODO.md
+-rwxrwxrwx 1 villagehead villagehead   3726 Oct 11 17:34 NEXT-BATCH-3421-3529.md
+-rwxrwxrwx 1 villagehead villagehead    402 Oct 11 19:06 PENDING-LIBRARY.md
+-rwxrwxrwx 1 villagehead villagehead  12022 Oct 12 16:16 PROGRESS.md
+-rwxrwxrwx 1 villagehead villagehead  12366 Oct 11 17:45 README.md
+-rwxrwxrwx 1 villagehead villagehead  12360 Oct 10 00:19 RULES.md
+-rwxrwxrwx 1 villagehead villagehead   9771 Oct 10 18:09 VALIDATION.md
+-rwxrwxrwx 1 villagehead villagehead   1594 Oct 12 09:22 auto-codex.ps1
+-rwxrwxrwx 1 villagehead villagehead  11563 Oct 12 15:51 auto-codex.sh
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 12 16:17 automation-logs
+-rwxrwxrwx 1 villagehead villagehead   4799 Oct 12 15:50 automation-validate.cjs
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 11 22:31 data
+-rwxrwxrwx 1 villagehead villagehead  77878 Oct  9 19:03 deployment-3001-3010.png
+-rwxrwxrwx 1 villagehead villagehead  77420 Oct  9 19:23 deployment-3011-3020.png
+-rwxrwxrwx 1 villagehead villagehead  73364 Oct 10 00:10 deployment-3021-3030.png
+-rwxrwxrwx 1 villagehead villagehead  74042 Oct 10 00:22 deployment-3031-3040.png
+-rwxrwxrwx 1 villagehead villagehead  71311 Oct 10 07:44 deployment-3043.png
+-rwxrwxrwx 1 villagehead villagehead  99222 Oct 10 18:09 deployment-selected-potions.png
+drwxrwxrwx 1 villagehead villagehead   4096 Oct  9 14:24 dist
+-rwxrwxrwx 1 villagehead villagehead  79396 Oct  9 09:38 effect-registry-preview.png
+-rwxrwxrwx 1 villagehead villagehead  84912 Oct  8 20:00 equipment-preview.png
+-rwxrwxrwx 1 villagehead villagehead  44922 Oct  9 08:35 generic-battle-preview.png
+-rwxrwxrwx 1 villagehead villagehead  87628 Oct  8 19:04 growth-preview.jpg
+-rwxrwxrwx 1 villagehead villagehead  68160 Oct  8 22:46 inscriptions-preview.png
+-rwxrwxrwx 1 villagehead villagehead    210 Oct 11 07:34 launcher-server.log
+-rwxrwxrwx 1 villagehead villagehead  75377 Oct  9 15:54 local-deployment.png
+-rwxrwxrwx 1 villagehead villagehead   3648 Oct 10 11:46 local-species.cjs
+-rwxrwxrwx 1 villagehead villagehead    178 Oct 10 18:06 package.json
+-rwxrwxrwx 1 villagehead villagehead 124643 Oct  8 14:38 preview.jpg
+-rwxrwxrwx 1 villagehead villagehead   3430 Oct 10 00:11 range-results.txt
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 11 22:43 research
+-rwxrwxrwx 1 villagehead villagehead    497 Oct 10 19:25 runtime-revision.cjs
+-rwxrwxrwx 1 villagehead villagehead  66243 Oct  9 14:25 search-fixed.png
+-rwxrwxrwx 1 villagehead villagehead   2258 Oct 10 18:15 seer_id.txt
+-rwxrwxrwx 1 villagehead villagehead   2192 Oct 11 22:20 seerapi-fetch.ps1
+-rwxrwxrwx 1 villagehead villagehead  75661 Oct  9 13:42 seerapi-preview.png
+-rwxrwxrwx 1 villagehead villagehead   8402 Oct 12 12:51 seerapi.cjs
+-rwxrwxrwx 1 villagehead villagehead   2919 Oct 10 19:25 server.cjs
+-rwxrwxrwx 1 villagehead villagehead  93697 Oct  8 19:27 souls-preview.png
+-rwxrwxrwx 1 villagehead villagehead   2407 Oct 10 19:26 start.cjs
+-rwxrwxrwx 1 villagehead villagehead  92148 Oct  8 19:47 suit-reference.webp
+-rwxrwxrwx 1 villagehead villagehead  18958 Oct 10 18:07 test-results.txt
+drwxrwxrwx 1 villagehead villagehead   4096 Oct 12 13:29 tests
+-rwxrwxrwx 1 villagehead villagehead   2399 Oct  9 12:13 wiki-client.cjs
+-rwxrwxrwx 1 villagehead villagehead   1093 Oct  9 13:31 wiki-fetch.ps1
+-rwxrwxrwx 1 villagehead villagehead  67993 Oct  9 01:09 wiki-selection-preview.png
+-rwxrwxrwx 1 villagehead villagehead   7536 Oct  9 09:31 wiki.cjs
+-rwxrwxrwx 1 villagehead villagehead    168 Oct  9 14:25 启动对战实验台.cmd
+
+--- AGENTS.md ---
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+
+--- PROGRESS.md ---
+# PROGRESS.md
+
+## 当前状态
+
+## 自动调度状态
+
+持久化调度游标和回访队列位于 [`AUTO-PROGRESS.json`](AUTO-PROGRESS.json)。当前游标为 `seer_id.txt` 的零基索引 `61`（编号 `3575`），活动批次最多包含 10 只：`3575、3576、3577、3580、3584、3586、3592、3613、3623、3626`。游标只有在魂印、全部技能、实际效果和专项状态变化测试都完成后才允许前进；资料抓取、结构校验或阶段性测试通过不会推进游标。
+
+`revisitQueue` 只用于真实阻塞：必须先尝试 SeerAPI、BWIKI 和已有可靠缓存，并记录缺失证据、已尝试来源、剩余工作、最后尝试时间和回访条件。属性映射、效果参数核实、引擎机制扩展和测试失败属于当前精灵的正常开发工作，不能直接写入回访队列。当前回访队列为空；若外部限制确实成立，自动脚本会要求保留队列条目，同时转向 `seer_id.txt` 中下一只可推进精灵，条件满足后再回访。
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现，当前游标继续停留在此编号，未标记完成。`local-species.cjs` 当前报告的属性组合 `邪灵龙` 映射、效果行为、参数校验和第五技能缺口都属于正常开发任务，必须继续查询、扩展引擎并验证；只有可靠来源在外部不可用且证据完整时，才可单独登记为回访队列阻塞。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现：本轮 SeerAPI 直连返回 `fetch failed`，这是一次外部访问证据，不能把其余属性、效果和配招缺口一并视为阻塞。未将 3575 标记为完成，下一步继续从这些可验证资料和引擎缺口开始；若重复访问仍受外部限制，再把具体缺口单独写入 `AUTO-PROGRESS.json` 的回访队列。
+
+## 2026-10-12 本轮补充：3575 独立技能效果
+
+依据 `data/species/3575.json` 已保存的 SeerAPI 模板与实例参数，完成并验证以下单挑行为：
+
+- 效果 702：下 2 回合暴击且攻击者存活时恢复至满体力；非暴击、攻击者已阵亡均不触发。
+- 效果 918：造成伤害低于 300 时登记后续 1 次攻击伤害提升 100%，沿用引擎的 `nextAttackBoost` 消费路径；达到 300 的边界不触发。
+- 效果 731：本回合暴击后登记下 1 回合其它攻击技能必定暴击；非暴击不登记。
+- 效果 1006：伤害严格超过 300 时登记下 1 回合异常免疫；等于 300 不触发。
+- 效果 1355：暴击且攻击者存活时登记 1 次异常免疫；非暴击与攻击者阵亡不触发。
+
+`tests/deployed-3575.test.cjs` 新增上述成功、失败、阈值和消费断言；部署、效果注册表、范围规则、魂印专项及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现，未标记完成。`local-species` 当前剩余真实缺口为：属性表未覆盖 `邪灵龙` 组合、缺少恰好一个第五技能，以及效果 642（多精灵在场触发）、1329/1331（邪龙之噬及下只出场精灵）、732、923、1864、2162。效果 1864 的实例使用异常枚举 26，超出现有已核实名单；应继续核实来源并扩展注册表，不能把参数歧义本身当作永久阻塞。下一步仍从 3575 的可验证资料与属性组合映射开始，完成后再进入 3576。
+
+
+## 2026-10-12 本轮 source 核实：3575 真实资料与剩余效果参数
+
+已依据本地 SeerAPI 缓存逐项核对 3575 `终末之灭·天邪龙王`：pet revision `5bba7b98`，属性组合 ID 70 为“邪灵 龙”（邪灵 ID 19 + 龙 ID 15），种族值 HP/攻击/防御/特攻/特防/速度为 170/135/116/70/115/129；属性克制表 revision `c9d6b67f`。魂印 875 来源哈希为 `ea9790b0`。
+
+剩余效果的缓存元数据和技能实例参数已确认：642 为 `3,50,2`；1329 为 `3,2`；1331 为 `6,2`；732 为 `2,0,0,0,0,0`；923 为 `2,150`；1864 为 `100,26,100,14`；2162 为 `23`。对应元数据哈希依次为 `e5bab67f`、`97c44470`、`adbc68c8`、`aea20f2f`、`39080f5`、`c19660d9`、`a9b4ca48`。缓存中的 pet 技能列表仍包含两个 `is_fifth=true` 技能（31835 与 37298），该结构缺口保留给后续 engine/校验处理，未擅自删除或改写。
+
+本次直连 `https://api.seerapi.com/v1/pet/3575` 返回 `TypeError: fetch failed`；已在 `AUTO-PROGRESS.json.lastFailure` 记录具体原因，保留上述缓存证据，未将直连失败伪装为成功。source 子任务完成，当前阶段推进到 engine，待实现效果清单仍为 642、1329、1331、732、923、1864、2162。
+
+## 2026-10-12 本轮 engine：3575 剩余效果
+
+已依据已核实 SeerAPI 快照完成效果 1329、732、923、1864 的引擎接入及状态变化验证：对手攻击后累积邪龙之噬观察、未暴击攻击强化、先手固定吸取、消强成功/失败的 26“虚弱诅咒”与 14“狂暴”异常分支均有执行代码和专项断言。效果 642、1331、2162 已完成参数校验与状态登记，但其在场队友反击、下一只出场异常和换宠触发仍依赖多精灵流程，明确保留 `deferred`，不能标记完成。
+
+`tests/deployed-3575.test.cjs` 通过，`npm test` 通过（58 项）。3575 仍停留在 engine 阶段，待处理效果为 642、1331、2162；游标不推进。
+
+--- AUTO-PROGRESS.json ---
+{
+  "schemaVersion": 2,
+  "cursor": {
+    "index": 60,
+    "id": 3575
+  },
+  "batchSize": 10,
+  "activeBatch": [
+    3575,
+    3576,
+    3577,
+    3580,
+    3584,
+    3586,
+    3592,
+    3613,
+    3623,
+    3626
+  ],
+  "revisitQueue": [],
+  "lastRound": "2026-10-12",
+  "lastProgress": "3575 engine 已实现并验证效果 1329、732、923、1864；642、1331、2162 保留多精灵延期，游标不推进",
+  "phase": "engine",
+  "subtask": "实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证",
+  "completedSubtasks": [
+    "source:3575 真实资料、邪灵龙属性组合70及剩余效果参数已由SeerAPI缓存证据核实",
+    "engine:3575 效果 1329、732、923、1864 已接入真实状态变化；效果 642、1331、2162 已注册并明确 deferred 多精灵流程"
+  ],
+  "pendingEffects": [
+    642,
+    1331,
+    2162
+  ],
+  "sources": [
+    {
+      "provider": "seerapi",
+      "status": "cached",
+      "verifiedAt": "2026-10-12",
+      "note": "现有快照及缓存可核对；直连曾 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "verified",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 pet/3575、soulmark/875、element_type_combination/70 及效果 642、1329、1331、732、923、1864、2162 缓存逐项核对；pet revision 5bba7b98，typeChart revision c9d6b67f；直连刷新仍 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "used",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 剩余效果实例参数用于引擎注册；1864 异常枚举 26/14 已按缓存参数扩展映射"
+    }
+  ],
+  "lastTest": {
+    "command": "node --test tests/deployed-3575.test.cjs && npm test",
+    "status": 0,
+    "at": "2026-10-12"
+  },
+  "lastFailure": null,
+  "recovery": {
+    "maxRetries": 2,
+    "maxRuntimeSeconds": 3600,
+    "maxNoProgress": 3
+  }
+}
+
+ERROR: Reconnecting... 2/5
+ERROR: Reconnecting... 3/5
+ERROR: Reconnecting... 4/5
+ERROR: Reconnecting... 5/5
+exec
+/bin/bash -lc 'rg -n "642|1331|2162|effect642|effect1331|effect2162|deferred|switch|bench|team|multi" dist tests data/species/3575.json | head -300' in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ succeeded in 0ms:
+data/species/3575.json:195:          642,
+data/species/3575.json:202:            "id": 642,
+data/species/3575.json:1168:          1331
+data/species/3575.json:1184:            "id": 1331,
+data/species/3575.json:1214:          2162
+data/species/3575.json:1236:            "id": 2162,
+data/species/3575.json:1313:        "id": 1331,
+data/species/3575.json:1355:        "id": 2162,
+data/species/3575.json:1445:        "id": 642,
+tests/range-rules.test.cjs:18:test('队伍牺牲词条整条延期，不消耗体力也不清对手状态',()=>{let s=game(snap(99302,null,[[574,[]],[873,[]],[67,[3]]]));s.fighters[1].stages.atk=2;const hp=s.fighters[0].hp;s=E.resolveTurn(s,[key(99302,1),key(99002,1)]);assert.equal(s.fighters[0].hp,hp);assert.equal(s.fighters[1].stages.atk,2);assert.equal(E.WIKI.compile(s.wikiSnapshots[0].moves[1],s.wikiSnapshots[0]).deferred.length,3);});
+tests/range-rules.test.cjs:64:test('乔单挑入场盾固定100，固伤不消耗护盾，重开恢复且队友增益延期',()=>{let s=game(snap(99806,null,[[29,[200]]]),snap(99807,398),[{overrides:{maxHp:9999,spe:999}},{overrides:{maxHp:9999}}]);s=E.resolveTurn(s,[key(99806,1),key(99807,1)]);assert.equal(s.fighters[1].hp,9799);assert.equal(s.fighters[1].soulState.attackShield,100);s=E.resolveTurn(s,[key(99806,0),key(99807,1)]);assert.ok(s.fighters[1].soulState.attackShield<100);assert.equal(E.createBattle(s.initial).fighters[1].soulState.attackShield,100);assert.equal(E.SOULS.registry[398].deferred.length,2);});
+tests/selected-rules.test.cjs:12:test('瑞尔斯攻击吸血量在下一次用招反馈，伙伴面板分支延期',()=>{let s=game(snap(99625,449),undefined,[{overrides:{maxHp:1000,spe:900}},{overrides:{maxHp:1000}}]);s.fighters[0].hp=100;s=E.resolveTurn(s,[key(99625,0),key(99002,1)]);const healed=s.fighters[0].hp-100;assert.ok(healed>0);const before=s.fighters[1].hp;s=E.resolveTurn(s,[key(99625,1),key(99002,1)]);assert.equal(s.fighters[1].hp,before-healed);assert.ok(E.SOULS.registry[456].deferred.length>0);});
+tests/selected-rules.test.cjs:15:test('定额电系伤害吃属性倍率，阵营加成只作用核对身份',()=>{let amount=0;R.registry[981].execute({a:{stages:{atk:1,def:0}},t:{type:'龙'},affinity:()=>2,hurt:(t,n)=>amount=n,m:{name:'电'}},[260,10]);assert.equal(amount,572);for(const [id,multiplier]of [[3162,1.5],[3142,1]]){const c={t:{number:String(id)},modifier:1};R.registry[1064].execute(c,[50]);assert.equal(c.modifier,multiplier);}});
+dist/wiki-ui.js:5:function detail(i){const state=sides[i],s=state.data,a=E.WIKI.assess(s,state.selected);$('wiki-detail-'+i).innerHTML=`<h4>${esc(s.name)} <small>#${s.id} · ${esc(s.type)}</small></h4><p class="growth-help">${Object.entries({maxHp:'体力',atk:'攻击',def:'防御',spa:'特攻',spd:'特防',spe:'速度'}).map(([k,n])=>`${n} ${s.base[k]}`).join(' · ')}</p><p><a href="${esc(s.source.url)}" target="_blank" rel="noopener noreferrer">${s.source.provider==='seerapi'?'SeerAPI 原始资料':'Wiki 原条目'}</a> · ${s.source.storage==='local'?'已永久保存本地 · ':''}修订 ${s.source.revision}</p><p class="wiki-support ${a.supported?'supported':''}">${a.supported?'已适配当前实验规则':esc(a.issues.concat(s.typeChartError?[s.typeChartError]:[]).join('；'))}</p>${s.souls.length>1?`<label>魂印版本<select data-soul-side="${i}">${s.souls.map(x=>`<option value="${x.id}" ${x.id===(s.selectedSoulId??s.souls.at(-1).id)?'selected':''}>${esc(E.SOULS.registry[x.id]?.name??'待适配')} · ${x.id}</option>`).join('')}</select></label>`:''}${(E.SOULS.registry[a.profile.soul]?.deferred??[]).map(x=>`<p class="growth-help">多精灵待实现：${esc(x)}</p>`).join('')}<details><summary>魂印与效果 ID · ${s.souls.map(x=>x.id).join(' / ')||'无条目'}</summary>${s.souls.map(x=>`<p>魂印 ${x.id}：${esc(x.description.replace(/<[^>]*>/g,' '))}</p>`).join('')}</details><p>技能适配 ${s.moves.filter(m=>!E.WIKI.moveIssue(m,s)).length}/${s.moves.length} · 配招 ${state.selected.length}/${E.WIKI.slotCount(s)}${s.moves.some(m=>m.fifth)?"（含一个第五技能）":"（无第五技能）"}</p><div class="wiki-moves">${s.moves.slice().sort((a,b)=>Number(b.fifth)-Number(a.fifth)||b.level-a.level).map(m=>{const compiled=E.WIKI.compile(m,s),issue=compiled.issue;return `<label class="wiki-move"><span><input type="checkbox" data-wiki-side="${i}" value="${m.id}" ${state.selected.includes(m.id)?'checked':''} ${issue?'disabled':''}>${esc(m.name)}${m.fifth?' · 第五':''}</span><small>技能 ${m.id} · ${({physical:'物理',special:'特殊',status:'属性'})[m.kind]??'未知'} · 威力 ${m.power} · PP ${m.pp} · 先制 ${m.priority}</small><small>效果 ID：${m.effectIds.join(' / ')||'无'} · ${issue?esc(issue):compiled.deferred?.length?'单挑已适配 · 含多精灵待实现词条':'已适配'}</small>${(compiled.experimental??[]).map(x=>`<small>实验规则：${esc(x)}</small>`).join('')}${(compiled.deferred??[]).map(op=>`<small>多精灵待实现 · ${op.field?"字段 "+esc(op.field):"效果 "+op.effectId}：${esc(op.description)}</small>`).join('')}<details><summary>查看在线技能描述</summary><p>${esc(m.description||'无附加效果')}</p>${compiled.operations?.length?`<p>已解析执行顺序：${compiled.operations.map(op=>`${op.effectId}（${op.deferred?'待实现':op.phase==='beforeCrit'?'暴击判定前':op.phase==='beforeOrder'?'行动排序前':op.phase==='beforeDamage'?'伤害计算前':op.phase==='beforeUse'?'技能结算前':op.phase==='onMiss'?'未命中':op.phase==='afterAttack'?'攻击结束':'命中后'}）`).join(' → ')}</p>`:''}${m.effectIds.map(id=>{const e=s.effects.find(x=>x.id===id);return `<p>效果 ${id}：${esc(e?.template??'条目缺失')}<br>参数数量：${e?.argsNum??'未知'}${e?.parameters?' · '+esc(e.parameters):''}</p>`}).join('')}</details></label>`}).join('')}</div>`;pair();}
+tests/seerapi.test.cjs:6:test('属性表只接受完整有限倍率，不偷偷用1补缺项',()=>{const data={count:2,hash:'x',results:[{id:1,name:'草',relations:[{target_type:{id:1},multiple:.5},{target_type:{id:2},multiple:.5}]},{id:2,name:'火',relations:[{target_type:{id:1},multiple:2},{target_type:{id:2},multiple:.5}]}]};assert.equal(D.buildChart(data).rows['火']['草'],2);data.results[1].relations.pop();assert.throws(()=>D.buildChart(data),/缺失/);});
+tests/seerapi.test.cjs:9:test('本批友方目标效果明确延期，保留单挑技能与导出标记',()=>{const raw={id:880001,name:'双语境测试',power:40,max_pp:10,accuracy:100,priority:0,must_hit:true,crit_rate:6.25,category:{id:1},atk_num:1,skill_effect:[],friend_skill_effect:[{effect:{id:201},args:[0,3],info:'为队友恢复体力'}],hash:'test'};const m=D.convertMove(raw,{},'普通',{deferTeamEffects:true});const out=E.WIKI.compile(m,{effects:[],missingEffects:[]});assert.equal(out.issue,'');assert.equal(out.operations.length,0);assert.equal(out.deferred[0].scope,'多精灵待实现');assert.equal(out.deferred[0].effectId,201);});
+dist/wiki-support.js:27:function compile(m,s){const result=compileCore(m,s);return {...result,experimental:(m.effectIds??[]).map(id=>effectsEngine.registry[id]?.experimental).filter(Boolean),deferred:[...(m.deferredEffects??[]),...(result.operations??[]).filter(op=>op.deferred).map(op=>({effectId:op.effectId,description:op.deferred,scope:'多精灵待实现'}))]};}
+dist/wiki-support.js:54: const keys=[];for(const id of c.selected){const m=s.moves.find(m=>m.id===id),key=(m.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id;keys.push(key);const move={...E.MOVES[key],id:key,name:m.name,kind:m.kind,category:{physical:'物理',special:'特殊',status:'属性'}[m.kind],type:m.kind==='status'?'属性':m.type,power:m.power,pp:m.pp,accuracy:m.accuracy,alwaysHit:m.alwaysHit,priority:m.priority,description:m.description+(compile(m,s).experimental.length?'；实验规则：'+compile(m,s).experimental.join('；'):''),wikiId:m.id,effectIds:m.effectIds,revision:m.revision,criticalChance:Number(m.critical?.split('/')[0]??1)/16,deferredEffects:compile(m,s).deferred,operations:compile(m,s).operations};if(additions[key]&&JSON.stringify(additions[key])!==JSON.stringify(move))throw new Error('同一技能数据版本不一致');additions[key]=move;}
+tests/local-species.test.cjs:4:test('单只精灵永久落盘，另一个进程实例可离线检索和读取真实属性',t=>{const store=fixture(t),s=source();assert.equal(store.save(s).saved,true);const loaded=store.species(2987);assert.equal(loaded.source.storage,'local');assert.equal(loaded.type,'王');assert.ok(loaded.typeChart.rows['王']);assert.ok(loaded.deployment.deferredSouls.some(x=>x.description.includes('复活')));assert.equal(store.search('重生').results[0].id,2987);assert.equal(store.search('2987').results.length,1);assert.equal(store.search('3000').results.length,0);});
+tests/deployed-3031-3040.test.cjs:3:test('3031–3040有魂印者入库，无魂印者跳过',()=>{assert.equal(all.length,4);for(const s of all){assert.deepEqual(store.issues(s),[]);assert.equal(s.source.storage,'local');}for(const id of [3034,3035,3037,3038,3039,3040])assert.throws(()=>store.species(id),/尚未部署/);const m=all[3].moves.find(m=>m.id===19295);assert.ok(E.WIKI.compile(m,all[3]).deferred.some(x=>x.effectId===892));});
+tests/deployed-3575.test.cjs:136:test('3575 效果 1329 受击攻击后累积邪龙之噬，1331/2162 保留换宠异常状态',()=>{
+tests/deployed-3575.test.cjs:142:  t.hp=0; effects.run('afterHit',get('难·苍生尽灭',1331),c); assert.equal(a.soulState.dragonEaterStacks,2); assert.equal(a.soulState.nextEntryAilment,6);
+tests/deployed-3575.test.cjs:143:  effects.run('afterHit',get('难·乾坤同罹',2162),c); assert.equal(a.soulState.nextEntryAilment,23);
+tests/deployed-range.test.cjs:3:test('完整本地库：14只独立存档、真实属性、离线搜索与延期标记',()=>{assert.equal(all.length,14);for(const s of all){assert.equal(s.source.storage,'local');assert.deepEqual(store.issues(s),[]);assert.equal(store.search(String(s.id)).results[0].id,s.id);assert.notEqual(s.typeChart.revision,'rule-audit-neutral');}const m=all[8].moves.find(m=>m.id===13224);assert.equal(m.deferredEffects[0].field,'atk_num');assert.ok(all[0].deployment.deferredSouls.length);});
+tests/deployed-3021-3030.test.cjs:3:test('3021–3030有魂印者入库，无魂印者跳过',()=>{assert.equal(all.length,5);for(const s of all){assert.deepEqual(store.issues(s),[]);assert.equal(s.source.storage,'local');}for(const id of [3023,3024,3027,3028,3029])assert.throws(()=>store.species(id),/尚未部署/);const m=all[1].moves.find(m=>m.id===19230);assert.ok(E.WIKI.compile(m,all[1]).deferred.some(x=>x.effectId===883));});
+dist/range-souls.js:5:for(const [id,max,hash] of [[372,5,'c05d5cf3'],[574,6,'b9703945']])registry[id]={name:max===6?'神耀 · 强化':'神耀',sourceHash:hash,deferred:['阵亡后复活队友',...(max===6?['击败后面对下一只精灵的先制奖励']:[])],traits:{energyMax:max,attackReduction:f=>energy(f)*.08,ailmentImmune:f=>energy(f)>=2,weaknessImmune:f=>energy(f)>=2,fixedReflect:f=>energy(f)>=4,attackPriority:f=>energy(f)>=5?1:0},hooks:{afterUse(c){if(max===6&&c.t.hp<=0)c.energy(-energy(c.a));},beforeDamage(c){if(energy(c.a)>=6)c.modifier*=1.6;},roundEnd(c){if(c.used[c.a.side]&&energy(c.a)>=3)c.heal(c.a,c.a.stats.maxHp/3,'神耀回复');}}};
+dist/range-souls.js:41:registry[393]={name:'佛',sourceHash:'161bd595',deferred:['被击败后吸取强化传递给下一只己方精灵，再清对手PP及回合效果；整条等待多精灵对战'],traits:{},hooks:{}};
+dist/range-souls.js:43:for(const [id,hash,extra]of [[398,'5edce8dd',false],[399,'fbe05c02',true]])registry[id]={name:extra?'乔 · 强化':'乔',sourceHash:hash,deferred:['存活队友增加入场护盾','阵亡队友增加伤害'],traits:{entryAttackShield:100,maxHpMultiplier:extra?1.2:1,allDamageReduction:extra?.2:0},hooks:{}};
+dist/range-souls.js:50:registry[424]={name:'秘',sourceHash:'ed87a141',deferred:['切换后第二次登场触发封属与惩罚；等待多精灵对战'],traits:{entryStatusBlockRounds:2},hooks:{opponentBeforeUse(c){if(c.round<=2&&c.m.kind==='status'){c.hurt(c.t,350,'米斯蒂克封属惩罚','fixed');if(c.t.hp>0)c.t.counts.nextDamageDouble=1;}},roundEnd(c){const pool=['atk','def','spa','spd','spe','acc'];for(let i=0;i<2;i++)c.stage(c.t,-1,[pool.splice(Math.floor(c.random()*pool.length),1)[0]]);}}};
+dist/range-souls.js:51:for(const [id,hash] of [[449,'dd0063a7'],[456,'15fe0576']])registry[id]={name:id===456?'武神 · 伙伴版':'武神',sourceHash:hash,deferred:id===456?['战神兄弟伙伴的攻击与体力各+50；等待多精灵队伍条件']:[],traits:{},hooks:{roundStart(c){c.a.soulState.ruierHigh=c.a.hp>c.t.hp;if(c.a.hp<c.t.hp)c.a.soulState.ruierHealNext=true;},beforeUse(c){const f=c.a.soulState;f.ruierHealThis=!!f.ruierHealNext;f.ruierHealNext=false;f.ruierFixedThis=f.ruierFixedNext??0;f.ruierFixedNext=0;},beforeDamage(c){if(c.a.soulState.ruierHigh)c.modifier*=2;},afterAttack(c){c.timed(c.t,'statusBlock',2,{});if(c.a.soulState.ruierHealThis){const before=c.a.hp;c.heal(c.a,c.dealt,'武神魂印吸血');c.a.soulState.ruierFixedNext=Math.max(0,c.a.hp-before);}},afterUse(c){const n=c.a.soulState.ruierFixedThis??0;c.a.soulState.ruierFixedThis=0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'武神魂印后续固伤','fixed');}}};
+dist/range-souls.js:63:registry[519]={name:'魔王',sourceHash:'bb8d683c',traits:{},deferred:['每击败一只精灵，攻击命中时的秒杀概率提高 2%；等待多精灵队伍击败计数和换宠流程'],hooks:{
+dist/range-souls.js:82:for(const [id,hash,bonus] of [[558,'d120b40f',.30],[566,'e78ded43',.35]])registry[id]={name:id===566?'斗战 · 强化':'斗战',sourceHash:hash,traits:{},deferred:['下场时保留本次战斗累计的攻击增伤；等待换宠与再次上场流程'],hooks:{roundEnd(c){c.a.soulState.arslanBonus=Math.min(bonus*5,(c.a.soulState.arslanBonus??0)+bonus);c.emit(c.name(c.a)+' 阿尔斯兰魂印：攻击增伤累计至 '+Math.round(c.a.soulState.arslanBonus*100)+'%。');}}};
+dist/range-souls.js:93:registry[618]={name:'天苍玄魂',sourceHash:'91aacf10',deferred:['再次登场后令对手当前在场精灵 2 回合属性技能失效；等待多精灵换宠流程'],traits:{},hooks:{
+dist/range-souls.js:97:registry[622]={...registry[622],sourceHash:'2f1e3f2',deferred:['星皇位于出战背包时为己方精灵提供星皇之赐，首发精灵获得星皇之佑；等待多精灵队伍流程']};
+dist/range-souls.js:118:registry[647]={name:'茉蕊儿',sourceHash:'afc83e18',deferred:['自身阵亡后令下一只出场精灵获得500点护盾并免疫1次异常状态；等待多精灵换宠流程'],traits:{damageCap:f=>f.soulState.moruirAttack?f.stats.maxHp/2:Infinity,ailmentImmune:f=>!!f.soulState.moruirStatus},hooks:{
+dist/range-souls.js:180:registry[2093]={name:'格劳恩斯 · 强化',sourceHash:'1d8519cd',deferred:['下场时九劫之痕和百炼之炎层数传给下一只队友；等待多精灵换宠流程'],traits:{attackPriority:f=>f.soulState.glaHigh?1:0},hooks:{
+dist/range-souls.js:196:for(const [id,hash,bonus]of [[740,'c4233dc1',.5],[1030,'f7c4dc3b',1]])registry[id]={name:id===1030?'圣灵守护奥斯卡 · 强化':'圣灵守护奥斯卡',sourceHash:hash,deferred:['三种加护在奥斯卡下场后暂停、再登场后恢复；等待多精灵换宠流程'],traits:{},hooks:{
+dist/range-souls.js:215:registry[758]={name:'万神寂灭·克罗诺斯',sourceHash:'4ae48345',deferred:['下场后使下一只出场精灵首回合免异常，且下次受伤不超过250；等待多精灵换宠流程'],traits:{specialAlwaysHit:true},hooks:{
+dist/range-souls.js:276:registry[821]={name:'帝皇之御',sourceHash:'11674b59',deferred:['被击败后为己方下只出场精灵提供2回合攻击及固定伤害减免'],traits:{ailmentImmune:f=>f.soulState.currentRound<=2,skillPriority:f=>f.soulState.currentRound<=2?2:0},hooks:{
+dist/range-souls.js:301:for(const [id,hash,chance,multiplier] of [[864,'8b107b1',.6,2],[912,'741d06d2',.7,2.5]])registry[id]={name:'霸'+(id===912?' · 强化':''),sourceHash:hash,traits:{skillPriority:f=>f.soulState.xiangPriority?1:0},hooks:{roundStart(c){const boosted=Object.values(c.t.stages).some(n=>n>0);c.a.soulState.xiangPriority=!boosted;if(boosted){c.clearBoost(c.t);if(c.random()<chance)c.ailment(c.t,'焚烬',c.a);}},beforeUse(c){c.a.soulState.xiangDouble=c.m.kind!=='status'&&c.random()<.4;},beforeDamage(c){if(c.a.soulState.xiangDouble)c.modifier*=multiplier;},afterAttack(c){if(!c.a.soulState.xiangDouble)c.timed(c.t,'statusBlock',2,{});}}};
+dist/effect-registry.js:48: if(rule.direct){try{rule.validate(instance.args);operations.push({effectId:instance.id,index,phase:rule.phase,params:instance.args.slice(),sourceArgs:instance.args.slice(),deferred:rule.deferred});}catch(e){return {issue:`效果 ${instance.id}：${e.message}`,operations:[]};}continue;}
+dist/app.js:19:    const soulHtml = soul.soul ? `<details class="soul-card"><summary>魂印 · ${escape(soul.soul)}<span>查看效果</span></summary><p>${escape(soul.soulText)}</p>${(E.SOULS.registry[f.soulId]?.deferred??[]).map(text=>`<p class="growth-help">多精灵待实现：${escape(text)}</p>`).join('')}</details><div class="effect-list" aria-label="${sideName(i)}持续效果">${effects.length ? effects.map(text=>`<span class="effect-chip">${escape(text)}</span>`).join('') : '<span class="effect-empty">暂无额外持续效果</span>'}</div>` : '';
+dist/app.js:28:      return `<button class="move" data-side="${i}" data-move="${id}" aria-label="${sideName(i)} ${escape(m.name)}" aria-pressed="${selected[i] === id}" ${state.finished || !legal.includes(id) ? 'disabled' : ''}><span class="move-top"><span class="move-name">${escape(m.name)}</span><span class="move-pp">${id === 'struggle' ? '不限 PP' : `PP ${f.pp[id]} / ${m.pp}`}</span></span><span class="move-meta"><span class="${m.type === '草' ? 'grass' : ''}">${m.kind === "status" ? "属性技能" : `${escape(m.slot || m.category)} · ${escape(m.type)} · ${escape(m.category)}`}</span><span>威力 ${m.power || '—'}</span><span>${m.alwaysHit ? "必中" : `命中 ${m.accuracy}%`}</span>${m.priority ? `<span>先制 +${m.priority}</span>` : ""}</span><span class="move-description">${escape(m.description)}</span>${m.deferredEffects?.length?`<span class="move-description">多精灵待实现：${m.deferredEffects.map(x=>escape(x.description)).join("；")}</span>`:""}</button>`;
+dist/engine.js:64:      // Keep EV fractions through nature multiplication; floor only the final result.
+dist/engine.js:112:  function multiplier(stage) { return stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage); }
+dist/engine.js:113:  function effective(f, stat) { return Math.max(1, Math.floor(f.stats[stat] * multiplier(f.stages[stat]))); }
+dist/engine.js:155:      const accuracy = Math.min(100, move.accuracy * multiplier(actor.stages.acc ?? 0));
+dist/engine.js:192:  let api = { GEAR, VERSION, MOVES, LOADOUT, DEFAULT_STATS, STAT_LABELS, STAGE_LABELS, SPECIES, NATURES, calculateStats, createBattle, resolveTurn, availableMoves, effective, multiplier };
+tests/deployed-3011-3020.test.cjs:3:test('3011–3020全部独立本地存档且多精灵词条可见延期',()=>{assert.equal(all.length,10);for(const s of all){assert.deepEqual(store.issues(s),[]);assert.equal(s.source.storage,'local');}const m=all[1].moves.find(m=>m.id===19189);assert.ok(E.WIKI.compile(m,all[1]).deferred.some(x=>x.effectId===669));});
+dist/range-effects.js:11:metadata[642]={info:'{0}回合内若对手攻击技能命中则己方在场精灵{1}%做出{2}',args_num:3};
+dist/range-effects.js:13:metadata[1331]={info:'击败对手则令对手下一只出场的精灵{0}，且获得{1}道邪龙之噬并附着至自身的攻击技能',args_num:2};
+dist/range-effects.js:17:metadata[2162]={info:'下次击败对手时，令对方下只出战精灵{0}',args_num:1};
+dist/range-effects.js:86:function add(id,phase,execute,ranges=[],deferred,experimental){const e=metadata[id];if(!e)throw Error('Missing reviewed metadata '+id);registry[id]=Object.freeze({id,template:e.info,argsNum:e.args_num,instanceArgsNum:id===534||id===1103?1:e.args_num,direct:true,phase,execute,deferred,experimental,validate(args){if([31,450,683].includes(id)&&args[0]>args[1])throw Error('随机区间上下限颠倒');const enumIndex=({756:1,470:2,573:2,609:0,164:2,889:0,733:0,469:2})[id];if(enumIndex!==undefined&&![0,2,6,7,8,15,20,22].includes(args[enumIndex]))throw Error('异常类型未核对');if(id===1864&&![14,26].includes(args[1]))throw Error('1864 异常枚举尚未核对');if(id===1864&&![14,26].includes(args[3]))throw Error('1864 异常枚举尚未核对');if(id===599&&args[1]!==2)throw Error('伤害类型未核对');for(let i=0;i<args.length;i++){const [min,max]=ranges[i]??[0,9999];if(args[i]<min||args[i]>max)throw Error('参数超出规则范围');}}});}
+dist/range-effects.js:145:add(440,'afterHit',(c,p)=>c.timed(c.t,'PP消耗倍增',p[0],{multiple:p[1]}),[turns,[1,10]]);
+dist/range-effects.js:177:add(65,'afterHit',(c,p)=>c.timed(c.a,'属性威力增强',p[0],{type:'冰',multiple:p[2]}),[turns,[9,9],[1,10]]);
+dist/range-effects.js:363:add(516,'afterHit',(c,p)=>{const multiple=c.a.hp<c.a.stats.maxHp/p[6]?2:1;p.slice(0,6).forEach((n,i)=>c.stage(c.a,n*multiple,[stats[i]]));},[...Array(6).fill(stage),[1,9999]]);
+dist/range-effects.js:397:function reversePositive(c,multiple=1){const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length)return false;c.clearBoost(c.t);for(const [k,n]of pos)c.stage(c.t,-n*multiple,[k]);return pos.some(([k])=>c.t.stages[k]<0);}
+dist/range-effects.js:565:add(53,'afterHit',(c,p)=>c.timed(c.a,'攻击伤害倍数',p[0],{multiple:p[1]}),[turns,[1,10]]);
+dist/range-effects.js:822:add(642,'afterHit',(c,p)=>{c.timed(c.a,'在场反击',p[0],{chance:p[1],action:p[2]});},[[1,99],[0,100],[0,99]],'己方在场精灵的范围反击等待多精灵对战');
+dist/range-effects.js:824:add(1331,'afterHit',(c,p)=>{if(c.t.hp<=0){c.a.soulState.dragonEaterStacks=(c.a.soulState.dragonEaterStacks??0)+p[1];c.a.soulState.nextEntryAilment=p[0];}},[[0,39],[1,99]],'击败后的下只出场异常等待多精灵换宠流程');
+dist/range-effects.js:828:add(2162,'afterHit',(c,p)=>{c.a.soulState.nextEntryAilment=p[0];},[[0,39]],'下次击败后的下只出场异常等待多精灵换宠流程');
+tests/deployed-3001-3010.test.cjs:3:test('3001–3010全部独立本地存档且多精灵词条可见延期',()=>{assert.equal(all.length,10);for(const s of all){assert.deepEqual(store.issues(s),[]);assert.equal(s.source.storage,'local');}const m=all[0].moves.find(m=>m.id===19142);assert.ok(E.WIKI.compile(m,all[0]).deferred.some(x=>x.effectId===873));});
+dist/souls.js:192:      if(on(a,'属性威力增强')&&a.effects['属性威力增强'].type===m.type)power*=a.effects['属性威力增强'].multiple;
+dist/souls.js:194:      let modifier=(on(a,'全伤害翻倍')?2:1)*(on(a,'doubleDamage')?2:1)*(on(a,'攻击伤害倍数')?a.effects['攻击伤害倍数'].multiple:1)*attackBonus[a.side]*(E.SOULS.trait(a,'damageMultiplier')??1);
+dist/souls.js:197:      if((effectContext.ignoreDefenseBoost||a.soulState.blakeBuffRound===r)&&!crit&&t.stages[defenseStat]>0)defense=Math.max(1,defense/E.multiplier(t.stages[defenseStat]));
+dist/souls.js:298:      switch(m.id){
+dist/souls.js:315:      switch(m.id){
+dist/souls.js:329:      if(m.id!=='struggle')a.pp[m.id]=Math.max(0,a.pp[m.id]-(on(a,'PP消耗倍增')?a.effects['PP消耗倍增'].multiple:1));
+dist/souls.js:365:      const miss=!alwaysHit&&rng(s)*100>=Math.min(100,m.accuracy*E.multiplier(a.stages.acc)*(E.SOULS.trait(t,'opponentAccuracyMultiplier')??1)*(m.kind!=='status'&&a.ailments['混乱']>=r?.2:1));
+dist/souls.js:401:      if(a.hp>0&&t.hp>0&&on(a,'用招低体双吸')){const e=a.effects['用招低体双吸'],multiple=a.hp<a.stats.maxHp*e.threshold?2:1;heal(a,inflict(a,t,t.stats.maxHp*e.fraction*multiple,'用招低体双吸','percent'),'用招低体双吸','skill');}
+dist/souls.js:403:      if(a.hp>0&&t.hp>0&&on(a,'用招低体吸取')){const e=a.effects['用招低体吸取'],multiple=a.hp<a.stats.maxHp*e.threshold?2:1;heal(a,inflict(a,t,t.stats.maxHp*e.fraction,'用招低体吸取','percent')*multiple,'用招低体吸取','skill');}
+
+ERROR: Reconnecting... 2/5
+ERROR: Reconnecting... 3/5
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+tokens used
+12,647
+
+=== round 3 phase engine species 3575 attempt 2 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12f32-b388-7b22-b834-a6dd8d982777
+--------
+user
+在 seer-battle-lab 中只处理当前阶段的一个明确子任务。先读取 AGENTS.md、PROGRESS.md、AUTO-PROGRESS.json 并核对磁盘现状。当前精灵 3575，阶段 engine，子任务：实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证。
+阶段顺序严格为 source -> engine -> tests -> verify；只有独立验证成功后调度器才会推进到下一只精灵。本次只完成一个可核验子任务：source 核实真实资料和来源证据；engine 实现对应真实机制；tests 编写状态变化专项测试；verify 修复验证器指出的缺口。不要一次调用跨阶段或处理整只精灵。
+不得编造资料、弱化测试、修改 AGENTS.md、删除进度或修改无关核心逻辑。完成后原子更新 AUTO-PROGRESS.json 的 phase、subtask、completedSubtasks、pendingEffects、sources、lastFailure 等字段，并更新 PROGRESS.md。
+
+重试前重新读取的最新 AUTO-PROGRESS.json：
+{
+  "schemaVersion": 2,
+  "cursor": {
+    "index": 60,
+    "id": 3575
+  },
+  "batchSize": 10,
+  "activeBatch": [
+    3575,
+    3576,
+    3577,
+    3580,
+    3584,
+    3586,
+    3592,
+    3613,
+    3623,
+    3626
+  ],
+  "revisitQueue": [],
+  "lastRound": "2026-10-12",
+  "lastProgress": "3575 engine 已实现并验证效果 1329、732、923、1864；642、1331、2162 保留多精灵延期，游标不推进",
+  "phase": "engine",
+  "subtask": "实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证",
+  "completedSubtasks": [
+    "source:3575 真实资料、邪灵龙属性组合70及剩余效果参数已由SeerAPI缓存证据核实",
+    "engine:3575 效果 1329、732、923、1864 已接入真实状态变化；效果 642、1331、2162 已注册并明确 deferred 多精灵流程"
+  ],
+  "pendingEffects": [
+    642,
+    1331,
+    2162
+  ],
+  "sources": [
+    {
+      "provider": "seerapi",
+      "status": "cached",
+      "verifiedAt": "2026-10-12",
+      "note": "现有快照及缓存可核对；直连曾 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "verified",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 pet/3575、soulmark/875、element_type_combination/70 及效果 642、1329、1331、732、923、1864、2162 缓存逐项核对；pet revision 5bba7b98，typeChart revision c9d6b67f；直连刷新仍 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "used",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 剩余效果实例参数用于引擎注册；1864 异常枚举 26/14 已按缓存参数扩展映射"
+    }
+  ],
+  "lastTest": {
+    "command": "node --test tests/deployed-3575.test.cjs && npm test",
+    "status": 0,
+    "at": "2026-10-12"
+  },
+  "lastFailure": null,
+  "recovery": {
+    "maxRetries": 2,
+    "maxRuntimeSeconds": 3600,
+    "maxNoProgress": 3
+  }
+}
+
+重试时只继续该阶段剩余子任务，不要重复已保存的工作。
+
+codex
+我先核对阶段状态、进度文件和当前代码，再只处理 3575 的 642、1331、2162 多精灵机制与对应验证。
+exec
+/bin/bash -lc "cat AGENTS.md && printf '\\n---PROGRESS---\\n' && cat PROGRESS.md && printf '\\n---AUTO---\\n' && cat AUTO-PROGRESS.json && printf '\\n---STATUS---\\n' && git status --short" in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ exited 128 in 0ms:
+# AGENTS.md
+
+## 项目范围
+
+这是一个本地赛尔号单挑对战实验台。浏览器界面由 `dist/app.js`、`dist/styles.css` 和 `dist/growth.css` 提供；对战计算、养成面板、行动顺序、伤害、异常、回合效果和技能执行位于 `dist/engine.js` 与 `dist/souls.js`。通用技能效果注册表是 `dist/effect-registry.js`，范围效果和结构化效果位于 `dist/range-effects.js`，魂印注册与事件分发位于 `dist/soul-registry.js`、`dist/range-souls.js` 和 `dist/souls.js`。
+
+每只本地精灵保存为 `data/species/<id>.json`，由 `local-species.cjs` 校验和读取。文件必须包含真实种族值、属性克制表、全部技能、技能效果实例、魂印版本哈希和来源快照。`data/species-pending` 仅表示待部署资料，不能当作已完成精灵。
+
+## 资料查询
+
+首选 SeerAPI：`https://api.seerapi.com/v1/`。`seerapi.cjs` 通过 `pet`、`skill`、`skill_effect_type`、`element_type`、`element_type_combination` 和 `soulmark` 查询，并保存来源 URL、revision/hash 和加载时间。请求通过 `wiki-client.cjs` 串行排队、缓存并遵守冷却；不得用猜测值替代查询结果，不得执行 Wiki/API 返回的代码。BWIKI MediaWiki API 是备用来源，客户端规则见 `wiki-client.cjs`、`wiki-request.cjs` 和 `wiki-fetch.ps1`。
+
+资料不可访问时记录具体 HTTP/网络/解析原因，保留已有本地版本，不能伪造魂印、技能名称、效果参数或完成状态。
+
+## 实现规范
+
+每只精灵必须完整实现真实魂印、全部技能及实际对战效果：触发条件、概率、持续回合、先制/优先级、命中与暴击条件、免疫、消耗、目标范围、伤害类型、回血/禁疗、能力变化以及和其他效果的交互都要有代码依据。
+
+技能效果先通过 `E.WIKI.assess` 和注册表编译为带 `effectId`、顺序、阶段和参数的指令。效果 ID 必须校验模板、参数数量和范围；重复效果必须保留顺序与各自参数。魂印 ID 与技能效果 ID 分开注册，魂印版本必须匹配来源 hash。复杂或多精灵目标效果不能写成单挑占位后宣称完成，应在 `deferredEffects`/待办文档中明确标记。
+
+禁止只写入数据、只创建规则入口、静默忽略未知效果、删除断言、弱化测试或用表面 smoke test 宣称完成。没有针对触发条件和交互的验证时，状态只能写“待验证”。不要为了本批任务重构无关架构。
+
+## 测试方法
+
+针对单只精灵运行：`node --test tests/deployed-<id>.test.cjs`；通用规则运行对应 `tests/effect-registry.test.cjs`、`tests/range-rules.test.cjs`、`tests/souls.test.cjs`。整库回归运行 `npm test`（等价于 `node --test tests/*.test.cjs`）。测试失败必须保留原断言并记录真实原因、影响范围和是否为本次变更引入；最多尝试三种独立修复方案，仍失败则继续不依赖该问题的工作。
+
+## 批处理流程
+
+按 `seer_id.txt` 升序处理，每批目标为 10 只：查询真实资料，保存本地快照，实现魂印和全部技能效果，做针对性测试，完成 10 只后做整批回归。无魂印且按当前项目策略跳过的编号必须记录为 skipped；不能把跳过当成已完成。每批结束更新 `PROGRESS.md`，列出完成、跳过、待验证、阻塞和下一批起点。
+
+## 赛尔号本地对战项目开发规范
+
+### 数据真实性
+
+必须严格查询 SeerAPI 的真实资料，使用精灵、魂印、技能、效果类型和属性克制表的实际返回值及版本标识。不得编造、猜测、改写或简化魂印、技能名称、效果参数和效果描述。SeerAPI 无法访问时记录具体原因并保留阻塞状态，不能用猜测数据补齐。
+
+### 效果实现完整性
+
+每个魂印和每个技能词条都必须实现真实对战行为，包括触发条件、执行时机、概率、持续回合、先制和优先级、命中与暴击条件、免疫、消耗、目标范围、伤害/回复类型及其与其他效果的交互。只登记数据、只建立规则入口、返回空处理器或省略复杂机制都不算实现。多精灵或暂未支持的机制必须明确标为部分实现、未实现或 deferred。
+
+### 测试标准
+
+测试必须通过真实对战状态变化验证效果，例如体力、能力等级、异常状态、PP、优先级、回合计数、免疫和效果消费；不能只测试技能能释放、效果 ID 存在或编译成功。必须覆盖成功、失败、边界和关键交互分支。没有真实状态变化断言的测试只能作为结构检查，不能用来宣布词条完成。
+
+### 批量交付
+
+每 10 只精灵为一批，按 ID 顺序逐只查询、完整实现并测试；完成第 10 只后运行整批回归测试，再更新 `PROGRESS.md`。单只 smoke 测试通过不等于该精灵或该批完成。
+
+### 禁止行为
+
+禁止占位实现、伪造测试通过、删除或弱化断言、擅自省略复杂机制、静默忽略未知词条，或把未完成、待验证、部分实现和阻塞中的精灵标记为完成。不得为绕过失败而删除正确代码或修改与当前任务无关的功能。
+
+### 进度管理
+
+持续维护 `PROGRESS.md`，准确区分已完成、待验证、部分实现、未实现、跳过和阻塞。记录真实失败、影响范围、已尝试修复和下一步任务；资料接入、代码存在或基础测试通过都不能单独改变完成状态。
+
+### 执行效率
+
+优先推进真实资料查询、代码实现和必要测试，避免无限规划或反复纠结与当前工作无关的失败。单个问题最多连续尝试三种修复方案；仍然失败时记录阻塞原因，继续处理不依赖该问题的独立词条，并在批次回归中如实报告。
+
+---PROGRESS---
+# PROGRESS.md
+
+## 当前状态
+
+## 自动调度状态
+
+持久化调度游标和回访队列位于 [`AUTO-PROGRESS.json`](AUTO-PROGRESS.json)。当前游标为 `seer_id.txt` 的零基索引 `61`（编号 `3575`），活动批次最多包含 10 只：`3575、3576、3577、3580、3584、3586、3592、3613、3623、3626`。游标只有在魂印、全部技能、实际效果和专项状态变化测试都完成后才允许前进；资料抓取、结构校验或阶段性测试通过不会推进游标。
+
+`revisitQueue` 只用于真实阻塞：必须先尝试 SeerAPI、BWIKI 和已有可靠缓存，并记录缺失证据、已尝试来源、剩余工作、最后尝试时间和回访条件。属性映射、效果参数核实、引擎机制扩展和测试失败属于当前精灵的正常开发工作，不能直接写入回访队列。当前回访队列为空；若外部限制确实成立，自动脚本会要求保留队列条目，同时转向 `seer_id.txt` 中下一只可推进精灵，条件满足后再回访。
+
+新精灵开发已暂停，当前任务是项目交接。现有 `data/species` 本地库包含 110 个 JSON 精灵快照（以目录实际文件为准）。已保存编号为：
+
+`2987–3022`（其中缺失编号按项目跳过记录处理）、`3025–3026`、`3030–3033`、`3036`、`3043`、`3046`、`3056`、`3066`、`3075`、`3079`、`3082`、`3102`、`3106`、`3141–3142`、`3150`、`3170`、`3174`、`3190`、`3194`、`3200`、`3205`、`3211`、`3221`、`3223`、`3227`、`3237`、`3240`、`3242`、`3289`、`3291`、`3301`、`3308`、`3311`、`3315`、`3318`、`3322`、`3328`、`3340`、`3355`、`3372`、`3383`、`3388`、`3393`、`3396`、`3406`、`3407`、`3414`、`3421`、`3425`、`3430`、`3434`、`3437`、`3443`、`3456`、`3465`、`3476`、`3481–3482`、`3491`、`3506`、`3512`、`3514`、`3529`、`3539`、`3549`、`3561`、`3564`、`3697`、`3699`、`3705`。
+
+“已保存”表示资料通过本地结构校验并可读取；不等于每个复杂多精灵分支都已完成。多精灵、友方目标、换宠等延期内容见 `MULTI-PET-TODO.md` 和各快照的 `deferredEffects`。
+
+## 当前精灵：3564 西楚霸王·项羽
+
+资料快照位于 `data/species/3564.json`，来源为 SeerAPI pet/3564，包含真实魂印、全部技能和效果模板。`tests/deployed-3564.test.cjs` 当前 3 项通过：本地快照/技能逐招可开局 smoke 检查、675 注册检查，以及七项效果的状态变化专项验证。
+
+七个词条的真实代码状态如下：
+
+| ID | 当前代码 | 验证状态 |
+|---|---|---|
+| 675 | `dist/effect-registry.js` 注册；`dist/souls.js` 已接入非必中暴击判定 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1007 | 已注册；已限制为攻击技能触发，概率失败时全属性下降 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1323 | 已注册：按实际伤害回血，暴击追加等量百分比伤害 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1324 | 已注册：自身清空体力，对手最大体力百分比伤害并禁疗 3 回合 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1020 | 已注册：对手无强化时自身全属性强化翻倍 | 已完成专项状态变化验证（固定分支与关键交互）
+| 957 | 已注册：对手全属性下降，害怕时自身额外强化 | 已完成专项状态变化验证（固定分支与关键交互）
+| 1208 | 已注册：反转自身弱化，成功后令对手下一次攻击无效 | 已完成专项状态变化验证（固定分支与关键交互）
+
+因此 3564 七项核心词条已完成专项状态变化验证；资料、代码和测试状态均已完成。
+
+## 已知问题
+
+2026-10-12 测试基线已修复并复核：`npm test` 共 57 个测试文件，57 通过、0 失败。
+
+修复记录：
+
+- SeerAPI 客户端在无 `USERPROFILE` 的环境中改用 `HOME`/项目目录作为 PowerShell 路径基准；该问题属于环境兼容缺陷，不涉及网络请求或资料内容。
+- SeerAPI 对效果 446 的真实元数据为 `args_num: 0`（模板“随机自身3项属性+1”），注册器不再错误要求一个实例参数；因此 3006、3011、3328 快照及其第五技能校验恢复正常。
+- 效果 886 的待消费忽略双防值在属性技能后保留，并在下一次攻击中只应用一次；`tests/range-rules.test.cjs` 的实际状态断言通过。
+
+初始基线的 6 项失败均已归类为可确认的代码/环境兼容缺陷：4 个部署测试文件由效果 446 校验连带失败，`range-rules` 由效果 886 状态消费缺陷失败，`seerapi` 由 `USERPROFILE` 缺失导致模块加载失败。未发现测试预期错误或外部网络依赖失败；没有删除、跳过或弱化测试。
+
+## 下一步
+
+3564 七项专项验证已完成。3568 的资料、魂印、全部技能效果和针对性状态变化验证现已完成；下一批从 3575 开始，仍受真实资料对应的未实现魂印/效果阻塞。seerapi.cjs 已改为带超时的原生 fetch 传输；BWIKI 仍为 TLS handshake error。
+
+
+## 3568 圣地卡修斯进展
+
+已从 SeerAPI 缓存组装完整快照，18 个技能、魂印 870、25 个效果词条均通过本地结构与编译检查。已接入魂印 870 的入场护盾、异常免疫、护盾期间攻击先制以及护盾消失清理逻辑；已接入效果 922、1326、566、1028、1099、1077、1327，并由 `tests/deployed-3568.test.cjs` 做逐招和状态变化验证。
+
+3568 三个精确化缺口已修复：魂印护盾消失改为伤害路径即时触发；效果 1028 按弱化实际是否生效决定削血；效果 1077 保留攻击后成功/失败分支。现已补充固定随机种子双分支断言（石化、属性技能封锁及持续边界），部署测试 5 项通过，整库回归 57 项通过。3568 状态：已完成。
+
+## 下一批 3575–3626 资料进展
+
+已按 SeerAPI 串行缓存抓取 3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 的 pet、技能、魂印和效果词条响应，并组装十只本地快照。逐只本地校验仍显示魂印注册、复合属性映射、未实现效果 ID 和部分参数范围缺口；因此十只均为部分实现/待验证，不能标记完成。
+
+批次资料状态：3575、3576、3577、3580、3584、3586、3592、3613、3623、3626 已完成真实缓存和本地快照组装。逐只校验显示均为待实现/待验证，主要包括各自魂印注册缺失、复合属性映射缺失、多个未实现效果 ID，以及部分 SeerAPI 参数范围与重复第五技能标记需要核对。未将任何一只标记为完成；下一步起点为 3575，先处理其魂印 875、属性映射和已确认的独立效果。
+
+## 2026-10-12 本轮进展：3575 魂印 875
+
+已注册魂印 875（来源哈希 `ea9790b0`）：回合开始按双方体力比较设置本回合攻击先制 +1 与伤害 ×1.5；按真实 40% 分支登记本回合攻击伤害转化为体力，未触发时在回合结束对对手造成等量固定伤害。新增 `tests/deployed-3575.test.cjs`，覆盖高体/低体边界、40% 成功与失败、致死转化和零伤害边界；专项测试通过，整库回归现为 58 项通过。
+
+3575 仍为部分实现，当前游标继续停留在此编号，未标记完成。`local-species.cjs` 当前报告的属性组合 `邪灵龙` 映射、效果行为、参数校验和第五技能缺口都属于正常开发任务，必须继续查询、扩展引擎并验证；只有可靠来源在外部不可用且证据完整时，才可单独登记为回访队列阻塞。
+
+## 2026-10-12 本轮补充：3575 诅咒参数校正
+
+依据本地 SeerAPI 效果元数据与 3575 快照实例参数，修正效果 968 和 1030 对异常枚举 23（诅咒）的真实支持；此前两项规则错误地只接受 0 或 6，导致 `逆鳞之咒`、`难·乾坤同罹` 无法编译。新增部署测试验证 968 的诅咒施加、1030 的能力下降反馈和诅咒状态变化。`tests/deployed-3575.test.cjs`、效果注册表、范围规则、魂印专项测试以及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现：本轮 SeerAPI 直连返回 `fetch failed`，这是一次外部访问证据，不能把其余属性、效果和配招缺口一并视为阻塞。未将 3575 标记为完成，下一步继续从这些可验证资料和引擎缺口开始；若重复访问仍受外部限制，再把具体缺口单独写入 `AUTO-PROGRESS.json` 的回访队列。
+
+## 2026-10-12 本轮补充：3575 独立技能效果
+
+依据 `data/species/3575.json` 已保存的 SeerAPI 模板与实例参数，完成并验证以下单挑行为：
+
+- 效果 702：下 2 回合暴击且攻击者存活时恢复至满体力；非暴击、攻击者已阵亡均不触发。
+- 效果 918：造成伤害低于 300 时登记后续 1 次攻击伤害提升 100%，沿用引擎的 `nextAttackBoost` 消费路径；达到 300 的边界不触发。
+- 效果 731：本回合暴击后登记下 1 回合其它攻击技能必定暴击；非暴击不登记。
+- 效果 1006：伤害严格超过 300 时登记下 1 回合异常免疫；等于 300 不触发。
+- 效果 1355：暴击且攻击者存活时登记 1 次异常免疫；非暴击与攻击者阵亡不触发。
+
+`tests/deployed-3575.test.cjs` 新增上述成功、失败、阈值和消费断言；部署、效果注册表、范围规则、魂印专项及 `npm test` 均通过（整库 58 项）。
+
+3575 仍为部分实现，未标记完成。`local-species` 当前剩余真实缺口为：属性表未覆盖 `邪灵龙` 组合、缺少恰好一个第五技能，以及效果 642（多精灵在场触发）、1329/1331（邪龙之噬及下只出场精灵）、732、923、1864、2162。效果 1864 的实例使用异常枚举 26，超出现有已核实名单；应继续核实来源并扩展注册表，不能把参数歧义本身当作永久阻塞。下一步仍从 3575 的可验证资料与属性组合映射开始，完成后再进入 3576。
+
+
+## 2026-10-12 本轮 source 核实：3575 真实资料与剩余效果参数
+
+已依据本地 SeerAPI 缓存逐项核对 3575 `终末之灭·天邪龙王`：pet revision `5bba7b98`，属性组合 ID 70 为“邪灵 龙”（邪灵 ID 19 + 龙 ID 15），种族值 HP/攻击/防御/特攻/特防/速度为 170/135/116/70/115/129；属性克制表 revision `c9d6b67f`。魂印 875 来源哈希为 `ea9790b0`。
+
+剩余效果的缓存元数据和技能实例参数已确认：642 为 `3,50,2`；1329 为 `3,2`；1331 为 `6,2`；732 为 `2,0,0,0,0,0`；923 为 `2,150`；1864 为 `100,26,100,14`；2162 为 `23`。对应元数据哈希依次为 `e5bab67f`、`97c44470`、`adbc68c8`、`aea20f2f`、`39080f5`、`c19660d9`、`a9b4ca48`。缓存中的 pet 技能列表仍包含两个 `is_fifth=true` 技能（31835 与 37298），该结构缺口保留给后续 engine/校验处理，未擅自删除或改写。
+
+本次直连 `https://api.seerapi.com/v1/pet/3575` 返回 `TypeError: fetch failed`；已在 `AUTO-PROGRESS.json.lastFailure` 记录具体原因，保留上述缓存证据，未将直连失败伪装为成功。source 子任务完成，当前阶段推进到 engine，待实现效果清单仍为 642、1329、1331、732、923、1864、2162。
+
+## 2026-10-12 本轮 engine：3575 剩余效果
+
+已依据已核实 SeerAPI 快照完成效果 1329、732、923、1864 的引擎接入及状态变化验证：对手攻击后累积邪龙之噬观察、未暴击攻击强化、先手固定吸取、消强成功/失败的 26“虚弱诅咒”与 14“狂暴”异常分支均有执行代码和专项断言。效果 642、1331、2162 已完成参数校验与状态登记，但其在场队友反击、下一只出场异常和换宠触发仍依赖多精灵流程，明确保留 `deferred`，不能标记完成。
+
+`tests/deployed-3575.test.cjs` 通过，`npm test` 通过（58 项）。3575 仍停留在 engine 阶段，待处理效果为 642、1331、2162；游标不推进。
+
+---AUTO---
+{
+  "schemaVersion": 2,
+  "cursor": {
+    "index": 60,
+    "id": 3575
+  },
+  "batchSize": 10,
+  "activeBatch": [
+    3575,
+    3576,
+    3577,
+    3580,
+    3584,
+    3586,
+    3592,
+    3613,
+    3623,
+    3626
+  ],
+  "revisitQueue": [],
+  "lastRound": "2026-10-12",
+  "lastProgress": "3575 engine 已实现并验证效果 1329、732、923、1864；642、1331、2162 保留多精灵延期，游标不推进",
+  "phase": "engine",
+  "subtask": "实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证",
+  "completedSubtasks": [
+    "source:3575 真实资料、邪灵龙属性组合70及剩余效果参数已由SeerAPI缓存证据核实",
+    "engine:3575 效果 1329、732、923、1864 已接入真实状态变化；效果 642、1331、2162 已注册并明确 deferred 多精灵流程"
+  ],
+  "pendingEffects": [
+    642,
+    1331,
+    2162
+  ],
+  "sources": [
+    {
+      "provider": "seerapi",
+      "status": "cached",
+      "verifiedAt": "2026-10-12",
+      "note": "现有快照及缓存可核对；直连曾 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "verified",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 pet/3575、soulmark/875、element_type_combination/70 及效果 642、1329、1331、732、923、1864、2162 缓存逐项核对；pet revision 5bba7b98，typeChart revision c9d6b67f；直连刷新仍 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "used",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 剩余效果实例参数用于引擎注册；1864 异常枚举 26/14 已按缓存参数扩展映射"
+    }
+  ],
+  "lastTest": {
+    "command": "node --test tests/deployed-3575.test.cjs && npm test",
+    "status": 0,
+    "at": "2026-10-12"
+  },
+  "lastFailure": null,
+  "recovery": {
+    "maxRetries": 2,
+    "maxRuntimeSeconds": 3600,
+    "maxNoProgress": 3
+  }
+}
+
+---STATUS---
+fatal: not a git repository (or any parent up to mount point /mnt)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+
+exec
+/bin/bash -lc 'rg -n "642|1331|2162|deferred|multi|nextSwitch|switch" dist tests/deployed-3575.test.cjs MULTI-PET-TODO.md | head -240' in /mnt/c/Users/villa/Desktop/seer-battle-lab
+ succeeded in 0ms:
+MULTI-PET-TODO.md:7:重新生成：`node research/build-multiplayer-todo.cjs`。新增本地精灵后请重新运行。
+tests/deployed-3575.test.cjs:136:test('3575 效果 1329 受击攻击后累积邪龙之噬，1331/2162 保留换宠异常状态',()=>{
+tests/deployed-3575.test.cjs:142:  t.hp=0; effects.run('afterHit',get('难·苍生尽灭',1331),c); assert.equal(a.soulState.dragonEaterStacks,2); assert.equal(a.soulState.nextEntryAilment,6);
+tests/deployed-3575.test.cjs:143:  effects.run('afterHit',get('难·乾坤同罹',2162),c); assert.equal(a.soulState.nextEntryAilment,23);
+dist/wiki-support.js:27:function compile(m,s){const result=compileCore(m,s);return {...result,experimental:(m.effectIds??[]).map(id=>effectsEngine.registry[id]?.experimental).filter(Boolean),deferred:[...(m.deferredEffects??[]),...(result.operations??[]).filter(op=>op.deferred).map(op=>({effectId:op.effectId,description:op.deferred,scope:'多精灵待实现'}))]};}
+dist/wiki-support.js:54: const keys=[];for(const id of c.selected){const m=s.moves.find(m=>m.id===id),key=(m.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id;keys.push(key);const move={...E.MOVES[key],id:key,name:m.name,kind:m.kind,category:{physical:'物理',special:'特殊',status:'属性'}[m.kind],type:m.kind==='status'?'属性':m.type,power:m.power,pp:m.pp,accuracy:m.accuracy,alwaysHit:m.alwaysHit,priority:m.priority,description:m.description+(compile(m,s).experimental.length?'；实验规则：'+compile(m,s).experimental.join('；'):''),wikiId:m.id,effectIds:m.effectIds,revision:m.revision,criticalChance:Number(m.critical?.split('/')[0]??1)/16,deferredEffects:compile(m,s).deferred,operations:compile(m,s).operations};if(additions[key]&&JSON.stringify(additions[key])!==JSON.stringify(move))throw new Error('同一技能数据版本不一致');additions[key]=move;}
+dist/range-souls.js:5:for(const [id,max,hash] of [[372,5,'c05d5cf3'],[574,6,'b9703945']])registry[id]={name:max===6?'神耀 · 强化':'神耀',sourceHash:hash,deferred:['阵亡后复活队友',...(max===6?['击败后面对下一只精灵的先制奖励']:[])],traits:{energyMax:max,attackReduction:f=>energy(f)*.08,ailmentImmune:f=>energy(f)>=2,weaknessImmune:f=>energy(f)>=2,fixedReflect:f=>energy(f)>=4,attackPriority:f=>energy(f)>=5?1:0},hooks:{afterUse(c){if(max===6&&c.t.hp<=0)c.energy(-energy(c.a));},beforeDamage(c){if(energy(c.a)>=6)c.modifier*=1.6;},roundEnd(c){if(c.used[c.a.side]&&energy(c.a)>=3)c.heal(c.a,c.a.stats.maxHp/3,'神耀回复');}}};
+dist/range-souls.js:41:registry[393]={name:'佛',sourceHash:'161bd595',deferred:['被击败后吸取强化传递给下一只己方精灵，再清对手PP及回合效果；整条等待多精灵对战'],traits:{},hooks:{}};
+dist/range-souls.js:43:for(const [id,hash,extra]of [[398,'5edce8dd',false],[399,'fbe05c02',true]])registry[id]={name:extra?'乔 · 强化':'乔',sourceHash:hash,deferred:['存活队友增加入场护盾','阵亡队友增加伤害'],traits:{entryAttackShield:100,maxHpMultiplier:extra?1.2:1,allDamageReduction:extra?.2:0},hooks:{}};
+dist/range-souls.js:50:registry[424]={name:'秘',sourceHash:'ed87a141',deferred:['切换后第二次登场触发封属与惩罚；等待多精灵对战'],traits:{entryStatusBlockRounds:2},hooks:{opponentBeforeUse(c){if(c.round<=2&&c.m.kind==='status'){c.hurt(c.t,350,'米斯蒂克封属惩罚','fixed');if(c.t.hp>0)c.t.counts.nextDamageDouble=1;}},roundEnd(c){const pool=['atk','def','spa','spd','spe','acc'];for(let i=0;i<2;i++)c.stage(c.t,-1,[pool.splice(Math.floor(c.random()*pool.length),1)[0]]);}}};
+dist/range-souls.js:51:for(const [id,hash] of [[449,'dd0063a7'],[456,'15fe0576']])registry[id]={name:id===456?'武神 · 伙伴版':'武神',sourceHash:hash,deferred:id===456?['战神兄弟伙伴的攻击与体力各+50；等待多精灵队伍条件']:[],traits:{},hooks:{roundStart(c){c.a.soulState.ruierHigh=c.a.hp>c.t.hp;if(c.a.hp<c.t.hp)c.a.soulState.ruierHealNext=true;},beforeUse(c){const f=c.a.soulState;f.ruierHealThis=!!f.ruierHealNext;f.ruierHealNext=false;f.ruierFixedThis=f.ruierFixedNext??0;f.ruierFixedNext=0;},beforeDamage(c){if(c.a.soulState.ruierHigh)c.modifier*=2;},afterAttack(c){c.timed(c.t,'statusBlock',2,{});if(c.a.soulState.ruierHealThis){const before=c.a.hp;c.heal(c.a,c.dealt,'武神魂印吸血');c.a.soulState.ruierFixedNext=Math.max(0,c.a.hp-before);}},afterUse(c){const n=c.a.soulState.ruierFixedThis??0;c.a.soulState.ruierFixedThis=0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'武神魂印后续固伤','fixed');}}};
+dist/range-souls.js:63:registry[519]={name:'魔王',sourceHash:'bb8d683c',traits:{},deferred:['每击败一只精灵，攻击命中时的秒杀概率提高 2%；等待多精灵队伍击败计数和换宠流程'],hooks:{
+dist/range-souls.js:82:for(const [id,hash,bonus] of [[558,'d120b40f',.30],[566,'e78ded43',.35]])registry[id]={name:id===566?'斗战 · 强化':'斗战',sourceHash:hash,traits:{},deferred:['下场时保留本次战斗累计的攻击增伤；等待换宠与再次上场流程'],hooks:{roundEnd(c){c.a.soulState.arslanBonus=Math.min(bonus*5,(c.a.soulState.arslanBonus??0)+bonus);c.emit(c.name(c.a)+' 阿尔斯兰魂印：攻击增伤累计至 '+Math.round(c.a.soulState.arslanBonus*100)+'%。');}}};
+dist/range-souls.js:93:registry[618]={name:'天苍玄魂',sourceHash:'91aacf10',deferred:['再次登场后令对手当前在场精灵 2 回合属性技能失效；等待多精灵换宠流程'],traits:{},hooks:{
+dist/range-souls.js:97:registry[622]={...registry[622],sourceHash:'2f1e3f2',deferred:['星皇位于出战背包时为己方精灵提供星皇之赐，首发精灵获得星皇之佑；等待多精灵队伍流程']};
+dist/range-souls.js:118:registry[647]={name:'茉蕊儿',sourceHash:'afc83e18',deferred:['自身阵亡后令下一只出场精灵获得500点护盾并免疫1次异常状态；等待多精灵换宠流程'],traits:{damageCap:f=>f.soulState.moruirAttack?f.stats.maxHp/2:Infinity,ailmentImmune:f=>!!f.soulState.moruirStatus},hooks:{
+dist/range-souls.js:180:registry[2093]={name:'格劳恩斯 · 强化',sourceHash:'1d8519cd',deferred:['下场时九劫之痕和百炼之炎层数传给下一只队友；等待多精灵换宠流程'],traits:{attackPriority:f=>f.soulState.glaHigh?1:0},hooks:{
+dist/range-souls.js:196:for(const [id,hash,bonus]of [[740,'c4233dc1',.5],[1030,'f7c4dc3b',1]])registry[id]={name:id===1030?'圣灵守护奥斯卡 · 强化':'圣灵守护奥斯卡',sourceHash:hash,deferred:['三种加护在奥斯卡下场后暂停、再登场后恢复；等待多精灵换宠流程'],traits:{},hooks:{
+dist/range-souls.js:215:registry[758]={name:'万神寂灭·克罗诺斯',sourceHash:'4ae48345',deferred:['下场后使下一只出场精灵首回合免异常，且下次受伤不超过250；等待多精灵换宠流程'],traits:{specialAlwaysHit:true},hooks:{
+dist/range-souls.js:276:registry[821]={name:'帝皇之御',sourceHash:'11674b59',deferred:['被击败后为己方下只出场精灵提供2回合攻击及固定伤害减免'],traits:{ailmentImmune:f=>f.soulState.currentRound<=2,skillPriority:f=>f.soulState.currentRound<=2?2:0},hooks:{
+dist/range-souls.js:301:for(const [id,hash,chance,multiplier] of [[864,'8b107b1',.6,2],[912,'741d06d2',.7,2.5]])registry[id]={name:'霸'+(id===912?' · 强化':''),sourceHash:hash,traits:{skillPriority:f=>f.soulState.xiangPriority?1:0},hooks:{roundStart(c){const boosted=Object.values(c.t.stages).some(n=>n>0);c.a.soulState.xiangPriority=!boosted;if(boosted){c.clearBoost(c.t);if(c.random()<chance)c.ailment(c.t,'焚烬',c.a);}},beforeUse(c){c.a.soulState.xiangDouble=c.m.kind!=='status'&&c.random()<.4;},beforeDamage(c){if(c.a.soulState.xiangDouble)c.modifier*=multiplier;},afterAttack(c){if(!c.a.soulState.xiangDouble)c.timed(c.t,'statusBlock',2,{});}}};
+dist/engine.js:64:      // Keep EV fractions through nature multiplication; floor only the final result.
+dist/engine.js:112:  function multiplier(stage) { return stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage); }
+dist/engine.js:113:  function effective(f, stat) { return Math.max(1, Math.floor(f.stats[stat] * multiplier(f.stages[stat]))); }
+dist/engine.js:155:      const accuracy = Math.min(100, move.accuracy * multiplier(actor.stages.acc ?? 0));
+dist/engine.js:192:  let api = { GEAR, VERSION, MOVES, LOADOUT, DEFAULT_STATS, STAT_LABELS, STAGE_LABELS, SPECIES, NATURES, calculateStats, createBattle, resolveTurn, availableMoves, effective, multiplier };
+dist/wiki-ui.js:5:function detail(i){const state=sides[i],s=state.data,a=E.WIKI.assess(s,state.selected);$('wiki-detail-'+i).innerHTML=`<h4>${esc(s.name)} <small>#${s.id} · ${esc(s.type)}</small></h4><p class="growth-help">${Object.entries({maxHp:'体力',atk:'攻击',def:'防御',spa:'特攻',spd:'特防',spe:'速度'}).map(([k,n])=>`${n} ${s.base[k]}`).join(' · ')}</p><p><a href="${esc(s.source.url)}" target="_blank" rel="noopener noreferrer">${s.source.provider==='seerapi'?'SeerAPI 原始资料':'Wiki 原条目'}</a> · ${s.source.storage==='local'?'已永久保存本地 · ':''}修订 ${s.source.revision}</p><p class="wiki-support ${a.supported?'supported':''}">${a.supported?'已适配当前实验规则':esc(a.issues.concat(s.typeChartError?[s.typeChartError]:[]).join('；'))}</p>${s.souls.length>1?`<label>魂印版本<select data-soul-side="${i}">${s.souls.map(x=>`<option value="${x.id}" ${x.id===(s.selectedSoulId??s.souls.at(-1).id)?'selected':''}>${esc(E.SOULS.registry[x.id]?.name??'待适配')} · ${x.id}</option>`).join('')}</select></label>`:''}${(E.SOULS.registry[a.profile.soul]?.deferred??[]).map(x=>`<p class="growth-help">多精灵待实现：${esc(x)}</p>`).join('')}<details><summary>魂印与效果 ID · ${s.souls.map(x=>x.id).join(' / ')||'无条目'}</summary>${s.souls.map(x=>`<p>魂印 ${x.id}：${esc(x.description.replace(/<[^>]*>/g,' '))}</p>`).join('')}</details><p>技能适配 ${s.moves.filter(m=>!E.WIKI.moveIssue(m,s)).length}/${s.moves.length} · 配招 ${state.selected.length}/${E.WIKI.slotCount(s)}${s.moves.some(m=>m.fifth)?"（含一个第五技能）":"（无第五技能）"}</p><div class="wiki-moves">${s.moves.slice().sort((a,b)=>Number(b.fifth)-Number(a.fifth)||b.level-a.level).map(m=>{const compiled=E.WIKI.compile(m,s),issue=compiled.issue;return `<label class="wiki-move"><span><input type="checkbox" data-wiki-side="${i}" value="${m.id}" ${state.selected.includes(m.id)?'checked':''} ${issue?'disabled':''}>${esc(m.name)}${m.fifth?' · 第五':''}</span><small>技能 ${m.id} · ${({physical:'物理',special:'特殊',status:'属性'})[m.kind]??'未知'} · 威力 ${m.power} · PP ${m.pp} · 先制 ${m.priority}</small><small>效果 ID：${m.effectIds.join(' / ')||'无'} · ${issue?esc(issue):compiled.deferred?.length?'单挑已适配 · 含多精灵待实现词条':'已适配'}</small>${(compiled.experimental??[]).map(x=>`<small>实验规则：${esc(x)}</small>`).join('')}${(compiled.deferred??[]).map(op=>`<small>多精灵待实现 · ${op.field?"字段 "+esc(op.field):"效果 "+op.effectId}：${esc(op.description)}</small>`).join('')}<details><summary>查看在线技能描述</summary><p>${esc(m.description||'无附加效果')}</p>${compiled.operations?.length?`<p>已解析执行顺序：${compiled.operations.map(op=>`${op.effectId}（${op.deferred?'待实现':op.phase==='beforeCrit'?'暴击判定前':op.phase==='beforeOrder'?'行动排序前':op.phase==='beforeDamage'?'伤害计算前':op.phase==='beforeUse'?'技能结算前':op.phase==='onMiss'?'未命中':op.phase==='afterAttack'?'攻击结束':'命中后'}）`).join(' → ')}</p>`:''}${m.effectIds.map(id=>{const e=s.effects.find(x=>x.id===id);return `<p>效果 ${id}：${esc(e?.template??'条目缺失')}<br>参数数量：${e?.argsNum??'未知'}${e?.parameters?' · '+esc(e.parameters):''}</p>`}).join('')}</details></label>`}).join('')}</div>`;pair();}
+dist/effect-registry.js:48: if(rule.direct){try{rule.validate(instance.args);operations.push({effectId:instance.id,index,phase:rule.phase,params:instance.args.slice(),sourceArgs:instance.args.slice(),deferred:rule.deferred});}catch(e){return {issue:`效果 ${instance.id}：${e.message}`,operations:[]};}continue;}
+dist/souls.js:192:      if(on(a,'属性威力增强')&&a.effects['属性威力增强'].type===m.type)power*=a.effects['属性威力增强'].multiple;
+dist/souls.js:194:      let modifier=(on(a,'全伤害翻倍')?2:1)*(on(a,'doubleDamage')?2:1)*(on(a,'攻击伤害倍数')?a.effects['攻击伤害倍数'].multiple:1)*attackBonus[a.side]*(E.SOULS.trait(a,'damageMultiplier')??1);
+dist/souls.js:197:      if((effectContext.ignoreDefenseBoost||a.soulState.blakeBuffRound===r)&&!crit&&t.stages[defenseStat]>0)defense=Math.max(1,defense/E.multiplier(t.stages[defenseStat]));
+dist/souls.js:298:      switch(m.id){
+dist/souls.js:315:      switch(m.id){
+dist/souls.js:329:      if(m.id!=='struggle')a.pp[m.id]=Math.max(0,a.pp[m.id]-(on(a,'PP消耗倍增')?a.effects['PP消耗倍增'].multiple:1));
+dist/souls.js:365:      const miss=!alwaysHit&&rng(s)*100>=Math.min(100,m.accuracy*E.multiplier(a.stages.acc)*(E.SOULS.trait(t,'opponentAccuracyMultiplier')??1)*(m.kind!=='status'&&a.ailments['混乱']>=r?.2:1));
+dist/souls.js:401:      if(a.hp>0&&t.hp>0&&on(a,'用招低体双吸')){const e=a.effects['用招低体双吸'],multiple=a.hp<a.stats.maxHp*e.threshold?2:1;heal(a,inflict(a,t,t.stats.maxHp*e.fraction*multiple,'用招低体双吸','percent'),'用招低体双吸','skill');}
+dist/souls.js:403:      if(a.hp>0&&t.hp>0&&on(a,'用招低体吸取')){const e=a.effects['用招低体吸取'],multiple=a.hp<a.stats.maxHp*e.threshold?2:1;heal(a,inflict(a,t,t.stats.maxHp*e.fraction,'用招低体吸取','percent')*multiple,'用招低体吸取','skill');}
+dist/range-effects.js:11:metadata[642]={info:'{0}回合内若对手攻击技能命中则己方在场精灵{1}%做出{2}',args_num:3};
+dist/range-effects.js:13:metadata[1331]={info:'击败对手则令对手下一只出场的精灵{0}，且获得{1}道邪龙之噬并附着至自身的攻击技能',args_num:2};
+dist/range-effects.js:17:metadata[2162]={info:'下次击败对手时，令对方下只出战精灵{0}',args_num:1};
+dist/range-effects.js:86:function add(id,phase,execute,ranges=[],deferred,experimental){const e=metadata[id];if(!e)throw Error('Missing reviewed metadata '+id);registry[id]=Object.freeze({id,template:e.info,argsNum:e.args_num,instanceArgsNum:id===534||id===1103?1:e.args_num,direct:true,phase,execute,deferred,experimental,validate(args){if([31,450,683].includes(id)&&args[0]>args[1])throw Error('随机区间上下限颠倒');const enumIndex=({756:1,470:2,573:2,609:0,164:2,889:0,733:0,469:2})[id];if(enumIndex!==undefined&&![0,2,6,7,8,15,20,22].includes(args[enumIndex]))throw Error('异常类型未核对');if(id===1864&&![14,26].includes(args[1]))throw Error('1864 异常枚举尚未核对');if(id===1864&&![14,26].includes(args[3]))throw Error('1864 异常枚举尚未核对');if(id===599&&args[1]!==2)throw Error('伤害类型未核对');for(let i=0;i<args.length;i++){const [min,max]=ranges[i]??[0,9999];if(args[i]<min||args[i]>max)throw Error('参数超出规则范围');}}});}
+dist/range-effects.js:145:add(440,'afterHit',(c,p)=>c.timed(c.t,'PP消耗倍增',p[0],{multiple:p[1]}),[turns,[1,10]]);
+dist/range-effects.js:177:add(65,'afterHit',(c,p)=>c.timed(c.a,'属性威力增强',p[0],{type:'冰',multiple:p[2]}),[turns,[9,9],[1,10]]);
+dist/range-effects.js:363:add(516,'afterHit',(c,p)=>{const multiple=c.a.hp<c.a.stats.maxHp/p[6]?2:1;p.slice(0,6).forEach((n,i)=>c.stage(c.a,n*multiple,[stats[i]]));},[...Array(6).fill(stage),[1,9999]]);
+dist/range-effects.js:397:function reversePositive(c,multiple=1){const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length)return false;c.clearBoost(c.t);for(const [k,n]of pos)c.stage(c.t,-n*multiple,[k]);return pos.some(([k])=>c.t.stages[k]<0);}
+dist/range-effects.js:565:add(53,'afterHit',(c,p)=>c.timed(c.a,'攻击伤害倍数',p[0],{multiple:p[1]}),[turns,[1,10]]);
+dist/range-effects.js:822:add(642,'afterHit',(c,p)=>{c.timed(c.a,'在场反击',p[0],{chance:p[1],action:p[2]});},[[1,99],[0,100],[0,99]],'己方在场精灵的范围反击等待多精灵对战');
+dist/range-effects.js:824:add(1331,'afterHit',(c,p)=>{if(c.t.hp<=0){c.a.soulState.dragonEaterStacks=(c.a.soulState.dragonEaterStacks??0)+p[1];c.a.soulState.nextEntryAilment=p[0];}},[[0,39],[1,99]],'击败后的下只出场异常等待多精灵换宠流程');
+dist/range-effects.js:828:add(2162,'afterHit',(c,p)=>{c.a.soulState.nextEntryAilment=p[0];},[[0,39]],'下次击败后的下只出场异常等待多精灵换宠流程');
+dist/app.js:19:    const soulHtml = soul.soul ? `<details class="soul-card"><summary>魂印 · ${escape(soul.soul)}<span>查看效果</span></summary><p>${escape(soul.soulText)}</p>${(E.SOULS.registry[f.soulId]?.deferred??[]).map(text=>`<p class="growth-help">多精灵待实现：${escape(text)}</p>`).join('')}</details><div class="effect-list" aria-label="${sideName(i)}持续效果">${effects.length ? effects.map(text=>`<span class="effect-chip">${escape(text)}</span>`).join('') : '<span class="effect-empty">暂无额外持续效果</span>'}</div>` : '';
+dist/app.js:28:      return `<button class="move" data-side="${i}" data-move="${id}" aria-label="${sideName(i)} ${escape(m.name)}" aria-pressed="${selected[i] === id}" ${state.finished || !legal.includes(id) ? 'disabled' : ''}><span class="move-top"><span class="move-name">${escape(m.name)}</span><span class="move-pp">${id === 'struggle' ? '不限 PP' : `PP ${f.pp[id]} / ${m.pp}`}</span></span><span class="move-meta"><span class="${m.type === '草' ? 'grass' : ''}">${m.kind === "status" ? "属性技能" : `${escape(m.slot || m.category)} · ${escape(m.type)} · ${escape(m.category)}`}</span><span>威力 ${m.power || '—'}</span><span>${m.alwaysHit ? "必中" : `命中 ${m.accuracy}%`}</span>${m.priority ? `<span>先制 +${m.priority}</span>` : ""}</span><span class="move-description">${escape(m.description)}</span>${m.deferredEffects?.length?`<span class="move-description">多精灵待实现：${m.deferredEffects.map(x=>escape(x.description)).join("；")}</span>`:""}</button>`;
+
+ERROR: Reconnecting... 2/5
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+tokens used
+9,015
+
+=== round 3 phase engine species 3575 attempt 3 ===
+Reading prompt from stdin...
+OpenAI Codex v0.162.1
+--------
+workdir: /mnt/c/Users/villa/Desktop/seer-battle-lab
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a12f34-0d4e-7bc0-9496-343a387b4be8
+--------
+user
+在 seer-battle-lab 中只处理当前阶段的一个明确子任务。先读取 AGENTS.md、PROGRESS.md、AUTO-PROGRESS.json 并核对磁盘现状。当前精灵 3575，阶段 engine，子任务：实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证。
+阶段顺序严格为 source -> engine -> tests -> verify；只有独立验证成功后调度器才会推进到下一只精灵。本次只完成一个可核验子任务：source 核实真实资料和来源证据；engine 实现对应真实机制；tests 编写状态变化专项测试；verify 修复验证器指出的缺口。不要一次调用跨阶段或处理整只精灵。
+不得编造资料、弱化测试、修改 AGENTS.md、删除进度或修改无关核心逻辑。完成后原子更新 AUTO-PROGRESS.json 的 phase、subtask、completedSubtasks、pendingEffects、sources、lastFailure 等字段，并更新 PROGRESS.md。
+
+重试前重新读取的最新 AUTO-PROGRESS.json：
+{
+  "schemaVersion": 2,
+  "cursor": {
+    "index": 60,
+    "id": 3575
+  },
+  "batchSize": 10,
+  "activeBatch": [
+    3575,
+    3576,
+    3577,
+    3580,
+    3584,
+    3586,
+    3592,
+    3613,
+    3623,
+    3626
+  ],
+  "revisitQueue": [],
+  "lastRound": "2026-10-12",
+  "lastProgress": "3575 engine 已实现并验证效果 1329、732、923、1864；642、1331、2162 保留多精灵延期，游标不推进",
+  "phase": "engine",
+  "subtask": "实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证",
+  "completedSubtasks": [
+    "source:3575 真实资料、邪灵龙属性组合70及剩余效果参数已由SeerAPI缓存证据核实",
+    "engine:3575 效果 1329、732、923、1864 已接入真实状态变化；效果 642、1331、2162 已注册并明确 deferred 多精灵流程"
+  ],
+  "pendingEffects": [
+    642,
+    1331,
+    2162
+  ],
+  "sources": [
+    {
+      "provider": "seerapi",
+      "status": "cached",
+      "verifiedAt": "2026-10-12",
+      "note": "现有快照及缓存可核对；直连曾 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "verified",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 pet/3575、soulmark/875、element_type_combination/70 及效果 642、1329、1331、732、923、1864、2162 缓存逐项核对；pet revision 5bba7b98，typeChart revision c9d6b67f；直连刷新仍 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "used",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 剩余效果实例参数用于引擎注册；1864 异常枚举 26/14 已按缓存参数扩展映射"
+    }
+  ],
+  "lastTest": {
+    "command": "node --test tests/deployed-3575.test.cjs && npm test",
+    "status": 0,
+    "at": "2026-10-12"
+  },
+  "lastFailure": null,
+  "recovery": {
+    "maxRetries": 2,
+    "maxRuntimeSeconds": 3600,
+    "maxNoProgress": 3
+  }
+}
+
+重试时只继续该阶段剩余子任务，不要重复已保存的工作。
+
+重试前重新读取的最新 AUTO-PROGRESS.json：
+{
+  "schemaVersion": 2,
+  "cursor": {
+    "index": 60,
+    "id": 3575
+  },
+  "batchSize": 10,
+  "activeBatch": [
+    3575,
+    3576,
+    3577,
+    3580,
+    3584,
+    3586,
+    3592,
+    3613,
+    3623,
+    3626
+  ],
+  "revisitQueue": [],
+  "lastRound": "2026-10-12",
+  "lastProgress": "3575 engine 已实现并验证效果 1329、732、923、1864；642、1331、2162 保留多精灵延期，游标不推进",
+  "phase": "engine",
+  "subtask": "实现 3575 剩余多精灵效果机制（642、1331、2162）并完成引擎验证",
+  "completedSubtasks": [
+    "source:3575 真实资料、邪灵龙属性组合70及剩余效果参数已由SeerAPI缓存证据核实",
+    "engine:3575 效果 1329、732、923、1864 已接入真实状态变化；效果 642、1331、2162 已注册并明确 deferred 多精灵流程"
+  ],
+  "pendingEffects": [
+    642,
+    1331,
+    2162
+  ],
+  "sources": [
+    {
+      "provider": "seerapi",
+      "status": "cached",
+      "verifiedAt": "2026-10-12",
+      "note": "现有快照及缓存可核对；直连曾 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "verified",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 pet/3575、soulmark/875、element_type_combination/70 及效果 642、1329、1331、732、923、1864、2162 缓存逐项核对；pet revision 5bba7b98，typeChart revision c9d6b67f；直连刷新仍 fetch failed"
+    },
+    {
+      "provider": "seerapi-cache",
+      "status": "used",
+      "verifiedAt": "2026-10-12",
+      "note": "3575 剩余效果实例参数用于引擎注册；1864 异常枚举 26/14 已按缓存参数扩展映射"
+    }
+  ],
+  "lastTest": {
+    "command": "node --test tests/deployed-3575.test.cjs && npm test",
+    "status": 0,
+    "at": "2026-10-12"
+  },
+  "lastFailure": null,
+  "recovery": {
+    "maxRetries": 2,
+    "maxRuntimeSeconds": 3600,
+    "maxNoProgress": 3
+  }
+}
+
+重试时只继续该阶段剩余子任务，不要重复已保存的工作。
+
+ERROR: Reconnecting... 2/5

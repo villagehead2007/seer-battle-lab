@@ -1,0 +1,1 @@
+const fs=require('fs');let p='dist/souls.js',s=fs.readFileSync(p,'utf8');s=s.replace('${source}：结算伤害 ${settledDamage}，损失 ${v} 点体力。','${source}：损失 ${v} 点体力（结算伤害 ${settledDamage}）。');s=s.replace('${name(t)} 结算伤害 ${settledDamage}，损失 ${dealt} 点体力','${name(t)} 损失 ${dealt} 点体力（结算伤害 ${settledDamage}）');fs.writeFileSync(p,s);

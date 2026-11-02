@@ -1,0 +1,41 @@
+{
+  "createdAt": "2026-10-23T10:29:24.780Z",
+  "root": "C:\\Users\\villa\\Desktop\\seer-battle-lab",
+  "patches": [
+    {
+      "file": "dist/range-effects.js",
+      "baseSha256": "363e763a91eef39b2010ef12ee669f795c7583c8e95cd2474dee688893b19440",
+      "needle": "add(529,'afterHit',c=>{if(c.a.hp<=0||c.t.hp<=0)return;const a=c.a.hp/c.a.stats.maxHp,t=c.t.hp/c.t.stats.maxHp;if(c.m.hpExchangePolicy==='known-integer-only'&&(!Number.isInteger(t*c.a.stats.maxHp)||!Number.isInteger(a*c.t.stats.maxHp)||t*c.a.stats.maxHp<1||a*c.t.stats.maxHp<1))throw Error((c.m.hpExchangeQuestion??'未确认百分比交换边界')+'：非整数或低于1HP的取整/保留规则待确认');c.a.hp=Math.floor(t*c.a.stats.maxHp);c.t.hp=Math.floor(a*c.t.stats.maxHp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力百分比。');});",
+      "insert": "add(529,'afterHit',c=>{if(c.a.hp<=0||c.t.hp<=0)return;const a=c.a.hp/c.a.stats.maxHp,t=c.t.hp/c.t.stats.maxHp,id=c.m.wikiId??c.m.id;const confirmed=id===28087&&c.m.revision==='seerapi:666527f7'&&c.effectInstanceIndex===0;if(id===28087&&!confirmed)throw Error('Q-N20-4421-001：529仅确认28087/666527f7实例0');if(confirmed){c.a.hp=Math.max(1,Math.ceil(t*c.a.stats.maxHp));c.t.hp=Math.max(1,Math.ceil(a*c.t.stats.maxHp));}else{if(c.m.hpExchangePolicy==='known-integer-only'&&(!Number.isInteger(t*c.a.stats.maxHp)||!Number.isInteger(a*c.t.stats.maxHp)||t*c.a.stats.maxHp<1||a*c.t.stats.maxHp<1))throw Error((c.m.hpExchangeQuestion??'未确认百分比交换边界')+'：非整数或低于1HP的取整/保留规则待确认');c.a.hp=Math.floor(t*c.a.stats.maxHp);c.t.hp=Math.floor(a*c.t.stats.maxHp);}c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力百分比。');});\n{const old=registry[529];registry[529]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.id===28087&&(m.hash!=='666527f7'||m.revision!=='seerapi:666527f7'||i!==0||p.length!==0))throw Error('Q-N20-4421-001：529精确来源不匹配');}});}",
+      "why": "Q001 exact new source ceil/min1; retain other sources including3673 unchanged"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSha256": "363e763a91eef39b2010ef12ee669f795c7583c8e95cd2474dee688893b19440",
+      "needle": "metadata[1858]={info:'自身每处于一种能力提升、能力下降、异常状态则附加{0}点固定伤害，自身每有1层龙胆视为自身至少处于一种',args_num:1};add(1858,'afterHit',(c,p)=>{const stages=Object.values(c.a.stages),ailments=Object.values(c.a.ailments).filter(end=>end>=c.round).length,gall=c.a.soulState.dragonGall??0,detailed=stages.filter(n=>n!==0).length+ailments,buckets=Number(stages.some(n=>n>0))+Number(stages.some(n=>n<0))+Number(ailments>0),a=Math.max(gall,detailed),b=Math.max(gall,buckets);if(a!==b)throw Error('Q-N20-4421-002：能力/异常状态按具体项或三类统计的口径未确认');if(a>0&&c.t.hp>0)c.hurt(c.t,a*p[0],c.m.name+'状态种类附伤','fixed');},[[0,99999]]);registry[1858]=Object.freeze({...registry[1858],singleStagePending:'Q-N20-4421-002：只实现两种口径共有的0/1种或龙胆保底已支配的分支，分歧区间未完成'});",
+      "insert": "metadata[1858]={info:'自身每处于一种能力提升、能力下降、异常状态则附加{0}点固定伤害，自身每有1层龙胆视为自身至少处于一种',args_num:1};add(1858,'afterHit',(c,p)=>{const stages=Object.values(c.a.stages),abnormal=Object.values(c.a.ailments).some(end=>end>=c.round),gall=c.a.soulState.dragonGall??0,count=Math.max(gall,Number(stages.some(n=>n>0))+Number(stages.some(n=>n<0))+Number(abnormal));if(count>0&&c.t.hp>0)c.hurt(c.t,count*p[0],c.m.name+'状态种类附伤','fixed');},[[0,99999]]);",
+      "why": "Q002 three categories; gall lower bound, never add gall or detailed per-stat counts"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "baseSha256": "555ed3541bc2fd60e2c8d3b14052a5159b4294386c51ab9bb12f186850ee5099",
+      "needle": "function gainDragonGall(c,n=1){const st=c.a.soulState,before=st.dragonGall??0;st.dragonGall=Math.min(7,before+n);st.dragonGallImmuneUntil=Math.max(st.dragonGallImmuneUntil??0,c.round+1);c.emit?.('龙胆 '+before+' → '+st.dragonGall+'/7；当回合起2回合免疫异常。');}",
+      "insert": "function gainDragonGall(c,n=1){const st=c.a.soulState,before=st.dragonGall??0;st.dragonGall=Math.min(7,before+n);if(st.dragonGall>before)st.dragonGallImmunityPendingRound=c.round;c.emit?.('龙胆 '+before+' → '+st.dragonGall+'/7；获得的回合结束时给予后2回合异常免疫。');}",
+      "why": "Q002 actual gain schedules immunity at end of gain round; cap7 remains immediate"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "baseSha256": "555ed3541bc2fd60e2c8d3b14052a5159b4294386c51ab9bb12f186850ee5099",
+      "needle": "ailmentImmune:f=>(f.soulState.dragonGall??0)>=7||(f.soulState.dragonGallImmuneUntil??0)>0&&f.soulState.calculationRound<=f.soulState.dragonGallImmuneUntil",
+      "insert": "ailmentImmune:f=>(f.soulState.dragonGall??0)>=7||(f.soulState.dragonGallImmuneUntil??0)>0&&f.soulState.calculationRound>=(f.soulState.dragonGallImmuneFrom??1)&&f.soulState.calculationRound<=f.soulState.dragonGallImmuneUntil",
+      "why": "Do not make scheduled immunity active in remaining gain round"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "baseSha256": "555ed3541bc2fd60e2c8d3b14052a5159b4294386c51ab9bb12f186850ee5099",
+      "needle": "combatEnd(c){if(c.a.hp<=0||c.a.soulState.zhaoFailureRound!==c.round)return;for(const k of ['atk','def','spa','spd','spe','acc'])if(c.a.stages[k]<0)c.stage(c.a,-2*c.a.stages[k],[k]);}",
+      "insert": "combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState;if(st.dragonGallImmunityPendingRound===c.round){const oldUntil=st.dragonGallImmuneUntil??0;st.dragonGallImmuneFrom=oldUntil>=c.round?Math.min(st.dragonGallImmuneFrom??1,c.round+1):c.round+1;st.dragonGallImmuneUntil=Math.max(oldUntil,c.round+2);delete st.dragonGallImmunityPendingRound;}if(st.zhaoFailureRound!==c.round)return;for(const k of ['atk','def','spa','spd','spe','acc'])if(c.a.stages[k]<0)c.stage(c.a,-2*c.a.stages[k],[k]);}",
+      "why": "End-round immunity grant independent of failure compensation; preserve existing active interval"
+    }
+  ]
+}

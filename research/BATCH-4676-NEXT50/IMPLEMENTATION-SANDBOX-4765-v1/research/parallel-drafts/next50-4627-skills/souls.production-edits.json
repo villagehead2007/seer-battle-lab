@@ -1,0 +1,38 @@
+[
+  {
+    "old": "function reactivateBedEntry(f){",
+    "replacement": "function hestiaFirst1855(a,m,e){if(e.grantRound!==r||e.grantMove!==m.id||e.grantUse!==(a.soulState.skillUses?.[m.id]??0))return true;const p=a.soulState.qualifiedFirstUse4627;if(!['immediate','next-use'].includes(p))throw Error('Q-N50-4625-011：新1855首次授予本次技能是否触发待确认');return p==='immediate';}\n    function reactivateBedEntry(f){"
+  },
+  {
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'用招无强化百分比追加'))",
+    "replacement": "if(a.hp>0&&on(a,'赫斯用招回血无强附伤')&&hestiaFirst1855(a,m,a.effects['赫斯用招回血无强附伤'])){const e=a.effects['赫斯用招回血无强附伤'];heal(a,a.stats.maxHp/e.healDenominator,'赫斯既授用招回复','skill');if(!Object.values(a.stages).some(n=>n>0))inflict(a,t,t.stats.maxHp/e.damageDenominator,'赫斯无强化最大体力百分附伤','percent');}\n      if(actionPayloadAllowed&&a.hp>0&&on(a,'用招无强化百分比追加'))"
+  },
+  {
+    "old": "defeat:(f,label,options)=>defeat(f,a,label,options),",
+    "replacement": "defeat:(f,label,options)=>defeat(f,a,label,options),triggerBurn2147(f){f=actualFighter(f);if(f.hp<=0||!(f.ailments['烧伤']>=r))return 0;const original=fs[f.statusState?.sources?.['烧伤']??1-f.side],policy=a.soulState.qualified2147Defeater4627,source=policy==='activator'?a:original;f.soulState.triggeredBurn2147={actorSide:a.side,originalSide:original.side,policy,move:m?.wikiId??m?.id,revision:m?.revision};try{return withDamageOrigin('ailment',()=>hurt(f,f.stats.maxHp/8,'佑灵触发烧伤体力扣除','percent',false,false,source));}finally{delete f.soulState.triggeredBurn2147;}},"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=(kind='other')=>{",
+    "replacement": "if(on(t,'reflect')&&t.effects.reflect.hestia191&&(t.counts.immune>0||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length)||t.soulState.hestia2148>0&&t.counts.immune>0&&(t.counts.immune!==t.soulState.hestia2148||on(t,'reflect')||on(t,'控制异常反弹')&&statusRules.isControl(k)||on(t,'免异常')||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：赫斯191/2148实际异来源免疫消费待确认');let explicitImmunity=false;const immuneGate=(kind='other')=>{"
+  },
+  {
+    "old": "if(reason==='count-immunity'&&t.soulState.mingpan1419>0)--t.soulState.mingpan1419;",
+    "replacement": "if(reason==='count-immunity'&&t.soulState.hestia2148>0)--t.soulState.hestia2148;if(reason==='count-immunity'&&t.soulState.mingpan1419>0)--t.soulState.mingpan1419;"
+  },
+  {
+    "old": "E.SOULS.run('opponentBeforeUse',{...context(t,a,m),first});",
+    "replacement": "if(m.kind!=='status'&&m.kind!=='item'&&on(t,'赫斯对手用攻烧伤')){const policy=t.soulState.qualified663Timing4627;if(!['before','after'].includes(policy))throw Error('Q-N50-4604-004：663对手实际用攻烧伤施加准确时点待确认');if(policy==='before'){const e=t.effects['赫斯对手用攻烧伤'];if(rng(s)*100<e.chance)ailment(a,'烧伤',t,false,false,null,{probabilityPercent:e.chance,origin:'skill'});}}E.SOULS.run('opponentBeforeUse',{...context(t,a,m),first});"
+  },
+  {
+    "old": "E.SOULS.run('afterUse',{...context(a,t,m),",
+    "replacement": "if(m.kind!=='status'&&m.kind!=='item'&&on(t,'赫斯对手用攻烧伤')&&t.soulState.qualified663Timing4627==='after'){const e=t.effects['赫斯对手用攻烧伤'];if(rng(s)*100<e.chance)ailment(a,'烧伤',t,false,false,null,{probabilityPercent:e.chance,origin:'skill'});}E.SOULS.run('afterUse',{...context(a,t,m),"
+  },
+  {
+    "old": "a.soulState.nextAttackPercentThis=m.kind!=='status'&&a.counts.nextAttackPercentUses>0?(a.soulState.nextAttackPercentFraction??0):0;if(a.soulState.nextAttackPercentThis)a.counts.nextAttackPercentUses--;",
+    "replacement": "if(m.kind!=='status'&&a.soulState.hestia1849&&a.counts.nextAttackPercentUses>0&&(a.counts.nextAttackPercentUses!==a.soulState.hestia1849.uses||a.soulState.nextAttackPercentFraction!==a.soulState.hestia1849.fraction))throw Error('Q-N50-4511-006：1849与其他下次百分比附伤次数/比例混源待确认');a.soulState.nextAttackPercentThis=m.kind!=='status'&&a.counts.nextAttackPercentUses>0?(a.soulState.nextAttackPercentFraction??0):0;if(a.soulState.nextAttackPercentThis){a.counts.nextAttackPercentUses--;if(a.soulState.hestia1849)delete a.soulState.hestia1849;}"
+  },
+  {
+    "old": "f.soulState.lastDefeatRound=r;",
+    "replacement": "f.soulState.lastDefeatRound=r;{const burn=f.soulState.triggeredBurn2147,marker=burn&&fs[burn.actorSide].soulState.specialStates?.['炙光火种'];if(burn?.move===37251&&burn.revision==='seerapi:903451e4'&&burn.originalSide!==burn.actorSide&&f.soulId===1833&&marker?.sourceSide===f.side&&marker?.sourceSoul===1833&&!['source','activator'].includes(burn.policy))throw Error('Q-N50-4589-004：2147主动触发异源烧伤致死的击败归属待确认');}"
+  }
+]

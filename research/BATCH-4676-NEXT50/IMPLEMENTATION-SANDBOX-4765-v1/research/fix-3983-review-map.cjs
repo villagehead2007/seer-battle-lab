@@ -1,0 +1,1 @@
+const fs=require('fs'),p='research/review-record-3983.cjs';let s=fs.readFileSync(p,'utf8').replace("groups=[[[1202]","groups=[[[980],'980仅先手'],[[1202]").replace("passed:13,exitCode:0,log:'research/3983-independent-v2.log'","passed:14,exitCode:0,log:'research/3983-independent-v3.log'");fs.writeFileSync(p,s);

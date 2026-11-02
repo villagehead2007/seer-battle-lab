@@ -1,0 +1,13 @@
+'use strict';const fs=require('fs'),assert=require('assert/strict');function change(p,a,b){const t=fs.readFileSync(p,'utf8');assert.ok(t.includes(a),a.slice(0,150));fs.writeFileSync(p,t.replace(a,b));}let p='dist/range-effects.js',t=fs.readFileSync(p,'utf8'),i=t.lastIndexOf('});');fs.writeFileSync(p,t.slice(0,i)+`
+// SeerAPI glossary405/a148cad5: exact self-skill recovery-lock family is an own-action window, all healing origins.
+for(const id of[797,905,679,1361,1449]){const old=registry[id];if(!old.template.includes('自身技能'))throw Error('API405 reviewed family template mismatch '+id);registry[id]=Object.freeze({...old,execute(c,p){const timed=c.timed;return old.execute({...c,timed(f,key,n,data={},start=c.round){if(key==='技能禁疗')key='无法通过自身技能恢复体力';else if(key==='技能回复转伤害')key='自身行动回复转伤害';return timed(f,key,n,data,start);}},p);}});}
+`+t.slice(i));
+change('dist/souls.js','let skillPhase=false,currentActorSide=null,damageSourceOrigin=null,','let skillPhase=false,currentActorSide=null,ownRecoverySide405=null,damageSourceOrigin=null,');
+change('dist/souls.js','for(const side of [first,1-first]){currentActorSide=side;','for(const side of [first,1-first]){currentActorSide=side;ownRecoverySide405=side;try{');
+change('dist/souls.js','skillPhase=false;finish();\n    }\n    for(const f of fs)if(f.soulState.jelon1294End','skillPhase=false;finish();}finally{ownRecoverySide405=null;}\n    }\n    for(const f of fs)if(f.soulState.jelon1294End');
+change('dist/souls.js',"function heal(f,n,source,origin='',allowRevive=false) {const clawCut=", "function heal(f,n,source,origin='',allowRevive=false) {const ownWindow405=ownRecoverySide405===f.side,blocked405=ownWindow405&&on(f,'无法通过自身技能恢复体力'),redirect405=ownWindow405&&on(f,'自身行动回复转伤害');const clawCut=");
+change('dist/souls.js',"const common=f.hp>0&&f.hp<f.stats.maxHp&&!on(f,'四杀鬼囹')", "const common=f.hp>0&&f.hp<f.stats.maxHp&&!blocked405&&!on(f,'四杀鬼囹')");
+change('dist/souls.js',"if(auraConversion&&(on(f,'技能禁疗')", "if(auraConversion&&(blocked405||redirect405||on(f,'技能禁疗')");
+change('dist/souls.js',"if(origin==='skill'&&(on(f,'技能禁疗')||on(fs[1-f.side],'次元领域'))){", "if(blocked405){emit(name(f)+' 无法通过自身技能恢复体力：自身行动期间所有回复效果减少100%。');return 0;}if(origin==='skill'&&(on(f,'技能禁疗')||on(fs[1-f.side],'次元领域'))){");
+change('dist/souls.js',"if(origin==='skill'&&on(f,'技能回复转伤害')){", "if(redirect405){const e=f.effects['自身行动回复转伤害'];if(v>0)withDamageOrigin('skill',()=>inflict(fs[e.sourceSide],f,v*e.fraction,'自身行动回复转伤害','percent'));return 0;}if(origin==='skill'&&on(f,'技能回复转伤害')){");
+console.log('API405 exact family: own action try/finally window, all healing origins in it; non-self-worded legacy skill-heal bans remain distinct');

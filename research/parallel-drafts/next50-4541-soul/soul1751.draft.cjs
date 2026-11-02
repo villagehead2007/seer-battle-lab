@@ -1,0 +1,10 @@
+'use strict';
+const shields=require('../../../dist/shield-rules.js');const source='mortarion:1751:entry';
+function entry(c){if(c.a.hp<=0)return false;if(c.refreshBarrier)c.refreshBarrier(c.a,300,source);else shields.refreshBarrier(c.a,300,source);return true;}
+function branch(c){if(c.t.hp<=0)return;const has=Object.values(c.t.effects).some(e=>e.start<=c.round&&e.end>=c.round);if(has)c.stage(c.a,1);else c.ailment(c.t,'束缚',c.a);}
+function fear(c){if(c.a.hp>0&&c.t.hp>0&&Object.values(c.t.stages).some(n=>n<0))return c.ailment(c.t,'害怕',c.a);return false;}
+function reward(c){if(c.a.hp<=0)return false;if((c.a.counts.attackNullify??0)>0)throw Error('Q-N50-4511-006：1751击败授予免攻与旧次数共存待确认');entry(c);c.a.counts.attackNullify=1;c.a.soulState.mortarionNullify1751=1;return true;}
+module.exports={name:'莫塔里安',sourceHash:'db78b900',partial:true,unimplemented:['Q-N50-4541-001：1751束缚/全强分支触发窗口待确认','Q-N50-4541-002：1751当回合未击败时害怕判定时点待确认'],traits:{ailmentImmune:f=>(f.soulState.mortarionActiveRound??0)>0&&f.soulState.mortarionActiveRound===f.soulState.calculationRound},abilities:{entry,qualifiedRoundBranch:branch,qualifiedFear:fear,qualifiedDefeatReward:reward},deferred:['真实再次登场获得来源护罩；当前初始与击败再触发自身入场已实现','击败后下一次真正后继对手攻击的场间免攻保存；当前免攻状态及消费已实现'],hooks:{battleStart:entry,roundStart(c){c.a.soulState.mortarionActiveRound=c.barrierSourceValue(c.a,source)>0?c.round:0;if(c.a.soulState.mortarionActiveRound===c.round){c.a.soulState.mortarionPendingBranch={round:c.round,question:'Q-N50-4541-001'};c.emit('研究态未完成：Q-N50-4541-001，1751束缚/全强时点待确认，本分支未自动执行。');}},opponentAfterUse(c){if(c.a.soulState.mortarionActiveRound===c.round&&['physical','special'].includes(c.m.kind)&&c.a.hp>0&&c.t.hp>0)c.stage(c.t,-2,['spe']);},combatEnd(c){if(c.a.hp>0&&c.t.hp>0&&Object.values(c.t.stages).some(n=>n<0)){c.a.soulState.mortarionPendingFear={round:c.round,question:'Q-N50-4541-002'};c.emit('研究态未完成：Q-N50-4541-002，1751未击败害怕时点待确认，本分支未自动执行。');}},damageDealt(c){if(c.a.hp<=0||c.t.hp>0||!c.t.soulState.deathResolved)return;const st=c.a.soulState;if(st.mortarionRewardRound===c.round&&st.mortarionRewardSide===c.t.side)return;reward(c);st.mortarionRewardRound=c.round;st.mortarionRewardSide=c.t.side;}}};
+
+
+

@@ -1,0 +1,41 @@
+const fs=require('fs'),path=require('path'),snapshot=require('../../4604-reviewed-snapshot.json');
+const rows=snapshot.moves.flatMap(m=>m.effectInstances.map((x,index)=>({moveId:m.id,hash:m.hash,index,id:x.id,args:x.args})));
+let f=`// 4604 exact-source skill clauses; collapse is a distinct phase, never ordinary hit payload.\nconst exact4604=(m,i,x,p)=>!!m&&(m.wikiId?(m.provider===undefined||m.provider==='seerapi'):m.provider==='seerapi')&&(m.wikiId??m.id)===x.moveId&&m.revision==='seerapi:'+x.hash&&(m.wikiId||m.hash===x.hash)&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args);\n`;
+const fresh=[1563,559,546,2111,2112,2113,2114,2115];
+for(const id of fresh){const e=snapshot.effects.find(x=>x.id===id);f+=`metadata[${id}]=${JSON.stringify({info:e.template,args_num:e.argsNum})};\n`;}
+f+=String.raw`
+add(1563,'afterHit',(c,p)=>{const low=c.a.hp<p[2],cost=Math.min(c.a.hp,p[0]);c.hurt(c.a,cost,c.m.name+'自身损失','direct',true);c.hurt(c.t,p[1]*(low?2:1),c.m.name+'固定伤害','fixed');},[[0,99999],[0,99999],[0,99999]]);
+add(559,'afterHit',(c,p)=>c.timed(c.a,'萨芙凯特敌用攻击随机异常',p[0],{}),[[1,99]]);
+add(546,'afterHit',(c,p)=>{if(c.t.ailments[ailments[p[0]]]>=c.round)for(let i=0;i<6;i++)if(p[i+1])c.stage(c.t,p[i+1],[stats[i]]);},[[0,99],...Array(6).fill([-6,6])]);
+add(2111,'collapse1809',c=>{c.t.soulState.saff2111Source={move:c.m.wikiId??c.m.id,hash:c.m.hash??c.m.revision.slice(8)};},[],'当前敌方直到真实下场的属性技能无效已完成；真实切换时清除此来源状态延期');
+add(2112,'collapse1809',c=>{c.a.soulState.saffControlImmune1809=true;},[]);
+add(2113,'collapse1809',c=>{c.a.soulState.saffCollapsePriority1809=1;},[]);
+add(2114,'collapse1809',c=>c.soulAbility(1809,'grantInstructions',2),[]);
+add(2115,'finalCommand1809',c=>{const p=c.finalCommand1809Input;if(!p)throw Error('Q-N50-4604-005：最终指令基数及公共属性伤害/消逝载荷待确认');registry[2115].qualifiedFinalCommand(c,p);},[]);
+registry[2115]=Object.freeze({...registry[2115],qualifiedFinalCommand(c,p){if(!p||!Number.isFinite(p.basis)||p.basis<0||p.channel!=='independent-typed'||p.disappearance!=='direct-no-death')throw Error('4604最终指令必须明确消逝、基数与伤害通道');const before=c.a.hp;c.a.hp=0;c.a.soulState.saffFinalDisappeared1809=true;c.clear(c.t);c.clearBoost(c.t);const amount=c.typedAttack(p.basis,'水次元');return {consumed:before,basis:p.basis,amount};}});
+{const old=registry[928];registry[928]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==37110)return old.execute(c,p);if(c.clear(c.t)){if(c.a.counts.immune>0||c.a.soulState.immunity1757Charges?.length||c.a.soulState.oracle2059Charges?.length||c.a.soulState.jiege1819Charges>0||c.a.soulState.emptyPoemImmune1791>0)throw Error('Q-N50-4511-006：928重复或混源免疫次数授予待确认');c.a.counts.immune=p[0];c.a.soulState.saff928Charges=p[0];}}});}
+{const old=registry[87];registry[87]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28605)return old.execute(c,p);c.restorePP(c.a,99,'skill');}});}
+{const old=registry[1660];registry[1660]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28598)return old.execute(c,p);if(!(statusRoll(c,p[0])&&c.ailment(c.t,'冰封',c.a,false,false,null,{probabilityPercent:p[0]}))&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[2]);}});}
+{const old=registry[2026];registry[2026]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==37114)return old.execute(c,p);if(!conditionStatusRules.conditionPresent(c.t,c.round)&&statusRoll(c,p[0]))c.ailment(c.a,'凝滞',c.a);}});}
+{const old=registry[654];registry[654]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28606)return old.execute(c,p);c.timed(c.a,'萨芙凯特特殊闪避',p[0],{chance:p[1]});}});}
+{const old=registry[849];registry[849]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28597)return old.execute(c,p);c.timed(c.a,'文森特伤前吸能力',p[0],{count:p[1]});throw Error('Q-N50-4589-002：849属性用招伤前时点待确认');}});}
+{const old=registry[1892];registry[1892]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28599)return old.execute(c,p);c.timed(c.a,'斯布林蒂用招吸取',p[0],{amount:p[1],threshold:1/p[2],failureDamage:p[3],originMove:28599,originHash:'430b59f2'});}});}
+{const old=registry[1672];registry[1672]=Object.freeze({...old,phase:'beforeUse',hooks:{...(old.hooks??{}),beforeAccuracy(c,p){if((c.m.wikiId??c.m.id)===28598&&c.a.hp<c.a.stats.maxHp)healthRules.drainFixed({...c,heal:(f,n,label)=>c.heal(f,n,label,'skill')},p[0],c.m.name+'出手吸取',c.m.name+'理论吸取回复');}},execute(c,p){if((c.m.wikiId??c.m.id)!==28598)return old.execute(c,p);}});}
+{const old=registry[1232];registry[1232]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==28599)return old.execute(c,p);const neg=Object.entries(c.a.stages).filter(([,v])=>v<0);if(neg.length&&(c.on(c.a,'禁强化')||c.on(c.a,'弱化不可解除反转')||c.a.soulState.witchEyesWeaknessLocked||c.weaknessBlocked(c.t)))throw Error('Q-N50-4511-002：1232反转与附加弱化保护交互待确认');return old.execute(c,p);}});}
+{const old=registry[1868];registry[1868]=Object.freeze({...old,deferredFor(p,m,i){if((m?.wikiId??m?.id)===37114)return '真实本回合敌方切换前置，切换后凝滞失败才冻伤；无切换不触发整条';return old.deferredFor?old.deferredFor(p,m,i):old.deferred;}});}
+`;
+for(const id of [...fresh,1058,928,87,599,1660,654,849,1892,1672,1232,1172,546,2026,1868]){const b=rows.filter(x=>x.id===id);f+=`{const old=registry[${id}],b=${JSON.stringify(b)};registry[${id}]=Object.freeze({...old,validate(p,m,i){if(b.some(x=>exact4604(m,i,x,p)))return;${fresh.includes(id)?"throw Error('4604 exact source mismatch');":"if(b.some(x=>x.moveId===(m?.wikiId??m?.id)))throw Error('4604 exact source mismatch');return old.validate?.(p,m,i);"}}});}\n`;}
+const edits=[];
+edits.push({old:"k=witchEyeAilment(t,k);",replacement:"k=witchEyeAilment(t,k);if(!bypass&&t.soulState.saff928Charges>0&&(t.counts.immune!==t.soulState.saff928Charges||on(t,'reflect')||on(t,'免异常')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length||t.soulState.jiege1819Charges>0||t.soulState.emptyPoemImmune1791>0))throw Error('Q-N50-4511-006：928次数实际混源消费待确认');"});
+edits.push({old:"const immuneGate=(kind='other')=>{",replacement:"const immuneGate=(kind='other')=>{if(t.soulState.saff928Charges>0)throw Error('Q-N50-4511-006：928与其他实际免疫来源共存待确认');"});
+edits.push({old:"if(reason==='count-immunity')emit",replacement:"if(reason==='count-immunity'&&t.soulState.saff928Charges>0)t.soulState.saff928Charges--;if(reason==='count-immunity')emit"});
+edits.push({old:"function statusInvalidKinds(a,t){let n=0;",replacement:"function statusInvalidKinds(a,t){let n=0;if(a.soulState.saff2111Source)n++;if(t.soulState.saff2111Source)n++;"});
+edits.push({old:"||on(a,m.kind==='status'?'statusBlock':'attackBlock')",replacement:"||(m.kind==='status'&&!!a.soulState.saff2111Source)||on(a,m.kind==='status'?'statusBlock':'attackBlock')"});
+edits.push({old:"originMove:28587,originHash:'3bd9f5ab'",replacement:"originMove:e.originMove??28587,originHash:e.originHash??'3bd9f5ab'"});
+edits.push({old:"const evaded=(m.kind!=='status'&&!alwaysHit&&nextAttackDodgeChance",replacement:"const evaded=(m.kind==='special'&&!alwaysHit&&on(t,'萨芙凯特特殊闪避')&&rng(s)*100<t.effects['萨芙凯特特殊闪避'].chance)||(m.kind!=='status'&&!alwaysHit&&nextAttackDodgeChance",all:true});
+// 559 only qualified timing for now: real used attack event happens at the existing after-use boundary.
+const use="if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'斯布林蒂用招吸取'))";
+edits.push({old:use,replacement:"if(used[a.side]&&m.kind!=='status'&&m.kind!=='item'&&on(t,'萨芙凯特敌用攻击随机异常')){if(t.soulState.saff559Timing!=='after-use')throw Error('Q-N50-4604-004：559使用攻击后的准确施加时点待确认');context(t,a,m,'skill').randomAilmentsFrom(1,['烧伤','冻伤','中毒','麻痹','害怕','睡眠'],559);}\n      "+use});
+// all anchors explicitly expanded at build time; no global replace during private preload.
+const source=fs.readFileSync(path.resolve(__dirname,'../../../dist/souls.js'),'utf8'),expanded=[];for(const e of edits){if(e.all){const matches=source.split(e.old).length-1;if(matches!==2)throw Error('expected 2 evasion anchors '+matches);for(let i=0;i<matches;i++)expanded.push({old:e.old,replacement:e.replacement});}else expanded.push(e);}
+fs.writeFileSync(path.join(__dirname,'range-effects.production-fragment.js'),f);fs.writeFileSync(path.join(__dirname,'souls.production-edits.json'),JSON.stringify(expanded,null,2)+'\n');console.log({rows:rows.length,patches:expanded.length});

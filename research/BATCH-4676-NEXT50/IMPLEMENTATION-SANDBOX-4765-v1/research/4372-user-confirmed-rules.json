@@ -1,0 +1,149 @@
+{
+  "at": "2026-10-23T06:00:44.497Z",
+  "species": 4372,
+  "currentDocument": {
+    "path": "research/BATCH-4329-NEXT20-QUESTIONS.md",
+    "archive": "research/BATCH-4329-NEXT20-QUESTIONS.2026-10-23T05-00-02-346Z.answered-4359-followup.archive.md",
+    "sha256": "1bb16e6d42087cdb2438a43b2cb510261e0ab4a253dded5d2ceec8a5aa7d493f",
+    "bytes": 878944,
+    "at": "2026-10-23T05:00:02.346Z"
+  },
+  "archive": "research/BATCH-4329-NEXT20-QUESTIONS.2026-10-22T17-15-24-304Z.archive.md",
+  "sha256": "c3b400a07105dfbe033770b8da7776f5c1434b58e1cfeec82a1b1951e8a3bfba",
+  "confirmations": [
+    {
+      "questionId": "Q-N20-4364-004",
+      "heading": "### Q-N20-4364-004 — 原版保护消失后先制效果失效的范围",
+      "line": 6271,
+      "originalSection": "### Q-N20-4364-004 — 原版保护消失后先制效果失效的范围\n\n关联实例：1588格式化字段“群芳加护消失后，下回合对手先制效果失效”。完整原文、URL、hash与参数见上述原始JSON，未改写来源。\n\n已查与缺口/战斗差异：已查原文、Wiki及既有确认；Q-A60-4288-076只对4288确认额外正向先制失效，不能扩为此实例。基础技能先制、额外正向先制、负向修正是否保留影响实际顺序；当前先制分支显式pending，原版保护消失/回复与禁止真实切换的延期均已分离。\n\n明确问题：1588的先制失效仅禁止额外正向先制，还是也把基础先制与负向修正归零？\n\n完成与阻塞：所有不依赖答案的来源、逐项审核、实现及真实状态成功/失败/边界/关键交互完成。仅所列未知分支及正常完整部署/正式验收受阻，不伪称成功或豁免。\n\n我的回答：4372魂印1597在迷阵解除后的先制失效，也把基础先制、额外正先制和负向修正全部归零\n\n",
+      "answerLines": [
+        "我的回答：4372魂印1597在迷阵解除后的先制失效，也把基础先制、额外正先制和负向修正全部归零\n\n"
+      ]
+    },
+    {
+      "questionId": "Q-N20-4372-001",
+      "heading": "### Q-N20-4372-001 — 首次睡眠“命中前”与“使用前”的API时序冲突",
+      "line": 6472,
+      "originalSection": "### Q-N20-4372-001 — 首次睡眠“命中前”与“使用前”的API时序冲突\n\n1597/hashd8f17d91，eid1958[100,1,30,1,30,120,1]。API desc写“每次登场后自身首次技能命中前100%令对手睡眠，未触发则消除对手回合类效果”；同一API格式化字段写“每次登场之后，自身首次使用技能前100%令对手睡眠”。Wiki只重复命中前；底层eid无补充说明。不能用代码或Wiki裁决API内部差异。\n\n差异：按使用前，首次MISS/整体被封也可能已经睡眠或清回合并消费首次；按命中前实际未命中可能保留到下次命中。当前确定实际命中前的交集已实现，睡眠成功、免疫/反弹后清回合、免断失败、药剂不消费、控制未用均验证；不明首次失败后明确记录pending而不在之后猜测补触发。睡眠还会被本次真实攻击打醒，相关顺序和1805倍率均已真实断言。\n\n明确问题：1597首次睡眠按首次实际使用还是首次实际命中触发？MISS、整体封锁、失明三种失败时分别触发及消费首次吗？\n\n我的回答：实际使用；消费\n",
+      "answerLines": [
+        "我的回答：实际使用；消费\n"
+      ]
+    },
+    {
+      "questionId": "Q-N20-4372-002",
+      "heading": "### Q-N20-4372-002 — 1806已迷阵时免PP在未命中/整体无效的范围",
+      "line": 6482,
+      "originalSection": "### Q-N20-4372-002 — 1806已迷阵时免PP在未命中/整体无效的范围\n\n第五35890/hash603f67fb，实例2，1806[]/hash1b3ca568。原文“陷入失心迷阵时当次攻击不消耗自身PP值”，API analyze_info把整条标记iconHit；格式化未补充免耗在命中前或只在成功命中时成立。Wiki效果1806重复原文，项目旧来源未有本实例明确确认。\n\n正常成功分支已完整实现为不发生基础PP消耗，不伪装成回复：三倍基础消耗仍免；对手下一用招PP归0仍能归0，不会退款抵消其效果；PP保护按公共规则；原本未迷阵时本次正常消耗并施阵；非雄性回满、禁疗及击败后回复均测试。未知失败分支运行时明确抛待确认且原输入完整保留，不返回猜测战斗状态。使用前已经被关闭的攻击命中附效按现有全阶段通则关闭此免耗，不作为新疑问；已执行的前置效果不因后续附效关闭而回滚。\n\n差异：若发动时满足已迷阵即可免，MISS和被封也可能0基础消耗；若必须成功命中，失败应按正常扣除。1PP、三倍消耗以及随后被额外清PP的场景有实际资源差异。\n\n明确问题：1806免PP是发动时已迷阵就生效，还是必须成功命中？普通MISS、失明、技能整体被封分别是否免基础PP消耗？\n\n我的回答：发动时满足已迷阵即可免；都免\n",
+      "answerLines": [
+        "我的回答：发动时满足已迷阵即可免；都免\n"
+      ]
+    },
+    {
+      "questionId": "Q-N20-4364-004",
+      "heading": "### 关联公共主问题 Q-N20-4364-004 — 4372迷阵解除后的先制失效范围",
+      "line": 6494,
+      "originalSection": "### 关联公共主问题 Q-N20-4364-004 — 4372迷阵解除后的先制失效范围\n\n不新建同义问题。新增关联1597/hashd8f17d91失心迷阵解除条款：desc原文“下回合自身无法主动切换精灵、所有先制效果失效且受到的攻击伤害额外提升120%”，格式化写“自身下回合先制效果失效且受到的攻击伤害提升120%”，完整原文/参数见上方。Q-A60-4288-076仅4288的“额外正向先制失效”不扩大。此主问题须分别明确4364与本4372中“所有/先制效果失效”是否影响基础先制和负向修正；若范围不同请分开说明。当前解除迷阵、次回合攻击易伤120%及换宠延期已实现，优先范围仍pending；不将该主问题的未来仅4364回答自动扩给4372。\n\n\n",
+      "answerLines": []
+    }
+  ],
+  "source": {
+    "provider": "seerapi",
+    "url": "https://api.seerapi.com/v1/pet/4372",
+    "revision": "a5e0fa35",
+    "loadedAt": "2026-10-21T18:30:54.451Z"
+  },
+  "souls": [
+    {
+      "id": 1597,
+      "description": "每次登场后自身首次技能命中前100%令对手睡眠，未触发则消除对手回合类效果，若自身登场时对手为雄性精灵则对手额外陷入失心迷阵；|回合开始时若对手处于失心迷阵则令自身防御、特防、命中+1且当回合自身受到的攻击伤害减少30%；回合开始时若对手未处于失心迷阵则令对手防御、特防、命中-1且当回合自身造成的攻击伤害提升30%|（失心迷阵对手下场不保留，所有特效boss无效）|失心迷阵：自身使用体力药剂时效果变成减少相应的体力；回合结束后，若双方均不处于能力提升及能力下降状态，则失心迷阵解除，下回合自身无法主动切换精灵、所有先制效果失效且受到的攻击伤害额外提升120%",
+      "desc_formatting_adjustment": "<indent=16><sprite=3><indent=32>登场效果：\r\n<indent=32><sprite=4><indent=48>每次登场时，若对手为雄性精灵则令对手陷入<color=#FFF779>失心迷阵</color>\r\n<indent=32><sprite=4><indent=48>每次登场之后，自身首次使用技能前100%<color=#64F9FA>令对手睡眠</color>\r\n<indent=32><sprite=4><sprite=4><indent=64>未触发则<color=#64F9FA>消除</color>对手<b>回合类效果</b>\r\n\r\n<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时：\r\n<indent=32><sprite=4><indent=48>若对手处于失心迷阵则令自身防御、特防、命中+1且当回合自身受到的<b>攻击伤害</b><color=#64F9FA>减少</color>30%\r\n<indent=32><sprite=4><indent=48>若对手不处于失心迷阵则令对手防御、特防、命中-1且当回合自身造成的<b>攻击伤害</b><color=#64F9FA>提升</color>30%\r\n\r\n<indent=0><sprite=5><indent=15>失心迷阵：\r\n<indent=16><sprite=6><indent=32><color=#64F9FA>药剂效果中的体力增加变为体力减少</color>\r\n<indent=16><sprite=6><indent=32>回合结束后，若双方均不处于能力提升及能力下降状态，则失心迷阵解除并触发以下效果：\r\n<indent=32><sprite=4><indent=48>自身下回合<color=#64F9FA>无法主动切换精灵</color>\r\n<indent=32><sprite=4><indent=48>自身下回合<color=#64F9FA>先制效果失效</color>且受到的<b>攻击伤害</b><color=#64F9FA>提升</color>120%",
+      "analyze_desc": "",
+      "hash": "d8f17d91",
+      "eid": 1958,
+      "args": [
+        100,
+        1,
+        30,
+        1,
+        30,
+        120,
+        1
+      ],
+      "isAdvanced": false,
+      "source": {
+        "url": "https://api.seerapi.com/v1/soulmark/1597",
+        "revision": "d8f17d91",
+        "loadedAt": "2026-10-21T18:31:00.552Z"
+      },
+      "from": null,
+      "intensifiedTo": null
+    }
+  ],
+  "bindings": [
+    {
+      "key": "4372:soul:1597",
+      "kind": "soul",
+      "raw": {
+        "id": 1597,
+        "description": "每次登场后自身首次技能命中前100%令对手睡眠，未触发则消除对手回合类效果，若自身登场时对手为雄性精灵则对手额外陷入失心迷阵；|回合开始时若对手处于失心迷阵则令自身防御、特防、命中+1且当回合自身受到的攻击伤害减少30%；回合开始时若对手未处于失心迷阵则令对手防御、特防、命中-1且当回合自身造成的攻击伤害提升30%|（失心迷阵对手下场不保留，所有特效boss无效）|失心迷阵：自身使用体力药剂时效果变成减少相应的体力；回合结束后，若双方均不处于能力提升及能力下降状态，则失心迷阵解除，下回合自身无法主动切换精灵、所有先制效果失效且受到的攻击伤害额外提升120%",
+        "desc_formatting_adjustment": "<indent=16><sprite=3><indent=32>登场效果：\r\n<indent=32><sprite=4><indent=48>每次登场时，若对手为雄性精灵则令对手陷入<color=#FFF779>失心迷阵</color>\r\n<indent=32><sprite=4><indent=48>每次登场之后，自身首次使用技能前100%<color=#64F9FA>令对手睡眠</color>\r\n<indent=32><sprite=4><sprite=4><indent=64>未触发则<color=#64F9FA>消除</color>对手<b>回合类效果</b>\r\n\r\n<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时：\r\n<indent=32><sprite=4><indent=48>若对手处于失心迷阵则令自身防御、特防、命中+1且当回合自身受到的<b>攻击伤害</b><color=#64F9FA>减少</color>30%\r\n<indent=32><sprite=4><indent=48>若对手不处于失心迷阵则令对手防御、特防、命中-1且当回合自身造成的<b>攻击伤害</b><color=#64F9FA>提升</color>30%\r\n\r\n<indent=0><sprite=5><indent=15>失心迷阵：\r\n<indent=16><sprite=6><indent=32><color=#64F9FA>药剂效果中的体力增加变为体力减少</color>\r\n<indent=16><sprite=6><indent=32>回合结束后，若双方均不处于能力提升及能力下降状态，则失心迷阵解除并触发以下效果：\r\n<indent=32><sprite=4><indent=48>自身下回合<color=#64F9FA>无法主动切换精灵</color>\r\n<indent=32><sprite=4><indent=48>自身下回合<color=#64F9FA>先制效果失效</color>且受到的<b>攻击伤害</b><color=#64F9FA>提升</color>120%",
+        "analyze_desc": "",
+        "hash": "d8f17d91",
+        "eid": 1958,
+        "args": [
+          100,
+          1,
+          30,
+          1,
+          30,
+          120,
+          1
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/1597",
+          "revision": "d8f17d91",
+          "loadedAt": "2026-10-21T18:31:00.552Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4372",
+        "revision": "a5e0fa35",
+        "loadedAt": "2026-10-21T18:30:54.451Z"
+      },
+      "sourceDigest": "9662231d9b3a55cfceec422006711b5afd532bd052e10fc618bfd7c6353aa93f"
+    },
+    {
+      "key": "4372:skill:35890:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1806,
+          "args": [],
+          "description": "若对手为雄性精灵，则未陷入失心迷阵时令对手陷入失心迷阵，陷入失心迷阵时当次攻击不消耗自身PP值；若对手不为雄性精灵，则恢复自身全部体力"
+        },
+        "index": 2,
+        "description": "消除对手回合类效果，消除成功则己方免疫下2次受到的异常状态；100%令对手束缚，未触发则降低对手所有技能2点PP值；若对手为雄性精灵，则未陷入失心迷阵时令对手陷入失心迷阵，陷入失心迷阵时当次攻击不消耗自身PP值；若对手不为雄性精灵，则恢复自身全部体力",
+        "metadata": {
+          "id": 1806,
+          "argsNum": 0,
+          "template": "若对手为雄性精灵，则未陷入失心迷阵时令对手陷入失心迷阵，陷入失心迷阵时当次攻击不消耗自身PP值；若对手不为雄性精灵，则恢复自身全部体力",
+          "revision": "seerapi:1b3ca568"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4372",
+          "revision": "a5e0fa35",
+          "loadedAt": "2026-10-21T18:30:54.451Z"
+        },
+        "skillRevision": "seerapi:603f67fb"
+      },
+      "sourceDigest": "f44e3cf66e78565826ef53f2d7956314ad9f4d19c441f8d72cbdc50dffe5a180"
+    }
+  ]
+}

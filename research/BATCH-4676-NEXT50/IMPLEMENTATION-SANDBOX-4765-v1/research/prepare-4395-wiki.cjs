@@ -1,0 +1,1 @@
+const fs=require('fs');fs.writeFileSync('research/check-4395-wiki.cjs',fs.readFileSync('research/check-4394-wiki.cjs','utf8').replaceAll('4394','4395').replaceAll('1612','1613').replace('精灵:4395|魂印:1613','精灵:4395|魂印:1613|技能效果:1391|技能效果:1832'));

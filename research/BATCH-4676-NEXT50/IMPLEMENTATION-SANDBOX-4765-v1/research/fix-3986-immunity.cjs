@@ -1,0 +1,1 @@
+const fs=require('fs');let p='dist/range-souls.js',s=fs.readFileSync(p,'utf8').replace('weakImmune:f=>f.soulState.originHigh','weaknessImmune:f=>f.soulState.originHigh');fs.writeFileSync(p,s);p='tests/deployed-3986-partial.test.cjs';s=fs.readFileSync(p,'utf8').replace('首发300%以外真实30%护盾','首发30%护盾').replace('威力 100 ','威力 110 ');fs.writeFileSync(p,s);

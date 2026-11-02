@@ -1,0 +1,1 @@
+const fs=require('fs');for(const base of ['range-effects','effect-registry']){const p=__dirname+'/'+base+'.production-fragment.js';let t=fs.readFileSync(p,'utf8');t=t.split('\n').map(x=>x.startsWith('{const old=registry[')&&x.endsWith('}});')?x+'}':x).join('\n');fs.writeFileSync(p,t);}

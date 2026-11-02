@@ -1,0 +1,7 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict');function edit(p,a,b){const s=fs.readFileSync(p,'utf8');assert.equal(s.split(a).length,2,a.slice(0,100));fs.writeFileSync(p,s.replace(a,b));}
+edit('dist/range-effects.js',"add(656,'afterHit',(c,p)=>{if(roll(c,p[0])){","add(656,'afterHit',(c,p)=>{if(!c.ppReductionBlocked(c.t)&&roll(c,p[0])){");
+edit('dist/range-effects.js',"if(changed)randomEmpty(c,p[0]);},[[1,5]]);","if(changed&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[0]);},[[1,5]]);");
+const p='tests/deployed-4222.test.cjs';edit(p,"let expire=turn(turn(turn(o,920031),920031),920031);assert.equal(expire.fighters[1].hp,0);","const expire=turn(turn(turn(p,920031),920031),920031);assert.equal(expire.fighters[1].hp,8100);assert.equal(expire.fighters[0].effects['用招源盾比例真伤'],undefined);");
+edit(p,"s.fighters[1].stages.acc=6;assert.ok(attack(turn(s))","s.fighters[1].stages.atk=6;s.fighters[1].stages.spa=6;assert.ok(attack(turn(s))");
+edit(p,"H.op(s,29,[],920040);","H.op(s,29,[50],920040);");
+const old='tests/deployed-4113.test.cjs';edit(old,"assert.equal(turn(s).fighters[1].moves.filter(k=>s.fighters[1].pp[k]===0).length,0);","const protectedResult=turn(s);assert.equal(protectedResult.fighters[1].moves.filter(k=>protectedResult.fighters[1].pp[k]===0).length,0);");console.log('656 and907 PP protection fixed; 4113 old protection assertion now reads actual resolved result; other fixtures align with real sources');

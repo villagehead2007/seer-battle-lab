@@ -1,0 +1,7 @@
+'use strict';
+const E=require('../../dist/engine.js'),source=require('../../research/4650-reviewed-snapshot.json'),enemy=require('../../research/4628-reviewed-snapshot.json'),key=n=>'wiki:'+n;
+function make(o={}){const a=structuredClone(source),b=structuredClone(enemy);for(const p of[a,b]){p.effects=[];for(const m of p.moves){m.effectIds=[];m.effectInstances=[];m.description='';m.limitations=[];m.deferredEffects=[];}}if(o.soul===false)a.souls=[];b.souls=[];const stats={maxHp:9000,atk:300,spa:300,def:300,spd:300,spe:50},s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[[10201,20041,12748,11088,source.moves.find(m=>m.fifth).id],[20030,10086,37255,20521,37258]],criticals:false,builds:[{overrides:{...stats,...o.aStats}},{overrides:{...stats,spe:100,...o.bStats}}]});s.rng=0;if(o.hp!==undefined)s.fighters[0].hp=o.hp;if(o.enemyHP!==undefined)s.fighters[1].hp=o.enemyHP;return s;}
+function timer(f,k,data={},start=1,end=99){f.effects[k]={start,end,...data};}
+function turn(s,id=10201,other=20030,o={}){const old=E.SOULS,order=[];E.SOULS={...old,run(ev,c){if(c.a.side===0&&['beforePriority1850','beforeConsume1850'].includes(ev)&&o.roll!==undefined)c.random=()=>o.roll;o.before?.(ev,c);old.run(ev,c);if(ev==='afterUse')order.push(c.a.side);o.after?.(ev,c);}};try{Object.assign(s,E.resolveTurn(s,[key(id),key(other)]));return {s,order};}finally{E.SOULS=old;}}
+const red=(s,target=0)=>(s.damageEvents??[]).filter(x=>x.type==='attack'&&x.targetSide===target).reduce((n,x)=>n+x.settledDamage,0);
+module.exports={E,source,key,make,timer,turn,red};

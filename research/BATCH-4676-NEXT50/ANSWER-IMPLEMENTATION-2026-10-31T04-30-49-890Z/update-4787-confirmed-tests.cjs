@@ -1,0 +1,11 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),p='tests/next50-4787.test.cjs';let s=fs.readFileSync(p,'utf8');function line(part,fn){const a=s.split('\n'),i=a.findIndex(x=>x.includes(part));assert(i>=0,part);a[i]=fn(a[i]);s=a.join('\n');}
+line('魂印敌易燃回满',x=>x.replace('等量粉伤四模型','等量粉伤按原2回复前缺失HP，旧模型无效').replace("mode==='requested-max'?9000:9000-hp",'9000-hp'));
+line('魂印双易燃',x=>x.replace('第二分支资格无默认，明确候选','停止第二独立分支，旧候选').replace("if(q===undefined){assert.throws(()=>turn(s),/Q-4685-002/);continue;}",'').replace("q?9000:0",'0'));
+line('/1139双方',x=>x.replace('未能附加监听沿旧问题','本次结束后确有流血才授监听').replace("if(mode===undefined){assert.throws(()=>turn(s),/Q-4712-004/);continue;}",'').replace("mode==='always'?'流血':undefined",'undefined'));
+line('/1582敌冻',x=>x.replace('同名未刷新两候选不猜测','同名未刷新按已答补盾，旧模型无效').replace("if(mode===undefined){assert.throws(()=>turn(s),/Q-N50-4627-010/);continue;}",'').replace("mode==='success'?0:320",'320').replace("mode==='success'?8920:9000",'9000'));
+line('/1709先粉',x=>x.replace('红或粉实际KO含即时重生不回','红或粉实际KO不回，立即2243非KO仍回').replace("['alive','immune'].includes(mode)","['alive','immune','red-ko-revive'].includes(mode)"));
+line('/796当前HP',x=>x.replace('与免粉两回复模型，不能扩写最大HP已确认规则','与免粉均按原59理论量回复，旧模型无效').replace("if(basis===undefined){assert.throws(()=>turn(s),/Q-4713-002/);continue;}",'').replace("basis==='actual'?1000:1000+Math.floor((9000-sum(s))/3)",'1000+Math.floor((9000-sum(s))/3)'));
+line('魂印回满触蛊',x=>x.replace('死亡后的等量粉伤资格沿旧问题','死亡停止等量粉伤，旧候选无效').replace("if(q===undefined){assert.throws(()=>turn(s),/Q-4685-002/);continue;}",'').replace('q?2:0','0'));
+line('/20自疲惫',x=>x.replace('当前或下次完整行动两模型，次轮是否真实消耗PP复用共同问题','持续下个完整行动轮，旧模型不改变原127定论').replace("if(timing===undefined){assert.throws(()=>turn(s),/Q-4780-001/);continue;}",'').replace("pp-(timing==='current'?1:0)",'pp'));
+line('/6突进反伤',x=>x.replace('完整或实际基数与四伤害类型显式模型','按完整红伤真实自反伤，旧类型及基数模型无效').replace("9000-(basis==='settled'?Math.floor(red/4):0)",'9000-Math.floor(red/4)').replace("9000-(['fixed','percent'].includes(type)?0:Math.floor(sum(s)/4))",'9000-Math.floor(sum(s)/4)').replace("assert.throws(()=>turn(s),/Q-N20-4505-003/)","turn(s);assert.equal(s.fighters[0].hp,9000-Math.floor(sum(s)/4))"));
+line('4787原生全部23招',x=>x.replace('4787原生全部23招','4787隔离组件全部23招'));fs.writeFileSync(p,s);console.log('25preserved4787cases reflect confirmed rules');

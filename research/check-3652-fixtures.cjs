@@ -1,0 +1,1 @@
+const H=require('../tests/helpers/3652-battle.cjs');for(const seed of [0,1,2,8,12]){const s=H.make(H.pick(1140)[0],{seed}),o=H.turn(s,s.auditMoveId,H.HIT);console.log(seed,o.fighters[1].ailments,o.turns[0].events.map(x=>x.text).filter(x=>x.includes('瘫痪')));}console.log(H.source.moves.filter(m=>[11288,17872].includes(m.id)).map(m=>({id:m.id,power:m.power,kind:m.kind})));

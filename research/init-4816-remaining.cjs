@@ -1,0 +1,21 @@
+'use strict';
+const fs=require('fs'),crypto=require('crypto'),assert=require('assert/strict');
+const root='research/BATCH-4816-REMAINING',statusFile=root+'/STATUS.json',raw=fs.readFileSync('seer_id.txt');
+const queue=raw.toString('utf8').split(/\r?\n/).map((s,i)=>({id:/^\d+$/.test(s.trim())?Number(s.trim()):null,line:i+1})).filter(x=>x.id);
+const old=JSON.parse(fs.readFileSync('research/BATCH-4676-NEXT50-STATUS.json'));
+const proof='research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T20-11-17-709Z/result.json',gate=JSON.parse(fs.readFileSync(proof));
+assert.equal(old.ids.at(-1),4814);assert.equal(old.targets.filter(x=>x.accepted).length,50);assert.ok(gate.passed&&gate.inputUnchanged);assert.equal(gate.npm.exitCode,0);assert.equal(gate.preflights.length,50);assert.ok(gate.preflights.every(x=>x.exitCode===0));assert.deepEqual(gate.ids,old.ids);
+const at=queue.findIndex(x=>x.id===4814);assert.deepEqual(queue.slice(at-49,at+1).map(x=>x.id),old.ids);
+const targets=queue.slice(at+1);assert.equal(targets[0].id,4816);assert.equal(targets.length,52);assert.equal(targets.at(-1).id,4963);
+const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),now=new Date().toISOString();
+if(fs.existsSync(statusFile)){assert.deepEqual(JSON.parse(fs.readFileSync(statusFile)).ids,targets.map(x=>x.id));console.log('Fixed snapshot already exists');process.exit(0);}
+fs.mkdirSync(root,{recursive:true});
+const auto=JSON.parse(fs.readFileSync('AUTO-PROGRESS.json'));assert.equal(auto.automationEnabled,false);
+const s={schema:1,createdAt:now,updatedAt:now,status:'in-progress',ids:targets.map(x=>x.id),targets:targets.map(x=>({...x,status:'not-started',independentWorkComplete:false,deployed:fs.existsSync('data/species/'+x.id+'.json'),accepted:false,questions:[],pendingIndependentWork:['来源及全部版本核对','逐实例实现与成功/失败/边界/交互状态测试','全部技能HTTP接入及专项验证'],pendingAnswerDependentWork:[],existingCompletion:auto.completions?.[x.id]??null})),queueSha256:sha(raw),queueNumericCount:queue.length,startLine:targets[0].line,endLine:targets.at(-1).line,previousBatch:{statusFile:'research/BATCH-4676-NEXT50-STATUS.json',lastId:4814,accepted:50,proof,proofSha256:sha(fs.readFileSync(proof)),npmLogSha256:gate.npm.sha256},scan:{current:targets[0],completed:0},formalCursor:{current:targets[0],completed:0},nextAfterRange:null,questionFile:root+'/待答问题.md',technicalDirectory:root,regressions:[],constraints:{noGit:true,noSubagents:true,noBackgroundJobs:true,serialProductionWrites:true,fullNpmAfterAllIndependentWork:true,checkpointTargetedEvery10:true,doNotImplementUnannouncedAnswers:true}};
+fs.writeFileSync(statusFile,JSON.stringify(s,null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(root+'/QUEUE-SNAPSHOT.json',JSON.stringify({fixedAt:now,sha256:s.queueSha256,numericCount:queue.length,targets},null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(root+'/CHECKPOINT.json',JSON.stringify({at:now,current:targets[0],action:'fetch-source',independentComplete:0,accepted:0},null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(s.questionFile,'# 本轮待答问题\n\n范围：正式队列第327–378行，4816起至4963止，共52只，包含原位置的4000。\n\n正在逐只审核，尚未交付。这里只放查证后仍需要您决定的新问题；暂无题目不代表全部机制已明确。\n\n技术证据保存在本目录，旧批次问题与回答不改动。\n',{flag:'wx'});
+fs.writeFileSync(root+'/AUTHORIZATION.json',JSON.stringify({at:now,scope:'上一批实际末位4814之后至本次保存队列末尾的全部剩余条目',execution:'全部范围可独立工作完成后统一最终完整npm；保留逐只专项/HTTP、公共影响回归和每10只定向检查',source:'本轮用户明确委托',stage:'predeployment-question-collection',formalAcceptance:'全部非整库门槛及同一冻结版本新完整npm通过后使用正式工具认证',fixedQueue:s.queueSha256},null,2)+'\n',{flag:'wx'});
+fs.writeFileSync('PROGRESS.md',`### ${now} 全部剩余52只预部署启动\n\n已核对上一批50/50正式验收及最终新完整npm证据。按队列实际位置固定第327–378行共52只，4816起、4963止，保留4000的原位置。完整名单/原行号/队列hash：${root}/QUEUE-SNAPSHOT.json。当前独立完成0/52、正式验收0/52；扫描与正式均4816，第327行。已有完成记录须逐项核验后复用。新问题入口：${s.questionFile}（编写中）。每10只保留定向检查，全范围独立工作后统一新完整回归；不使用Git、不启自动开发、不新增代理。\n\n`+fs.readFileSync('PROGRESS.md','utf8'));
+console.log(JSON.stringify({count:targets.length,numericCount:queue.length,ids:s.ids,queueSha256:s.queueSha256,existing: s.targets.filter(x=>x.deployed||x.existingCompletion)}));

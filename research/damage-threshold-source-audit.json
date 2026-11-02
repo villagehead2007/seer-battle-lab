@@ -1,0 +1,1376 @@
+{
+  "rule": "按原文造成的伤害比较阈值，独立使用完整结算伤害；吸血和实际HP差重建继续使用原字段",
+  "effects": [
+    {
+      "id": 518,
+      "template": "若伤害高于{0}，则自身{1}+{2}",
+      "before": "add(518,'afterAttack',(c,p)=>{if(c.dealt>p[0])c.stage(c.a,p[2],[stats[p[1]]]);},[[0,9999],[0,5],stage]);"
+    },
+    {
+      "id": 475,
+      "template": "若造成的伤害不足{0}，则下{1}回合的攻击必定致命一击",
+      "before": "add(475,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.timed(c.a,'必定暴击',p[1],{},c.round+1);},[[0,9999],turns]);"
+    },
+    {
+      "id": 473,
+      "template": "若造成的伤害不足{0}，则自身{1}等级+{2}",
+      "before": "add(473,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.stage(c.a,p[2],[stats[p[1]]]);},[[0,9999],[0,5],stage]);"
+    },
+    {
+      "id": 415,
+      "template": "若造成的伤害大于{0}点，则自身恢复{1}点生命值",
+      "before": "add(415,'afterAttack',(c,p)=>{if(c.dealt>p[0])c.heal(c.a,p[1],c.m.name);});"
+    },
+    {
+      "id": 793,
+      "template": "若造成的伤害低于{0}，则下{1}回合每回合造成{2}点固定伤害",
+      "before": "add(793,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.timed(c.t,'持续固定伤害',p[1],{amount:p[2]},c.round+1);},[[0,99999],turns,[0,99999]]);"
+    },
+    {
+      "id": 689,
+      "template": "若造成的伤害高于{0}，则恢复自身1/{1}最大体力",
+      "before": "add(689,'afterAttack',(c,p)=>{if(c.dealt>p[0])c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name);},[[0,99999],[1,9999]]);"
+    },
+    {
+      "id": 119,
+      "template": "若伤害为奇数，30%对手疲惫1回合；若为偶数，30%速度+1",
+      "before": "add(119,'afterAttack',c=>{if(c.dealt%2&&statusRoll(c,30))c.ailment(c.t,'疲惫',c.a,false,false,1);else if(c.dealt>0&&c.dealt%2===0&&roll(c,30))c.stage(c.a,1,['spe']);});"
+    },
+    {
+      "id": 107,
+      "template": "若本次攻击造成的伤害小于{0}，则自身{1}提升1个等级",
+      "before": "add(107,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.stage(c.a,1,[stats[p[1]]]);},[[0,99999],[0,5]]);"
+    },
+    {
+      "id": 1029,
+      "template": "造成的伤害低于{0}则下{1}回合自身先制+{2}",
+      "before": "add(1029,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.timed(c.a,'id984',p[1],{amount:p[2]},c.round+1);},[[0,99999],turns,[0,10]]);"
+    },
+    {
+      "id": 1041,
+      "template": "造成的攻击伤害若低于{0}则令对手下{1}次使用的攻击技能无效",
+      "before": "add(1041,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+p[1];},[[0,99999],[1,99]]);"
+    },
+    {
+      "id": 1104,
+      "template": "造成的伤害低于{0}则吸取对手1/{1}最大体力",
+      "before": "add(1104,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取',c.m.name+'低伤吸取');},[[0,99999],[1,9999]]);"
+    },
+    {
+      "id": 1066,
+      "template": "造成的伤害低于{0}则附加{1}点固定伤害，若先出手则固定伤害提高{2}点",
+      "before": "add(1066,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)c.hurt(c.t,p[1]+(c.a.side===c.first?p[2]:0),c.m.name+'追加','fixed');},[[0,99999],[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 1843,
+      "template": "造成的攻击伤害若高于{0}则{1}%令对手{2}",
+      "before": "add(1843,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,0]]);"
+    },
+    {
+      "id": 541,
+      "template": "造成的攻击伤害若低于{0}则恢复自身{1}点体力",
+      "before": "add(541,'afterAttack',(c,p)=>{if(c.dealt<p[0])c.heal(c.a,p[1],c.m.name+'低伤回复');},[[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 989,
+      "template": "造成的伤害低于{0}则附加{1}点固定伤害，自身体力低于对手时固定伤害翻倍",
+      "before": "add(989,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)c.hurt(c.t,p[1]*(c.a.hp<c.t.hp?2:1),c.m.name+'低伤追加','fixed');},[[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 1120,
+      "template": "造成的伤害低于{0}则为自身附加{1}点护盾",
+      "before": "add(1120,'afterAttack',(c,p)=>{if(c.dealt<p[0]){c.a.suitState.shield+=p[1];c.emit(c.name(c.a)+' 获得 '+p[1]+' 点护盾。');}},[[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 1106,
+      "template": "当回合造成的攻击伤害若高于{0}则{1}%令对手{2}",
+      "before": "add(1106,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,20]]);"
+    },
+    {
+      "id": 1016,
+      "template": "造成的伤害不足{0}则下{1}次攻击造成的伤害提高{2}%",
+      "before": "add(1016,'afterAttack',(c,p)=>{if(c.dealt<p[0]){c.a.counts.nextAttackBoost=(c.a.counts.nextAttackBoost??0)+p[1];c.a.soulState.nextAttackBoostFraction=p[2]/100;c.emit(c.name(c.a)+' 下 '+p[1]+' 次攻击增伤 '+p[2]+'%。');}},[[0,99999],[1,99],[0,1000]]);"
+    },
+    {
+      "id": 947,
+      "template": "造成的伤害不足{0}则吸取对手最大体力的1/{1}",
+      "before": "add(947,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'低伤吸取',c.m.name+'低伤吸取');}},[[0,99999],[1,9999]]);"
+    },
+    {
+      "id": 1008,
+      "template": "造成的伤害高于{0}则获得{1}点护盾",
+      "before": "add(1008,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.a.hp>0){c.a.suitState.shield+=p[1];c.emit(c.name(c.a)+' 获得 '+p[1]+' 点护盾。');}},[[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 1082,
+      "template": "造成的伤害低于{0}则附加自身最大体力{1}%的百分比伤害",
+      "before": "add(1082,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp*p[1]/100,c.m.name+'低伤追加','percent');},[[0,99999],pct]);"
+    },
+    {
+      "id": 1539,
+      "template": "造成的伤害高于{0}则{1}%令对手{2}，未触发则消除对手回合类效果",
+      "before": "add(1539,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))c.clear(c.t);},[[0,9999],pct,[0,0]]);"
+    },
+    {
+      "id": 1425,
+      "template": "造成的伤害低于{0}则自身{1}",
+      "before": "add(1425,'afterAttack',(c,p)=>{if(c.dealt<p[0])p.slice(1).forEach((n,i)=>{if(n)c.stage(c.a,n,[stats[i]]);});},[[0,99999],stage,stage,stage,stage,stage,stage]);"
+    },
+    {
+      "id": 591,
+      "template": "造成伤害大于{0}，则下{1}回合自己所有直接攻击先制+{2}",
+      "before": "add(591,'afterHit',(c,p)=>{if(c.dealt>p[0])c.timed(c.a,'直接攻击先制',p[1],{amount:p[2]});},[[0,9999],[1,10],[0,10]]);"
+    },
+    {
+      "id": 918,
+      "template": "造成的伤害不足{0}则自身下{1}次造成的伤害提升{2}%",
+      "before": "add(918,'afterHit',(c,p)=>{if(c.dealt<p[0]){c.a.counts.nextAttackBoost=Math.max(c.a.counts.nextAttackBoost??0,p[1]);c.a.soulState.nextAttackBoostFraction=p[2]/100;}},[[0,99999],[1,99],[0,100]]);"
+    },
+    {
+      "id": 1006,
+      "template": "造成的伤害超过{0}则下{1}回合免疫异常状态",
+      "before": "add(1006,'afterHit',(c,p)=>{if(c.dealt>p[0]&&c.a.hp>0)c.timed(c.a,'免异常',p[1],{},c.round+1);},[[0,99999],[1,99]]);"
+    },
+    {
+      "id": 1258,
+      "template": "造成的攻击伤害若高于{0}则自身免疫下{1}次受到的异常状态",
+      "before": "add(1258,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.a.hp>0)c.a.counts.immune=(c.a.counts.immune??0)+p[1];},[[0,99999],[1,99]]);"
+    },
+    {
+      "id": 1334,
+      "template": "造成的伤害低于{0}则{1}%令对手{2}，未触发则下{3}次技能{4}%令对手{5}",
+      "before": "add(1334,'afterAttack',(c,p)=>{if(c.t.hp<=0)return;if(c.dealt<p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a))){c.a.counts.nextSkillCurse=p[3];c.a.soulState.nextSkillCurse={chance:p[4]/100,ailment:ailments[p[5]]};}},[[0,99999],[0,100],[0,26],[1,10],[0,100],[0,26]]);"
+    },
+    {
+      "id": 594,
+      "template": "造成的伤害低于{0}时{1}%令对手{2}",
+      "before": "add(594,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[23,23]]);"
+    },
+    {
+      "id": 2307,
+      "template": "造成的攻击伤害低于{0}时附加{1}点固定伤害，若本次攻击微弱对手则附加的固定伤害除以克制倍数",
+      "before": "add(2307,'afterAttack',(c,p)=>{if(c.dealt<p[0]&&c.t.hp>0){const affinity=c.typeAffinity(c.m.type,c.t.type);c.hurt(c.t,p[1]/(affinity>0&&affinity<1?affinity:1),c.m.name+'微弱补偿','fixed');}},[[0,99999],[0,99999]]);"
+    },
+    {
+      "id": 2496,
+      "template": "造成的攻击伤害为0时，若自身体力低于对手则与对手交换体力",
+      "before": "add(2496,'afterAttack',(c,p)=>{if(c.dealt!==0||c.a.hp<=0||c.t.hp<=0||c.a.hp>=c.t.hp)return;const chance=p[0]/100;if(chance!==1&&c.random()>=chance)return;const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力。');},[[100,100]]);"
+    },
+    {
+      "id": 1074,
+      "template": "造成的伤害大于{0}则对手{1}%{2}，未触发则自身下{3}回合攻击有{4}%的概率使对手{5}",
+      "before": "add(1074,'afterAttack',(c,p)=>{if(![6].includes(p[2])||![6,7].includes(p[5]))throw Error('1074异常枚举未核对');if(c.t.hp>0&&c.dealt>p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))c.timed(c.a,'攻击概率异常',p[3],{chance:p[4],ailment:ailments[p[5]]},c.round+1);},[[0,99999],pct,[6,6],turns,pct,[6,7]]);"
+    },
+    {
+      "id": 1382,
+      "template": "命中后获得{0}层自然祝福，若造成的伤害高于{1}则额外获得{2}层自然祝福",
+      "before": "add(1382,'afterHit',(c,p)=>natureBlessing(c,p[0]+(c.dealt>p[1]?p[2]:0)),[[0,4],[0,99999],[0,4]]);"
+    },
+    {
+      "id": 2430,
+      "template": "未造成攻击伤害时消除对手回合类效果并令对手{0}",
+      "before": "add(2430,'afterAttack',(c,p)=>{if(c.dealt===0&&c.t.hp>0){c.clear(c.t);c.ailment(c.t,ailments[p[0]],c.a);}},[[40,40]]);"
+    },
+    {
+      "id": 1088,
+      "template": "造成的攻击伤害高于{0}则吸取对手最大体力的1/{1}",
+      "before": "add(1088,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'高伤吸取',c.m.name+'高伤吸取');},[[0,99999],[1,9999]]);"
+    },
+    {
+      "id": 1019,
+      "template": "造成的攻击伤害若高于{0}则令对手{1}回合内使用的属性技能无效",
+      "before": "add(1019,'afterAttack',(c,p)=>{if(c.dealt>p[0]&&c.t.hp>0)c.timed(c.t,'statusBlock',p[1],{});},[[0,99999],turns]);"
+    },
+    {
+      "id": 1256,
+      "template": "造成的伤害低于{0}时令对手{1}，未触发则自身下{2}次攻击造成的伤害额外提升{3}%",
+      "before": "add(1256,'afterHit',(c,p)=>{if(c.dealt<p[0]&&!c.ailment(c.t,ailments[p[1]],c.a)){c.a.counts.nextAttackBoost=(c.a.counts.nextAttackBoost??0)+p[2];c.a.soulState.nextAttackBoostFraction=p[3]/100;}},[[0,99999],[7,22],[1,99],[0,1000]]);"
+    }
+  ],
+  "affected": [
+    {
+      "id": 2988,
+      "matches": [
+        {
+          "moveId": 10199,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2996,
+      "matches": [
+        {
+          "moveId": 10199,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2997,
+      "matches": [
+        {
+          "moveId": 10199,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3001,
+      "matches": [
+        {
+          "moveId": 14732,
+          "effect": {
+            "id": 518,
+            "args": [
+              300,
+              0,
+              1
+            ],
+            "description": "若伤害高于300，则自身攻击+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3003,
+      "matches": [
+        {
+          "moveId": 19149,
+          "effect": {
+            "id": 475,
+            "args": [
+              300,
+              2
+            ],
+            "description": "若造成的伤害不足300，则下2回合的攻击必定致命一击"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3004,
+      "matches": [
+        {
+          "moveId": 10973,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3007,
+      "matches": [
+        {
+          "moveId": 19166,
+          "effect": {
+            "id": 473,
+            "args": [
+              300,
+              1,
+              1
+            ],
+            "description": "若造成的伤害不足300，则自身防御等级+1"
+          }
+        },
+        {
+          "moveId": 19166,
+          "effect": {
+            "id": 473,
+            "args": [
+              300,
+              3,
+              1
+            ],
+            "description": "若造成的伤害不足300，则自身特防等级+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3008,
+      "matches": [
+        {
+          "moveId": 10043,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3015,
+      "matches": [
+        {
+          "moveId": 15203,
+          "effect": {
+            "id": 415,
+            "args": [
+              500,
+              500
+            ],
+            "description": "若造成的伤害大于500点，则自身恢复500点生命值"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3106,
+      "matches": [
+        {
+          "moveId": 19546,
+          "effect": {
+            "id": 793,
+            "args": [
+              400,
+              2,
+              200
+            ],
+            "description": "若造成的伤害低于400，则下2回合每回合造成200点固定伤害"
+          }
+        },
+        {
+          "moveId": 19546,
+          "effect": {
+            "id": 689,
+            "args": [
+              400,
+              4
+            ],
+            "description": "若造成的伤害高于400，则恢复自身1/4最大体力"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3141,
+      "matches": [
+        {
+          "moveId": 14118,
+          "effect": {
+            "id": 475,
+            "args": [
+              300,
+              2
+            ],
+            "description": "若造成的伤害不足300，则下2回合的攻击必定致命一击"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3170,
+      "matches": [
+        {
+          "moveId": 19842,
+          "effect": {
+            "id": 1008,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的伤害高于300则获得300点护盾"
+          }
+        },
+        {
+          "moveId": 19842,
+          "effect": {
+            "id": 947,
+            "args": [
+              300,
+              3
+            ],
+            "description": "造成的伤害不足300则吸取对手最大体力的1/3"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3174,
+      "matches": [
+        {
+          "moveId": 19855,
+          "effect": {
+            "id": 1016,
+            "args": [
+              300,
+              1,
+              100
+            ],
+            "description": "造成的伤害不足300则下1次攻击造成的伤害提高100%"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3190,
+      "matches": [
+        {
+          "moveId": 12111,
+          "effect": {
+            "id": 119,
+            "args": [],
+            "description": "若伤害为奇数，30%对手疲惫1回合；若为偶数，30%速度+1"
+          }
+        },
+        {
+          "moveId": 12112,
+          "effect": {
+            "id": 107,
+            "args": [
+              250,
+              0
+            ],
+            "description": "若本次攻击造成的伤害小于250，则自身攻击提升1个等级"
+          }
+        },
+        {
+          "moveId": 19923,
+          "effect": {
+            "id": 1029,
+            "args": [
+              200,
+              1,
+              1
+            ],
+            "description": "造成的伤害低于200则下1回合自身先制+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3200,
+      "matches": [
+        {
+          "moveId": 19962,
+          "effect": {
+            "id": 1041,
+            "args": [
+              200,
+              1
+            ],
+            "description": "造成的攻击伤害若低于200则令对手下1次使用的攻击技能无效"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3221,
+      "matches": [
+        {
+          "moveId": 19546,
+          "effect": {
+            "id": 793,
+            "args": [
+              400,
+              2,
+              200
+            ],
+            "description": "若造成的伤害低于400，则下2回合每回合造成200点固定伤害"
+          }
+        },
+        {
+          "moveId": 19546,
+          "effect": {
+            "id": 689,
+            "args": [
+              400,
+              4
+            ],
+            "description": "若造成的伤害高于400，则恢复自身1/4最大体力"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3223,
+      "matches": [
+        {
+          "moveId": 30071,
+          "effect": {
+            "id": 793,
+            "args": [
+              200,
+              2,
+              150
+            ],
+            "description": "若造成的伤害低于200，则下2回合每回合造成150点固定伤害"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3237,
+      "matches": [
+        {
+          "moveId": 30134,
+          "effect": {
+            "id": 1066,
+            "args": [
+              300,
+              300,
+              150
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，若先出手则固定伤害提高150点"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3242,
+      "matches": [
+        {
+          "moveId": 30155,
+          "effect": {
+            "id": 475,
+            "args": [
+              280,
+              2
+            ],
+            "description": "若造成的伤害不足280，则下2回合的攻击必定致命一击"
+          }
+        },
+        {
+          "moveId": 30185,
+          "effect": {
+            "id": 1016,
+            "args": [
+              300,
+              1,
+              100
+            ],
+            "description": "造成的伤害不足300则下1次攻击造成的伤害提高100%"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3289,
+      "matches": [
+        {
+          "moveId": 30368,
+          "effect": {
+            "id": 1029,
+            "args": [
+              200,
+              1,
+              2
+            ],
+            "description": "造成的伤害低于200则下1回合自身先制+2"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3301,
+      "matches": [
+        {
+          "moveId": 30423,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              0
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手麻痹"
+          }
+        },
+        {
+          "moveId": 30423,
+          "effect": {
+            "id": 1029,
+            "args": [
+              300,
+              2,
+              2
+            ],
+            "description": "造成的伤害低于300则下2回合自身先制+2"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3308,
+      "matches": [
+        {
+          "moveId": 30454,
+          "effect": {
+            "id": 1120,
+            "args": [
+              280,
+              200
+            ],
+            "description": "造成的伤害低于280则为自身附加200点护盾"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3340,
+      "matches": [
+        {
+          "moveId": 30604,
+          "effect": {
+            "id": 989,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3388,
+      "matches": [
+        {
+          "moveId": 30851,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              0
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手麻痹"
+          }
+        },
+        {
+          "moveId": 36483,
+          "effect": {
+            "id": 1843,
+            "args": [
+              300,
+              100,
+              0
+            ],
+            "description": "造成的攻击伤害若高于300则100%令对手麻痹"
+          }
+        },
+        {
+          "moveId": 36483,
+          "effect": {
+            "id": 541,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的攻击伤害若低于300则恢复自身300点体力"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3430,
+      "matches": [
+        {
+          "moveId": 31080,
+          "effect": {
+            "id": 1082,
+            "args": [
+              280,
+              25
+            ],
+            "description": "造成的伤害低于280则附加自身最大体力25%的百分比伤害"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3443,
+      "matches": [
+        {
+          "moveId": 31151,
+          "effect": {
+            "id": 1104,
+            "args": [
+              300,
+              3
+            ],
+            "description": "造成的伤害低于300则吸取对手1/3最大体力"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3465,
+      "matches": [
+        {
+          "moveId": 31261,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              8
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手睡眠"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3467,
+      "matches": [
+        {
+          "moveId": 31272,
+          "effect": {
+            "id": 1256,
+            "args": [
+              300,
+              22,
+              1,
+              100
+            ],
+            "description": "造成的伤害低于300时令对手焚烬，未触发则自身下1次攻击造成的伤害额外提升100%"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3491,
+      "matches": [
+        {
+          "moveId": 31405,
+          "effect": {
+            "id": 989,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3524,
+      "matches": [
+        {
+          "moveId": 38075,
+          "effect": {
+            "id": 793,
+            "args": [
+              300,
+              2,
+              300
+            ],
+            "description": "若造成的伤害低于300，则下2回合每回合造成300点固定伤害"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3532,
+      "matches": [
+        {
+          "moveId": 31613,
+          "effect": {
+            "id": 1120,
+            "args": [
+              250,
+              200
+            ],
+            "description": "造成的伤害低于250则为自身附加200点护盾"
+          }
+        },
+        {
+          "moveId": 38064,
+          "effect": {
+            "id": 1327,
+            "args": [
+              100,
+              3
+            ],
+            "description": "造成的伤害低于100则吸取对手最大体力的1/3并为自身附加等量的护盾"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3539,
+      "matches": [
+        {
+          "moveId": 31654,
+          "effect": {
+            "id": 1082,
+            "args": [
+              300,
+              25
+            ],
+            "description": "造成的伤害低于300则附加自身最大体力25%的百分比伤害"
+          }
+        },
+        {
+          "moveId": 31654,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              6
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手害怕"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3549,
+      "matches": [
+        {
+          "moveId": 30435,
+          "effect": {
+            "id": 591,
+            "args": [
+              280,
+              2,
+              1
+            ],
+            "description": "造成伤害大于280，则下2回合自己所有直接攻击先制+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3568,
+      "matches": [
+        {
+          "moveId": 31797,
+          "effect": {
+            "id": 689,
+            "args": [
+              300,
+              3
+            ],
+            "description": "若造成的伤害高于300，则恢复自身1/3最大体力"
+          }
+        },
+        {
+          "moveId": 31797,
+          "effect": {
+            "id": 1327,
+            "args": [
+              300,
+              3
+            ],
+            "description": "造成的伤害低于300则吸取对手最大体力的1/3并为自身附加等量的护盾"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3575,
+      "matches": [
+        {
+          "moveId": 19815,
+          "effect": {
+            "id": 918,
+            "args": [
+              300,
+              1,
+              100
+            ]
+          }
+        },
+        {
+          "moveId": 19815,
+          "effect": {
+            "id": 1006,
+            "args": [
+              300,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 3577,
+      "matches": [
+        {
+          "moveId": 31846,
+          "effect": {
+            "id": 1258,
+            "args": [
+              280,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 3578,
+      "matches": [
+        {
+          "moveId": 31852,
+          "effect": {
+            "id": 1258,
+            "args": [
+              300,
+              1
+            ],
+            "description": "造成的攻击伤害若高于300则自身免疫下1次受到的异常状态"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3580,
+      "matches": [
+        {
+          "moveId": 31767,
+          "effect": {
+            "id": 594,
+            "args": [
+              300,
+              100,
+              23
+            ],
+            "description": "造成的伤害低于300时100%令对手诅咒"
+          }
+        },
+        {
+          "moveId": 31862,
+          "effect": {
+            "id": 1334,
+            "args": [
+              300,
+              100,
+              23,
+              1,
+              100,
+              23
+            ],
+            "description": "造成的伤害低于300则100%令对手诅咒，未触发则下1次技能100%令对手诅咒"
+          }
+        },
+        {
+          "moveId": 37310,
+          "effect": {
+            "id": 1334,
+            "args": [
+              300,
+              100,
+              23,
+              1,
+              100,
+              23
+            ],
+            "description": "造成的伤害低于300则100%令对手诅咒，未触发则下1次技能100%令对手诅咒"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3584,
+      "matches": [
+        {
+          "moveId": 31887,
+          "effect": {
+            "id": 1258,
+            "args": [
+              300,
+              1
+            ],
+            "description": "造成的攻击伤害若高于300则自身免疫下1次受到的异常状态"
+          }
+        },
+        {
+          "moveId": 31887,
+          "effect": {
+            "id": 989,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+          }
+        },
+        {
+          "moveId": 37965,
+          "effect": {
+            "id": 1258,
+            "args": [
+              300,
+              1
+            ],
+            "description": "造成的攻击伤害若高于300则自身免疫下1次受到的异常状态"
+          }
+        },
+        {
+          "moveId": 37965,
+          "effect": {
+            "id": 2307,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的攻击伤害低于300时附加300点固定伤害，若本次攻击微弱对手则附加的固定伤害除以克制倍数"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3631,
+      "matches": [
+        {
+          "moveId": 32146,
+          "effect": {
+            "id": 1258,
+            "args": [
+              280,
+              1
+            ],
+            "description": "造成的攻击伤害若高于280则自身免疫下1次受到的异常状态"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3683,
+      "matches": [
+        {
+          "moveId": 38526,
+          "effect": {
+            "id": 2496,
+            "args": [
+              100
+            ],
+            "description": "造成的攻击伤害为0时，若自身体力低于对手则与对手交换体力"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3686,
+      "matches": [
+        {
+          "moveId": 30192,
+          "effect": {
+            "id": 1074,
+            "args": [
+              280,
+              80,
+              6,
+              2,
+              50,
+              6
+            ],
+            "description": "造成的伤害大于280则对手80%害怕，未触发则自身下2回合攻击有50%的概率使对手害怕"
+          }
+        },
+        {
+          "moveId": 32405,
+          "effect": {
+            "id": 1074,
+            "args": [
+              280,
+              100,
+              6,
+              2,
+              80,
+              7
+            ],
+            "description": "造成的伤害大于280则对手100%害怕，未触发则自身下2回合攻击有80%的概率使对手疲惫"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3697,
+      "matches": [
+        {
+          "moveId": 10199,
+          "effect": {
+            "id": 6,
+            "args": [
+              4
+            ],
+            "description": "对方所受伤害的1/4会反弹给自己"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3705,
+      "matches": [
+        {
+          "moveId": 32490,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              0
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手麻痹"
+          }
+        },
+        {
+          "moveId": 36943,
+          "effect": {
+            "id": 1539,
+            "args": [
+              300,
+              100,
+              0
+            ],
+            "description": "造成的伤害高于300则100%令对手麻痹，未触发则消除对手回合类效果"
+          }
+        },
+        {
+          "moveId": 36943,
+          "effect": {
+            "id": 1425,
+            "args": [
+              300,
+              1,
+              1,
+              1,
+              1,
+              2,
+              1
+            ],
+            "description": "造成的伤害低于300则自身攻击+1，防御+1，特攻+1，特防+1，速度+2，命中+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3711,
+      "matches": [
+        {
+          "moveId": 32516,
+          "effect": {
+            "id": 1382,
+            "args": [
+              1,
+              250,
+              1
+            ],
+            "description": "命中后获得1层自然祝福，若造成的伤害高于250则额外获得1层自然祝福"
+          }
+        },
+        {
+          "moveId": 38319,
+          "effect": {
+            "id": 2430,
+            "args": [
+              40
+            ],
+            "description": "未造成攻击伤害时消除对手回合类效果并令对手空定"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3737,
+      "matches": [
+        {
+          "moveId": 32656,
+          "effect": {
+            "id": 1088,
+            "args": [
+              300,
+              3
+            ],
+            "description": "造成的攻击伤害高于300则吸取对手最大体力的1/3"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3740,
+      "matches": [
+        {
+          "moveId": 32666,
+          "effect": {
+            "id": 1082,
+            "args": [
+              300,
+              30
+            ],
+            "description": "造成的伤害低于300则附加自身最大体力30%的百分比伤害"
+          }
+        },
+        {
+          "moveId": 37806,
+          "effect": {
+            "id": 1082,
+            "args": [
+              300,
+              30
+            ],
+            "description": "造成的伤害低于300则附加自身最大体力30%的百分比伤害"
+          }
+        },
+        {
+          "moveId": 37806,
+          "effect": {
+            "id": 1019,
+            "args": [
+              300,
+              2
+            ],
+            "description": "造成的攻击伤害若高于300则令对手2回合内使用的属性技能无效"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3741,
+      "matches": [
+        {
+          "moveId": 14107,
+          "effect": {
+            "id": 473,
+            "args": [
+              300,
+              0,
+              2
+            ],
+            "description": "若造成的伤害不足300，则自身攻击等级+2"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3788,
+      "matches": [
+        {
+          "moveId": 32911,
+          "effect": {
+            "id": 1088,
+            "args": [
+              300,
+              3
+            ],
+            "description": "造成的攻击伤害高于300则吸取对手最大体力的1/3"
+          }
+        },
+        {
+          "moveId": 32911,
+          "effect": {
+            "id": 1256,
+            "args": [
+              300,
+              7,
+              1,
+              100
+            ],
+            "description": "造成的伤害低于300时令对手疲惫，未触发则自身下1次攻击造成的伤害额外提升100%"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3809,
+      "matches": [
+        {
+          "moveId": 33014,
+          "effect": {
+            "id": 1019,
+            "args": [
+              300,
+              2
+            ],
+            "description": "造成的攻击伤害若高于300则令对手2回合内使用的属性技能无效"
+          }
+        },
+        {
+          "moveId": 33014,
+          "effect": {
+            "id": 1066,
+            "args": [
+              300,
+              300,
+              150
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，若先出手则固定伤害提高150点"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3866,
+      "matches": [
+        {
+          "moveId": 33310,
+          "effect": {
+            "id": 1106,
+            "args": [
+              300,
+              100,
+              8
+            ],
+            "description": "当回合造成的攻击伤害若高于300则100%令对手睡眠"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3870,
+      "matches": [
+        {
+          "moveId": 33327,
+          "effect": {
+            "id": 475,
+            "args": [
+              300,
+              2
+            ],
+            "description": "若造成的伤害不足300，则下2回合的攻击必定致命一击"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3883,
+      "matches": [
+        {
+          "moveId": 33385,
+          "effect": {
+            "id": 1066,
+            "args": [
+              250,
+              250,
+              100
+            ],
+            "description": "造成的伤害低于250则附加250点固定伤害，若先出手则固定伤害提高100点"
+          }
+        }
+      ]
+    }
+  ]
+}

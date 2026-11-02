@@ -1,0 +1,25 @@
+{
+  "file": "tests/deployed-4482-independent.test.cjs",
+  "changes": [
+    {
+      "before": "assert.equal(o.fighters[0].soulState.pendingMingxiaKindCount.question,'Q-N20-4482-001');",
+      "after": "assert.equal(o.fighters[0].soulState.pendingMingxiaKindCount,undefined);",
+      "why": "answered unique names,3 unique positive/negative do not meet5 even12slots"
+    },
+    {
+      "before": "timer(s,0,'攻击伤害免疫');assert.throws(()=>turn(s,920031,920040),/Q-N20-4359-003/);",
+      "after": "timer(s,0,'攻击伤害免疫');const immune=turn(s,920031,920040);assert.equal(immune.fighters[0].hp,4000);assert.equal(immune.damageEvents.filter(e=>e.targetSide===0&&e.round===2&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0),0);",
+      "why": "public1188 zero contact triggers unlikeMISS;remove guard diagnostic"
+    },
+    {
+      "before": "H.op(o,29,[700],920040);assert.throws(()=>turn(o,920031,920040),/Q-N20-4438-001/);const q=turn(make(pick(874)[0]));H.op(q,29,[300],920042);assert.throws(()=>turn(q,920031,920042),/Q-N20-4438-001/);",
+      "after": "H.op(o,29,[700],920040);assert.equal(sum(turn(o,920031,920040),'fixed',0),700);const q=turn(make(pick(874)[0]));H.op(q,29,[300],920042);assert.equal(sum(turn(q,920031,920042),'fixed',0),300);",
+      "why": "historicalred-only types confirmed andlatestroundunit;nonred notcappedorimmune"
+    },
+    {
+      "before": "assert.deepEqual(o.fighters[0].soulState.pending587Damage,{question:'Q-N20-4482-003',amount:500,minimumHp:1,round:2});assert.equal(o.fighters[1].hp,s.fighters[1].hp);",
+      "after": "assert.equal(o.fighters[0].soulState.pending587Damage,undefined);assert.equal(o.fighters[1].hp,s.fighters[1].hp-500);const retaliation=o.damageEvents.find(e=>e.sourceSide===0&&e.targetSide===1&&e.type==='true');assert.equal(retaliation.settledDamage,500);assert.equal(retaliation.hpLoss,500);",
+      "why": "Q4482-003 actual500true damage/event replaces unimplemented diagnostic"
+    }
+  ]
+}

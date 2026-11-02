@@ -1,0 +1,650 @@
+{
+  "at": "2026-11-01T16:14:04.030Z",
+  "status": "source-classification-pending-no-frozen-edits",
+  "rows": [
+    {
+      "file": "dist/range-effects.js",
+      "line": 563,
+      "ids": [
+        1755
+      ],
+      "templates": [
+        {
+          "id": 1755,
+          "template": "获得{0}点护盾，护盾消失时使对手下{1}次攻击技能无效"
+        }
+      ],
+      "code": "add(1755,'afterHit',(c,p)=>{c.a.suitState.shield+=p[0];c.a.soulState.xShieldBlockCount=p[1];c.emit(c.name(c.a)+' 获得 '+p[0]+' 点护盾。');},[[0,99999],[1,10]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 588,
+      "ids": [
+        847
+      ],
+      "templates": [
+        {
+          "id": 847,
+          "template": "为自身附加{0}点护盾"
+        }
+      ],
+      "code": "add(847,'afterHit',(c,p)=>{c.a.suitState.shield+=p[0];c.emit(c.name(c.a)+' 获得 '+p[0]+' 点护盾。');},[[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 757,
+      "ids": [
+        1120
+      ],
+      "templates": [
+        {
+          "id": 1120,
+          "template": "造成的伤害低于{0}则为自身附加{1}点护盾"
+        }
+      ],
+      "code": "add(1120,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0]){c.a.suitState.shield+=p[1];c.emit(c.name(c.a)+' 获得 '+p[1]+' 点护盾。');}},[[0,99999],[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 793,
+      "ids": [
+        1012
+      ],
+      "templates": [
+        {
+          "id": 1012,
+          "template": "吸取对手能力提升状态，吸取成功则为自身附加{0}点护盾"
+        }
+      ],
+      "code": "add(1012,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)){c.steal(c.a,c.t,'技能');c.a.suitState.shield+=p[0];c.emit(c.name(c.a)+' 吸强成功，获得 '+p[0]+' 点护盾。');}},[[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 794,
+      "ids": [
+        1013
+      ],
+      "templates": [
+        {
+          "id": 1013,
+          "template": "自身每处于{0}种能力提升状态，则为自身附加{1}点护盾"
+        }
+      ],
+      "code": "add(1013,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length,shield=Math.floor(n/p[0])*p[1];if(shield){c.a.suitState.shield+=shield;c.emit(c.name(c.a)+' 获得 '+shield+' 点护盾。');}},[[1,6],[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 806,
+      "ids": [
+        1008
+      ],
+      "templates": [
+        {
+          "id": 1008,
+          "template": "造成的伤害高于{0}则获得{1}点护盾"
+        }
+      ],
+      "code": "add(1008,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&c.a.hp>0){c.a.suitState.shield+=p[1];c.emit(c.name(c.a)+' 获得 '+p[1]+' 点护盾。');}},[[0,99999],[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1160,
+      "ids": [
+        1545
+      ],
+      "templates": [
+        {
+          "id": 1545,
+          "template": "消除对手所有护盾效果，消除成功则为自身附加等量的护盾值"
+        }
+      ],
+      "code": "add(1545,'afterHit',c=>{const n=c.consumeShields(c.t,c.a);if(n>0)c.addShield(c.a,n,'effect:1545:'+c.round);});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1380,
+      "ids": [
+        1038
+      ],
+      "templates": [
+        {
+          "id": 1038,
+          "template": "双倍反转自身能力下降状态，反转成功则获得{0}点护盾"
+        }
+      ],
+      "code": "add(1038,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.a.stages[k]=Math.min(6,-2*c.a.stages[k]);changed=true;}if(changed)c.a.suitState.shield+=p[0];},[[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1443,
+      "ids": [
+        1938
+      ],
+      "templates": [
+        {
+          "id": 1938,
+          "template": "为对手附加{0}点护盾"
+        }
+      ],
+      "code": "add(1938,'afterHit',(c,p)=>{if(c.t.hp>0)c.t.suitState.shield+=p[0];},[[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1447,
+      "ids": [
+        1661
+      ],
+      "templates": [
+        {
+          "id": 1661,
+          "template": "获得{0}点护盾，护盾消失时{1}%的概率使对手{2}"
+        }
+      ],
+      "code": "add(1661,'afterHit',(c,p)=>{c.a.suitState.shield+=p[0];c.a.soulState.warShieldBreak={amount:0,chance:p[1],ailment:ailments[p[2]]};},[[0,99999],pct,[9,9]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1608,
+      "ids": [
+        1451
+      ],
+      "templates": [
+        {
+          "id": 1451,
+          "template": "若自身体力高于对手则获得{0}点护盾，若自身体力低于对手则恢复自身最大体力的1/{1}"
+        }
+      ],
+      "code": "add(1451,'afterHit',(c,p)=>{if(c.a.hp>c.t.hp)c.addShield(c.a,p[0],'effect1451');else if(c.a.hp<c.t.hp)c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复');},[[0,99999],[1,9999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 1824,
+      "ids": [
+        1752
+      ],
+      "templates": [
+        {
+          "id": 1752,
+          "template": "获得{0}点护盾，护盾消失时吸取对手{1}点体力且令对手随机{2}个技能的PP值归零"
+        }
+      ],
+      "code": "add(1752,'afterHit',(c,p)=>{const source='1752:'+c.m.id+':'+c.round+':'+((c.a.soulState.shieldDrainSerial??0)+1);c.a.soulState.shieldDrainSerial=(c.a.soulState.shieldDrainSerial??0)+1;c.addShield(c.a,p[0],source);c.a.soulState.shieldGoneDrain={amount:p[1],count:p[2],source};c.a.soulState.sourceShieldReactions??={};c.a.soulState.sourceShieldReactions[source]={kind:'drain',amount:p[1],count:p[2]};},[[0,99999],[0,99999],[1,99]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 2428,
+      "ids": [
+        1387
+      ],
+      "templates": [
+        {
+          "id": 1387,
+          "template": "获得{0}点护盾，护盾消失时附加{1}点固定伤害"
+        }
+      ],
+      "code": "add(1387,'afterHit',(c,p)=>{const st=c.a.soulState,source='1387:'+c.m.id+':'+c.round+':'+((st.senyaShieldSerial??0)+1);st.senyaShieldSerial=(st.senyaShieldSerial??0)+1;c.addShield(c.a,p[0],source);st.sourceShieldReactions??={};st.sourceShieldReactions[source]={kind:'fixed',amount:p[1]};},[[1,99999],[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 2475,
+      "ids": [
+        1661
+      ],
+      "templates": [
+        {
+          "id": 1661,
+          "template": "获得{0}点护盾，护盾消失时{1}%的概率使对手{2}"
+        }
+      ],
+      "code": "{const old=registry[1661];registry[1661]=Object.freeze({...old,validate(p,m,index){if((m?.wikiId??m?.id)===27731&&(m?.hash==='dad87eba'||m?.revision==='seerapi:dad87eba')&&index===1&&JSON.stringify(p)==='[400,100,7]')return;old.validate(p,m,index);},execute(c,p){const st=c.a.soulState,source='1661:'+c.m.id+':'+c.round+':'+((st.shield1661Serial??0)+1);st.shield1661Serial=(st.shield1661Serial??0)+1;c.addShield(c.a,p[0],source);st.sourceShieldReactions??={};st.sourceShieldReactions[source]={kind:'war',amount:0,chance:p[1],ailment:ailments[p[2]]};}});}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 2654,
+      "ids": [
+        1792
+      ],
+      "templates": [
+        {
+          "id": 1792,
+          "template": "使对手直接受到{0}点光·暗影系伤害并获得等量护盾（不可叠加），若自身没有护盾则效果翻倍"
+        }
+      ],
+      "code": "add(1792,'afterHit',(c,p)=>{const id=c.m.wikiId??c.m.id;if(id!==27925||c.m.revision!=='seerapi:28630abf'||c.effectInstanceIndex!==3||p[0]!==150)throw Error('Q-N20-4355-001：1792护盾仅确认27925/28630abf实例3[150]');const base=p[0]*(c.shieldValue(c.a)===0?2:1),lost=c.typedAttack(base,'光 暗影'),source='effect1792:'+id+':'+c.effectInstanceIndex,old=c.shieldSourceValue(c.a,source);c.addShield(c.a,Math.max(0,lost-old),source);},[[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 2808,
+      "ids": [
+        1871
+      ],
+      "templates": [
+        {
+          "id": 1871,
+          "template": "若自身当前体力低于对手则为自身附加等同于双方最大体力差值的护盾"
+        }
+      ],
+      "code": "metadata[1871]={info:'若自身当前体力低于对手则为自身附加等同于双方最大体力差值的护盾',args_num:0};add(1871,'afterHit',c=>{if(c.a.hp<c.t.hp)c.addShield(c.a,Math.abs(c.a.stats.maxHp-c.t.stats.maxHp),'aurora-maxhp-difference');});"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 3131,
+      "ids": [
+        1755
+      ],
+      "templates": [
+        {
+          "id": 1755,
+          "template": "获得{0}点护盾，护盾消失时使对手下{1}次攻击技能无效"
+        }
+      ],
+      "code": "{const old=registry[1755];registry[1755]=Object.freeze({...old,execute(c,p){const st=c.a.soulState,source='1755:'+c.m.id+':'+c.round+':'+((st.shield1755Serial??0)+1);st.shield1755Serial=(st.shield1755Serial??0)+1;c.addShield(c.a,p[0],source);(st.sourceShieldReactions??={})[source]={kind:'attackBlock',count:p[1]};}});}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 3202,
+      "ids": [
+        2005
+      ],
+      "templates": [
+        {
+          "id": 2005,
+          "template": "{0}%令对手{1}，未触发则为对手附加{2}点护盾"
+        }
+      ],
+      "code": "add(2005,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.addShield(c.t,p[2]);},[pct,[6,6],[0,99999]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 3614,
+      "ids": [
+        1211
+      ],
+      "templates": [
+        {
+          "id": 1211,
+          "template": "消除双方能力提升状态及能力下降状态，消除任意一方成功则为自身附加{0}点护盾"
+        }
+      ],
+      "code": "add(1211,'afterHit',(c,p)=>{let changed=false;for(const t of [c.a,c.t]){const before=JSON.stringify(t.stages);c.clearBoost(t);c.clearNegative(t);changed ||=before!==JSON.stringify(t.stages);}if(changed)c.addShield(c.a,p[0],c.m.name+'消除能力护盾');},[[300,300]]);"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 3786,
+      "ids": [
+        1012
+      ],
+      "templates": [
+        {
+          "id": 1012,
+          "template": "吸取对手能力提升状态，吸取成功则为自身附加{0}点护盾"
+        }
+      ],
+      "code": "{const old=registry[1012];registry[1012]=Object.freeze({...old,execute(c,p){if(!sourced4612(c,1012))return old.execute(c,p);if(c.steal(c.a,c.t,'技能')>0)c.addShield(c.a,p[0]);}});}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 3838,
+      "ids": [
+        1451
+      ],
+      "templates": [
+        {
+          "id": 1451,
+          "template": "若自身体力高于对手则获得{0}点护盾，若自身体力低于对手则恢复自身最大体力的1/{1}"
+        }
+      ],
+      "code": "{const old=registry[1451];registry[1451]=Object.freeze({...old,execute(c,p){if(!sourced4618(c,1451))return old.execute(c,p);if(c.a.hp>c.t.hp)c.addShield(c.a,p[0],'effect1451');else if(c.a.hp<c.t.hp)c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复','skill');}});}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 4168,
+      "ids": [],
+      "templates": [],
+      "code": "function grantShield1582(c,n){if(c.a.soulState.qualified1582Shield4627===undefined)return c.refreshShield(c.a,n,\"4627-1582\");if((c.a.suitState.shield??0)>0){const policy=c.a.soulState.qualified1582Shield4627;if(!['add','replace-total'].includes(policy))throw Error('Q-N50-4600-005：1582新护盾与既有普通盾并存/重授待确认');if(policy==='replace-total')c.consumeOrdinaryShield(c.a);}return c.addShield(c.a,n,'4627-1582');}"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "line": 4756,
+      "ids": [],
+      "templates": [],
+      "code": "function carryRound1859(c){if(!c.a.soulState.bladeCarries1859?.partner||c.a.hp<=0)return;const policy=c.a.soulState.qualifiedWarmCost1859??'max-hp';if(!['max-hp','direct-hp','percent-damage'].includes(policy))throw Error('Q-N50-4657-002：2424减少自身体力上限1%的作用对象与类型待确认');const before={maxHp:c.a.stats.maxHp,hp:c.a.hp},n=Math.floor(before.maxHp*.01);let actual;if(policy==='max-hp'){c.reduceMaxHp(c.a,n,'霜焱伙伴已明确研究上限减少');actual=before.maxHp-c.a.stats.maxHp;}else if(policy==='percent-damage'){actual=c.hurt(c.a,n,'霜焱伙伴已明确研究百分自耗','percent');}else{c.a.hp=Math.max(0,c.a.hp-n);actual=before.hp-c.a.hp;if(c.a.hp===0)c.defeat(c.a,'霜焱伙伴已明确研究直接体力自耗');}let amount=n;if(actual!==n){const basis=c.a.soulState.qualifiedWarmGain1859??'nominal';if(basis==='actual')amount=actual;else if(basis!=='nominal')throw Error('Q-N50-4657-002：2424实际减少与名义1%不等时等量授予基数待确认');}if(c.a.hp>0){c.addShield(c.a,amount,'2424/2255679f');c.addBarrier(c.a,amount,'2424/2255679f');c.a.soulState.warmSnow1859={sourceHash:'2255679f',amount:(c.a.soulState.warmSnow1859?.amount??0)+amount};}(c.a.soulState.warmRoundEvents1859??=[]).push({round:c.round,before,after:{maxHp:c.a.stats.maxHp,hp:c.a.hp},policy,n,actual,amount});}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 80,
+      "ids": [],
+      "templates": [],
+      "code": "for(const [id,hash,shield] of [[501,'2bcfd945',200],[529,'4ff96476',250]])registry[id]={name:id===529?'王地 · 强化':'王地',sourceHash:hash,traits:{},hooks:{orderResolved(c){if(c.a.side===c.first)c.t.soulState.skillInvalidRound=c.round;},roundEnd(c){if(c.a.hp>0&&c.a.side!==c.first){c.a.suitState.shield+=shield;c.emit(c.name(c.a)+' 王·卡修斯魂印：获得 '+shield+' 点护盾。');c.timed(c.a,'id984',1,{amount:2},c.round+1);}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 82,
+      "ids": [],
+      "templates": [],
+      "code": "for(const [id,hash,shield] of [[505,'c7df212',300],[530,'d7aec6f4',400]])registry[id]={name:id===530?'莱茵 · 强化':'莱茵',sourceHash:hash,traits:{shieldBreakDamage:shield},hooks:{roundEnd(c){if(c.a.soulState.boostRemovedRound===c.round&&c.a.hp>0){c.a.suitState.shield+=shield;c.emit(c.name(c.a)+' 莱茵哈特魂印：获得 '+shield+' 点护盾。');}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 152,
+      "ids": [],
+      "templates": [],
+      "code": "  beforeUse(c){if(c.a.side===c.first){const chance=Object.values(c.a.stages).some(n=>n>0)?.65:.5;if(c.random()<chance)c.t.soulState.skillInvalidRound=c.round;else{c.a.suitState.shield+=300;c.emit(c.name(c.a)+' 魂印：获得300点护盾。');}}else if(c.random()<.5)c.a.soulState.oudeDamageMultiplier=1.5+c.random();else c.a.soulState.oudeGrowRound=c.round;},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 320,
+      "ids": [],
+      "templates": [],
+      "code": " beforeUse(c){const n=Math.floor(c.random()*5);c.a.soulState.guardianCritical=n===4&&c.m.kind!=='status';if(n===0)c.stage(c.t,-1);else if(n===1)c.stage(c.a,1);else if(n===2){if(c.random()<.6)c.ailment(c.t,'害怕',c.a);}else if(n===3)c.a.suitState.shield+=300;},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 326,
+      "ids": [],
+      "templates": [],
+      "code": " beforeUse(c){const w=c.a.soulState.thunderWings;if(w?.round!==c.round)return;if(w.shield)c.a.suitState.shield+=300;if(w.boost)c.stage(c.a,1);if(w.drop&&c.t.hp>0)c.stage(c.t,-1);},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 336,
+      "ids": [
+        870
+      ],
+      "templates": [
+        {
+          "id": 870,
+          "template": "吸取对手{0}点体力"
+        }
+      ],
+      "code": "registry[870]={name:'圣地卡修斯',sourceHash:'9b9717ab',traits:{ailmentImmune:f=>f.soulState?.cassisImmuneRound===f.soulState?.currentRound,attackPriority:f=>f.soulState.cassisShieldAtStart?1:0},hooks:{battleStart(c){c.addShield(c.a,Math.floor(c.a.stats.maxHp/2),'魂印870入场');c.a.soulState.cassisEntered=true;c.a.soulState.currentRound=1;c.a.soulState.cassisImmuneRound=1;},allShieldsGone(c){if(c.a.hp<=0||c.t.hp<=0)return;c.clear(c.t);c.clearBoost(c.t);const pool=c.t.moves.filter(id=>c.t.pp[id]>0);for(let i=0;i<2&&pool.length;i++)c.t.pp[pool.splice(Math.floor(c.random()*pool.length),1)[0]]=0;c.emit(c.name(c.a)+' 圣地卡修斯魂印：全部护盾消失，清回合清强并随机清空正PP技能两项。');},roundStart(c){c.a.soulState.currentRound=c.round;c.a.soulState.cassisShieldAtStart=c.shieldValue(c.a)>0;}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 421,
+      "ids": [],
+      "templates": [],
+      "code": "battleStart(c){c.a.suitState.shield+=400;},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 428,
+      "ids": [],
+      "templates": [],
+      "code": "battleStart(c){c.addShield(c.a,400,'canglan-entry');},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 564,
+      "ids": [],
+      "templates": [],
+      "code": "function rhDrain(c){if(c.a.hp>0&&c.t.hp>0&&c.a.soulState.rhDrain){const amount=c.t.stats.maxHp/3;healthRules.drainPercent(c,amount,'莱茵哈特吸取');c.addShield(c.a,Math.min(400,Math.floor(amount)),'soul:'+c.a.soulId+':drain');}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 577,
+      "ids": [],
+      "templates": [],
+      "code": "boostRemoved(c){if(['clear','steal'].includes(c.method)&&c.a.hp>0){c.addSeal(c.a);c.addShield(c.a,400,'soul:1985:boostRemoved');}},"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 663,
+      "ids": [],
+      "templates": [],
+      "code": "for(const [id,hash]of [[1245,'33086155'],[2030,'20d9251']])registry[id]={name:id===1245?'辰坤':'辰坤·强化',sourceHash:hash,deferred:['后续再次登场触发护盾（原版限第二次），等待真实换宠流程；当前首次登场已实现'],traits:{attackReduction:f=>f.soulState.chenAttackReduction??0,fixedReduction:f=>f.soulState.chenFixedReduction??0},hooks:{battleStart(c){c.addShield(c.a,Math.floor(c.a.stats.maxHp/3),'chen-entry');},roundStart(c){const a=c.a,st=a.soulState,reborn=!!st.chenReborn;if(id===2030&&c.round===1&&c.shieldSourceValue(a,'chen-entry')>0){if(!c.ailment(c.t,'星赎',a,false,false,3))c.ailment(a,'砥砺',a,false,false,3);}const abnormal=f=>Object.values(f.ailments).some(end=>end>=c.round),own=abnormal(a),other=abnormal(c.t),bad=own||(reborn&&other),good=!own||(reborn&&!other),dual=a.stats.def+a.stats.spd,multiple=id===1245?.4:reborn?3/5:5/10;st.chenAttackReduction=bad?Math.min(1,multiple*dual/a.stats.maxHp):0;st.chenFixedReduction=id===1245&&bad?Math.min(1,multiple*a.stats.maxHp/dual):0;st.chenOtherReduction=id===2030&&bad?Math.min(1,multiple*a.stats.maxHp/dual):0;st.chenAbnormalRound=bad?c.round:0;if(good){let n=a.stats.maxHp/(reborn?2:3);if(id===2030)n+=c.missingPP(c.t)*c.t.stats.maxHp/(reborn?50:100);const grant=Math.floor(n);a.suitState.barrier=Math.max(a.suitState.barrier,grant);st.chenBarrierRound=c.round;st.chenBarrierAmount=grant;}},beforeHealthDamage(c){if(c.type==='attack'&&(c.damageReductionIgnore??0)===0&&(c.a.soulState.chenAttackReduction??0)>=1)c.amount=0;},beforeIncomingDamage(c){if(id===2030&&['fixed','percent'].includes(c.type))c.amount*=1-(c.a.soulState.chenOtherReduction??0)*((c.damageReductionIgnore??0)>=1?0:1);},death(c){const a=c.a,st=a.soulState;if(id!==2030||st.chenReborn||c.shieldSourceValue(a,'chen-entry')<=0)return;st.chenReborn=true;st.chenRebornThisDamage=true;for(const k of ['maxHp','atk','spa','def','spd','spe'])a.stats[k]=Math.max(1,Math.floor(a.stats[k]/2));a.hp=a.stats.maxHp;c.restorePP(a,999);c.emit('辰坤消耗六项面板能力值50%重生，回复至新上限并回满PP，辰星石不再触发。');},combatEnd(c){const st=c.a.soulState;if(id===1245&&st.chenBarrierRound===c.round&&c.a.suitState.barrier===0)c.heal(c.a,c.a.stats.maxHp/3,'辰坤护罩消失');if(id===2030&&!st.chenReborn&&!st.chenShieldPPRestored&&c.shieldSourceValue(c.a,'chen-entry')===0){st.chenShieldPPRestored=true;c.restorePP(c.a,999);}if(id===2030&&st.chenAbnormalRound===c.round&&c.t.hp>0&&!c.ailment(c.t,'星赎',c.a))st.chenNextStone=true;},afterAttack(c){if(id===2030&&c.a.soulState.chenNextStone&&c.t.hp>0){delete c.a.soulState.chenNextStone;c.ailment(c.t,'石化',c.a);}},damageTaken(c){const st=c.a.soulState;if(st.chenRebornThisDamage){delete st.chenRebornThisDamage;return;}if(id!==2030||c.type!=='true'||c.a.hp<=0||st.chenBarrierRound!==c.round)return;c.a.suitState.barrier=Math.max(c.a.suitState.barrier,st.chenBarrierAmount??0);let changed=false;for(const k of Object.keys(c.t.stages))if(c.t.stages[k]>0){c.t.stages[k]*=-1;changed=true;}if(changed)c.ailment(c.t,'砥砺',c.a);}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 665,
+      "ids": [
+        1246
+      ],
+      "templates": [
+        {
+          "id": 1246,
+          "template": null
+        }
+      ],
+      "code": "registry[1246]={name:'启灵元神',sourceHash:'4faedf27',deferred:['神殇：放逐对方存活不在场精灵，按存活队伍数量决定范围和上限','神印：对手主动切换登场附加1层上限3层的神圣印记，登场首战阶按1/8、1/6、1/4受真伤，下场保留','神谕：己方不在场且低于半体精灵免受削减体力','神照：己方其他首发精灵获得启灵元神最大体力30%护盾；当前自己作为首发的30%盾已实现'],traits:{ailmentImmune:f=>f.soulState.originHigh,weaknessImmune:f=>f.soulState.originHigh},hooks:{battleStart(c){c.addShield(c.a,Math.floor(c.a.stats.maxHp*.3),'origin-first-entry');},roundStart(c){c.a.soulState.originHigh=c.a.hp>c.a.stats.maxHp/2;if(c.a.hp<c.a.stats.maxHp/2)c.addShield(c.a,Math.floor(c.a.stats.maxHp*.3),'origin-low:'+c.round);}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 676,
+      "ids": [],
+      "templates": [],
+      "code": "for(const [id,hash]of [[1286,'d67f5c4c'],[1540,'2577d58f']])registry[id]={name:id===1286?'海洋庇护':'海洋庇护·强化',sourceHash:hash,traits:{},hooks:{roundStart(c){c.a.soulState.oceanWrathEligible=id===1540||c.a.hp>c.t.hp;c.a.soulState.oceanAttackTaken=0;},attackDamageTaken(c){if(c.a.soulState.oceanWrathEligible)c.a.soulState.oceanAttackTaken+=(c.settledDamage??c.dealt);},combatEnd(c){if(c.a.hp<=0)return;const low=c.a.hp<c.a.stats.maxHp/2,n=(200+Math.floor(c.random()*101))*(low?2:1);if(c.t.hp>0){if(id===1540)healthRules.drainFixed(c,n,'强化海洋庇护吸取');else{c.hurt(c.t,n,'海洋庇护附伤','fixed');c.heal(c.a,n,'海洋庇护名义等量回复');}}const pool=['atk','def','spa','spd','spe','acc'];for(let i=0;i<3;i++)c.stage(c.a,low?2:1,[pool.splice(Math.floor(c.random()*pool.length),1)[0]]);if(c.a.soulState.oceanWrathEligible&&c.a.soulState.oceanAttackTaken>300&&c.a.soulState.oceanShieldGrantRound!==c.round){c.a.soulState.oceanShieldGrantRound=c.round;c.addShield(c.a,300,'ocean-wrath');}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 678,
+      "ids": [
+        1288
+      ],
+      "templates": [
+        {
+          "id": 1288,
+          "template": "免疫下{0}次对手的攻击，未触发则{1}%令对手{2}"
+        }
+      ],
+      "code": "registry[1288]={name:'六界御神',sourceHash:'41a5664e',traits:{skillPriority:f=>f.soulState.sixRealmTimeRound===f.soulState.sixRealmRound?1:0,ailmentImmune:f=>f.soulState.sixRealmBoosted===true,attackMultiplier:f=>f.soulState.sixRealmBoosted?1.5:1},hooks:{roundStart(c){c.a.soulState.sixRealmRound=c.round;c.a.soulState.sixRealmBoosted=Object.values(c.a.stages).some(n=>n>0);},beforeHealthDamage(c){if(c.type==='attack'&&!c.ignoreImmunity&&c.on(c.a,'天玄大伤免疫')&&c.amount>400){c.immune=true;c.amount=0;}},combatEnd(c){if(c.a.hp<=0)return;if(!c.a.soulState.sixRealmBoosted){c.stage(c.a,1);c.timed(c.a,'id984',1,{amount:2},c.round+1);}const chosen=Math.floor(c.random()*6);c.a.soulState.sixRealmLast=chosen;if(chosen===0){c.addShield(c.a,200,'soul:1288:earth');c.a.suitState.barrier+=200;}if(chosen===1&&c.t.hp>0){c.hurt(c.t,200,'瀚海秘法','fixed');c.heal(c.a,200,'瀚海秘法名义等量回复');}if(chosen===2&&c.t.hp>0&&!c.ppReductionBlocked(c.t)){const pool=c.t.moves;c.t.pp[pool[Math.floor(c.random()*pool.length)]]=0;}if(chosen===3)c.timed(c.a,'必定暴击',1,{},c.round+1);if(chosen===4)c.timed(c.a,'天玄大伤免疫',1,{},c.round+1);if(chosen===5){c.a.soulState.sixRealmTimeRound=c.round+1;c.timed(c.a,'时空秘法先制',1,{amount:1},c.round+1);}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 712,
+      "ids": [],
+      "templates": [],
+      "code": "  if(st.leonRoundAbnormal){c.addShield(c.a,c.a.stats.maxHp/3,'leon:'+id+':'+c.round);"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 765,
+      "ids": [
+        7
+      ],
+      "templates": [
+        {
+          "id": 7,
+          "template": "对方体力高于自己时才能命中，将对方体力减到和自己相同"
+        }
+      ],
+      "code": "for(const [id,hash]of [[1389,'d8add77a'],[1690,'f16fe6ef']])registry[id]={name:id===1389?'逆魂·佩特菲德':'逆魂·佩特菲德·强化',sourceHash:hash,traits:{},hooks:{battleStart(c){if(id===1690){c.a.stages.def=Math.min(6,c.a.stages.def+1);c.a.stages.spd=Math.min(6,c.a.stages.spd+1);}},boostRemoved(c){if(c.a.hp<=0||!['clear','steal'].includes(c.method))return;if(!(c.t.hp>0&&c.ailment(c.t,'石化',c.a,false,false,null,{probabilityPercent:100}))){c.clear(c.t);c.addShield(c.a,c.a.stats.maxHp/3,'petefield-'+id+'-'+c.round);}},afterUse(c){if(c.m.kind==='status'||c.m.kind==='item'||c.a.hp<=0)return;const shield=c.shieldValue(c.a)>0;if(id===1690&&shield){healthRules.drainPercent(c,c.shieldValue(c.a)*.7,'逆魂护盾70%吸取');if(c.a.hp<=0)return;if(c.t.hp>0){const chance=c.statusProbability(70);if(!(c.random()<chance/100&&c.ailment(c.t,'石化',c.a,false,false,null,{probabilityPercent:70})))c.stage(c.a,1);}}const n=Object.values(c.a.stages).reduce((sum,n)=>sum+Math.max(0,n),0)*(id===1690||shield?30:25);if(c.t.hp>0)c.hurt(c.t,n,'逆魂强化段数固定','fixed');if(id===1389&&shield&&c.a.hp>0&&c.t.hp>0){const chance=c.statusProbability(50);if(!(c.random()<chance/100&&c.ailment(c.t,'石化',c.a,false,false,null,{probabilityPercent:50})))c.stage(c.a,1);}},combatEnd(c){if(id===1690&&c.a.hp>0&&!Object.values(c.a.stages).some(n=>n>0))c.clearAilments(c.a);}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 772,
+      "ids": [],
+      "templates": [],
+      "code": "for(const [id,hash,pp,cap,priority]of [[1408,'d5009596',1,.6,1],[1580,'d7a83ed',2,.4,2]])registry[id]={name:id===1408?'贝狄薇尔':'贝狄薇尔·强化',sourceHash:hash,deferred:['真实主动切换登场时对手所选技能PP消耗5/20倍；真实再次登场重新选择3回合领域；自身2229原地触发登场效果已实现'],traits:{skillPriority:f=>{const e=f.effects['领域次回合全技能先制'];return e&&e.start<=f.soulState.currentRound&&e.end>=f.soulState.currentRound?e.amount:0;}},hooks:{battleStart(c){c.a.soulState.currentRound=1;bedEntry(c,cap);},beforeRoundStart(c){c.a.soulState.currentRound=c.round;},entryTriggered(c){bedEntry(c,cap);},beforeUse(c){if(c.m.kind==='item'||c.ppReductionBlocked(c.t))return;if(c.a.side===c.first)for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-pp);else if(c.t.moves.length)c.t.pp[c.t.moves[Math.floor(c.random()*c.t.moves.length)]]=0;},combatEnd(c){if(c.a.hp<=0)return;const mech=c.on(c.a,'机械领域'),dim=c.on(c.a,'次元领域');if(!mech&&!dim)return;const e=c.a.effects[mech?'机械领域':'次元领域'];if((c.a.roundSettledAttackDamage??0)>0){if(mech)c.timed(c.a,'领域次回合全技能先制',1,{amount:priority},c.round+1);else if(c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'次元领域吸取','次元领域吸取');}if(c.a.hp>0&&e.end===c.round){c.addShield(c.a,500,'bed-domain-expiry');c.a.suitState.barrier+=500;}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 774,
+      "ids": [
+        1409
+      ],
+      "templates": [
+        {
+          "id": 1409,
+          "template": null
+        }
+      ],
+      "code": "registry[1409]={name:'镇世·乔特鲁德',sourceHash:'bc8d9057',deferred:['其他真实存活精灵每只增加100盾；其他精灵全部阵亡的25%固定/百分比减伤；当前基础250盾已实现'],traits:{},hooks:{battleStart(c){c.addShield(c.a,250,'town-dragon-entry');},roundStart(c){c.a.soulState.dragonAbnormalSnapshotRound=conditionStatusRules.conditionPresent(c.a,c.round)?c.round:0;c.a.soulState.dragonReactionRound=0;},attackDamageTaken(c){if(c.a.soulState.dragonAbnormalSnapshotRound===c.round||c.a.hp<=0||c.t.hp<=0||!(c.settledDamage>0)||c.a.soulState.dragonReactionRound===c.round)return;c.a.soulState.dragonReactionRound=c.round;if(c.random()<.5)c.hurt(c.t,150+Math.floor(c.random()*151),'镇世受击反击','fixed');else{const n=1+Math.floor(c.random()*2);c.a.soulState.dragonFailurePPAmount=n;if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-n);}},combatEnd(c){if(c.a.hp>0&&c.a.soulState.dragonAbnormalSnapshotRound===c.round)c.heal(c.a,c.a.stats.maxHp/3,'镇世异常回合回复');}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 776,
+      "ids": [
+        2028
+      ],
+      "templates": [
+        {
+          "id": 2028,
+          "template": "若自身为对手天敌则必定命中"
+        }
+      ],
+      "code": "registry[2028]={name:'镇世·乔特鲁德·觉醒',sourceHash:'a5405e3b',deferred:['真实额外龙精灵金祖之龍、玄源之㡣加入队伍并参与存亡/龙系计数、死亡代价、代保命/斩杀、臣服或疲惫回合异常免疫、死亡后的非真减伤/体力上限；当前自身存活及本身龙系的一份100盾/10%攻击贡献独立实现'],traits:{attackMultiplier:1.1},hooks:{battleStart(c){c.addShield(c.a,100,'town-awakened-current-self');},roundStart(c){if(conditionStatusRules.conditionPresent(c.a,c.round))c.a.soulState.dragonAilmentReceivedRound=c.round;},attackDamageTaken(c){if(!(c.settledDamage>0)||c.a.hp<=0||c.t.hp<=0||c.a.soulState.dragonAilmentReceivedRound===c.round)return;c.hurt(c.t,c.a.stats.maxHp*.2,'镇世觉醒未受异常反击','percent');if(c.a.hp>0&&c.t.hp>0)townAwakenedAbsorb(c,c.round);},roundEnd(c){if(c.a.hp>0&&c.a.soulState.dragonAilmentReceivedRound===c.round){c.heal(c.a,c.a.stats.maxHp*.2,'镇世受异常回合回复');if(c.a.hp>0&&c.t.hp>0)townAwakenedAbsorb(c,c.round+1);}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 798,
+      "ids": [],
+      "templates": [],
+      "code": "function campbellEntry(c){const st=c.a.soulState,round=c.round??1,full=c.a.hp===c.a.stats.maxHp,key='campbell-entry:'+round+':'+((st.campbellEntryCount??0)+1);st.campbellEntryCount=(st.campbellEntryCount??0)+1;c.addShield(c.a,300,key);c.a.suitState.barrier+=300;st.campbellEntries??=[];st.campbellEntries.push({round,source:key,barrierGone:false});if(full)campbellInitialWeak(c);else if(c.heal)c.heal(c.a,c.a.stats.maxHp/3,'坎贝尔登场回复');else st.campbellInitialHealPending=true;}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 835,
+      "ids": [
+        1458
+      ],
+      "templates": [
+        {
+          "id": 1458,
+          "template": "{0}回合内每回合{1}%对手属性技能无效，未触发则{2}%令对手{3}"
+        }
+      ],
+      "code": "registry[1458]={name:'浩渺之源·努恩',sourceHash:'2006bca1',traits:{},hooks:{beforeRoundStart(c){const st=c.a.soulState;if(st.oceanTideNextRound<=c.round){const scheduled=st.oceanTideNextRound;delete st.oceanTideNextRound;if(scheduled===c.round&&c.selectedMove(c.a).kind!=='status'&&c.selectedMove(c.a).kind!=='item'){c.timed(c.a,'无视对手强化',1,{});st.oceanTideThis={round:c.round,origin:'soul'};}}},roundStart(c){const st=c.a.soulState,hadShield=c.shieldValue(c.a)>0;if(!hadShield){c.addShield(c.a,Math.floor(c.a.stats.maxHp/3),'soul1458');c.restorePP(c.a,1);}else{c.a.suitState.barrier=Math.floor(c.t.stats.maxHp/3);if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-1);}st.oceanShieldAtStart=c.shieldValue(c.a);st.oceanBarrierAtStart=c.a.suitState.barrier;delete st.oceanShieldLostRound;delete st.oceanBarrierLostRound;},allShieldsGone(c){c.a.soulState.oceanShieldLostRound=c.round;},barrierGone(c){c.a.soulState.oceanBarrierLostRound=c.round;},combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState,shieldGone=(st.oceanShieldAtStart>0||st.oceanShieldLostRound===c.round)&&c.shieldValue(c.a)===0,barrierGone=(st.oceanBarrierAtStart>0||st.oceanBarrierLostRound===c.round)&&c.a.suitState.barrier===0;if(shieldGone||barrierGone){c.a.counts.immune=(c.a.counts.immune??0)+1;st.oceanTideNextRound=c.round+1;}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 911,
+      "ids": [
+        1509
+      ],
+      "templates": [
+        {
+          "id": 1509,
+          "template": "令对手全属性-{0}且随机{1}个技能PP值归零，技能无效时消耗自身全部体力并令对手全属性-1，然后对手下3次使用技能消耗的PP值为3倍"
+        }
+      ],
+      "code": "registry[1509]={name:'龙仪·机械塔克林',sourceHash:'6bf22e3',deferred:['下场后场地独立图腾继续存在2回合并作用真实队友','霸开启后对手下回合不能真实主动换宠'],traits:{maxIncomingAffinity:f=>f.soulState.dragonTotem?.active?2:0,immuneAilments:f=>f.soulState.dragonTotem?.active&&f.soulState.dragonTotem.blessings.sage?f.soulState.dragonTotem.recordedControls:[]},hooks:{battleStart:beginDragonTotem1509,entryTriggered:beginDragonTotem1509,beforeUse(c){const t=c.a.soulState.dragonTotem;if(t?.active&&(c.m.wikiId??c.m.id)===35442)t.usedFifth=true;},roundStart(c){const t=c.a.soulState.dragonTotem;if(!t?.active)return;if(t.blessings.might)c.a.suitState.barrier+=300;if(t.blessings.dominion)c.addShield(c.a,300,'dragon-totem-dominion:'+c.round);},combatEnd(c){const t=c.a.soulState.dragonTotem;if(!t?.active||c.a.hp<=0)return;const controls=Object.keys(c.a.ailments).filter(k=>c.a.ailments[k]>=c.round&&c.isControlAilment(k)),conditions={sage:controls.length>0,might:Object.values(c.a.stages).some(n=>n<0),dominion:c.a.moves.some(k=>!c.isFifthSkill(k)&&c.a.pp[k]===0)},opened=[],reopen=[];for(const kind of ['sage','might','dominion']){if(!conditions[kind]||t.blessings[kind])continue;t.blessings[kind]=true;t.everOpened[kind]=true;t.openedRounds[kind]=c.round;opened.push(kind);if(kind==='sage'){const cleared=[];for(const k of controls)if(c.clearAilment(c.a,k))cleared.push(k);const pool=cleared.slice();t.recordedControls=[];while(t.recordedControls.length<3&&pool.length)t.recordedControls.push(pool.splice(Math.floor(c.random()*pool.length),1)[0]);}if(kind==='might')c.timed(c.t,'id984',1,{amount:-1},c.round+1);}if(opened.length&&t.entryRound===c.round){t.openedAtEntry=true;t.entryOpeningRound=c.round;c.timed(c.t,'额外正向先制失效',1,{},c.round+1);}if(t.blessings.sage){c.heal(c.a,300,'贤之庇护持续回复');}if(!t.usedFifth)c.restorePP(c.a,1);}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 917,
+      "ids": [],
+      "templates": [],
+      "code": "function avalancheStart4318(c,enhanced){c.a.soulState.avalancheEvents=[];c.stage(c.a,1,['def','spd']);const total=f=>Object.values(f.stages).reduce((a,b)=>a+b,0),a=total(c.a),b=total(c.t);if(a<b){c.stage(c.a,1,['def','spd']);c.timed(c.a,'概率闪避',1,{chance:100});}else if(a>b){const before=c.t.stages.spe;c.stage(c.t,-1,['spe']);if(c.t.stages.spe===before){if(enhanced){c.addShield(c.a,200,'enhanced-avalanche:'+c.round);c.a.suitState.barrier+=200;}else c.refreshBarrier(c.a,200,'original-avalanche');}}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 947,
+      "ids": [
+        1570
+      ],
+      "templates": [
+        {
+          "id": 1570,
+          "template": "出手时若自身体力高于对手则{0}%令对手{1}，未触发则附加对手最大体力1/{2}的百分比伤害"
+        }
+      ],
+      "code": "registry[1570]={name:'圣心女皇·卡托娜',sourceHash:'3f5caca3',deferred:['自身真实主动切换下场且当前护盾量严格高于600时将自身能力提升附加给己方下只出场精灵'],traits:{},hooks:{combatEnd(c){if(c.a.hp<=0)return;const attacked=c.usedSkillThisRound(c.t)&&c.selectedMove(c.t).kind!=='status'&&c.selectedMove(c.t).kind!=='item';const nominal=(attacked?c.a.stats.maxHp:c.t.stats.maxHp)/3,n=Math.floor(nominal);const old=c.shieldSourceValue(c.a,'holy-empress-1570');c.addShield(c.a,Math.max(0,n-old),'holy-empress-1570');if(attacked){c.heal(c.a,nominal,'圣心女皇等量回复');c.timed(c.a,'属性技能先制',1,{amount:2},c.round+1);}else{c.stage(c.a,1,['def','spd']);c.timed(c.t,'statusBlock',1,{},c.round+1);}}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 978,
+      "ids": [],
+      "templates": [],
+      "code": "function angelChastise1579(c,start){if(c.a.hp<=0||Object.values(c.a.stages).some(n=>n>0)||c.a.soulState.angelChastiseRound===c.round)return;c.a.soulState.angelChastiseRound=c.round;const shield=c.consumeShields(c.t,c.a),barrier=c.consumeBarrier(c.t);if(shield>0)c.addShield(c.a,shield,'angel-chastise');if(barrier>0)c.a.suitState.barrier+=barrier;if(Object.values(c.t.stages).some(n=>n>0)){const immune=c.weaknessBlocked(c.t);c.stage(c.t,-2,['def','spd']);if(immune&&c.clearBoost(c.t))c.timed(c.t,'面板数值设定',1,{values:{atk:0,spa:0}},start);}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 998,
+      "ids": [],
+      "templates": [],
+      "code": "function lokiEntry1586(c){const st=c.a.soulState;st.lokiLayers=Math.min(3,Math.max(0,Math.floor(st.lokiLayers??0)));st.lokiResetBase??=0;st.lokiEntryRound=c.round??1;st.lokiEntryLayers=st.lokiLayers;st.lokiEntryCount=(st.lokiEntryCount??0)+1;st.lokiShieldSource='loki-entry:'+st.lokiEntryCount;if(st.lokiLayers>=1){c.addShield(c.a,st.lokiLayers*100,st.lokiShieldSource);c.addBarrier(c.a,st.lokiLayers*100,st.lokiShieldSource);}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1099,
+      "ids": [],
+      "templates": [],
+      "code": "combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState;if(st.donghuiShieldRound===c.round)c.addShield(c.a,Math.floor(c.a.stats.maxHp/3),'donghui-entry');const n=c.a.moves.filter(k=>c.a.pp[k]<c.maxPP(k)).length;if(n){st.donghuiReduction=n*.2;st.donghuiReductionUntil=c.round+1;}if(n===c.a.moves.length){c.restorePP(c.a,1);c.clearBoost(c.t);c.heal(c.a,c.a.stats.maxHp/3,'天奔释罪');for(const k of Object.keys(c.a.ailments))if(conditionStatusRules.isWeakening(k))c.clearAilment(c.a,k);st.donghuiWeakImmuneUntil=c.round+1;}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1113,
+      "ids": [],
+      "templates": [],
+      "code": "combatEnd(c){if(c.a.hp<=0)return;const st=c.a.soulState,diff=c.a.hp-st.corsasStartHP;if(diff<=0)st.corsasStatusRound=c.round+1;else{st.corsasDamageBonus=Math.min(180,diff);st.corsasDamageRound=c.round+1;}if(!st.corsasAttackTriggered)return;const n=Math.min(400,c.a.stats.maxHp-c.a.hp);st.corsasRequestedShield=n;const source='corsas-nonstack',old=c.shieldSourceValue(c.a,source);c.addShield(c.a,Math.max(0,n-old),source);c.refreshBarrier(c.a,n,source);}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1192,
+      "ids": [
+        1715
+      ],
+      "templates": [
+        {
+          "id": 1715,
+          "template": null
+        }
+      ],
+      "code": "registry[1715]={name:'普达戈尔',sourceHash:'f91439c9',partial:false,unimplemented:[],traits:{},hooks:{afterUse(c){if(c.m.kind==='item'||c.a.hp<=0||c.t.hp<=0)return;c.ailment(c.t,'沉默',c.a,false,false,null,{probabilityPercent:100});if(c.successful)c.hurt(c.t,c.t.stats.maxHp/3,'普达戈尔命中附伤','percent');else if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);},combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;if(c.t.ailments['沉默']>=c.round)c.addShield(c.a,400,'soul1715:'+c.round);else c.clear(c.t);}}};"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1219,
+      "ids": [],
+      "templates": [],
+      "code": "function open(c,kind){if(c.a.hp<=0)return false;if(kind==='shield'){if(hasShield(c.a))return false;c.addShield(c.a,300,shield);c.a.soulState.weiyueShieldHeld=true;}else{if(hasBarrier(c.a))return false;c.addBarrier(c.a,300,barrier);c.a.soulState.weiyueBarrierHeld=true;}return true;}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1246,
+      "ids": [],
+      "templates": [],
+      "code": "function qualifiedBarrier(c,positiveLevelSum){if(!Number.isInteger(positiveLevelSum)||positiveLevelSum<0||positiveLevelSum>36)throw Error('魂印1725护罩正级总和无效');if(c.a.hp>0)c.addBarrier(c.a,positiveLevelSum*60,'nan1725-copy:'+c.round);}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1254,
+      "ids": [],
+      "templates": [],
+      "code": " combatEnd(c){if(c.a.hp<=0||c.t.hp<=0)return;const n=c.shieldValue(c.t),st=c.a.soulState;st.nanDamageRound=c.round+1;delete st.nanDamageUnresolved;st.nanDamageBonus=Math.floor(n/30)*.06;if(n>=300){c.consumeShields(c.t,c.a,false);if(c.t.hp>0)c.addShield(c.t,n-300,'nan1725-remainder:'+c.round);if(c.a.hp>0)punish(c);}}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1603,
+      "ids": [],
+      "templates": [],
+      "code": "function pp1820(c,actor){if(c.a.hp<=0||!c.m||c.m.kind==='item')return;const result=c.absorbPP(c.a,c.t,1);const full=c.a.moves.every(id=>c.a.pp[id]===c.maxPP(id));if(full)c.addShield(c.a,300,'soul:1820');(c.a.soulState.chordPPEvents1820??=[]).push({round:c.round,triggerMove:c.m.wikiId??c.m.id,actor,result,full,shieldAdded:full?300:0});}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1651,
+      "ids": [],
+      "templates": [],
+      "code": "function shield1830(c,p={}){p={basis:\"settled\",cap:\"round-granted-own\",...p};if(c.type!=='attack'||c.settledDamage<=0||!rockActive1830(c.a)||!c.a.soulState.rockOrder1830?.first)return {granted:0};const source='soul:1830',own=c.shieldSourceValue(c.a,source),total=c.shieldValue(c.a),ever=c.a.soulState.rockShieldEver1830??0,roundRecord=c.a.soulState.rockShieldRound1830,roundGiven=roundRecord?.round===c.round?roundRecord.n:0,bases=p.basis?[p.basis]:['settled','hp-loss'],caps=p.cap?[p.cap]:['current-own','total-granted-own','current-total','round-granted-own'];if(bases.some(x=>!['settled','hp-loss'].includes(x))||caps.some(x=>!['current-own','total-granted-own','current-total','round-granted-own'].includes(x)))throw Error('1830明确盾基数/累计策略无效');const calc=(basis,cap)=>Math.max(0,Math.min(basis==='settled'?c.settledDamage:c.hpLoss??c.dealt,300-(cap==='current-own'?own:cap==='current-total'?total:cap==='total-granted-own'?ever:roundGiven))),values=bases.flatMap(basis=>caps.map(cap=>({basis,cap,n:calc(basis,cap)})));if(values.some(x=>x.n!==values[0].n)){const basisDiff=!p.basis&&caps.some(cap=>calc('settled',cap)!==calc('hp-loss',cap)),q=basisDiff?'Q-N50-4623-001':'Q-N50-4623-002';pending1830(c,q,{reason:basisDiff?'盾取完整结算/实际HP损失产生差异':'盾累计上限的当前/整场/当轮/其他盾范围产生差异',settled:c.settledDamage,hpLoss:c.hpLoss??c.dealt,own,total,ever,roundGiven,values});throw Error(q+'：1830护盾载荷未确认');}const n=values[0].n;if(n>0){c.addShield(c.a,n,source);c.a.soulState.rockShieldEver1830=ever+n;c.a.soulState.rockShieldRound1830={round:c.round,n:roundGiven+n};}return {granted:n,values};}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1702,
+      "ids": [],
+      "templates": [],
+      "code": "function shield1835(c){if(!bleeding1835(c.a,c.round))return;if(c.a.soulState.qualifiedShield1835===undefined)return c.refreshShield(c.a,300,'soul:1835');const ordinary=c.a.suitState.shield??0,policy=c.a.soulState.qualifiedShield1835;if(ordinary>0&&!['add','replace-total'].includes(policy))pending1835(c,'Q-N50-4600-005',{reason:'1835流血每轮再获300与已有普通盾重授',ordinary});if(policy==='replace-total'&&ordinary>0)c.consumeOrdinaryShield(c.a);c.addShield(c.a,300,'soul:1835');}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1798,
+      "ids": [],
+      "templates": [],
+      "code": "    else c.addShield(c.a,300);"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 1939,
+      "ids": [],
+      "templates": [],
+      "code": "  if(policy==='replace'){c.a.suitState.shield=amount;c.a.suitState.barrier=amount;}else if(policy==='maximum'){c.a.suitState.shield=Math.max(shieldBefore,amount);c.a.suitState.barrier=Math.max(barrierBefore,amount);}else{c.addShield(c.a,amount);c.addBarrier(c.a,amount);}"
+    },
+    {
+      "file": "dist/range-souls.js",
+      "line": 2005,
+      "ids": [],
+      "templates": [],
+      "code": "function entry1859(c){const own=c.shieldValue?c.shieldValue(c.a):(c.a.suitState.shield??0)+(c.a.soulState.attackShield??0)+(c.a.soulState.marsShield??0),incoming=(c.t.suitState.shield??0)+(c.t.soulState.attackShield??0)+(c.t.soulState.marsShield??0);if(incoming>0&&own>0&&!['add','replace'].includes(c.a.soulState.qualifiedShield1859??'add'))throw Error('Q-N50-4600-005：1859已有普通护盾时吸取再获得待确认');const shield=c.consumeShields(c.t,c.a),barrier=c.consumeBarrier(c.t);if(shield>0){if(c.a.soulState.qualifiedShield1859==='replace')c.consumeShields(c.a,c.t);c.addShield(c.a,shield,'1859/9482d536/entry');}if(barrier>0)shields1859.addBarrier(c.a,barrier,'1859/9482d536/entry');(c.a.soulState.bladeEntry1859??=[]).push({round:c.round,shield,barrier});}"
+    }
+  ]
+}

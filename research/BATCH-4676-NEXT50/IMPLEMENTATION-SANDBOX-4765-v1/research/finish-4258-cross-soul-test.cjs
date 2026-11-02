@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),f='tests/deployed-4258-original-answers.test.cjs';let t=fs.readFileSync(f,'utf8').replace("assert.equal(o.fighters[1].soulState.mokilaFoeTimed,false);o=turn(o,920030);","assert.equal(o.fighters[1].soulState.mokilaFoeTimed,false);o.fighters[0].hp=9000;o=turn(o,920030);");fs.writeFileSync(f,t);

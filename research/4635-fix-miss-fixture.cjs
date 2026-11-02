@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const p='tests/next50-4635-skills.test.cjs';let s=fs.readFileSync(p,'utf8');
+const old="if(mode==='miss'){delete s.fighters[1].effects['攻击必中'];timer(s,1,'攻击必失');}";
+assert.equal(s.split(old).length,2);
+fs.copyFileSync(p,'research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4635-before/skills-before-miss-fixture.cjs');
+s=s.replace(old,"if(mode==='miss'){delete s.fighters[1].effects['攻击必中'];s.moveDefinitions[key(920040)].alwaysHit=false;timer(s,1,'攻击必失');}");
+fs.writeFileSync(p,s);
+const cpath='research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4635-user-confirmations.json',c=JSON.parse(fs.readFileSync(cpath,'utf8'));
+c.failedRuns.push({proof:'research/4635-independent-confirmed-v1-result.json',tests:87,pass:86,fail:1,reason:'MISS夹具使用alwaysHit=true对照攻击，强制MISS被必中覆盖。仅将该分支对照招alwaysHit设为false；保留MISS不强化断言。'});
+fs.writeFileSync(cpath,JSON.stringify(c,null,2)+'\n');

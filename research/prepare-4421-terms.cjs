@@ -1,0 +1,1 @@
+const fs=require('fs');fs.writeFileSync('research/check-4421-terms.cjs',fs.readFileSync('research/check-4394-terms.cjs','utf8').replaceAll('4394','4421').replace('效果:1343|伤害转化|魂印:1612','效果:529|效果:1858|技能:28087').replace('祭空墟祖 伤害 转化','赤胆游龙 体力百分比'));

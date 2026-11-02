@@ -1,0 +1,16 @@
+const fs=require('fs'),file='dist/range-effects.js';let s=fs.readFileSync(file,'utf8');
+const change=(a,b)=>{if(!s.includes(a))throw Error(a);s=s.replace(a,b);};
+change('if(!(c.a.side===c.first&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.hurt','if(c.a.side===c.first&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.hurt');
+change('未触发按未成功施加异常处理，后手亦走固伤分支。','先手前置成立后，未成功施加异常才追加固伤。');
+change('if(!(c.clear(c.t)&&c.ailment(c.t,ailments[p[0]],c.a)))c.a.counts.immune','if(c.clear(c.t)&&!c.ailment(c.t,ailments[p[0]],c.a))c.a.counts.immune');
+change("if(c.clearBoost(c.t))c.ailment(c.t,p[1]===26?'虚弱诅咒':'狂暴',c.a);else c.ailment(c.a,p[3]===26?'虚弱诅咒':'狂暴',c.a);","if(c.clearBoost(c.t)&&!(statusRoll(c,p[0])&&c.ailment(c.t,p[1]===26?'虚弱诅咒':'狂暴',c.a))&&statusRoll(c,p[2]))c.ailment(c.a,p[3]===26?'虚弱诅咒':'狂暴',c.a);");
+s=s.replace(/^add\(1297,.*$/m,"add(1297,'afterHit',(c,p)=>{if(!Object.hasOwn(ailments,p[0]))throw Error('1297 异常枚举尚未核对');if(c.clear(c.t)&&!c.ailment(c.t,ailments[p[0]],c.a))healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'异常未触发吸取');},[[0,23],[1,99]]);");
+change('if(!(c.dealt<p[0]&&statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))','if(c.dealt<p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))');
+change('if(!(c.a.hp>c.t.hp&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))','if(c.a.hp>c.t.hp&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))');
+change('if(c.t.hp>0&&!(c.dealt>p[0]&&statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))','if(c.t.hp>0&&c.dealt>p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))');
+change('if(!(c.dealt>p[0]&&statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))','if(c.dealt>p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))');
+change('if(!(Object.values(c.t.stages).some(n=>n>0)&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a))&&statusRoll(c,p[2]))','if(Object.values(c.t.stages).some(n=>n>0)&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a))&&statusRoll(c,p[2]))');
+change("if(!(cleared&&statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a)))","if(cleared&&!(statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a)))");
+change("if(!(c.clear(c.t)&&statusRoll(c,p[0])&&c.ailment(c.t,p[1]===6?'害怕':'失神',c.a)))","if(c.clear(c.t)&&!(statusRoll(c,p[0])&&c.ailment(c.t,p[1]===6?'害怕':'失神',c.a)))");
+fs.writeFileSync(file,s);
+fs.writeFileSync('research/untriggered-rule-user-confirmation.json',JSON.stringify({date:'2026-10-16',source:'human-user',answers:['消强成功，石化失败，所有未触发词条都是这样','通则覆盖旧确认，修正冲突行为'],rule:'前置条件必须成立，随后效果未触发才发补偿。明确写若未满足或未触发的1245保留其来源例外。',supersedes:['3550/3865效果1297无可清或免断也吸取的旧确认','其他与本规则冲突的旧解释'],changedEffects:[909,1399,1864,1297,1334,1337,1074,1539,1485,1978,1423],status:'implemented-pending-tests'},null,2));

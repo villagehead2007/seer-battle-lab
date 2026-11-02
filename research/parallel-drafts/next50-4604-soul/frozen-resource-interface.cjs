@@ -1,0 +1,5 @@
+'use strict';
+// Frozen resource-only interface v1. Not a complete soul implementation.
+const count=f=>f.soulState.futureInstructions1809??3;
+function refresh(c){const active=count(c.a)>=2;c.a.soulState.ignoreOwnWeakThis=active;if(active)c.a.soulState.ignoreTargetBoostWhenActingRound=c.round;else if(c.a.soulState.ignoreTargetBoostWhenActingRound===c.round)delete c.a.soulState.ignoreTargetBoostWhenActingRound;}
+module.exports={name:'萨芙凯特-resource-only',sourceHash:'ec347375',partial:true,unimplemented:['资源独占冻结接口，仅供2114载荷测试；不代替完整1809'],abilities:{instructionCount:c=>count(c.a),grantInstructions(c,n){if(!Number.isInteger(n)||n<0)throw Error('未来指令增量须非负整数');c.a.soulState.futureInstructions1809=Math.min(3,count(c.a)+n);refresh(c);return count(c.a);},collapseSkill(c,{move=c.m}={}){if(!move)throw Error('崩溃缺少真实技能');if(count(c.a)<=0)throw Error('资源接口不执行真实崩溃载荷，请使用完整冻结魂印');c.a.soulState.futureInstructions1809=count(c.a)-1;refresh(c);return {cancelled:true,collapsed:false,targetId:move.id,remaining:count(c.a)};}},hooks:{battleStart(c){c.a.soulState.futureInstructions1809=3;c.a.soulState.collapsedSkills1809={};c.a.soulState.collapsedCount1809=0;}}};

@@ -1,0 +1,18 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),base='research/zero-damage-hit-2026-10-29/second-group',changes=[],files=new Map();
+function change(file,scope,before,after,all=false){let s=files.get(file)??fs.readFileSync(file,'utf8');const start=scope?s.indexOf(scope):0;assert.ok(start>=0,scope);const end=scope?s.indexOf('\ntest(',start+1):-1,stop=end<0?s.length:end,part=s.slice(start,stop);assert.ok(part.includes(before),file+' '+before);if(!all)assert.equal(part.split(before).length,2,before);files.set(file,s.slice(0,start)+(all?part.split(before).join(after):part.replace(before,after))+s.slice(stop));changes.push({file,scope,before,after,reason:'用户2026-10-29已命中零伤仍执行命中效果；原断言及来源保留，其他条件断言继续验证'});}
+change('tests/helpers/assert-1697-actual-immunity.cjs',null,"assert.equal(stopped.fighters[1].hp,9000);assert.equal(events(stopped,'true',1).length,0);assert.equal(events(stopped,'percent',1).length,0);","assert.equal(stopped.fighters[1].hp,9000-9000*blocked.instance.args[0]/100);assert.equal(events(stopped,'true',1).length,0);assert.equal(events(stopped,'percent',1).length,1);assert.equal(events(stopped,'percent',1)[0].settledDamage,9000*blocked.instance.args[0]/100);");
+change('tests/deployed-3809.test.cjs','3809 1453',"assert.equal(Object.values(turn(hit).fighters[1].pp).filter(n=>n===0).length,0);","assert.equal(Object.values(turn(hit).fighters[1].pp).filter(n=>n===0).length,1);");
+change('tests/deployed-3815.test.cjs','3815 829清回合取消','assert.equal(hit,false);','assert.equal(hit,true);');
+change('tests/deployed-4327-partial.test.cjs','4327 1770满PP','assert.equal(o.fighters[0].stages.atk,0);','assert.equal(o.fighters[0].stages.atk,-1);');
+change('tests/deployed-4327-partial.test.cjs','4327 1770满PP',"assert.equal(sum(o,'fixed',0),0);","assert.equal(sum(o,'fixed',0),full?0:300);");
+change('tests/deployed-4327-partial.test.cjs','4327 1770满PP','assert.equal(o.fighters[0].soulState.war1770Pink??0,full?1:0);','assert.equal(o.fighters[0].soulState.war1770Pink??0,0);');
+change('tests/deployed-4327-partial.test.cjs','4327 521',"assert.equal(sum(z,'fixed',0),sum(z,'attack',0)===0?0:100);","assert.equal(sum(z,'fixed',0),100);");
+const f='tests/deployed-4333.test.cjs';
+change(f,'4333公共技能载荷',"mode==='shield'?1:0","mode!=='hit-block'?1:0");
+change(f,'4333确认先执行状态效果',"threshold===1?0:1","1");
+change(f,'4333公共实际免疫标记','assert.equal(o.fighters[0].stages.atk,0);','assert.equal(o.fighters[0].stages.atk,1);');
+for(const [a,b] of [['immune?1:0','0'],['immune?1000:4000','4000'],['stages.atk===0,immune','stages.atk===0,false'],["immune?0:90","90"],['assert.equal(o.fighters[1].hp,9000);','assert.equal(o.fighters[1].hp,5910);'],['assert.equal(o.fighters[0].pp[key(10001)],s.fighters[0].pp[key(10001)]-1);','assert.equal(o.fighters[0].pp[key(10001)],0);']])change(f,'4333公共已挂载',a,b);
+for(const scope of ['4333公共下次附伤','4333公共持续用招手动','4333公共2353','4333公共afterUse'])change(f,scope,"ok=mode==='normal'","ok=['normal','immune'].includes(mode)");
+change(f,'4333公共2353','immune?0:900','900');
+change(f,'4333公共afterUse',"assert.equal(o.fighters[1].ailments['石化'],undefined);","assert.equal(!!o.fighters[1].ailments['石化'],mode==='immune');");
+fs.mkdirSync(base,{recursive:true});for(const[file,text]of files){const backup=path.join(base,file);fs.mkdirSync(path.dirname(backup),{recursive:true});assert.ok(!fs.existsSync(backup));fs.copyFileSync(file,backup);fs.writeFileSync(file,text);}fs.writeFileSync(base+'/changes.json',JSON.stringify({status:'applied-awaiting-verification',changes},null,2)+'\n');console.log({files:files.size,changes:changes.length});

@@ -1,0 +1,26 @@
+[
+  {
+    "label": "1846 exact source actual lower hard-cap conflict, after known immunity and before HP/shield",
+    "target": "dist/souls.js",
+    "old": "      if(statusRules.preventsDamage(a,t,'attack',r))remaining=(minimumSuppressed=true,0);",
+    "replacement": "      if(statusRules.preventsDamage(a,t,'attack',r))remaining=(minimumSuppressed=true,0);\n      if(typedBase===null&&a.soulId===1846&&E.SOULS.registry[1846]?.sourceHash==='ddacacad'&&(a.soulState.clockFloor1846??0)>0&&!effectContext.ignoreLimit&&!minimumSuppressed&&remaining>0){const cap=Math.min(on(t,'攻击伤害上限')?incomingRoundRedCap(t,t.effects['攻击伤害上限']):Infinity,on(t,'伤害上限')?incomingRoundRedCap(t,t.effects['伤害上限']):Infinity,E.SOULS.trait(t,'damageCap')??Infinity,E.SOULS.trait(t,'attackDamageCap')??Infinity,t.soulState.jasmineCap??Infinity,on(t,'机械领域')?t.stats.maxHp*t.effects['机械领域'].fraction:Infinity);remaining=E.SOULS.registry[1846].abilities.resolveFloorConflict({...context(a,t,m),amount:remaining,cap,ignoreLimit:!!effectContext.ignoreLimit});effectContext.clockFloorPriority1846=cap<(a.soulState.clockFloor1846??0)&&a.soulState.qualifiedFloorCap1846==='floor-priority';}\n"
+  },
+  {
+    "label": "1846 explicit floor-priority qualified final cumulative 伤害上限",
+    "target": "dist/souls.js",
+    "old": "if(!rage&&!effectContext.ignoreLimit&&on(t,'伤害上限')&&t.effects['伤害上限'].cumulativeRoundRed)",
+    "replacement": "if(!rage&&!effectContext.ignoreLimit&&!effectContext.clockFloorPriority1846&&on(t,'伤害上限')&&t.effects['伤害上限'].cumulativeRoundRed)"
+  },
+  {
+    "label": "1846 explicit floor-priority qualified final cumulative 攻击伤害上限",
+    "target": "dist/souls.js",
+    "old": "if(!rage&&!effectContext.ignoreLimit&&on(t,'攻击伤害上限')&&t.effects['攻击伤害上限'].cumulativeRoundRed)",
+    "replacement": "if(!rage&&!effectContext.ignoreLimit&&!effectContext.clockFloorPriority1846&&on(t,'攻击伤害上限')&&t.effects['攻击伤害上限'].cumulativeRoundRed)"
+  },
+  {
+    "label": "1846 actual overlapping immunity source before reflection or count consumption",
+    "target": "dist/souls.js",
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&t.soulId===1846&&E.SOULS.registry[1846]?.sourceHash==='ddacacad')E.SOULS.registry[1846].abilities.guardMixedImmunity({...context(t,source??fs[1-t.side]),status:k});let explicitImmunity=false;const immuneGate="
+  }
+]

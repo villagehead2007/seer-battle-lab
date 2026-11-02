@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-4401-independent.test.cjs';let s=fs.readFileSync(p,'utf8').replace("let s=turn(make(pick(1836)[0],{hp:4500}));for(let n=0;n<3;n++)","let initial=make(pick(1836)[0],{hp:4500});initial.fighters[1].build.resistance.percent=100;let s=turn(initial);for(let n=0;n<3;n++)");fs.writeFileSync(p,s);

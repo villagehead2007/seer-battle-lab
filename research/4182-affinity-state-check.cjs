@@ -1,0 +1,3 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),H=require('../tests/helpers/4182-battle.cjs'),rows=[];
+for(const soul of [false,1406])for(const ailment of [false,true]){const s=H.make({moveId:10004,index:null},{soul});s.fighters[1].type='草';s.moveDefinitions[H.key(10004)].type='水';if(ailment)s.fighters[1].ailments['失明']=9;const o=H.turn(s);rows.push({soul,ailment,damage:9000-o.fighters[1].hp});}
+assert.deepEqual(rows.map(x=>x.damage),[9,9,12,24]);fs.writeFileSync('research/4182-affinity-state-evidence.json',JSON.stringify({rows,meaning:'同面板同随机流，水打草微弱0.5；魂印攻击25%增伤独立，回合开始异常使克制最低1而实际伤害翻倍',exitCode:0},null,2)+'\n');console.log(rows);

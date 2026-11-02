@@ -1,0 +1,47 @@
+[
+  {
+    "old": "randomNonRestrictedPvpAilments(count,effectId){",
+    "replacement": "randomForTarget4635(f,count,mode,effectId,names=null){const c=context(a,actualFighter(f),m);return mode==='non-restricted'?c.randomNonRestrictedPvpAilments(count,effectId):c.randomAilmentsFrom(count,names,effectId);},randomNonRestrictedPvpAilments(count,effectId){",
+    "label": "random-target-qualified"
+  },
+  {
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))",
+    "replacement": "if(a.hp>0&&on(a,'枫叶用招低体双吸')){const e=a.effects['枫叶用招低体双吸'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount(),first=a.soulState.qualified1303First4635;if(same&&!['immediate','next-use'].includes(first))throw Error('Q-N50-4625-011：1303持续用招吸取首触待确认');if(!same||first==='immediate'){const n=t.stats.maxHp*e.fraction*(a.hp<a.stats.maxHp*e.threshold?2:1);if(t.hp>0)inflict(a,t,n,'枫叶已授使用技能吸取','percent');heal(a,n,'枫叶已授使用技能理论回复','skill');}}if(a.hp>0&&on(a,'枫叶用招随机非限制')){const e=a.effects['枫叶用招随机非限制'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount(),first=a.soulState.qualified2160First4635;if(same&&!['immediate','next-use'].includes(first))throw Error('Q-N50-4625-011：2160持续用招随机异常首触待确认');if(!same||first==='immediate'){const target=a.soulState.qualifiedRandomReceiver4635?.[2160];if(!['self','enemy'].includes(target))throw Error('Q-N50-4635-010：2160省略异常接收者');context(a,target==='self'?a:t,m).randomNonRestrictedPvpAilments(e.count,2160);}}if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))",
+    "label": "1303-2160-used"
+  },
+  {
+    "old": "if(!rage&&t.hp>0&&on(t,'受击双防强化'))stage(t,1,['def','spd']);",
+    "replacement": "if(!rage&&t.hp>0&&on(t,'受击双防强化')){const e=t.effects['受击双防强化'];let trigger=true;if(e.maple535){const zero=t.soulState.qualified535Zero4635,unit=t.soulState.qualified535Unit4635;if(settledDamage===0&&!['trigger','skip'].includes(zero))throw Error('Q-N50-4618-002：535完整零伤是否受攻待确认');if(settledDamage===0&&zero==='skip')trigger=false;if(trigger&&t.soulState.maple535Round===r&&(t.stages.def<6||t.stages.spd<6)&&!['event','round'].includes(unit))throw Error('Q-A60-4075-012：535重复受攻强化单位待确认');if(unit==='round'&&t.soulState.maple535Round===r)trigger=false;if(trigger)t.soulState.maple535Round=r;}if(trigger)stage(t,1,['def','spd']);}",
+    "label": "535-unit-zero"
+  },
+  {
+    "old": "if(m.kind!=='status'&&invalid&&!blocked&&t.soulId===1824){",
+    "replacement": "if(m.kind!=='status'&&invalid&&t.hp>0&&on(t,'受击双防强化')&&t.effects['受击双防强化'].maple535){const zero=t.soulState.qualified535Zero4635;if(!['trigger','skip'].includes(zero))throw Error('Q-N50-4618-002：535未命中或技能失效是否受攻待确认');if(zero==='trigger'){if(t.soulState.maple535Round===r&&!['event','round'].includes(t.soulState.qualified535Unit4635)&&(t.stages.def<6||t.stages.spd<6))throw Error('Q-A60-4075-012：535同回受攻单位待确认');if(t.soulState.qualified535Unit4635!=='round'||t.soulState.maple535Round!==r)stage(t,1,['def','spd']);t.soulState.maple535Round=r;}}if(m.kind!=='status'&&invalid&&!blocked&&t.soulId===1824){",
+    "label": "535-MISS"
+  },
+  {
+    "old": "const ppBeforeBase=a.pp[m.id]??0;if(m.id!=='struggle')ppRules.consume",
+    "replacement": "const ppBeforeBase=a.pp[m.id]??0;if(m.id!=='struggle'&&a.soulState.maple1509PPCost?.count>0){const e=a.soulState.maple1509PPCost,free=ppConsumptionPolicy.noPPConsumption||E.SOULS.trait(a,'noPPConsumption')||(on(a,'技能免PP消耗')&&rng(s)*100<a.effects['技能免PP消耗'].chance),other=(on(a,'PP消耗倍增')?a.effects['PP消耗倍增'].multiple:1)*(m.kind==='status'&&a.soulState.prophecies?.lost?2:1),policy=a.soulState.qualified1509Coexist4635;if(!free&&(a.pp[m.id]??0)>0&&other!==1&&!['multiply','replace-three','maximum'].includes(policy))throw Error('Q-N50-4635-013：1509与其它实际PP倍耗共存算法');const cost=free?0:policy==='replace-three'?3:policy==='maximum'?Math.max(3,other):3*other;ppRules.consume(a,m.id,cost,(m.id===a.moves[1]&&!!E.SOULS.trait(a,'secondSlotIgnorePP'))||!!E.SOULS.trait(a,'ignorePP')||on(a,'不受PP限制')||(a.soulState.bedPartnerPP&&hasBedDomain(a)));if(--e.count===0)delete a.soulState.maple1509PPCost;}else if(m.id!=='struggle')ppRules.consume",
+    "label": "1509-three-used-PP"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&t.soulState.maple1949Charges>0&&(t.counts.immune!==t.soulState.maple1949Charges||on(t,'reflect')||on(t,'免异常')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length||t.soulState.sito2059Charges?.length||t.soulState.jiege1819Charges>0||t.soulState.mingpan1419>0||t.soulState.hestia2148>0||t.soulState.sprinq2109>0||t.soulState.emptyPoemImmune1791>0))throw Error('Q-N50-4511-006：1949次数免异混源消费待确认');let explicitImmunity=false;const immuneGate=",
+    "label": "1949-mixed"
+  },
+  {
+    "old": "if(reason==='count-immunity'&&t.soulState.cavi1355>0)",
+    "replacement": "if(reason==='count-immunity'&&t.soulState.maple1949Charges>0)--t.soulState.maple1949Charges;if(reason==='count-immunity'&&t.soulState.cavi1355>0)",
+    "label": "1949-consume"
+  },
+  {
+    "old": "function resolveDeath(f,defeater=null){",
+    "replacement": "function resolveDeath(f,defeater=null){if(f.hp<=0&&!f.soulState.deathResolved&&defeater?.side===1-f.side&&currentActorSide===defeater.side){const move=battleMoves[choices[defeater.side]];if((move.wikiId??move.id)===37320&&move.revision==='seerapi:803ff1b4'&&(damageSourceOrigin===null?skillPhase:damageSourceOrigin==='skill')&&!defeater.soulState.maple1303Resolving)defeater.soulState.mapleFifthKO4635={round:r,use:defeater.soulState.skillUses?.[move.id]};}",
+    "label": "1091-actual-KO"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&on(t,'控制异常反弹')&&t.effects['控制异常反弹'].maple1687&&statusRules.isControl(k)&&(t.counts.immune>0||on(t,'reflect')||on(t,'免异常')))throw Error('Q-N50-4511-006：4635控制反弹混源消费待确认');let explicitImmunity=false;const immuneGate=",
+    "label": "1687-mixed"
+  }
+]

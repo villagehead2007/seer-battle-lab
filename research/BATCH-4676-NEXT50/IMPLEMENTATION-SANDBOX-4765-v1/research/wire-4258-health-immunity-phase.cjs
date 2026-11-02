@@ -1,0 +1,4 @@
+'use strict';const fs=require('fs'),f='dist/souls.js';let s=fs.readFileSync(f,'utf8');
+const a='function copiedImmune(f,type,amount=0,m=null,crit=false,consume=false){return E.SOULS.copiedDamageImmune({...context(f,fs[1-f.side],m),type,amount,crit,consume});}';
+if(!s.includes(a))throw Error('phase helper anchor');s=s.replace(a,'function copiedImmune(f,type,amount=0,m=null,crit=false,consume=false,immunityPhase=\'type\'){return E.SOULS.copiedDamageImmune({...context(f,fs[1-f.side],m),type,amount,crit,consume,immunityPhase});}');
+const b='amount=shared.amount;hpFloor=Math.max(hpFloor,shared.hpFloor??0,f.soulState.coldFeedbackFloor?1:0);';if(!s.includes(b))throw Error('health phase anchor');s=s.replace(b,"amount=shared.amount;if(amount>0&&copiedImmune(f,type,amount,null,false,true,'health')){amount=0;if(resolution)resolution.immune=true;}hpFloor=Math.max(hpFloor,shared.hpFloor??0,f.soulState.coldFeedbackFloor?1:0);");fs.writeFileSync(f,s);

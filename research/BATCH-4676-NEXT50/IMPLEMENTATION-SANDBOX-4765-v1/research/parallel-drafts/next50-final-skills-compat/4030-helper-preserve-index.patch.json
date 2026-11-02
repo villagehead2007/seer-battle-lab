@@ -1,0 +1,41 @@
+{
+  "status": "draft-not-applied-not-tested",
+  "target": "tests/helpers/4030-battle.cjs",
+  "baselineSha256": "7032a3696c5a10526e4ee0a51c65416cd9ff55c6c983e6a9b524d295ea0d8200",
+  "source": {
+    "species": 4030,
+    "moveId": 20144,
+    "hash": "432196",
+    "instances": [
+      {
+        "index": 0,
+        "id": 5,
+        "args": [
+          0,
+          100,
+          -1
+        ]
+      },
+      {
+        "index": 1,
+        "id": 5,
+        "args": [
+          2,
+          100,
+          -1
+        ]
+      }
+    ]
+  },
+  "edits": [
+    {
+      "from": "if(entry.index!==null){move.effectInstances=",
+      "to": "if(entry.index!==null&&move.id!==20144){move.effectInstances="
+    },
+    {
+      "from": "s.auditMoveId=move.id;",
+      "to": "s.auditMoveId=move.id;\n if(move.id===20144&&entry.index!==null&&!options.omit)s.moveDefinitions[key(move.id)].operations=s.moveDefinitions[key(move.id)].operations.filter(op=>op.index===entry.index);"
+    }
+  ],
+  "reason": "Preserve full real source indices during createBattle compilation; isolate the selected original operation only after compilation. No source hash, parameters, assertions, parser or runtime validator changed."
+}

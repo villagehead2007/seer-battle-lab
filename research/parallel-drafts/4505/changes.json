@@ -1,0 +1,68 @@
+[
+  {
+    "file": "dist/range-effects.js",
+    "before": "c.a.soulState.nextAttackBoostScopeQuestion='Q-N20-4442-001';",
+    "after": "",
+    "baselineSha256": "7bdf07045763c91db8b71c97a0f8a59a4fa233e92aa8e8d77efd60dee003f65e"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "let stageSnapshot=fs.map(f=>({...f.stages})),syncingStages=false;",
+    "after": "const roundStartStages=fs.map(f=>({...f.stages}));let stageSnapshot=fs.map(f=>({...f.stages})),syncingStages=false;",
+    "baselineSha256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "    function boostRemoved(f,by,method='clear',removedCount=0,operation='clear'){if(method==='clear')maxHpOnRemoval(f);if(removedCount>0&&on(f,'消强按项反击')&&f.hp>0&&by.hp>0){if(operation==='reverse'&&f.effects['消强按项反击'].pendingReverseQuestion)throw Error('Q-A60-4163-038：1474纯反转是否触发消强按项反击');inflict(f,by,removedCount*f.effects['消强按项反击'].amount,'消强按项反击','fixed');}E.SOULS.run('boostRemoved',{...context(f,by),method,operation});if(on(f,'用招强化登场反应')){reactivateBedEntry(f);}f.soulState.boostRemovedRound=r;if(on(f,'强化消失清回合'))clear(by);if(on(f,'强化消失封属'))timed(by,'statusBlock',Math.max(1,f.effects['强化消失封属'].end-r+1),{},r+1);if(on(f,'强化被清封属')&&(operation!=='reverse'||f.effects['强化被清封属'].triggerOnReverse!==false)){if(operation==='reverse'&&f.effects['强化被清封属'].pendingReverseQuestion)throw Error(f.effects['强化被清封属'].pendingReverseQuestion+'：834纯反转清强封属时序');timed(by,'statusBlock',f.effects['强化被清封属'].duration,{},r+1);}if(on(f,'强化被清弱化')){const e=f.effects['强化被清弱化'];if(operation==='reverse'&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：804纯反转反制范围待确认');stage(fs[1-f.side],-e.amount);}if(on(f,'强化被清追加')){const e=f.effects['强化被清追加'];if(operation==='reverse'&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：783纯反转反制范围待确认');inflict(f,by,by.stats.maxHp*e.fraction,'强化被清追加','percent');}if(on(f,'强化被清吸取')&&by.hp>0){drainPercent(f,by,by.stats.maxHp*f.effects['强化被清吸取'].fraction,'强化被清吸取');}if(on(f,'强化被清惩罚')){const e=f.effects['强化被清惩罚'];if(operation==='reverse'&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：573纯反转反制范围待确认');if(rng(s)<e.chance/100)ailment(by,e.ailment,f,false,false,e.duration);}}",
+    "after": "    function boostRemoved(f,by,method='clear',removedCount=0,operation='clear',confirmedOperation=false){if(method==='clear')maxHpOnRemoval(f);if(removedCount>0&&on(f,'消强按项反击')&&f.hp>0&&by.hp>0){if(operation==='reverse'&&!confirmedOperation&&f.effects['消强按项反击'].pendingReverseQuestion)throw Error('Q-A60-4163-038：1474纯反转是否触发消强按项反击');inflict(f,by,removedCount*f.effects['消强按项反击'].amount,'消强按项反击','fixed');}E.SOULS.run('boostRemoved',{...context(f,by),method,operation});if(on(f,'用招强化登场反应')){reactivateBedEntry(f);}f.soulState.boostRemovedRound=r;if(on(f,'强化消失清回合'))clear(by);if(on(f,'强化消失封属'))timed(by,'statusBlock',Math.max(1,f.effects['强化消失封属'].end-r+1),{},r+1);if(on(f,'强化被清封属')&&(operation!=='reverse'||f.effects['强化被清封属'].triggerOnReverse!==false)){if(operation==='reverse'&&!confirmedOperation&&f.effects['强化被清封属'].pendingReverseQuestion)throw Error(f.effects['强化被清封属'].pendingReverseQuestion+'：834纯反转清强封属时序');timed(by,'statusBlock',f.effects['强化被清封属'].duration,{},r+1);}if(on(f,'强化被清弱化')){const e=f.effects['强化被清弱化'];if(operation==='reverse'&&!confirmedOperation&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：804纯反转反制范围待确认');stage(fs[1-f.side],-e.amount);}if(on(f,'强化被清追加')){const e=f.effects['强化被清追加'];if(operation==='reverse'&&!confirmedOperation&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：783纯反转反制范围待确认');inflict(f,by,by.stats.maxHp*e.fraction,'强化被清追加','percent');}if(on(f,'强化被清吸取')&&by.hp>0){drainPercent(f,by,by.stats.maxHp*f.effects['强化被清吸取'].fraction,'强化被清吸取');}if(on(f,'强化被清惩罚')){const e=f.effects['强化被清惩罚'];if(operation==='reverse'&&!confirmedOperation&&e.pendingReverseQuestion)throw Error('Q-A60-4163-038：573纯反转反制范围待确认');if(rng(s)<e.chance/100)ailment(by,e.ailment,f,false,false,e.duration);}}",
+    "baselineSha256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "    function syncStages(){",
+    "after": "    function rewriteStageValues(f,values,kind,actor=null){f=actualFighter(f);const before={...f.stages},requested={...before},copy=kind==='copy';for(const k of keys){if(!Object.hasOwn(values,k))continue;const next=Math.max(-6,Math.min(6,values[k]));if(!Number.isInteger(next))throw Error('能力覆盖等级必须为整数');requested[k]=next;if(!copy&&before[k]>0&&next<=0&&(on(f,'强化保护')||on(f,'幽蝶强化保护')))continue;if(!copy&&before[k]<0&&next>=0&&on(f,'弱化不可解除反转'))continue;const delta=next-f.stages[k];if(delta)stage(f,delta,[k]);}const after={...f.stages},removedPositive=keys.filter(k=>before[k]>0&&after[k]<=0),removedNegative=keys.filter(k=>before[k]<0&&after[k]>=0),changedLevels=keys.reduce((n,k)=>n+Math.abs(after[k]-before[k]),0);(s.stageRewriteEvents??=[]).push({round:r,sourceSide:actor?.side??currentActorSide,targetSide:f.side,kind,confirmation:'Q-N20-4505-002',before,requested,after,changedLevels,removedPositive,removedNegative});if(removedPositive.length)boostRemoved(f,fs[1-f.side],'clear',removedPositive.length,kind==='reverse'?'reverse':kind,true);syncStages();return {before,after,changedLevels,removedPositive,removedNegative};}\n    function syncStages(){",
+    "baselineSha256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "opponent:fs[1-a.side],receivedAttackThisRound:",
+    "after": "roundStartStages:f=>({...roundStartStages[f.side]}),rewriteStageValues:(f,values,kind)=>rewriteStageValues(f,values,kind,a),opponent:fs[1-a.side],receivedAttackThisRound:",
+    "baselineSha256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5"
+  },
+  {
+    "file": "dist/souls.js",
+    "before": "    if(!s.finished)for(const f of fs)if(f.hp>0&&on(f,'海洋回合末反强')){const t=fs[1-f.side];if(f.effects['海洋回合末反强'].pendingReverseProtectionQuestion&&Object.values(t.stages).some(n=>n>0)&&(on(t,'强化保护')||on(t,'免弱')||E.SOULS.trait(t,'weaknessImmune')))throw Error(f.effects['海洋回合末反强'].pendingReverseProtectionQuestion+'：回合末反转保护交互待答');for(const k of keys)if(t.stages[k]>0)t.stages[k]*=-1;}",
+    "after": "    if(!s.finished)for(const f of fs)if(f.hp>0&&on(f,'海洋回合末反强')){const t=fs[1-f.side];if(f.effects['海洋回合末反强'].confirmedStageRewrite){const values=Object.fromEntries(keys.filter(k=>t.stages[k]>0).map(k=>[k,-t.stages[k]]));rewriteStageValues(t,values,'reverse',f);continue;}if(f.effects['海洋回合末反强'].pendingReverseProtectionQuestion&&Object.values(t.stages).some(n=>n>0)&&(on(t,'强化保护')||on(t,'免弱')||E.SOULS.trait(t,'weaknessImmune')))throw Error(f.effects['海洋回合末反强'].pendingReverseProtectionQuestion+'：回合末反转保护交互待答');for(const k of keys)if(t.stages[k]>0)t.stages[k]*=-1;}",
+    "baselineSha256": "30c3f1fbf412f929579d9b1ec6009c1ed264790088438ca060179f0d2e8edff5"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "before": "function wingQualifiedBands(c,bands){if(!Array.isArray(bands)||bands.some(n=>![2,6,12].includes(n)))throw Error('1719阈值前提无效');if(bands.includes(2))c.ailment(c.t,'寄生',c.a,false,false,null,{probabilityPercent:100});if(bands.includes(6)){const keys=['atk','def','spa','spd','spe','acc'],up=keys.every(k=>c.t.stages[k]>0),down=keys.every(k=>c.t.stages[k]<0);if(up||down){c.stage(c.t,up?1:-1);if(c.on(c.a,'免弱')||c.on(c.a,'禁强化')||c.on(c.a,'弱化不可解除反转')||c.on(c.a,'强化保护')||c.on(c.a,'幽蝶强化保护'))throw Error('Q-N20-4505-002：复制等级的保护/免疫交互待答');for(const k of keys){const d=c.t.stages[k]-c.a.stages[k];if(d)c.stage(c.a,d,[k]);}}}if(bands.includes(12))c.a.soulState.wingResetEnabledRound=c.round;}",
+    "after": "function wingQualifiedBands(c,bands){if(!Array.isArray(bands)||bands.some(n=>![2,6,12].includes(n)))throw Error('1719阈值前提无效');if(c.a.hp<=0||c.t.hp<=0)return;if(bands.includes(2))c.ailment(c.t,'寄生',c.a,false,false,null,{probabilityPercent:100});if(c.a.hp<=0||c.t.hp<=0)return;if(bands.includes(6)){const keys=['atk','def','spa','spd','spe','acc'],up=keys.every(k=>c.t.stages[k]>0),down=keys.every(k=>c.t.stages[k]<0);if(up||down){c.stage(c.t,up?1:-1);if(c.a.hp<=0||c.t.hp<=0)return;c.rewriteStageValues(c.a,{...c.t.stages},'copy');}}if(bands.includes(12))c.a.soulState.wingResetEnabledRound=c.round;}",
+    "baselineSha256": "e95e0da09d22083369aa1646dd290f94fc32a699db4f2b4b7f1f6139878e4338"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "before": "function wingReset(c){if(c.m.kind==='item'||c.a.hp<=0||c.t.hp<=0||c.a.soulState.wingResetEnabledRound!==c.round)return;const st=c.t.soulState;if(c.on(c.t,'强化保护')||c.on(c.t,'幽蝶强化保护')||c.on(c.t,'弱化不可解除反转')||c.on(c.t,'免弱')||c.on(c.t,'禁强化')||c.soulTrait(c.t,'weaknessImmune')||c.soulTrait(c.t,'entryWeaknessRounds')>=c.round||['消强按项反击','强化消失清回合','强化消失封属','强化被清封属','强化被清弱化','强化被清追加','强化被清吸取','强化被清惩罚'].some(k=>c.on(c.t,k)))throw Error('Q-N20-4505-002：重置与免疫/清除反制交互待答');const count=Object.values(c.t.stages).reduce((n,v)=>n+Math.abs(v),0);for(const k of Object.keys(c.t.stages))c.t.stages[k]=0;c.a.soulState.wingResetCount=(c.a.soulState.wingResetCount??0)+count;}",
+    "after": "function wingReset(c){if(c.m.kind==='item'||c.a.hp<=0||c.t.hp<=0||c.a.soulState.wingResetEnabledRound!==c.round)return;const values=Object.fromEntries(Object.keys(c.t.stages).map(k=>[k,0])),result=c.rewriteStageValues(c.t,values,'reset');c.a.soulState.wingResetCount=(c.a.soulState.wingResetCount??0)+result.changedLevels;}",
+    "baselineSha256": "e95e0da09d22083369aa1646dd290f94fc32a699db4f2b4b7f1f6139878e4338"
+  },
+  {
+    "file": "dist/range-souls.js",
+    "before": "registry[1719]={name:'婕克拉德',sourceHash:'f04d5267',partial:true,unimplemented:['Q-N20-4505-001：净能力变化值n无来源公式，不猜阈值触发','Q-N20-4505-002：复制/重置特殊保护交互待答'],traits:{},abilities:{qualifiedBands:wingQualifiedBands},hooks:{roundStart(c){const st=c.a.soulState;st.wingResetCount=0;st.wingResetEnabledRound=0;c.stage(c.t,-2,['acc']);st.pendingNetStageDefinition={question:'Q-N20-4505-001',round:c.round,stages:{...c.t.stages}};},afterUse:wingReset,opponentAfterUse:wingReset,combatEnd(c){const n=c.a.soulState.wingResetCount??0;if(n>0&&c.a.hp>0&&c.t.hp>0)healthRules.drainFixed(c,n*100,'婕克拉德重置等级战阶吸取');}}};",
+    "after": "registry[1719]={name:'婕克拉德',sourceHash:'f04d5267',traits:{},abilities:{qualifiedBands:wingQualifiedBands},hooks:{roundStart(c){const st=c.a.soulState;st.wingResetCount=0;st.wingResetEnabledRound=0;const before=c.roundStartStages(c.t);c.stage(c.t,-2,['acc']);const n=['atk','def','spa','spd','spe','acc'].reduce((v,k)=>v+Math.abs(c.t.stages[k]-before[k]),0);st.wingNetStage={round:c.round,before,after:{...c.t.stages},n};wingQualifiedBands(c,[2,6,12].filter(k=>n>=k));},afterUse:wingReset,opponentAfterUse:wingReset,combatEnd(c){const n=c.a.soulState.wingResetCount??0;if(n>0&&c.a.hp>0&&c.t.hp>0)healthRules.drainFixed(c,n*100,'婕克拉德重置等级战阶吸取');}}};",
+    "baselineSha256": "e95e0da09d22083369aa1646dd290f94fc32a699db4f2b4b7f1f6139878e4338"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "{const old=registry[970];registry[970]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28305&&(c.m.hash==='6a8963df'||c.m.revision==='seerapi:6a8963df')&&Object.values(c.t.stages).some(n=>n>0)&&(c.on(c.t,'强化保护')||c.on(c.t,'免弱')||c.soulTrait(c.t,'weaknessImmune')))throw Error('Q-N20-4505-002：双倍反转与保护/免弱的交互待答');return old.execute(c,p);}});}",
+    "after": "{const old=registry[970];registry[970]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28305&&(c.m.hash==='6a8963df'||c.m.revision==='seerapi:6a8963df')&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[3]'){const values=Object.fromEntries(Object.entries(c.t.stages).filter(([,n])=>n>0).map(([k,n])=>[k,-2*n])),result=c.rewriteStageValues(c.t,values,'reverse');if(result.removedPositive.length)c.timed(c.a,'id984',1,{amount:p[0]},c.round+1);else c.clearBoost(c.t);return;}return old.execute(c,p);}});}",
+    "baselineSha256": "7bdf07045763c91db8b71c97a0f8a59a4fa233e92aa8e8d77efd60dee003f65e"
+  },
+  {
+    "file": "dist/range-effects.js",
+    "before": "{const old=registry[1566];registry[1566]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28303&&(c.m.hash==='3e62739f'||c.m.revision==='seerapi:3e62739f'))c.a.effects['海洋回合末反强'].pendingReverseProtectionQuestion='Q-N20-4505-002';}});}",
+    "after": "{const old=registry[1566];registry[1566]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28303&&(c.m.hash==='3e62739f'||c.m.revision==='seerapi:3e62739f'))c.a.effects['海洋回合末反强'].confirmedStageRewrite=true;}});}",
+    "baselineSha256": "7bdf07045763c91db8b71c97a0f8a59a4fa233e92aa8e8d77efd60dee003f65e"
+  }
+]

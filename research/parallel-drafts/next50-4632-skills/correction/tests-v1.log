@@ -1,0 +1,32 @@
+C:\Users\villa\Desktop\seer-battle-lab\research\parallel-drafts\next50-4632-skills\preload-production.cjs:1
+const fs=require('fs'),Module=require('module'),path=require('path'),old=Module.prototype._compile;Module.prototype._compile=function(code,file){for(const base of ['range-effects','effect-registry']){const fragment=path.join(__dirname,base+'.production-fragment.js');if(path.resolve(file)===path.resolve(__dirname,'../../../dist/'+base+'.js')&&fs.existsSync(fragment)){const at=base==='effect-registry'?code.indexOf('return Object.freeze({statusDeclarations,registry:'):code.lastIndexOf('\n});');if(at<0)throw Error('fragment anchor '+base);code=code.slice(0,at)+fs.readFileSync(fragment,'utf8')+'\n'+code.slice(at);}}if(path.resolve(file)===path.resolve(__dirname,'../../../dist/souls.js')&&fs.existsSync(path.join(__dirname,'souls.production-edits.json')))for(const e of require('./souls.production-edits.json')){if(!code.includes(e.old))throw Error('anchor '+e.old);code=code.replace(e.old,e.replacement);}return old.call(this,code,file);};
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ^
+
+Error: anchor return {a,t,m,lifeHealingMultiplier1831:
+    at Module._compile (C:\Users\villa\Desktop\seer-battle-lab\research\parallel-drafts\next50-4632-skills\preload-production.cjs:1:847)
+    at Module._compile (C:\Users\villa\Desktop\seer-battle-lab\research\parallel-drafts\next50-4632-skills\correction\preload.cjs:1:448)
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at C:\Users\villa\Desktop\seer-battle-lab\dist\engine.js:198:65
+    at C:\Users\villa\Desktop\seer-battle-lab\dist\engine.js:2:15
+
+Node.js v24.21.0
+✖ research\parallel-drafts\next50-4632-skills\correction\1617.test.cjs (97.4595ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.154
+
+✖ failing tests:
+
+test at research\parallel-drafts\next50-4632-skills\correction\1617.test.cjs:1:1
+✖ research\parallel-drafts\next50-4632-skills\correction\1617.test.cjs (97.4595ms)
+  'test failed'

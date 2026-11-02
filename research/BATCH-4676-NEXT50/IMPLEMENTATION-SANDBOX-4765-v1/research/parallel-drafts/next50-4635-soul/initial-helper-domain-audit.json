@@ -1,0 +1,124 @@
+{
+  "status": "read-only-source-inspection-plus-private-real-state-validation",
+  "sources": [
+    {
+      "file": "dist/souls.js",
+      "sha256": "2d494d472501eeed7b8316d554380d0bb9e8c1fee1616f2e2a24f613659b6c84",
+      "matches": [
+        {
+          "needle": "f.effects={}; f.counts={}; f.ailments={}; f.soulState=",
+          "line": 95,
+          "text": "f.effects={}; f.counts={}; f.ailments={}; f.soulState={energy:0,previousRoundStages:{...f.stages}};if(f.soulId===708){f.soulState.marsForm='speed';f.soulState.marsShield=300;f.counts.immune=1;}if(f.moves.some(id=>s.moveDefinitions?.[id]?.operations?.some(op=>op.effectId===2395)))f.soulState.kubesaPartner=true;if(Number(f.number)===3425&&f.moves.includes('wiki:38525'))f.soulState.oscarBlessings=true;if(E.SOULS.trait(f,'entryAttackShield'))f.soulState.attackShield=E.SOULS.trait(f,'entryAttackShield'); f.fifthUses=0; f.resistUntil=0; f.suitState={stacks:0,royalBoost:false,royalFollowRound:0,shield:0,barrier:0,judgmentBonus:0,judgmentReduction:0}; });\n    for(const f of s.fighters){const resistance=E.SOULS.trait(f,'entryDamageResistance')??0;if(resistance)for(const k of ['critical','fixed','percent'])f.build.resistance[k]=Math.min(100,f.build.resistance[k]+resistance);const gain=E.SOULS.trait(f,'entryMaxHp')??0;if(gain){f.stats.maxHp+=gain;f.hp+=gain;}}\n    if(online)for(const f of s.fighters){const own=s.wikiSnapshots[f.side];f.gender=own.gender?.id;for(const snapshot of s.wikiSnapshots"
+        },
+        {
+          "needle": "E.SOULS.run('beforeBattleStart'",
+          "line": 98,
+          "text": "E.SOULS.run('beforeBattleStart',{a,t:s.fighters[1-a.side]});\n\n    const initialOn=(f,k)=>f.effects[k]&&f.effects[k].start<=1&&f.effects[k].end>=1;\n    function initialContext(a,source=s.fighters[1-a.side]){return {a,t:source,opponent:s.fighters[1-a.side],round:1,emit:text=>(s.entryEvents??=[]).push({text}),name:f=>f.side===0?'A 方':'B 方',clear(f){if(initialOn(f,'protect'))return false;const list=Object.keys(f.effects).filter(k=>statusRules.timedPresent(f.effects[k],1));for(const k of list)delete f.effects[k];return list.length>0;},clearBoost(f){if(f.soulId===1813&&E.SOULS.registry[1813].abilities.protectBoost(initialContext(f,s.fighters[1-f.side]),'clear'))return false;if([1797,1864].includes(f.soulId)&&E.SOULS.registry[f.soulId].abilities.protectBoost({...initialContext(f,a),t:a},'clear'))return false;if(initialOn(f,'强化保护')||initialOn(f,'幽蝶强化保护'))return false;const list=keys.filter(k=>f.stages[k]>0);for(const k of list)f.stages[k]=0;return list.length>0;},consumeShields(f){const n=shieldRules.consume(f)+(f.soulState.attackShield??0)+(f.soulState.marsShield??0);f.soulState.attackShiel"
+        },
+        {
+          "needle": "const initialOn=",
+          "line": 100,
+          "text": "const initialOn=(f,k)=>f.effects[k]&&f.effects[k].start<=1&&f.effects[k].end>=1;\n    function initialContext(a,source=s.fighters[1-a.side]){return {a,t:source,opponent:s.fighters[1-a.side],round:1,emit:text=>(s.entryEvents??=[]).push({text}),name:f=>f.side===0?'A 方':'B 方',clear(f){if(initialOn(f,'protect'))return false;const list=Object.keys(f.effects).filter(k=>statusRules.timedPresent(f.effects[k],1));for(const k of list)delete f.effects[k];return list.length>0;},clearBoost(f){if(f.soulId===1813&&E.SOULS.registry[1813].abilities.protectBoost(initialContext(f,s.fighters[1-f.side]),'clear'))return false;if([1797,1864].includes(f.soulId)&&E.SOULS.registry[f.soulId].abilities.protectBoost({...initialContext(f,a),t:a},'clear'))return false;if(initialOn(f,'强化保护')||initialOn(f,'幽蝶强化保护'))return false;const list=keys.filter(k=>f.stages[k]>0);for(const k of list)f.stages[k]=0;return list.length>0;},consumeShields(f){const n=shieldRules.consume(f)+(f.soulState.attackShield??0)+(f.soulState.marsShield??0);f.soulState.attackShield=0;f.soulState.marsShield=0;return n;},consumeBarrier:f=>shieldRu"
+        },
+        {
+          "needle": "preEntry===true",
+          "line": 104,
+          "text": "preEntry===true),{a,t:s.fighters[1-a.side],m,fifthKind:f=>f.moves.map(id=>(s.moveDefinitions??E.MOVES)[id]).find(x=>x.fifth)?.kind,addSpecialState(f,k,v){(f.soulState.specialStates??={})[k]=v;},specialState:(f,k)=>f.soulState.specialStates?.[k],temporaryHp,sourceSkill(id){const snapshot=s.wikiSnapshots[a.side],move=snapshot.moves.find(x=>x.id===id);if(!move)throw Error('代触发技能缺少真实来源 '+id);const compiled=E.WIKI.compile(move,snapshot);if(compiled.issue)throw Error(compiled.issue);return {...move,operations:compiled.operations};},typeParts:type=>s.typeChart?.aliases[type]??[type]});}\n    for(const f of s.fighters)if(f.soulId===1829&&options.builds?.[f.side]?.resistance1829)E.SOULS.registry[1829].abilities.configureResistance({a:f,round:1},options.builds[f.side].resistance1829);for(const a of s.fighters)E.SOULS.run('battleStart',{...initialContext(a),a,t:s.fighters[1-a.side],round:1,typeEffectiveness:(att,def)=>E.typeEffectiveness(att,def,s.typeChart),grantPPState(f,k,n,source){const out=ppRules.grantState(f,k,n,1,source);(s.ppStateEvents??=[]).push({round:1,phase:'grant',targetSide:f.sid"
+        },
+        {
+          "needle": "E.SOULS.run('battleStart'",
+          "line": 105,
+          "text": "E.SOULS.run('battleStart',{...initialContext(a),a,t:s.fighters[1-a.side],round:1,typeEffectiveness:(att,def)=>E.typeEffectiveness(att,def,s.typeChart),grantPPState(f,k,n,source){const out=ppRules.grantState(f,k,n,1,source);(s.ppStateEvents??=[]).push({round:1,phase:'grant',targetSide:f.side,...out});return out;},entryAilment(f,k,n=null){k=witchEyeAilment(f,k);const result=statusRules.attempt(f,k,1,{duration:n,source:a,random:()=>rng(s),resistanceChance:(f,k)=>f.soulId===1829?E.SOULS.registry[1829].abilities.resistanceChance(initialContext(f,a),k,E.GEAR.resistanceChance(f,k)):E.GEAR.resistanceChance(f,k),gate:()=>{const c={...initialContext(f,a),status:k,blocked:false};if(E.SOULS.trait(f,'ailmentImmune')||(E.SOULS.trait(f,'immuneAilments')??[]).includes(k)){E.SOULS.run('otherAilmentImmunity',c);return false;}guardStates.run('beforeAilment',c);return !c.blocked;}});(s.entryStatusEvents??=[]).push({targetSide:f.side,sourceSide:a.side,status:k,...result});return result.applied;},entrySelfAilment(k,n){return this.entryAilment(a,k,n);},ghostKinds,ghostCount:f=>ghostCount(f,1),gainGhost:(f,"
+        },
+        {
+          "needle": "!E.WIKI.effectsEngine.registry[op.effectId]?.preEntry",
+          "line": 106,
+          "text": "!E.WIKI.effectsEngine.registry[op.effectId]?.preEntry),{a,t:s.fighters[1-a.side],m,fifthKind:f=>f.moves.map(id=>(s.moveDefinitions??E.MOVES)[id]).find(x=>x.fifth)?.kind,addSpecialState(f,k,v){(f.soulState.specialStates??={})[k]=v;},specialState:(f,k)=>f.soulState.specialStates?.[k],temporaryHp,sourceSkill(id){const snapshot=s.wikiSnapshots[a.side],move=snapshot.moves.find(x=>x.id===id);if(!move)throw Error('代触发技能缺少真实来源 '+id);const compiled=E.WIKI.compile(move,snapshot);if(compiled.issue)throw Error(compiled.issue);return {...move,operations:compiled.operations};},typeParts:type=>s.typeChart?.aliases[type]??[type]});}\n    return s;\n    } catch(error){E.MOVES=savedMoves;for(const key of Object.keys(E.SPECIES))if(!Object.hasOwn(savedSpecies,key))delete E.SPECIES[key];Object.assign(E.SPECIES,savedSpecies);throw error;}\n  };\n  E.describeEffects = function (f,round) {\n    const result=guardStates.describe(f,round);for(const k of healthRules.stateNames){const e=healthRules.state(f,k,round);if(e)result.push(k+' · 余 '+(e.end-round+1)+' 回合');}for(const [k,label]of [['frustration','挫折预言'],['los"
+        },
+        {
+          "needle": "function healingMultiplier",
+          "line": 172,
+          "text": "function healingMultiplier(f){const life1831=f.soulState.lifeMarks1831?(E.SOULS.registry[1831]?.abilities.healingFactor({a:f,round:r})??1):1;if(fs[1-f.side].hp>0&&fs[1-f.side].soulId===1829&&f.ailments['烧伤']>=r)return 0;return life1831*(fs[1-f.side].hp>0?(E.SOULS.trait(fs[1-f.side],'opponentHealingMultiplier')??1):1)*(E.SOULS.trait(f,'healingMultiplier')??1)*(f.soulState.darkCause?.level>=5 ? .75 : 1)*statusRules.healingMultiplier(f,r)*(on(f,'回复效果削减')?Math.round((1-f.effects['回复效果削减'].fraction)*1e12)/1e12:1);}\n    function heal(f,n,source,origin='',allowRevive=false) {if(f.soulState.lifeMarks1831&&(n<=0||f.hp>=f.stats.maxHp))return 0;if(f.soulState.oracleAnnihilation1764?.round===r)return 0;if(f.hp<=0&&!allowRevive)return;if(on(f,'四杀鬼囹')){emit(name(f)+' 四杀鬼囹阻止体力恢复。');return;}const auraConversion=origin==='skill'?E.SOULS.trait(fs[1-f.side],'opponentSkillHealingConversion'):null;if(auraConversion&&(on(f,'技能禁疗')||on(fs[1-f.side],'次元领域')||on(f,'技能回复转伤害'))){if(auraConversion.conflictPolicy==='block-without-conversion')return 0;throw Error((auraConversion.conflictQuestion??'未确认规则')+'：技能回复转"
+        },
+        {
+          "needle": "function heal(",
+          "line": 173,
+          "text": "function heal(f,n,source,origin='',allowRevive=false) {if(f.soulState.lifeMarks1831&&(n<=0||f.hp>=f.stats.maxHp))return 0;if(f.soulState.oracleAnnihilation1764?.round===r)return 0;if(f.hp<=0&&!allowRevive)return;if(on(f,'四杀鬼囹')){emit(name(f)+' 四杀鬼囹阻止体力恢复。');return;}const auraConversion=origin==='skill'?E.SOULS.trait(fs[1-f.side],'opponentSkillHealingConversion'):null;if(auraConversion&&(on(f,'技能禁疗')||on(fs[1-f.side],'次元领域')||on(f,'技能回复转伤害'))){if(auraConversion.conflictPolicy==='block-without-conversion')return 0;throw Error((auraConversion.conflictQuestion??'未确认规则')+'：技能回复转伤与其他禁疗/转伤并存顺序未确认');}if(origin==='skill'&&(on(f,'技能禁疗')||on(fs[1-f.side],'次元领域'))){emit(`${name(f)} 技能禁疗阻止回复。`);return;}const v=Math.max(0,Math.min(f.stats.maxHp-f.hp,Math.floor(n*healingMultiplier(f))));if(auraConversion){if(v>0)withDamageOrigin('soul',()=>inflict(fs[1-f.side],f,v*auraConversion.fraction,auraConversion.sourceLabel??'回复转伤害',auraConversion.type));return;}if(origin==='skill'&&on(f,'技能回复转伤害')){const e=f.effects['技能回复转伤害'];if(v>0)inflict(fs[e.sourceSide],f,v*e.fraction,'技能回复转伤害','percent');return;}f.hp+"
+        },
+        {
+          "needle": "plantGu(f,n=1)",
+          "line": 324,
+          "text": "plantGu(f,n=1){const target=fs[f.side];target.soulState.soulGu??=[];for(let i=0;i<n&&target.soulState.soulGu.length<4;i++)target.soulState.soulGu.push({sourceSide:a.side,usedRound:0});},shieldSourceValue:shieldRules.sourceValue,addBarrier:shieldRules.addBarrier,barrierSourceValue:shieldRules.barrierSourceValue,damageImmune,stabValue:(move,own)=>E.sameTypeBonus(move,own,s.typeChart),sameType:(move,own)=>E.sameTypeBonus(move,own,s.typeChart)>1,ghostKinds,ghostCount:f=>ghostCount(f,r),gainGhost:(f,k)=>gainGhost(f,k,r),consumeGhosts:f=>clearGhosts(f,r),clearGhosts:f=>clearGhosts(f,r),fifthPP:f=>f.moves.filter(k=>battleMoves[k].fifth).reduce((n,k)=>n+f.pp[k],0),absorbFifthPP(receiver,donor){const out=[];for(const k of donor.moves.filter(k=>battleMoves[k].fifth)){const index=donor.moves.indexOf(k),receiverKey=receiver.moves[index];const actualDonor=actualFighter(donor),actualReceiver=actualFighter(receiver);out.push(ppRules.absorb({...actualReceiver,moves:receiverKey?[receiverKey]:[]},{...actualDonor,moves:[k]},Math.max(0,actualDonor.pp[k]),battleMoves,{blocked:context(a,t,m).ppReductionBl"
+        }
+      ]
+    },
+    {
+      "file": "dist/range-souls.js",
+      "sha256": "6db58ed1c84e5c3cabae9fd371865e70f6140bf3e0bda2b0f372124e01a2c53d",
+      "matches": [
+        {
+          "needle": "beforeBattleStart(c)",
+          "line": 805,
+          "text": "beforeBattleStart(c){c.a.soulState.luoOpeningRound=1;}}};}\n\nfor(const [id,hash,chance]of [[1434,'39a21510',20],[1703,'a82db158',30]])registry[id]={name:id===1434?'拉克希斯':'拉克希斯·强化',sourceHash:hash,traits:{},hooks:{\nafterUse(c){if(c.a.hp<=0||c.m.kind==='status'||c.m.kind==='item')return;let applied=false;for(const name of ['中毒','烧伤','冻伤','麻痹','睡眠','害怕'])if(c.random()<c.statusProbability(chance)/100){if(c.ailment(c.t,name,c.a,false,false,null,{probabilityPercent:chance}))applied=true;}if(!applied&&c.a.hp>0){c.stage(c.a,1);c.selfRandomAilmentsFrom(1,['中毒','烧伤','冻伤'],'soul:'+id);}},\ncombatEnd(c){if(c.a.hp>0&&conditionStatusRules.conditionPresent(c.a,c.round))c.a.soulState.lachesisCleanseRound=c.round+1;},\nbeforeRoundStart(c){if(c.a.soulState.lachesisCleanseRound!==c.round)return;delete c.a.soulState.lachesisCleanseRound;c.clearAilments(c.a);c.timed(c.a,'必定暴击',1,{});}\n}};\nfunction ankaCombatEnd(c,upgraded){if(c.a.hp<=0||c.t.hp<=0)return;if(c.t.ailments['烧伤']>=c.round){if(upgraded){for(const k of ['atk','def','spa','spd','spe','acc'])c.stage(c.t,Math.min(-1,-1-c.t.stages[k]),[k]);}else c.sta"
+        },
+        {
+          "needle": "combatEnd(c){rhDrain(c);",
+          "line": 574,
+          "text": "combatEnd(c){rhDrain(c);const n=c.shieldValue(c.a);if(c.a.hp>0&&c.t.hp>0&&n>0&&n%400===0)c.plantGu(c.t);},\nshieldBroken(c){if(c.a.hp<=0||c.t.hp<=0)return;c.a.soulState.rhNextReduction=true;c.hurt(c.t,c.t.stats.maxHp/3,'莱茵哈特破盾','percent');},\nbeforeIncomingAttack(c){if(c.a.soulState.rhNextReduction){delete c.a.soulState.rhNextReduction;c.reduction=Math.max(c.reduction,.5);}},\nboostRemoved(c){if(['clear','steal'].includes(c.method)&&c.a.hp>0){c.addSeal(c.a);c.addShield(c.a,400,'soul:1985:boostRemoved');}},\ndamageTaken(c){if(['fixed','percent'].includes(c.type)&&(c.settledDamage??c.dealt)>c.a.stats.maxHp/3&&c.a.hp>0)c.heal(c.a,c.shieldValue(c.a),'莱茵哈特高粉伤回复');},\nattackDamageTaken(c){if(c.a.hp>0&&c.t.hp>0&&((c.settledDamage??c.dealt)>0||c.shieldDamage>0)&&(c.a.soulState.sealLayers??0)>0&&c.shieldValue(c.t)>c.shieldValue(c.a))c.consumeShields(c.t,c.a,false);},death:guDeath\n}};\n\nregistry[832]={name:'乔列尼德',sourceHash:'2488dc58',traits:{skillPriority:f=>f.soulState.jolieSame?1:0},hooks:{\nroundStart(c){const st=c.a.soulState,m=c.selectedMove(c.a);st.jolieSame=false;if(m.kind==='item'||!st.jolie"
+        }
+      ]
+    },
+    {
+      "file": "dist/range-effects.js",
+      "sha256": "03d5590d99bdcd2ed658d69f9e2e4f42b31bcf3ddf6eb66a35fe5cb07bd4ea3f",
+      "matches": [
+        {
+          "needle": "preEntry:true",
+          "line": 2767,
+          "text": "preEntry:true,validate(p,m,i){old.validate(p,m,i);if(m?.id!==38582||m.hash!=='9cd5f1f2'||m.revision!=='seerapi:9cd5f1f2'||i!==0)throw Error('2594仅确认4401/38582/9cd5f1f2实例0');}});}\n{const old=registry[1837];registry[1837]=Object.freeze({...old,validate(p,m,i){if(m?.id===28032&&m.provider==='seerapi'&&m.hash==='7a7aba86'&&i===2&&JSON.stringify(p)==='[100,28,1]')return;old.validate(p,m,i);}});}\n\nmetadata[990]={info:'消除对手回合类效果，消除成功则附加{0}点固定伤害',args_num:1};add(990,'afterHit',(c,p)=>{if(c.clear(c.t)&&c.t.hp>0)c.hurt(c.t,p[0],c.m.name+'清回合附伤','fixed');},[[0,99999]]);\nmetadata[1844]={info:'附加对手已损失体力值{0}%的百分比伤害',args_num:1};add(1844,'afterHit',(c,p)=>c.hurt(c.t,(c.t.stats.maxHp-c.t.hp)*p[0]/100,c.m.name+'对手已损失HP附伤','percent'),[pct]);\n{const old=registry[948];registry[948]=Object.freeze({...old,validate(p,m,i){if(m?.id===36055&&m.provider==='seerapi'&&m.hash==='e4d428b6'&&i===0&&JSON.stringify(p)==='[28]')return;old.validate(p,m,i);}});}\n\nmetadata[924]={info:'下{0}回合攻击技能吸取对手1/{1}最大体力值',args_num:2};add(924,'afterHit',(c,p)=>c.timed(c.a,'攻击命中最大体力吸取',p[0],{denominator:p[1]},c.round+1),[turns,[1,999"
+        },
+        {
+          "needle": "add(2594,'battleStart'",
+          "line": 2766,
+          "text": "add(2594,'battleStart',c=>c.addSpecialState(c.a,'巫祖之眸',{count:50,fifthKind:c.fifthKind(c.a),sourceSkillId:c.m.wikiId??c.m.id,confirmation:'Q-N20-4401-002'}),[]);\n{const old=registry[2594];registry[2594]=Object.freeze({...old,preEntry:true,validate(p,m,i){old.validate(p,m,i);if(m?.id!==38582||m.hash!=='9cd5f1f2'||m.revision!=='seerapi:9cd5f1f2'||i!==0)throw Error('2594仅确认4401/38582/9cd5f1f2实例0');}});}\n{const old=registry[1837];registry[1837]=Object.freeze({...old,validate(p,m,i){if(m?.id===28032&&m.provider==='seerapi'&&m.hash==='7a7aba86'&&i===2&&JSON.stringify(p)==='[100,28,1]')return;old.validate(p,m,i);}});}\n\nmetadata[990]={info:'消除对手回合类效果，消除成功则附加{0}点固定伤害',args_num:1};add(990,'afterHit',(c,p)=>{if(c.clear(c.t)&&c.t.hp>0)c.hurt(c.t,p[0],c.m.name+'清回合附伤','fixed');},[[0,99999]]);\nmetadata[1844]={info:'附加对手已损失体力值{0}%的百分比伤害',args_num:1};add(1844,'afterHit',(c,p)=>c.hurt(c.t,(c.t.stats.maxHp-c.t.hp)*p[0]/100,c.m.name+'对手已损失HP附伤','percent'),[pct]);\n{const old=registry[948];registry[948]=Object.freeze({...old,validate(p,m,i){if(m?.id===36055&&m.provider==='seerapi'&&m.hash==='e4d428b6'&&i"
+        },
+        {
+          "needle": "add(746,'afterHit'",
+          "line": 3602,
+          "text": "add(746,'afterHit',(c,p)=>c.timed(c.a,'斯布林蒂镜像回复',p[0],{fraction:p[1]/5}),[[5,5],[4,4]]);\nadd(1388,'afterHit',(c,p)=>{const source='skill1388:'+c.m.id+':'+c.effectInstanceIndex;if(c.a.soulState.barrierAilmentTriggers?.some(e=>e.source===source&&!e.done))throw Error('Q-N50-4600-005：1388同来源重授与反应刷新待确认');c.refreshBarrier(c.a,p[0],source);c.a.soulState.barrierAilmentTriggers??=[];c.a.soulState.barrierAilmentTriggers=c.a.soulState.barrierAilmentTriggers.filter(e=>e.source!==source);c.a.soulState.barrierAilmentTriggers.push({source,kind:'sprinqRoundBlock4600',amount:p[1],done:false});},[[300,300],[1,1]]);\nadd(2109,'afterHit',(c,p)=>{if(c.a.counts.immune>0||c.a.soulState.sprinq2109>0)throw Error('Q-N50-4511-006：2109重复或混来源免异常授予待确认');c.a.counts.immune=p[0];c.a.soulState.sprinq2109=p[0];},[[1,1]]);\nadd(1211,'afterHit',(c,p)=>{let changed=false;for(const t of [c.a,c.t]){const before=JSON.stringify(t.stages);c.clearBoost(t);c.clearNegative(t);changed ||=before!==JSON.stringify(t.stages);}if(changed)c.addShield(c.a,p[0],c.m.name+'消除能力护盾');},[[300,300]]);\nconst feedback11924600=(c,policy=null)=>{con"
+        },
+        {
+          "needle": "add(2319,'afterHit'",
+          "line": 1827,
+          "text": "add(2319,'afterHit',(c,p)=>{const count=c.t.soulState.soulGu?.length??0,amount=(c.a.stats.def+c.a.stats.spd)*(p[0]+count*p[1])/100;if(c.hurt(c.t,amount,c.m.name,'percent')===0){c.addSeal(c.a);c.plantGu(c.t,c.a.soulState.sealLayers);}},[pct,pct]);\n\nmetadata[1289]={\"info\":\"将自身的能力下降状态双倍反馈给对手，反馈成功则对手下{0}次技能无效\",\"args_num\":1};\nmetadata[2332]={\"info\":\"解除自身所处异常状态，解除成功下{0}回合对手无法主动切换精灵\",\"args_num\":1};\nmetadata[2330]={\"info\":\"附加上回合双方所受固定伤害之和{0}%的百分比伤害\",\"args_num\":1};\nmetadata[1568]={\"info\":\"无视护盾效果\",\"args_num\":0};\nmetadata[1930]={\"info\":\"自身每有{0}级先制则连击次数+{1}，最高连击{2}次\",\"args_num\":3};\nmetadata[1837]={\"info\":\"{0}%令对手{1}，未触发则令自身全属性-{2}\",\"args_num\":3};\nmetadata[2334]={\"info\":\"打出致命一击时下{0}回合免疫对手的攻击\",\"args_num\":1};\nmetadata[2333]={\"info\":\"击败对手时对手每有1层荒古之慑增加{0}点体力上限并恢复全部体力，未击败对手则恢复自身已损失体力值的{1}%\",\"args_num\":2};\nadd(1289,'afterHit',(c,p)=>{if(c.canFeedbackNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const before=c.t.stages[k];c.stage(c.t,c.a.stages[k]*2,[k]);changed ||=c.t.stages[k]<before;if(c.canRemoveNegative?.(c.a)!==false)c.a.stages[k]=0;}if(changed)c.t.count"
+        }
+      ]
+    }
+  ],
+  "initialLifecycle": [
+    "createBattle clears effects/counts/ailments/soulState before all new initial processing",
+    "beforeBattleStart implementation only1394 sets luoOpeningRound1",
+    "preEntry skill tag only2594, source4401/38582, adds巫祖之眸 specialstate; does not attach mirror/soulGu",
+    "soul battleStart loop occurs next; non-preEntry skill battleStart loop afterwards",
+    "mirror746 is afterHit; gu2319 afterHit and soul1985 combatEnd call plantGu; none initial"
+  ],
+  "decision": "Initial source1842 helper covers the current reachable fresh-create domain; it is not a replacement for full ordinary heal. In-place abilities.entry uses c.restorePP/c.heal and c.ailment full context. True reentry event itself deferred.",
+  "numericParity": [
+    "lifeMarks1831 healingFactor, same unresolved mixed-rule guard preserved",
+    "alive enemy1829+burn blocks",
+    "opponent healing trait only alive",
+    "own healing trait and darkCause>=5 .75",
+    "status healing multiplier and timed回复效果削减",
+    "oracleAnnihilation round1 blocks",
+    "四杀 blocks but技能禁疗 does not block soul origin",
+    "HP cap/no revival; actual heal652 sets sagrosHealRound2"
+  ],
+  "excludedNotReachable": [
+    "斯布林蒂镜像回复746技能回合效果",
+    "留魂之蛊2319/1985回合技能/魂事件"
+  ],
+  "privateLog": "tests-v3.log",
+  "tests": 21,
+  "passed": 21,
+  "exitCode": 0
+}

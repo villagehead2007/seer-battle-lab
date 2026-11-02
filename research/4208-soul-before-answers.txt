@@ -1,0 +1,6 @@
+registry[1427]={name:'锢灵·舞',sourceHash:'53ebc960',partial:true,unimplemented:['公共Q-A60-4075-012：多段/多次受击阈值统计单位'],traits:{},hooks:{
+roundStart(c){c.a.soulState.danceHigh=c.a.hp>c.a.stats.maxHp/2;c.a.soulState.danceLow=c.a.hp<c.a.stats.maxHp/2;},
+attackDamageTaken(c){const n=c.settledDamage??c.dealt;if(n<=0)return;const st=c.a.soulState;if(st.danceTakenRound===c.round)throw Error('1427同回合多次受击阈值待Q-A60-4075-012');st.danceTakenRound=c.round;if(n<400)c.timed(c.t,'statusBlock',1,{},c.round+1);else if(n>400)c.timed(c.t,'attackBlock',1,{},c.round+1);},
+afterUse(c){if(c.a.hp<=0||c.t.hp<=0||!c.a.soulState.danceHigh||c.m.kind==='status'||c.m.kind==='item')return;c.markStatusEffect?.(['束缚']);if(!c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:100}))c.hurt(c.t,c.t.stats.maxHp/3,'锢灵高体束缚失败','percent');},
+combatEnd(c){if(c.a.hp<=0||!c.a.soulState.danceLow)return;const healed=c.heal(c.a,c.a.stats.maxHp/3,'锢灵低体战阶回复')??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,'锢灵战阶等量追加','percent');}
+}};

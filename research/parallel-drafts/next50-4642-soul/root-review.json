@@ -1,0 +1,119 @@
+{
+  "at": "2026-10-26T00:39:56.650Z",
+  "scope": "read-only3 root interactions and narrow shared healing regression recommendation; no tests/engine/network",
+  "main": {
+    "file": "research/4642-main-root-draft.test.cjs",
+    "sha256": "8840959de0c799d3f3688b856d2da337eecf9ddde1023f4ff0c05a22436e2830"
+  },
+  "cases": [
+    {
+      "index": 1,
+      "verdict": "static-consistent-after-parent-PP-correction",
+      "source": "魂1843/9f03757f选择属性预约下轮攻击必暴/命中失神；失神分类Wiki388558",
+      "findings": [
+        {
+          "assertion": "第2轮末enemy20030 PP仍34",
+          "reason": "失神是弱化类，令属性技能50%无效；不是控制类无法行动。真实使用仍支付PP，第一轮35→34、第二轮34→33。即使R2属性效果无效，PP也不会保留34。",
+          "suggestion": "保留forcedCrit/seen失神/真实HP及自身攻击40→39；敌最后PP应33，并修标题不称阻敌实际PP。",
+          "source": {
+            "file": "data/statuses/sources.json",
+            "pointer": "/records/1/data/query/pages/143433/revisions/0/slots/main/*",
+            "url": "https://wiki.biligame.com/seer/index.php?oldid=388558",
+            "hash": "d02d88a71a46d25e295970528bfc4e9760aa751b7f7d9a9d7352c32b223291e8",
+            "text": "失神：弱化类异常状态，该状态下精灵使用属性技能50%无效"
+          }
+        }
+      ],
+      "alreadyCorrected": true
+    },
+    {
+      "index": 2,
+      "verdict": "static-consistent",
+      "arithmetic": [
+        "R1完整瞄准20065/cc4d5c94 effect4[5,100,1]命中+1；回初满HP不预锁魂奖励，受敌红伤后末def仍0，acc1。",
+        "R2回初已缺HP，瞄准acc+1至2，战阶def/spd/acc各+1→def1/spd1/acc3。",
+        "R3瞄准acc4，三连实际used抵挡攻击本轮生效，敌10086仍扣PP35→32且红0，战阶再次+1→def2/spd2/acc5，HP与R2末相同。",
+        "真实23源5选，队伍无虚构中性来源；1900类虚构字段未使用。"
+      ]
+    },
+    {
+      "index": 3,
+      "verdict": "static-consistent",
+      "source": {
+        "move": 37348,
+        "hash": "9e655a90",
+        "pp": 5,
+        "basePower": 10,
+        "instances": [
+          {
+            "index": 0,
+            "id": 2103,
+            "args": [
+              100,
+              8
+            ]
+          },
+          {
+            "index": 1,
+            "id": 1030,
+            "args": [
+              29
+            ]
+          },
+          {
+            "index": 2,
+            "id": 1356,
+            "args": [
+              3
+            ]
+          },
+          {
+            "index": 3,
+            "id": 1685,
+            "args": [
+              15,
+              17,
+              19
+            ]
+          }
+        ]
+      },
+      "arithmetic": [
+        "敌预中毒只扩连击上限19（下限15），目标无正等级使2103不反转/睡眠；己无负等级使1030不反馈/失神。",
+        "第一轮自身未先选属性，criticals=false且无魂强制必暴，故1356不凭空附加1/3；正红逐段15..19，最多仅~数百，敌仍存活可实际用20030 PP35→34。",
+        "PP只整招一次5→4，后续敌既存中毒DOT会继续降低HP，但不改变hits(typeattack)的15..19筛选；断言enemyHP0<HP<9000合理。"
+      ]
+    }
+  ],
+  "requiredOldTargetedFiles": [
+    "tests/next50-4625-soul.test.cjs",
+    "tests/next50-4604-soul.test.cjs"
+  ],
+  "regressionReasons": [
+    {
+      "file": "tests/next50-4625-soul.test.cjs",
+      "reason": "公共healingMultiplier直接被1831 lifeHealingMultiplier1831调用；旧失命0/回命2、技能禁疗差异、反转0后的003保护必须保持。",
+      "literalNames": [
+        "1831失命单独恢复倍率0，各技能魂印式回复均不增HP",
+        "1831回命对无魂敌方单独回复2倍并受HP上限，移除后立即回正常倍率",
+        "1831反转零后仍失命真实003保护不先改HP，明确强制1与普通回复0分支均可执行"
+      ]
+    },
+    {
+      "file": "tests/next50-4604-soul.test.cjs",
+      "reason": "1809独立累计/吸取通过同heal接口，不带新禁疗label时乘1，旧理论回复/半回复/禁疗/不复活及实际击败后理论回复保持。",
+      "literalNames": [
+        "1809明确累计载荷遵循禁疗和回复削减，零量无额外伤害",
+        "1809真实基础攻击先击败对手后仍按理论威力回复，自身已死则不借载荷复活"
+      ]
+    }
+  ],
+  "narrowPatchSource": {
+    "file": "dist/souls.js",
+    "helper": "healingMultiplier(f)",
+    "change": "仅新增on(f,哀目黑子禁止回复)时乘0，否则乘1；不替换life/status/trait/削减等乘积，也不跳过原heal事件链"
+  },
+  "notRecommended": "不因同公共函数扩大为整库/全机制审计；新禁疗、到期、清除、source死亡与真实HP已由当前4642魂20项负责。",
+  "testsRun": 0,
+  "sharedEdits": []
+}

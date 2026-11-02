@@ -1,0 +1,30 @@
+[
+  {
+    "old": "      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'邪魇用招吸取追加')){const e=a.effects['邪魇用招吸取追加'],n=e.amount*(a.hp<a.stats.maxHp*e.threshold?2:1),loss=drainFixed(a,t,n,'邪魇用招吸取');if(loss<e.extra&&t.hp>0){inflict(a,t,e.extra,'邪魇用招低损追加','true');if(t.hp>0){const form=a.soulState.oracleForm1764;if(!form)throw Error('1764形态未初始化');context(a,t,m).soulAbility(1764,'grantMark',form==='holy'?'holy':'evil',1);}}}",
+    "replacement": "      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'邪魇用招吸取追加')){const e=a.effects['邪魇用招吸取追加'],n=e.amount*(a.hp<a.stats.maxHp*e.threshold?2:1),loss=drainFixed(a,t,n,'邪魇用招吸取');if(loss<e.extra&&t.hp>0){inflict(a,t,e.extra,'邪魇用招低损追加','true');if(t.hp>0){const form=a.soulState.oracleForm1764;if(!form)throw Error('1764形态未初始化');context(a,t,m).soulAbility(1764,'grantMark',form==='holy'?'holy':'evil',1);}}}\n      if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'杰格用招固定吸取')){const e=a.effects['杰格用招固定吸取'];drainFixed(a,t,e.amount*(a.hp<a.stats.maxHp*e.threshold?2:1),'杰格用招固定吸取');}\n      if(used[a.side]&&['physical','special'].includes(m.kind)&&t.hp>0&&on(t,'杰格对手攻击扣体待审'))throw Error('Q-N50-4568-002：764降低当前HP或maxHP及类型待确认');"
+  },
+  {
+    "old": "    function damageDealt(a,t,dealt,settledDamage=dealt,type='attack'){if(settledDamage<=0)return;",
+    "replacement": "    function jiege1612(f,source,n,type){const opponent=fs[1-f.side];if(f.hp<=0||opponent.hp<=0||n<=0||!on(f,'杰格低伤沉默补固'))return;const e=f.effects['杰格低伤沉默补固'];const seen=f.soulState.jiege1612Seen;if(seen?.round===r){if(seen.allHigh&&n>=e.threshold)return;throw Error('Q-N50-4568-004：1612同回合多次/多类型伤害统计与触发次数待确认');}f.soulState.jiege1612Seen={round:r,allHigh:n>=e.threshold};if(n<e.threshold&&!(rng(s)<e.chance/100&&ailment(opponent,e.ailment,f))&&opponent.hp>0)inflict(f,opponent,e.damage,'杰格低伤沉默未触发补固','fixed');}\n    function damageDealt(a,t,dealt,settledDamage=dealt,type='attack'){if(settledDamage<=0)return;"
+  },
+  {
+    "old": "damageDealt(a,t,dealt,settledDamage);",
+    "replacement": "damageDealt(a,t,dealt,settledDamage);jiege1612(t,a,settledDamage,'attack');"
+  },
+  {
+    "old": "if(origin&&origin!==f)damageDealt(origin,f,v,settledDamage,type);}return v;",
+    "replacement": "if(origin&&origin!==f)damageDealt(origin,f,v,settledDamage,type);}jiege1612(f,origin,settledDamage,type);return v;"
+  },
+  {
+    "old": "k=witchEyeAilment(t,k);",
+    "replacement": "k=witchEyeAilment(t,k);if(t.soulState.jiege1819Charges>0&&(t.counts.immune!==t.soulState.jiege1819Charges||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：1819异常免疫来源共存待确认');"
+  },
+  {
+    "old": "explicitImmunity=true;return false;",
+    "replacement": "if(t.soulState.jiege1819Charges>0)throw Error('Q-N50-4511-006：1819与其他异常免疫同时作用消费顺序待确认');explicitImmunity=true;return false;"
+  },
+  {
+    "old": "if(reason==='count-immunity')emit",
+    "replacement": "if(reason==='count-immunity'&&t.soulState.jiege1819Charges>0){t.soulState.jiege1819Charges--;if(!t.soulState.jiege1819Charges)delete t.soulState.jiege1819Charges;}if(reason==='count-immunity')emit"
+  }
+]

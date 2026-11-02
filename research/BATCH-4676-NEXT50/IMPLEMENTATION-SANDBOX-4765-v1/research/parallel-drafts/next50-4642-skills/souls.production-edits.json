@@ -1,0 +1,47 @@
+[
+  {
+    "old": "E.SOULS.run('roundEnd',c);",
+    "replacement": "if(f.hp>0&&on(f,'哀目逐轮降低体力')&&fs[1-f.side].hp>0){const e=f.effects['哀目逐轮降低体力'],rolled=rng(s)*100<e.chance;f.soulState.ayami725Rolls??=[];f.soulState.ayami725Rolls.push({round:r,success:rolled});if(rolled)inflict(f,fs[1-f.side],fs[1-f.side].stats.maxHp*e.fraction,'哀目每轮最大体力附伤','percent');}E.SOULS.run('roundEnd',c);",
+    "label": "725-source-percent-round-end"
+  },
+  {
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))",
+    "replacement": "if(a.hp>0&&on(a,'哀目用招回复或满体粉')){const e=a.effects['哀目用招回复或满体粉'],same=e.grantRound===r&&e.grantMove===m.id&&e.grantUse===context(a,t,m).effectUseCount(),first=a.soulState.qualified1695First4642;if(same&&!['immediate','next-use'].includes(first))throw Error('Q-N50-4625-011：1695仅1回合持续使用技能效果同招首触待确认');if(!same||first==='immediate'){if(a.hp===a.stats.maxHp){if(t.hp>0)inflict(a,t,a.stats.maxHp*e.fullFraction,'哀目满体改粉伤','percent');}else{const n=heal(a,a.stats.maxHp*e.fraction,'哀目用招回复','skill')??0;if(n>0&&t.hp>0)inflict(a,t,n,'哀目实际回复等量粉伤','percent');}}}if(actionPayloadAllowed&&a.hp>0&&on(a,'id57'))",
+    "label": "1695-used-actual-heal"
+  },
+  {
+    "old": "E.SOULS.run('opponentBeforeUse',{...context(t,a,m),first});",
+    "replacement": "if(t.hp>0&&m.kind==='status'&&on(t,'哀目对手用属性失神')){const e=t.effects['哀目对手用属性失神'],policy=t.soulState.qualified469Timing4642;if(!['before','after'].includes(policy))throw Error('Q-N50-4604-004：469对手实际属性用招时失神施加准确时点待确认');if(policy==='before'&&rng(s)*100<e.chance)ailment(a,'失神',t,false,false,null,{probabilityPercent:e.chance,origin:'skill'});}E.SOULS.run('opponentBeforeUse',{...context(t,a,m),first});",
+    "label": "469-before-use-qualified"
+  },
+  {
+    "old": "if(t.hp>0&&m.kind==='status'&&on(t,'对手属性后指定异常')",
+    "replacement": "if(t.hp>0&&m.kind==='status'&&on(t,'哀目对手用属性失神')&&t.soulState.qualified469Timing4642==='after'){const e=t.effects['哀目对手用属性失神'];if(rng(s)*100<e.chance)ailment(a,'失神',t,false,false,null,{probabilityPercent:e.chance,origin:'skill'});}if(t.hp>0&&m.kind==='status'&&on(t,'对手属性后指定异常')",
+    "label": "469-after-use-qualified"
+  },
+  {
+    "old": "if(actionPayloadAllowed&&actionLanded&&a.hp>0&&t.hp>0&&on(a,'用招异常失败攻击减免'))",
+    "replacement": "if(actionPayloadAllowed&&actionLanded&&a.hp>0&&t.hp>0&&m.kind!=='status'&&m.kind!=='item'&&on(a,'哀目下回合攻击睡眠')){const e=a.effects['哀目下回合攻击睡眠'],hits=(a.soulState.currentAttackSegment??0)+1,unit=a.soulState.qualified1430Unit4642;if(hits>1&&!['use','segment'].includes(unit))throw Error('Q-N50-4642-010：1430下回合攻击概率睡眠与真实多段抽样单位待确认');const count=unit==='segment'?hits:1;for(let i=0;i<count;i++)if(rng(s)*100<e.chance)ailment(t,'睡眠',a,false,false,null,{probabilityPercent:e.chance,origin:'skill'});}if(actionPayloadAllowed&&actionLanded&&a.hp>0&&t.hp>0&&on(a,'用招异常失败攻击减免'))",
+    "label": "1430-next-attack-sleep"
+  },
+  {
+    "old": "function boostRemoved(f,by,method='clear',removedCount=0,operation='clear',confirmedOperation=false){",
+    "replacement": "function boostRemoved(f,by,method='clear',removedCount=0,operation='clear',confirmedOperation=false){if(on(f,'强化被清追加')&&f.effects['强化被清追加'].ayami4642&&operation==='reverse'||on(f,'强化被清吸取')&&f.effects['强化被清吸取'].ayami4642&&(method==='steal'||operation==='reverse'))throw Error('Q-N50-4511-002：4642纯反转/吸取是否触发对应消强反制待确认');",
+    "label": "783-1109-source-removal-semantics"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=",
+    "replacement": "if(!bypass&&on(t,'reflect')&&t.effects.reflect.ayami191&&(t.counts.immune>0||on(t,'免异常')||on(t,'控制异常反弹')&&statusRules.isControl(k)||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：4642免异反弹与实际其他免异来源共存消费待确认');let explicitImmunity=false;const immuneGate=",
+    "label": "191-source-mixed"
+  },
+  {
+    "old": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){",
+    "replacement": "function inflict(a,t,n,source,type='true',bypass=false,reflected=false,minimumHp=0,resolution=null){const mark1086=a.soulState.ayami1086Use;if(n>0&&a!==t&&currentActorSide===a.side&&mark1086?.round===r&&mark1086.move===battleMoves[choices[a.side]]?.id&&mark1086.use===a.soulState.skillUses?.[mark1086.move]&&['fixed','percent','true'].includes(type)&&(mark1086.low||a.hp<t.hp)){const policy=a.soulState.qualified1086Scope4642;if(!['red-only','all'].includes(policy?.scope))throw Error('Q-N50-4612-001：1086造成伤害提升是否包含本次非红附伤待确认');if(policy.scope==='all'&&(policy.condition==='current'?a.hp<t.hp:mark1086.low))n*=mark1086.multiple;}",
+    "label": "1086-new-source-nonred-scope"
+  },
+  {
+    "old": "if(on(f,'强化被清吸取')&&by.hp>0){drainPercent",
+    "replacement": "if(on(f,'强化被清吸取')&&(by.hp>0||f.effects['强化被清吸取'].ayami4642)){drainPercent",
+    "label": "1109-independent-theoretical-heal"
+  }
+]

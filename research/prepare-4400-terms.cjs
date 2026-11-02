@@ -1,0 +1,1 @@
+const fs=require('fs');fs.writeFileSync('research/check-4400-terms.cjs',fs.readFileSync('research/check-4394-terms.cjs','utf8').replaceAll('4394','4400').replace('效果:1343|伤害转化|魂印:1612','圣剑|圣剑重铸|处决印记|效果说明:圣剑|效果说明:圣剑重铸|效果说明:处决印记').replace('祭空墟祖 伤害 转化','圣剑重铸 处决印记'));

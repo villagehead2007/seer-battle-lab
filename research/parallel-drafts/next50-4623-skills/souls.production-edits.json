@@ -1,0 +1,34 @@
+[
+  {
+    "old": "if(!bypass&&on(f,'致命保留')&&f.hp>0&&settledDamage>=f.hp)hpFloor=Math.max(hpFloor,Math.min(f.hp,f.effects['致命保留'].hp));",
+    "replacement": "if(!bypass&&on(f,'致命保留')&&f.effects['致命保留'].rift68&&type!=='attack'&&f.hp>0&&settledDamage>=f.hp&&!f.soulState.qualified68Scope4623)throw Error('Q-N50-4623-010：68非红致死伤害是否保1待确认');if(!bypass&&on(f,'致命保留')&&f.hp>0&&settledDamage>=f.hp&&!(f.effects['致命保留'].rift68&&type!=='attack'&&f.soulState.qualified68Scope4623==='red'))hpFloor=Math.max(hpFloor,Math.min(f.hp,f.effects['致命保留'].hp));"
+  },
+  {
+    "old": "if(actionPayloadAllowed&&a.hp>0&&on(a,'用招条件回血'))",
+    "replacement": "if(a.hp>0&&on(a,'裂岩低半用招粉伤')){const e=a.effects['裂岩低半用招粉伤'],n=t.stats.maxHp*e.fraction,bonus=a.soulState.rift2137This?.round===r?a.soulState.rift2137This.bonus:0;if(bonus>0&&!a.soulState.qualified2137Scope4623)throw Error('Q-N50-4612-001：2137泛造成伤害是否含当前用招触发的预授百分比伤害待确认');const factor=a.soulState.qualified2137Scope4623==='all'?1+bonus:1;a.soulState.rift1836Resolving=true;try{if(a.hp<a.stats.maxHp*e.threshold)inflict(a,t,n*2*factor,'裂岩低半改双倍百分比伤害','percent');else drainPercent(a,t,n,'裂岩非低半理论比例吸取','skill',factor);}finally{delete a.soulState.rift1836Resolving;}}if(a.hp>0&&on(a,'裂岩强化用招石化')&&Object.values(a.stages).some(n=>n>0)){const e=a.effects['裂岩强化用招石化'];if(rng(s)*100<e.chance)ailment(t,'石化',a,false,false,null,{probabilityPercent:e.chance});}\n      if(actionPayloadAllowed&&a.hp>0&&on(a,'用招条件回血'))"
+  },
+  {
+    "old": "if(invalid&&!blocked)E.WIKI.effectsEngine.run('onMiss',m.operations,{...skillContext(a,t,m),heal:(f,n,source)=>heal(f,n,source,'skill'),first});",
+    "replacement": "if(invalid&&!blocked)E.WIKI.effectsEngine.run('onMiss',m.operations,{...skillContext(a,t,m),heal:(f,n,source)=>heal(f,n,source,'skill'),first});if(invalid&&!blocked&&m.kind!=='status'&&on(t,'裂岩回末MISS吸取'))t.soulState.rift1320MissRound=r;"
+  },
+  {
+    "old": "if(!s.finished)for(const f of fs)if(f.hp>0&&fs[1-f.side].hp>0&&on(f,'回合末最大体力吸取'))",
+    "replacement": "if(!s.finished)for(const f of fs)if(f.hp>0&&fs[1-f.side].hp>0&&on(f,'裂岩回末MISS吸取')&&f.soulState.rift1320MissRound===r){f.soulState.rift1320Resolving=true;try{drainPercent(f,fs[1-f.side],fs[1-f.side].stats.maxHp*f.effects['裂岩回末MISS吸取'].fraction,'裂岩MISS回末理论比例吸取','skill');}finally{delete f.soulState.rift1320Resolving;}}\n    if(!s.finished)for(const f of fs)if(f.hp>0&&fs[1-f.side].hp>0&&on(f,'回合末最大体力吸取'))"
+  },
+  {
+    "old": "if(!rage&&t.hp>0&&a.hp>0&&on(t,'幽蝶命中异常'))",
+    "replacement": "if(!rage&&on(t,'裂岩命中随机异常')){if(settledDamage===0&&!t.soulState.qualified1975Zero4623)throw Error('Q-N50-4618-002：1975完整0是否攻击命中待确认');if((a.soulState.attackSegmentsThisUse??1)>1)throw Error('Q-A60-4075-012：1975真实多段随机异常消费/刷新单位待确认');if(settledDamage>0||t.soulState.qualified1975Zero4623==='hit'){const e=t.effects['裂岩命中随机异常'],chosen=e.names[Math.floor(rng(s)*e.names.length)];ailment(a,chosen,t,false,false,null,{probabilityPercent:100});}}\n      if(!rage&&t.hp>0&&a.hp>0&&on(t,'幽蝶命中异常'))"
+  },
+  {
+    "old": "const defeatedByAttack=t.hp<=0;resolveDeath(t,a);",
+    "replacement": "const defeatedByAttack=t.hp<=0;if(defeatedByAttack&&(m.wikiId??m.id)===37224&&m.revision==='seerapi:18c0029b')a.soulState.rift1719RedKO={round:r,use:a.soulState.skillUses?.[m.id],crit};resolveDeath(t,a);"
+  },
+  {
+    "old": "f.soulState.lastDefeatRound=r;",
+    "replacement": "f.soulState.lastDefeatRound=r;if(defeater?.side===1-f.side){const move=battleMoves[choices[defeater.side]],pending=defeater.soulState.rift1719Pending,own=currentActorSide===defeater.side&&(move.wikiId??move.id)===37224&&move.revision==='seerapi:18c0029b'&&(damageSourceOrigin===null?skillPhase:damageSourceOrigin==='skill')&&!defeater.soulState.rift1836Resolving&&!defeater.soulState.rift1320Resolving;if(own)defeater.soulState.rift1719KO={round:r,use:defeater.soulState.skillUses?.[move.id]};else if(pending?.round===r&&!(defeater.soulState.rift1719KO?.round===r&&defeater.soulState.rift1719KO.use===pending.use)&&(defeater.soulState.rift1836Resolving||defeater.soulState.rift1320Resolving))throw Error('Q-N50-4589-004：裂岩已授用招/回末吸取晚杀是否承接1719击败增伤待确认');}"
+  },
+  {
+    "old": "let explicitImmunity=false;const immuneGate=(kind='other')=>{",
+    "replacement": "let explicitImmunity=false;const immuneGate=(kind='other')=>{if(on(t,'reflect')&&t.effects.reflect.rift191&&(t.counts.immune>0||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length||on(t,'免异常')||on(t,'控制异常反弹')&&statusRules.isControl(k)))throw Error('Q-N50-4511-006：4623回合反弹与免异次数/来源混合待确认');"
+  }
+]

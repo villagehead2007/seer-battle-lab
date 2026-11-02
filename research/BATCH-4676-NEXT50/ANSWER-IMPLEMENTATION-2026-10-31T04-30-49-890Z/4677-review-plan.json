@@ -1,0 +1,74 @@
+{
+  "id": 4677,
+  "reviewed": true,
+  "rationale": "原15/16/17题面板比较、吸取与回返顺序已通过43项；用户新增天赋31威力180、每少1天赋减5补齐2210，0至31物特攻逐点真实伤害与完整第五交互通过。原资料和缺公式历史保留，待批次完整回归。",
+  "oldTestFile": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4677-talent-before-next50-4677-shared.test.cjs",
+  "testFile": "tests/next50-4677-shared.test.cjs",
+  "additionalTitleMappings": [
+    {
+      "oldTestFile": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4677-independent-before-answers.test.cjs",
+      "testFile": "tests/next50-4677-independent.test.cjs"
+    }
+  ],
+  "soulBehavior": "初次登场星启、星盘增长与回返战阶末120攻击；比较面板双攻，攻击采用双攻相加后相应等级倍率；物理吸取目标面板双防和30%并按理论量回复；异常到期、盾和随机清PP按真实分支测试。",
+  "extraTests": {
+    "soul": [
+      {
+        "file": "tests/next50-4677-answers.test.cjs",
+        "name": "4677双攻先相加再按本次攻击能力等级修正，正零负等级均与等效面板伤害一致"
+      },
+      {
+        "file": "tests/next50-4677-answers.test.cjs",
+        "name": "4677吸取双防不计能力等级，目标不足或免疫仍按理论量恢复"
+      },
+      {
+        "file": "tests/next50-4677-answers.test.cjs",
+        "name": "4677受控未出招仍在双方行动结束后回返，先于回合末毒伤且不扣PP"
+      },
+      {
+        "file": "tests/next50-4677-answers.test.cjs",
+        "name": "4677星启仅比较原面板双攻，能力等级反转高低不改变星赐选择"
+      }
+    ],
+    "4677:skill:28810:0": [
+      {
+        "file": "tests/next50-4677-talent.test.cjs",
+        "name": "4677天赋0至31逐点按180减5差值转物攻特攻，实际红伤与相同威力基准一致"
+      },
+      {
+        "file": "tests/next50-4677-talent.test.cjs",
+        "name": "4677天赋转化按攻击接受封锁，同招对手无星仍属性且下一轮取消星状态恢复属性"
+      },
+      {
+        "file": "tests/next50-4677-talent.test.cjs",
+        "name": "4677真实魂印与完整第五在两种单星下造成红伤并执行束缚和消回合封属性"
+      }
+    ]
+  },
+  "decisions": {
+    "4677:soul:1879": {
+      "scope": "mixed",
+      "deferredBehavior": "真实再次登场星启与星盘下场保留依赖换宠；当前初次登场星启单独实现",
+      "trigger": "真实离场保留星盘并再次入场星启",
+      "futureMechanisms": [
+        "离场星盘保存",
+        "真实再入场星启"
+      ]
+    },
+    "4677:skill:28810:0": {
+      "scope": "single",
+      "singleBehavior": "仅星赐转物攻、仅星哲转特攻，双方均有或均无保持属性；攻击属性等于自身，按180-5*(31-iv)计算威力，运行时每方独立且不改原始资料；按转化类别判先制、PP、封锁及伤害，附效保留。",
+      "userConfirmation": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/TALENT-POWER-USER-CONFIRMATION-2026-10-31.json"
+    },
+    "4677:skill:28836:0": {
+      "scope": "mixed",
+      "singleBehavior": "己方当前自身存活贡献100回复；满体、禁疗边界由真实状态测试验证。",
+      "deferredBehavior": "己方其它精灵每存活一只额外回复100，每阵亡一只附加100固定伤害。",
+      "trigger": "使用技能时统计己方其它队伍成员存活与阵亡数",
+      "futureMechanisms": [
+        "己方队伍存活及阵亡计数",
+        "基于队伍人数的回复与固伤"
+      ]
+    }
+  }
+}

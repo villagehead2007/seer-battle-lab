@@ -1,0 +1,1 @@
+const fs=require('fs');let t=fs.readFileSync('tests/deployed-4679.test.cjs','utf8').split("test('4679原魂")[0];for(const [a,b]of [['4679','4680'],['37522','37525'],['37520','37523'],['28812','28814'],['28813','28815'],['37521','37524']])t=t.replaceAll(a,b);fs.writeFileSync('tests/deployed-4680.test.cjs',t);

@@ -1,0 +1,17 @@
+*** Begin Patch
+*** Update File: C:/Users/villa/Desktop/seer-battle-lab/automation-validate.cjs
+@@
+ function runNpmTest(failures) {
++  const startedAt = new Date().toISOString();
++  const npmLog = path.join(root, 'research', `validator-${id}-npm-${startedAt.replace(/[:.]/g, '-')}.log`);
++  const options = { cwd:root, encoding:'utf8', timeout:3*60*60*1000, maxBuffer:8*1024*1024, windowsHide:true };
+   const result = process.platform === 'win32'
+-    ? cp.spawnSync('cmd.exe', ['/d','/s','/c','npm test'], { cwd:root,encoding:'utf8',timeout:15*60*1000 })
+-    : cp.spawnSync('npm', ['test'], { cwd: root, encoding: 'utf8', timeout: 15 * 60 * 1000 });
++    ? cp.spawnSync('cmd.exe', ['/d','/s','/c','npm test'], options)
++    : cp.spawnSync('npm', ['test'], options);
++  fs.writeFileSync(npmLog, `${result.stdout ?? ''}\n${result.stderr ?? ''}`, { flag:'wx' });
++  fs.writeFileSync(npmLog.replace(/\.log$/, '-result.json'), JSON.stringify({ startedAt, completedAt:new Date().toISOString(), exitCode:result.status, signal:result.signal, error:result.error?.message ?? null, log:path.relative(root,npmLog), executedInsideValidator:true }, null, 2)+'\n', { flag:'wx' });
++  console.log(`validator npm test log: ${path.relative(root,npmLog)}`);
+   if (result.error) failures.push(`tests: npm test 无法启动：${result.error.message}`);
+*** End Patch

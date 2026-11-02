@@ -1,0 +1,5 @@
+'use strict';const fs=require('fs');
+let file='tests/deployed-4258-executor-copy.test.cjs',s=fs.readFileSync(file,'utf8');s=s.replace('H.op(b,28,[100],920040)','H.op(b,10,[100],920040)').replace('withSoul(3896,1959,{criticals:true})','withSoul(3631,920,{criticals:true})');fs.writeFileSync(file,s);
+file='tests/deployed-4258-executor-payloads.test.cjs';s=fs.readFileSync(file,'utf8');s=s.replace("assert.ok(E.SOULS.registry[2139].unimplemented.some(x=>x.includes('097')));assert.ok(E.SOULS.registry[2139].unimplemented.some(x=>x.includes('098')));","assert.equal(s.fighters[0].stats.maxHp,9040);assert.equal(s.fighters[0].hp,9000);assert.ok(E.SOULS.registry[2139].unimplemented.some(x=>x.includes('逐来源')));");fs.writeFileSync(file,s);
+file='tests/deployed-4258-fifth-branches.test.cjs';s=fs.readFileSync(file,'utf8');s=s.replace('assert.ok(Math.abs(damage(a)-damage(normal)*ratio)<=4);',"assert.equal(damage(a),579);assert.equal(damage(normal),spe===500?166:417);");fs.writeFileSync(file,s);
+console.log('corrected fixtures: status10 applies paralysis; 920 supplies pure critical immunity; exact final damage includes newly confirmed +40 attack panel and integer rounding');

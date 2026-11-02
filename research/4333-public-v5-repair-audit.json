@@ -1,0 +1,70 @@
+{
+  "at": "2026-10-22T18:35:48.352Z",
+  "rule": "Q-N20-4333-003",
+  "changes": [
+    {
+      "file": "tests/helpers/assert-597-nominal-after-kill.cjs",
+      "backup": "research/4333-pre-v5-repair-assert-597-nominal-after-kill.cjs.txt",
+      "reason": "597免疫/溢出只隔离红伤改0威力，保留粉伤免疫理论回复断言；新增真实攻击免疫不触发技能载荷，基础击败后回复及禁疗断言保留"
+    },
+    {
+      "file": "tests/deployed-3983-partial.test.cjs",
+      "backup": "research/4333-pre-v5-repair-deployed-3983-partial.test.cjs.txt",
+      "reason": "2368明确MISS/免伤扣次数保持；公共003阻止随后技能石化，不将计次授权扩成MISS载荷授权"
+    },
+    {
+      "file": "tests/deployed-4125-partial.test.cjs",
+      "backup": "research/4333-pre-v5-repair-deployed-4125-partial.test.cjs.txt",
+      "reason": "2396 afterUse仍是技能效果，003取消MISS成长，保留正常逐次封顶和全局增伤"
+    },
+    {
+      "file": "tests/deployed-4182-answers.test.cjs",
+      "backup": "research/4333-pre-v5-repair-deployed-4182-answers.test.cjs.txt",
+      "reason": "441原精确确认仅该招计数/首次10%/不需连续；没有MISS例外，003取消MISS计数，保留正常命中成长"
+    },
+    {
+      "file": "tests/deployed-4474-independent.test.cjs",
+      "backup": "research/4333-pre-v5-repair-deployed-4474-independent.test.cjs.txt",
+      "reason": "960持续载荷无精确MISS授权，003取消MISS异常；原1129成功失败概率断言保留"
+    }
+  ],
+  "renames": [
+    {
+      "file": "tests/deployed-3983-partial.test.cjs",
+      "old": "3983确认2368按对应防御面板较小值替换，敌我能力等级不改替换值，MISS消费且石化",
+      "current": "3983确认2368按对应防御面板较小值替换，敌我能力等级不改替换值，MISS消费但不附石化"
+    },
+    {
+      "file": "tests/deployed-4125-partial.test.cjs",
+      "old": "4125觉醒2396每次使用后全局攻击提升30至120、当次不提前加成、MISS仍计使用而控制不计",
+      "current": "4125觉醒2396有效使用后全局攻击提升30至120、当次不提前加成、MISS与控制不成长"
+    },
+    {
+      "file": "tests/deployed-4182-answers.test.cjs",
+      "old": "4182 441控制未用不计数、MISS算使用但不强制暴击，三枚命中效果失效不成长",
+      "current": "4182 441控制与MISS不成长，三枚命中效果失效不成长"
+    },
+    {
+      "file": "tests/deployed-4474-independent.test.cjs",
+      "old": "4474 1129概率增伤真实成功/失败两态并且正级25至50范围扩大，960已经生效后攻击MISS仍是使用并施焚烬",
+      "current": "4474 1129概率增伤真实成功/失败两态并且正级25至50范围扩大，960已生效后攻击MISS不施焚烬"
+    }
+  ],
+  "reviewReferencesUpdated": 24,
+  "codeRepair": "849手动随机吸强加randomStealRound!==r，保留注册处理器每回合仅一次原断言",
+  "failures": "research/4333-public-v5-regression-failures.json",
+  "additionalFixtureCorrection": {
+    "file": "tests/deployed-4474-independent.test.cjs",
+    "reason": "1927旧攻击必失夹具保留攻击必中，实际上未MISS；关闭fixture必中后保留真实MISS零伤与不回血断言，960旧名无MISS执行更正为实际覆盖；两原名均留历史",
+    "renames": [
+      [
+        "4474 1927固定理论吸取300、低于半600与半体边界，免固定仍回600、技能禁疗0、使用含MISS而控制未用不触及持续4回",
+        "4474 1927固定理论吸取300、低于半600与半体边界，免固定仍回600、技能禁疗0、真实MISS和控制不追加及持续4回"
+      ],
+      [
+        "4474 960仅有正级使用后焚烬三回，当前自身强化后可触发，免异常不绕过，属性与攻击MISS使用均触控制未用不触",
+        "4474 960仅有正级使用后焚烬三回，当前自身强化后可触发，免异常不绕过且属性使用可触发"
+      ]
+    ]
+  }
+}

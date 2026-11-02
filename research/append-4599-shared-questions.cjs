@@ -1,0 +1,9 @@
+'use strict';const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto'),raw=JSON.parse(fs.readFileSync('research/4599-source-check.json'));
+const groups=[
+{id:'Q-N50-4511-002',skills:[28607,28608,37083,28582],effects:[143,521,1164,1056,712],text:'真实反转、反弱/消强和3回合攻击特攻为0，与免弱、禁强化、防清强的交互；普通状态、持续回合已独立完成，未以原代码行为当答案。'},
+{id:'Q-N50-4511-006',skills:[37089,28583,37087],effects:[933,191,1926,2006],text:'必暴击、异常反弹、无视免攻重授剩余次数及整招无效次数混源消费，真实可重复施加；首次授予和普通消费已验证。1805相等层奖励一次免异重复/混源亦关联。'},
+{id:'Q-N50-4521-001',skills:[],effects:[],text:'魂印1805命起在敌攻击流程内先令敌睡眠后，当前已使用的攻击是否取消；真实异常和层数已验证，取消时点保留公共疑问。'},
+{id:'Q-N50-4586-006',skills:[28584],effects:[2107],text:'轮回系200点附伤实际通道沿公共问题；旧电系/圣灵系特定确认不扩大。自身加魂、严格比较与明确通道载荷的真实免攻/克制/减免独立完成。'},
+{id:'Q-N50-4589-004',skills:[37089,37088],effects:[933,2108],text:'本体未KO已授933/2108奖励，随后1805睡眠失败追加百分比伤害晚杀时，奖励归属沿公共问题。4项真实完整交互已测，未知晚杀明确保护。原4599-001文字和回答原样保留；这里澄清933/2108魂印晚杀归属专门合并此公共问题，1805自身未击败奖励窗口仍由4599-001收集。'}];
+let body='';for(const g of groups){const keys=[...g.skills.map(id=>'skill/'+id),...g.effects.map(id=>'skill_effect_type/'+id),'soulmark/1805'],records=keys.map(key=>{const r=raw.records.find(r=>r.url.endsWith('/'+key));assert.ok(r,key);return{url:r.url,loadedAt:r.loadedAt,hash:r.data.hash,rawDataSha256:crypto.createHash('sha256').update(JSON.stringify(r.data)).digest('hex'),raw:r.data};});body+='\n\n### 关联公共问题 '+g.id+' · 4599新增实例\n\n'+g.text+'\n\n完整原文、原始参数、URL与hash：\n\n```json\n'+JSON.stringify(records,null,2)+'\n```\n\n已查4599-source-check、source-supplement及既有冻结确认；资料未补齐上述缺口，沿原公共问题收集。用户新填回答不读取落实。\n';}
+const p='research/BATCH-4509-NEXT50-QUESTIONS.md',before=fs.readFileSync(p);fs.appendFileSync(p,body);assert.ok(fs.readFileSync(p).subarray(0,before.length).equals(before));console.log('4599 shared associations appended; prior answer bytes retained');

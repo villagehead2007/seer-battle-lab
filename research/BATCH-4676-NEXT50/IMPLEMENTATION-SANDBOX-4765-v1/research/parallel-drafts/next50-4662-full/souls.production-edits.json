@@ -1,0 +1,50 @@
+[
+  {
+    "file": "dist/souls.js",
+    "label": "soul1866 incoming actual segment critical payload",
+    "old": "E.SOULS.run('attackDamageTaken',{...context(t,a,m),defeatedByAttack,dealt,hpLoss:dealt,settledDamage,attackImmune:hitImmune,",
+    "replacement": "E.SOULS.run('attackDamageTaken',{...context(t,a,m),defeatedByAttack,dealt,hpLoss:dealt,settledDamage,crit,attackImmune:hitImmune,"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "soul1866 source-owned red cancellation before damage immunity threshold observations",
+    "old": "let total=crit?gear.mitigate(t,raw,'critical',{bypass:rage||damageReductionIgnore>=1}):raw;",
+    "replacement": "let total=crit?gear.mitigate(t,raw,'critical',{bypass:rage||damageReductionIgnore>=1}):raw;if(typedBase===null&&effectContext.cancelAttackDamage1866)total=0;"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "soul1866 zero red does not fabricate attack immunity and suppresses minimum restoration",
+    "old": "if(warImmunity||skillInCooldown(a,m))remaining=(hitImmune=true,minimumSuppressed=true,0);",
+    "replacement": "if(typedBase===null&&effectContext.cancelAttackDamage1866){remaining=0;minimumSuppressed=true;}if(warImmunity||skillInCooldown(a,m))remaining=(hitImmune=true,minimumSuppressed=true,0);"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "soul1866 capture actual final ordinary attack power once per actual use before canceled red",
+    "old": "if(a.soulId===1809&&typedBase===null){",
+    "replacement": "if(a.soulId===1866&&typedBase===null){const use=a.soulState.skillUses?.[m.id],memo=a.soulState.actualPower1866;if(!memo||memo.round!==r||memo.move!==m.id||memo.use!==use)a.soulState.actualPower1866={round:r,move:m.id,use,powers:[]};a.soulState.actualPower1866.powers.push(power);}if(a.soulId===1809&&typedBase===null){"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "4662 source skill seam 5",
+    "old": "damageLedgerIndex4658:()=>s.damageEvents?.length??0,",
+    "replacement": "damageLedgerIndex4658:()=>s.damageEvents?.length??0,fixedResult4662(f,n,label){const start=(s.damageEvents??[]).length,hpLoss=withDamageOrigin('skill',()=>inflict(a,actualFighter(f),n,label,'fixed'));const e=(s.damageEvents??[]).slice(start).find(e=>e.sourceSide===a.side&&e.targetSide===actualFighter(f).side&&e.type==='fixed');return {hpLoss,settledDamage:e?.settledDamage??0};},"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "4662 source skill seam 6",
+    "old": "if(a.soulState.bionic1203Pending4658)E.WIKI.effectsEngine.registry[1203].finishBionic4658",
+    "replacement": "if(a.soulState.snow1256Pending4662)E.WIKI.effectsEngine.registry[1256].finishSnow4662(skillContext(a,t,m),(s.damageEvents??[]).slice(a.soulState.snow1256Pending4662.start).filter(e=>e.sourceSide===a.side&&e.targetSide===t.side&&e.type!=='direct').reduce((n,e)=>n+e.settledDamage,0));if(a.soulState.bionic1203Pending4658)E.WIKI.effectsEngine.registry[1203].finishBionic4658"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "4662 source skill seam 7",
+    "old": "if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'仿生用招低体回复'))",
+    "replacement": "if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'雷瀑用招低体回复'))E.WIKI.effectsEngine.registry[717].useSnow4662(skillContext(a,t,m));if(used[a.side]&&m.kind!=='item'&&a.hp>0&&on(a,'仿生用招低体回复'))"
+  },
+  {
+    "file": "dist/souls.js",
+    "label": "4662 source skill seam 8",
+    "old": "if(!bypass&&on(t,'reflect')&&t.effects.reflect.pelos191",
+    "replacement": "if(!bypass&&on(t,'reflect')&&t.effects.reflect.snow1914662&&(t.counts.immune>0||on(t,'免异常')||E.SOULS.trait(t,'ailmentImmune')||t.soulState.immunity1757Charges?.length||t.soulState.oracle2059Charges?.length))throw Error('Q-N50-4511-006：4662反弹与其他免异来源消费待确认');if(!bypass&&on(t,'reflect')&&t.effects.reflect.pelos191"
+  }
+]

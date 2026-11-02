@@ -1,0 +1,5 @@
+const fs=require('fs'),path=require('path'),root=path.resolve(__dirname,'../../../dist'),s=fs.readFileSync(path.join(root,'souls.js'),'utf8'),edits=[];
+function edit(old,replacement){if(s.split(old).length!==2)throw Error('1778 patch anchor absent/nonunique '+old.slice(0,100));edits.push({old,replacement});}
+edit("if(t.soulState.mortarionNullify1751>0&&t.counts.attackNullify>t.soulState.mortarionNullify1751)","if(t.soulState.jiegeNullify1778>0&&(t.counts.attackNullify>t.soulState.jiegeNullify1778||t.counts.attackReflect>0||t.counts.nextAttackShieldConversion>0))throw Error('Q-N50-4511-006：1778免攻与其他来源/反弹/转换消费归属待确认');if(t.soulState.mortarionNullify1751>0&&t.counts.attackNullify>t.soulState.mortarionNullify1751)");
+edit("if(t.soulState.mortarionNullify1751>0&&--t.soulState.mortarionNullify1751===0)","if(t.soulState.jiegeNullify1778>0&&--t.soulState.jiegeNullify1778===0)delete t.soulState.jiegeNullify1778;if(t.soulState.mortarionNullify1751>0&&--t.soulState.mortarionNullify1751===0)");
+fs.writeFileSync(path.join(__dirname,'souls.production-edits.json'),JSON.stringify(edits,null,2));

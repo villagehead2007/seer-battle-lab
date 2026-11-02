@@ -1,0 +1,10 @@
+'use strict';const fs=require('fs'),file='dist/souls.js';let t=fs.readFileSync(file,'utf8');
+function replace(a,b){if(!t.includes(a))throw Error('missing anchor '+a.slice(0,70));t=t.replace(a,b);}
+replace('    function damageImmune(f,type){','    function copiedImmune(f,type,amount=0,m=null,crit=false,consume=false){return E.SOULS.copiedDamageImmune({...context(f,fs[1-f.side],m),type,amount,crit,consume});}\n    function damageImmune(f,type){if(copiedImmune(f,type))return true;');
+replace("      const incoming={...context(f,origin??fs[1-f.side]),amount:n*","      if(!bypass&&n>0&&copiedImmune(f,type,n,null,false,true)){if(resolution)resolution.immune=true;emit(`${name(f)} 执行者复制免疫抵挡${source}。`);return 0;}\n      const incoming={...context(f,origin??fs[1-f.side]),amount:n*");
+replace("return (!rage&&war1770ThisUse(a,t,m))||probability", "return copiedImmune(t,'attack',amount,m,crit)||(!rage&&war1770ThisUse(a,t,m))||probability");
+replace("      if(minimumAfterReductions>0&&!minimumSuppressed)remaining=Math.max(remaining,minimumAfterReductions);","      if(!rage&&!tearsPierce&&!effectContext.ignoreImmunity&&remaining>0&&copiedImmune(t,'attack',remaining,m,crit,true))remaining=(minimumSuppressed=true,0);\n      if(minimumAfterReductions>0&&!minimumSuppressed)remaining=Math.max(remaining,minimumAfterReductions);");
+replace('round:r,skillPhase,currentActorSide,','round:r,soulSource:f=>s.wikiSnapshots?.[f.side]?.souls?.find(x=>x.id===f.soulId),skillPhase,currentActorSide,');
+replace('for(const k of eligible)delete f.effects[k];','for(const k of eligible){const effect=f.effects[k];delete f.effects[k];E.SOULS.run(\'timedEffectEnded\',{...context(f,fs[1-f.side]),effect,key:k,reason:\'clear\'});}');
+replace('delete f.effects[k];emit(`${name(f)} ${effectLabel(k,e)}到期。`);','delete f.effects[k];E.SOULS.run(\'timedEffectEnded\',{...context(f,fs[1-f.side]),effect:e,key:k,reason:\'expiry\'});emit(`${name(f)} ${effectLabel(k,e)}到期。`);');
+fs.writeFileSync(file,t);console.log('wired actual damage, preview and clear/expiry');

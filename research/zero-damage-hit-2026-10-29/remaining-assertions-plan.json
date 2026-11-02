@@ -1,0 +1,126 @@
+{
+  "status": "applied-awaiting-targeted-and-full-regression",
+  "confirmation": "research/zero-damage-hit-2026-10-29/confirmation.json",
+  "plan": [
+    {
+      "file": "tests/deployed-3576-state.test.cjs",
+      "scope": "3576 吸取1263",
+      "before": "assert.deepEqual(hp(turn(shield)),[1000,9000]);",
+      "after": "assert.deepEqual(hp(turn(shield)),[4000,9000]);",
+      "reason": "命中0伤仍执行低体三分一吸取，目标免伤但理论回复3000"
+    },
+    {
+      "file": "tests/deployed-3576-state.test.cjs",
+      "scope": "3576 低体1137",
+      "before": "assert.deepEqual(hp(turn(immune)),[1000,9000]);",
+      "after": "assert.deepEqual(hp(turn(immune)),[4000,9000]);",
+      "reason": "低半体力触发吸取，免伤不降低理论回复"
+    },
+    {
+      "file": "tests/deployed-3613-mechanisms.test.cjs",
+      "scope": "3613 后手939",
+      "before": "assert.deepEqual(hp(turn(im)),[1000,9000]);",
+      "after": "assert.deepEqual(hp(turn(im)),[4000,9000]);",
+      "reason": "后手已命中仍执行三分一吸取并理论回复"
+    },
+    {
+      "file": "tests/deployed-3623-new.test.cjs",
+      "scope": "3623 2202光多",
+      "before": "assert.equal(turn(im).fighters[0].hp,1000);",
+      "after": "assert.equal(turn(im).fighters[0].hp,kind==='light'?1000:4000);",
+      "reason": "暗系多或相等满足吸取条件，光系多仅必暴保持无回复"
+    },
+    {
+      "file": "tests/deployed-3626-effects.test.cjs",
+      "scope": "3626 963自身正",
+      "before": "assert.equal(turn(w).fighters[0].stages.atk,-6);",
+      "after": "assert.equal(turn(w).fighters[0].stages.atk,0);",
+      "reason": "免伤挡固定伤害但不挡命中清自身负等级"
+    },
+    {
+      "file": "tests/deployed-3667-partial.test.cjs",
+      "scope": "3667 1362先手固定吸取",
+      "before": "assert.equal(turn(immune).fighters[0].hp,1000);",
+      "after": "assert.equal(turn(immune).fighters[0].hp,1300);",
+      "reason": "先手固定吸取300命中后理论回复，免伤不取消"
+    },
+    {
+      "file": "tests/deployed-3763-soul.test.cjs",
+      "scope": "3763 原魂印首回合",
+      "before": "if(soul===1816)assert.equal(n.fighters[1].ailments['害怕'],undefined);",
+      "after": "if(soul===1816)assert.ok(n.fighters[1].ailments['害怕']);",
+      "reason": "1816首回合免疫并反弹异常：转伤后命中害怕仍施加并被反弹，1043只有免疫不反弹"
+    },
+    {
+      "file": "tests/deployed-3983-partial.test.cjs",
+      "scope": "3983确认2368多段",
+      "before": "assert.equal(o.fighters[1].ailments['石化'],undefined);",
+      "after": "assert.ok(o.fighters[1].ailments['石化']);",
+      "reason": "2368原文未造成伤害则石化；已命中免伤0仍执行条件附效，次数消费保持原断言"
+    },
+    {
+      "file": "tests/deployed-4318-answers.test.cjs",
+      "scope": "4318 Q085整招完整",
+      "before": "assert.equal(sum(turn(s),'fixed'),0);",
+      "after": "assert.equal(sum(turn(s),'fixed'),200);",
+      "reason": "1522命中零红伤仍执行基础200固定附伤，未超过红伤阈值"
+    },
+    {
+      "file": "tests/deployed-4354.test.cjs",
+      "scope": "4354真实2354无异常",
+      "before": "mode==='blocked'||mode==='wholeImmune'?1000:",
+      "after": "mode==='blocked'?1000:",
+      "reason": "2354免伤仍执行理论回复250，实际伤害仍由独立免伤拦截"
+    },
+    {
+      "file": "tests/deployed-4442.test.cjs",
+      "scope": "4442 819 skill payload gating",
+      "before": "mode==='shield'?1072:1000",
+      "after": "['shield','immune'].includes(mode)?1072:1000",
+      "reason": "819命中免攻仍执行回复72，其他未命中封锁分支保留"
+    },
+    {
+      "file": "tests/deployed-4445.test.cjs",
+      "scope": "4445 1144理论回复",
+      "before": "assert.equal(o.fighters[0].hp,1000,mode);assert.equal((o.damageEvents??[]).filter(e=>e.type==='fixed'&&e.sourceSide===0).length,0,mode);",
+      "after": "const fixed=(o.damageEvents??[]).filter(e=>e.type==='fixed'&&e.sourceSide===0);if(mode==='attackimmune'){assert.equal(fixed.length,1,mode);assert.ok(fixed[0].settledDamage>=60&&fixed[0].settledDamage<=360,mode);assert.equal(o.fighters[0].hp,1000+fixed[0].settledDamage,mode);}else{assert.equal(o.fighters[0].hp,1000,mode);assert.equal(fixed.length,0,mode);}",
+      "reason": "1144攻击免疫只挡红伤，附伤及等量回复继续；保留MISS及封锁门槛"
+    },
+    {
+      "file": "tests/deployed-4450-independent.test.cjs",
+      "scope": "4450 57三分一",
+      "before": "assert.equal(sum(turn(q,920031,920040),'fixed',0),0);",
+      "after": "assert.equal(sum(turn(q,920031,920040),'fixed',0),100);",
+      "reason": "525攻击免疫不取消命中固定附伤100"
+    },
+    {
+      "file": "tests/deployed-4454.test.cjs",
+      "scope": "4454 real1111",
+      "before": "assert.equal(!!o.fighters[0].effects['攻击伤害倍数'],mode==='shield',mode);",
+      "after": "assert.equal(!!o.fighters[0].effects['攻击伤害倍数'],['shield','immune'].includes(mode),mode);",
+      "reason": "1111命中后异常被免疫仍触发异常失败补偿，攻击免疫不是整招无效"
+    },
+    {
+      "file": "tests/deployed-4499.test.cjs",
+      "scope": "4499 1971 notKO",
+      "before": "assert.equal(o.fighters[0].soulState.liberation1971,undefined,mode);assert.equal(o.fighters[1].effects['先制效果失效'],undefined,mode);if(mode!=='expired')assert.ok(has(o,0,'回体Ⅰ'));",
+      "after": "if(mode==='immune'){assert.equal(o.fighters[0].soulState.liberation1971.removed,2);assert.equal(o.fighters[1].effects['先制效果失效'].start,2);assert.equal(o.fighters[1].effects['先制效果失效'].end,2);assert.equal(has(o,0,'回体Ⅰ'),null);assert.equal(has(o,1,'失体Ⅰ'),null);}else{assert.equal(o.fighters[0].soulState.liberation1971,undefined,mode);assert.equal(o.fighters[1].effects['先制效果失效'],undefined,mode);if(mode!=='expired')assert.ok(has(o,0,'回体Ⅰ'));}",
+      "reason": "1971命中零红伤满足未击败，真实解放双方标记并授予下轮先制失效"
+    },
+    {
+      "file": "tests/deployed-4501.test.cjs",
+      "scope": "4501 1845 genuineuse",
+      "before": "['immune','seal','control','shield'].includes(mode)",
+      "after": "['seal','control','shield'].includes(mode)",
+      "reason": "1845命中免攻仍按用招时缺失999的一半向下取整附499固伤"
+    },
+    {
+      "file": "tests/deployed-4501.test.cjs",
+      "scope": "4501 1845 genuineuse",
+      "before": "['immune','seal','control'].includes(mode)",
+      "after": "['seal','control'].includes(mode)",
+      "reason": "1845免攻仍产生一次附伤事件，非命中封锁不产生"
+    }
+  ],
+  "appliedAt": "2026-10-29T03:13:56.974Z"
+}

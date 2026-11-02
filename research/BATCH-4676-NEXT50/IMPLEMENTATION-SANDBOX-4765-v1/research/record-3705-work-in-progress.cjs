@@ -1,0 +1,23 @@
+const fs=require('fs'),crypto=require('crypto'),P=require('../completion-policy.cjs');const snapshot=require('./3705-reviewed-snapshot.json'),live=require('./3705-source-check-curl.json');
+const conflicts=[{kind:'source-text-conflict',soulId:984,hash:'406c6ed4',raw:'百分比伤害',formatted:'固定伤害',wiki:{revision:319521,text:'固定伤害'},status:'awaiting-user-confirmation',question:'伤害类型；本次抽中必暴的作用时点与是否留存'}, {kind:'source-parameter-conflict',skillId:28496,skillHash:'2891ec82',effectId:1118,instanceIndex:2,effectHash:'724c5255',metadataArgsNum:4,instanceArgs:[3,100,0,1,1],wikiRevisions:[306878,370533],status:'awaiting-user-confirmation',question:'第五项1的含义；不得使用2496限定例外或擅自删参',oldLocalArgs:[3,100,8,1]}];
+const report={at:new Date().toISOString(),species:3705,status:'partial-awaiting-source-confirmation',sourceChecks:['research/3705-source-check-curl.json','research/3705-wiki-source-check.json','research/3705-wiki-skill-conflict.json'],conflicts,localDataErrors:[{skillId:36943,effectId:1425,oldLocalArgs:[300,1],sourceArgs:[300,1,1,1,1,2,1],decision:'上游一致，旧本地截断错误；新research快照恢复全部参数，公共执行按六能力处理，不改验证规则'}],independentImplemented:[1372,1376,1425,1539],soul1781:'千灭雷翼五条件与下回合先制已测试；完整魂印和全部技能审核尚未完成',tests:{specific:{file:'tests/deployed-3705-independent.test.cjs',passed:7,exitCode:0},public:{log:'research/3705-independent-public-tests.log',passed:74,exitCode:0},npm:{log:'research/3705-work-in-progress-npm.log',status:'running'},gate:{log:'research/3705-blocked-gate.log',exitCode:1,result:'rejected(single-stage)',reasons:['旧正式本地1425截断参数不再满足真实七参数入口','尚无完整deployed-3705.test.cjs，逐项审核未完成']}},fixtureCorrection:'初轮专项3通过2失败：36943真实为必中，MISS夹具只设攻击必失不能令必中失效。将对应测试副本设为非必中后保留原MISS不触发断言；未修改真实技能。',inventory:P.inventory(snapshot).map(x=>({...x,auditStatus:'needs-full-review'})),deferredCandidates:[{soulId:1781,quote:'己方每阵亡1只精灵，千灭雷翼的前1条无视触发条件',scope:'team-death-count',status:'待完整逐项审核后通过既有生成器登记'},{moveId:36944,effectId:1305,args:[80,80],scope:'team-survival-death-count'},{moveId:36944,effectId:1934,args:[20],scope:'bench-death-count'},{moveId:36944,effectId:2017,args:[],scope:'next-opponent-entry'}],laterSpeciesStarted:[],formalCompletedCount:26};
+fs.writeFileSync('research/3705-work-in-progress-audit.json',JSON.stringify(report,null,2)+'\n');const mf='research/3705-source-manifest.json',manifest=JSON.parse(fs.readFileSync(mf));manifest.conflicts=conflicts;fs.writeFileSync(mf,JSON.stringify(manifest,null,2)+'\n');
+const baseline=require('./batch-3705-baseline.json'),changed=Object.entries(baseline.hashes).filter(([f,h])=>crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')!==h).map(([f])=>f);fs.writeFileSync('research/3705-protected-check.json',JSON.stringify({at:new Date().toISOString(),changed,automationEnabled:require('../AUTO-PROGRESS.json').automationEnabled},null,2)+'\n');console.log({inventory:report.inventory.length,protectedChanges:changed});
+const file='PROGRESS.md',old=fs.readFileSync(file,'utf8');const note=`## 2026-10-15 下一批五只已确认，3705部分实现、等待来源确认
+
+正式队列顺序：3705 → 3711 → 3716 → 3724 → 3737；完成本批后的下一起点3739。仅开始3705守护者·艾里克，后四只未开始，自动化仍false，未使用Git。批次基线research/batch-3705-baseline.json。
+
+3578归属纠正：当前seer_id.txt没有3578。它已有42项审核（2026-10-13）及research/duration-correction/gate-3578.log通过历史；这些是有效的本地单精灵认证依据，但不构成当前正式队列归属。上一节“旧最新汇总漏列”表述不准确：27是包含队列外3578的复验覆盖数，正式队列完成累计仍为26。未新增正式完成数、未改队列/游标、不重复开发3578。
+
+3705资料：本轮SeerAPI pet/soul/advance/关键技能及效果元数据和BWIKI核对已保存，来源清单research/3705-source-manifest.json。26招、47次效果实例、2魂印，共75项待完整审核；research/3705-reviewed-snapshot.json保留七参数1425、五参数1118、原魂印984/觉醒1781和pet_advance/8原始种族值、技能版本。正式旧本地文件未覆盖，不能视为部署完成。
+
+待用户确认：984原文写速度50%百分比伤害，API格式化和BWIKI修订319521写固定伤害；抽中必暴的本次/后续时点也需确认。28496极羽赫鸣第三条1118：API元数据args_num=4，真实实例[3,100,0,1,1]，BWIKI确认词条但没有解释第五参数；旧本地[3,100,8,1]改写不可信，不沿用，不扩展2496例外、不删原参数。完整证据和问题research/3705-work-in-progress-audit.json。初次沙箱curl连接失败已保留，随后允许联网的客户端查询成功，未称资料不存在。
+
+独立工作：dist/range-effects.js修正1372/1376持续用攻反应、1539麻痹及未触发清回合、1425真实七参数能力强化；dist/souls.js接入复用公共异常/实际吸取/技能回复的持续用攻处理；dist/range-souls.js补1781千灭雷翼回合开始锁定五条件和下回合先制。没有新增随机系统，默认异常仍为独立2/3。1425/1372/1376/1539在当前本地库只出现于未认证3705，不改已完成精灵资料或验证规则。
+
+测试：tests/deployed-3705-independent.test.cjs专项7/7，公共合并74/74，退出0（research/3705-independent-public-tests.log）。最新完整npm回归结果见下方后续记录。验证器research/3705-blocked-gate.log实际退出1、rejected(single-stage)：旧正式文件1425被截断且完整专项/审核未完成。不能标记single-stage完成。初轮MISS测试夹具误用真实必中技能，已将测试副本设为非必中以测试MISS分支，原不触发断言保留。
+
+多精灵候选：1781队伍阵亡数量无视条件；36944效果1305队伍存活/死亡数量、1934场下死亡数量、2017下一对手出场。自身千灭雷翼不延期；当前候选在审核报告中，待完整审核通过既有生成流程更新统一待办，未手改生成文件。受保护基线核对无变化，research/3705-protected-check.json。
+
+`;
+fs.writeFileSync(file,old.replace('# PROGRESS.md\n','# PROGRESS.md\n\n'+note).replace('# PROGRESS.md\r\n','# PROGRESS.md\r\n\r\n'+note));

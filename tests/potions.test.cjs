@@ -1,0 +1,32 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const E=require('../dist/engine.js'),store=require('../local-species.cjs');
+const p=s=>s.fighters.map(f=>f.hp);
+test('经典对局：双方药剂独立、先于技能、血药最多恢复250且可重复使用',()=>{
+  let s=E.createBattle({species:['bubuhua','bubuhua'],criticals:false});
+  s.fighters[0].hp=60;
+  s=E.resolveTurn(s,['potion:hp','heal']);
+  assert.equal(s.turns[0].first,0);
+  assert.equal(s.fighters[0].hp,310);
+  assert.equal(s.fighters[1].pp.heal,4);
+  s=E.resolveTurn(s,['potion:hp','potion:pp']);
+  assert.equal(s.fighters[0].hp,331);
+  assert.equal(s.fighters[1].pp.heal,5);
+  assert.ok(s.turns[1].events.some(e=>e.text.includes('回复 21 点体力')));
+  for(let i=0;i<7;i++)s=E.resolveTurn(s,['potion:hp','potion:pp']);
+  assert.equal(s.finished,false);
+  assert.deepEqual(p(s),[331,331]);
+});
+test('本地精灵对局：PP药回满全部招式、零PP仍可选药，受控可用药',()=>{
+  const source=store.species(3141),opponent=store.species(3142);
+  let s=E.createBattle({wikiSnapshots:[source,opponent],criticals:false});
+  for(const f of s.fighters)for(const id of f.moves)f.pp[id]=0;
+  s.fighters[0].ailments['麻痹']=3;
+  assert.ok(E.availableMoves(s.fighters[0]).includes('potion:pp'));
+  s=E.resolveTurn(s,['potion:pp','potion:hp']);
+  assert.equal(s.turns[0].first,1);
+  assert.ok(s.fighters[0].moves.every(id=>s.fighters[0].pp[id]===E.MOVES[id].pp));
+  assert.ok(s.turns[0].events.some(e=>e.text.includes('PP 药')));
+  assert.ok(s.turns[0].events.every(e=>!e.text.includes('受控制无法行动')));
+  assert.equal(s.fighters[1].hp,s.fighters[1].stats.maxHp);
+  assert.ok(s.turns[0].events.some(e=>e.text.includes('回复 0 点体力')));
+});

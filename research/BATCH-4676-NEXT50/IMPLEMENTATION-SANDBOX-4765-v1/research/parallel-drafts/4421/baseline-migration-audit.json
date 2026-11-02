@@ -1,0 +1,42 @@
+{
+  "createdAt": "2026-10-23T10:30:18.825Z",
+  "sourceFile": "tests/deployed-4421-independent.test.cjs",
+  "sourceSha256": "fbdc6eb260395de6c138359975907805220c0b6446ffa94b373cc745ebde3db8",
+  "audit": [
+    {
+      "label": "gall-duration",
+      "originalLine": 7,
+      "reason": "Q002 explicit end-of-gain-round timing; retain no-clear/actual-control/no-gain assertions",
+      "before": "test('4421龙胆当回合起2回合免异常且不清已有异常，控制或MISS不获胆并真实过期',()=>{let s=turn(make({moveId:20928,index:null},{soul:1638}));assert.equal(s.fighters[0].soulState.dragonGall,1);assert.equal(s.fighters[0].soulState.dragonGallImmuneUntil,2);s.fighters[0].ailments['疲惫']=3;H.op(s,12,[100],920042);s=turn(s,920031,920042);assert.equal(s.fighters[0].ailments['烧伤'],undefined);assert.equal(s.fighters[0].soulState.dragonGall,1);s=turn(s,920031,920042);assert.ok(s.fighters[0].ailments['烧伤']);assert.equal(s.fighters[0].soulState.dragonGall,1);const q=make({moveId:11531,index:null},{soul:1638,hit:false});q.fighters[0].ailments['失明']=3;q.rng=0;assert.equal(turn(q).fighters[0].soulState.dragonGall??0,0);});",
+      "after": "test('4421龙胆获得回合结束授后2回合免异常且不清已有异常，控制或MISS不获胆并真实过期',()=>{let s=turn(make({moveId:20928,index:null},{soul:1638}));assert.equal(s.fighters[0].soulState.dragonGall,1);assert.equal(s.fighters[0].soulState.dragonGallImmuneUntil,3);s.fighters[0].ailments['疲惫']=4;H.op(s,12,[100],920042);s=turn(s,920031,920042);assert.equal(s.fighters[0].ailments['烧伤'],undefined);assert.equal(s.fighters[0].soulState.dragonGall,1);s=turn(s,920031,920042);assert.equal(s.fighters[0].ailments['烧伤'],undefined);s=turn(s,920031,920042);assert.ok(s.fighters[0].ailments['烧伤']);assert.equal(s.fighters[0].soulState.dragonGall,1);const q=make({moveId:11531,index:null},{soul:1638,hit:false});q.fighters[0].ailments['失明']=3;q.rng=0;assert.equal(turn(q).fighters[0].soulState.dragonGall??0,0);});"
+    },
+    {
+      "label": "529-new-source",
+      "originalLine": 14,
+      "reason": "Q001 yes to exact proposal; keep original positive integer and shields assertions",
+      "before": "test('4421 847护盾和1342护罩分别200真实承伤，529只实现正整数比例共识并拒绝小数/不足1新边界',()=>{for(const [id,k]of [[847,'shield'],[1342,'barrier']])assert.equal(turn(make(pick(id)[0])).fighters[0].suitState[k],200);const s=make(pick(529)[0],{hp:2250,targetHp:6000,bStats:{maxHp:8000}}),o=turn(s);assert.deepEqual(o.fighters.map(x=>x.hp),[6750,2000]);const q=make(pick(529)[0],{hp:1,targetHp:1,bStats:{maxHp:8000}}),before=structuredClone(q);assert.throws(()=>turn(q),/Q-N20-4421-001/);assert.deepEqual(q,before);});",
+      "after": "test('4421 847护盾和1342护罩分别200真实承伤，529已答非整数与至少1新边界',()=>{for(const [id,k]of [[847,'shield'],[1342,'barrier']])assert.equal(turn(make(pick(id)[0])).fighters[0].suitState[k],200);const s=make(pick(529)[0],{hp:2250,targetHp:6000,bStats:{maxHp:8000}}),o=turn(s);assert.deepEqual(o.fighters.map(x=>x.hp),[6750,2000]);const q=make(pick(529)[0],{hp:1,targetHp:1,bStats:{maxHp:8000}}),before=structuredClone(q);assert.deepEqual(turn(q).fighters.map(f=>f.hp),[2,1]);assert.deepEqual(q,before);});"
+    },
+    {
+      "label": "1858-two-positive",
+      "originalLine": 17,
+      "reason": "Q002 chooses categories; preserve717/776 and lower-bound assertions",
+      "before": "test('4421 717用招吸取低半只回复翻倍、776次2攻击翻倍而1858状态歧义只共同确定0/1或龙胆保底',()=>{for(const hp of [4499,4500]){const s=make(pick(717)[0],{hp}),o=turn(s);assert.equal(sum(o,'percent'),3000);assert.equal(o.fighters[0].hp,Math.min(9000,hp+(hp<4500?6000:3000)));}const s=turn(make(pick(776)[0])),b=structuredClone(s);delete b.fighters[0].effects.doubleDamage;assert.ok(sum(turn(s,920030))>sum(turn(b,920030))*1.9);for(const n of [0,1,7]){const q=make(pick(1858)[0]);q.fighters[0].soulState.dragonGall=n;assert.equal(sum(turn(q),'fixed'),n*50);}const q=make(pick(1858)[0]);q.fighters[0].stages.atk=1;q.fighters[0].stages.def=1;assert.throws(()=>turn(q),/Q-N20-4421-002/);});",
+      "after": "test('4421 717用招吸取低半只回复翻倍、776次2攻击翻倍而1858按三类别和龙胆下限',()=>{for(const hp of [4499,4500]){const s=make(pick(717)[0],{hp}),o=turn(s);assert.equal(sum(o,'percent'),3000);assert.equal(o.fighters[0].hp,Math.min(9000,hp+(hp<4500?6000:3000)));}const s=turn(make(pick(776)[0])),b=structuredClone(s);delete b.fighters[0].effects.doubleDamage;assert.ok(sum(turn(s,920030))>sum(turn(b,920030))*1.9);for(const n of [0,1,7]){const q=make(pick(1858)[0]);q.fighters[0].soulState.dragonGall=n;assert.equal(sum(turn(q),'fixed'),n*50);}const q=make(pick(1858)[0]);q.fighters[0].stages.atk=1;q.fighters[0].stages.def=1;assert.equal(sum(turn(q),'fixed'),50);});"
+    },
+    {
+      "label": "1858-mixed-and-compile",
+      "originalLine": 27,
+      "reason": "Q002 resolves explicit old pending; retained original150/350 assertions",
+      "before": "test('4421 1858三类各一种共同150及龙胆7支配350，未知分歧保留原输入与正式拒绝',()=>{const s=make(pick(1858)[0]);s.fighters[0].stages.atk=1;s.fighters[0].stages.def=-1;s.fighters[0].ailments['烧伤']=3;assert.equal(sum(turn(s),'fixed'),150);s.fighters[0].stages.spa=1;s.fighters[0].soulState.dragonGall=7;assert.equal(sum(turn(s),'fixed'),350);s.fighters[0].soulState.dragonGall=0;const before=structuredClone(s);assert.throws(()=>turn(s),/Q-N20-4421-002/);assert.deepEqual(s,before);const m=H.source.moves.find(x=>x.id===28088);assert.match(H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m).issue,/1858.*未完成/);});",
+      "after": "test('4421 1858三类各一种共同150及龙胆7支配350，已答多项仍三类且保留原输入',()=>{const s=make(pick(1858)[0]);s.fighters[0].stages.atk=1;s.fighters[0].stages.def=-1;s.fighters[0].ailments['烧伤']=3;assert.equal(sum(turn(s),'fixed'),150);s.fighters[0].stages.spa=1;s.fighters[0].soulState.dragonGall=7;assert.equal(sum(turn(s),'fixed'),350);s.fighters[0].soulState.dragonGall=0;const before=structuredClone(s);assert.equal(sum(turn(s),'fixed'),150);assert.deepEqual(s,before);const m=H.source.moves.find(x=>x.id===28088);assert.equal(H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m).issue,'');});"
+    },
+    {
+      "label": "gall-ui-duration",
+      "originalLine": 30,
+      "reason": "Q002 end-of-round grant has two remaining rounds when next turn begins; retain entry1 and oldstar3 assertions",
+      "before": "test('4421龙胆0/7与两回合免异公开状态展示，首回免异显示1不误显示星皇3，原星皇名称和3仍保留',()=>{const s=make({moveId:20928,index:null},{soul:1638});let labels=H.E.describeEffects(s.fighters[0],1);assert.ok(labels.includes('龙胆 · 0/7枚'));assert.ok(labels.some(x=>x.includes('登场守护')&&x.includes('余 1 回合')));assert.equal(labels.some(x=>x.includes('星皇之佑')),false);let o=turn(s);labels=H.E.describeEffects(o.fighters[0],2);assert.ok(labels.some(x=>x.includes('龙胆免疫异常')&&x.includes('余 1 回合')));for(let i=0;i<6;i++)o=turn(o);assert.ok(H.E.describeEffects(o.fighters[0],o.round).some(x=>x.includes('7/7枚')&&x.includes('不耗PP')));const original=H.E.createBattle();assert.ok(H.E.describeEffects(original.fighters[0],1).some(x=>x.includes('星皇之佑')&&x.includes('余 3 回合')));});",
+      "after": "test('4421龙胆0/7与两回合免异公开状态展示，首回免异显示1不误显示星皇3，原星皇名称和3仍保留',()=>{const s=make({moveId:20928,index:null},{soul:1638});let labels=H.E.describeEffects(s.fighters[0],1);assert.ok(labels.includes('龙胆 · 0/7枚'));assert.ok(labels.some(x=>x.includes('登场守护')&&x.includes('余 1 回合')));assert.equal(labels.some(x=>x.includes('星皇之佑')),false);let o=turn(s);labels=H.E.describeEffects(o.fighters[0],2);assert.ok(labels.some(x=>x.includes('龙胆免疫异常')&&x.includes('余 2 回合')));for(let i=0;i<6;i++)o=turn(o);assert.ok(H.E.describeEffects(o.fighters[0],o.round).some(x=>x.includes('7/7枚')&&x.includes('不耗PP')));const original=H.E.createBattle();assert.ok(H.E.describeEffects(original.fighters[0],1).some(x=>x.includes('星皇之佑')&&x.includes('余 3 回合')));});"
+    }
+  ]
+}

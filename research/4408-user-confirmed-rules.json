@@ -1,0 +1,719 @@
+{
+  "at": "2026-10-23T10:43:16.791Z",
+  "sourceVersion": {
+    "path": "research/BATCH-4329-NEXT20-QUESTIONS.md",
+    "archive": "research/BATCH-4329-NEXT20-QUESTIONS.2026-10-23T05-00-02-346Z.answered-4359-followup.archive.md",
+    "sha256": "1bb16e6d42087cdb2438a43b2cb510261e0ab4a253dded5d2ceec8a5aa7d493f",
+    "bytes": 878944,
+    "at": "2026-10-23T05:00:02.346Z"
+  },
+  "answers": [
+    {
+      "questionId": "Q-N20-4373-004",
+      "heading": "### Q-N20-4373-004 — 833当回合未击败的判定与吸取时序",
+      "line": 7109,
+      "originalSection": "### Q-N20-4373-004 — 833当回合未击败的判定与吸取时序\n\n833[3]/d68ad255；35896实例3。完整原文“当回合若未击败对手则吸取对手最大体力的1/3”。已有公共处理在命中后目标仍活时立即吸取；这不是来源给出的时点答案。普通无其他晚期伤害场景和本次攻击已击败不吸取已测试；若之后中毒/魂印等当回合击败，立即吸取与回合战斗结束判定会不同。API/Wiki只重复原文；未因现有代码而默认为已答。\n\n已完成：其他独立分支、真实状态测试和逐项审核；被阻塞：本条未知行为及正常版本接入/认证。已查本地来源/历史确认、API与research/4373-wiki-source.json、4373-extra-source.json。来源请求失败记录真实保留，不无限重试。\n\n明确问题：833是本次攻击后目标未死就立即吸取，还是当回合战斗结束时确认未击败才吸取？若后续同回合异常或魂印击败是否仍吸取？\n\n我的回答：战斗阶段结束时确认未击败才吸取，833效果在使对方致死时残留一点体力，记下来！；不吸取\n\n",
+      "answerLines": [
+        "我的回答：战斗阶段结束时确认未击败才吸取，833效果在使对方致死时残留一点体力，记下来！；不吸取\n\n"
+      ]
+    },
+    {
+      "questionId": "Q-N20-4408-001",
+      "heading": "### Q-N20-4408-001 — 1626绝对体力互换超出目的上限",
+      "line": 10803,
+      "originalSection": "### Q-N20-4408-001 — 1626绝对体力互换超出目的上限\n\n魂印1626/d2f7eed，eid2012/105dc84e，参数[100,1,50,1]。完整原文“战斗阶段结束时与对手互换当前双方的体力值，之后若自身体力高于对手则100%令对手沉默且解除自身异常状态，若自身体力低于对手则下回合自身攻击技能先制+1且受到的伤害减少50%（包括固定伤害、百分比伤害）（boss无效）”。API与Wiki魂印320163同文；原文/Wiki写全伤含固粉，格式化仅列固粉、未明确排除攻击，保持两份原文并依完整描述实现已核公共全伤减免。\n\n普通范围的绝对值对调及之后高/低/等分支已完整实现测试：直接调整数值，无伤害/回复表述，因此交换本身不生成伤害/体力损失事件、不受禁疗或护盾拦；之后沉默仍正常产生自身独立持续伤害。未拿旧705代码当作来源。已查Wiki效果705/revision343165只写“与对手互换当前体力”、独立体力交换页缺失；现有4147-035明确百分比对调与取整/保留1，但不是本绝对值交换的超上限授权，不机械扩大；3683旧2496确认仅概率/触发不补上限规则。\n\n缺口只在交换数值超过接收方最大HP时：3000最大HP、当前1000，与9000最大HP、当前5000交换。字面原数值交换可令前者得到5000；按各自上限限制则最多3000，会改变之后高低比较与沉默/先制减伤分支。API、Wiki没有给出该边界，不自行编造扩最大HP机制。当前遇此边界明确拒绝且原输入保留，不按旧代码猜截断；其余全部独立分支与全第五链已完成。\n\n明确问题：1626交换当前HP后若接收值超过该精灵自己的maxHP，应按原数值保留，还是截断到接收方maxHP？\n\n我的回答：截断\n",
+      "answerLines": [
+        "我的回答：截断\n"
+      ]
+    },
+    {
+      "questionId": "Q-N20-4442-001",
+      "heading": "### Q-N20-4442-001 — 1658使用后400阈值与100%追加的“造成伤害”统计范围",
+      "line": 12803,
+      "originalSection": "### Q-N20-4442-001 — 1658使用后400阈值与100%追加的“造成伤害”统计范围\n\n完整原文及API原始/格式化/hash/8参数附后，Wiki魂印320195同文，没有统计例子。“自身使用攻击技能会连击2次，若使用后造成的伤害不高于400则之后每次使用连击次数+2（上限为8次），若使用后造成的伤害高于400则重置自身连击次数并附加造成伤害100%的百分比伤害”。虽限定使用攻击技能，阈值和追加基数这两处未写“攻击伤害”，不默认为只计攻击，也不把本招附加固/粉/真及被动反弹全部合并作来源答案。\n\n已完成：本次仅有攻击伤害时，全部完整结算合计与100%追加；只有低伤时两统计口径均≤400，下一次连击共识+2；两口径均>400时共同重置2，若基数有差且对手仍活则未知追加只保存pendingMartinaExtra。若攻击360+固定100时，单攻击为360≤400而混合460>400，连击增长/重置和伤害都会不同，仅保存pendingMartinaCounter，不猜。攻击402+固定100时，两解释都重置，但百分比追加可能402或502。HP损失与完整伤害按既有确认分离，问题不涉及是否按剩余HP截断。\n\n明确问题：1658的400判断与100%追加基数分别统计本招攻击段、哪些附加伤害、是否含本体被动或反弹；请明确伤害类型／来源范围，两处是否一致？\n\n我的回答：400是整回合红伤；1658的100%追加基数是当回合造成红伤，2085、1522、2132、1569统计或放大红伤、使用技能后计算，1522不计入正在计算的自身固定附伤；2132和1569仍分别加成本次／下次指定攻击的红伤，在伤害结算时使用倍率，而“使用技能后计算”仅指伤害统计\n",
+      "answerLines": [
+        "我的回答：400是整回合红伤；1658的100%追加基数是当回合造成红伤，2085、1522、2132、1569统计或放大红伤、使用技能后计算，1522不计入正在计算的自身固定附伤；2132和1569仍分别加成本次／下次指定攻击的红伤，在伤害结算时使用倍率，而“使用技能后计算”仅指伤害统计\n"
+      ]
+    }
+  ],
+  "sourceType": "用户确认，保留SeerAPI原始hash和表述",
+  "draft": "research/parallel-drafts/4408/HANDOFF.md",
+  "primaryIntegration": "research/integrate-4408-draft.cjs：逐个唯一锚点审查后合入，未覆盖其他当前公共改动",
+  "scopeAuthorization": "research/FIXED50-SCOPED-PREAUTHORIZATION.2026-10-23.txt",
+  "multiTargetExclusion": {
+    "confirmation": "research/MULTI-TARGET-USER-SCOPE.json",
+    "answer": "所有多目标攻击当做无词条处理，我们的对战没有多目标攻击",
+    "skill": 11531,
+    "hash": "ba1b7599",
+    "sourceTargetCount": 4,
+    "retainedOriginalDeferredFeature": true
+  },
+  "instanceBindings": {
+    "4408:soul:1626": {
+      "sourceDigest": "1f9437a3c90707aa6bdbfc9b3f9948c66e44af54addc081c6973f82dc55ad460",
+      "rawDigest": "97c249d7ef9789801a94c64c483a067f107e65050b0c3fbdfdbe614aaa49b003",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:move:10157": {
+      "sourceDigest": "f3f38365453e2428e9d2620549fcb84576cf51d25a07ec8942b0b3a744acc55d",
+      "rawDigest": "62cfdb2fbd179768b89dfb85fe74e0e3cfb65df76c3cea8eec4a8b55ee1c5562",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:move:20491": {
+      "sourceDigest": "6089f270f7d3332e5de7c3264f095d7625e2552010cd6e4faf3c3996e6a06fc0",
+      "rawDigest": "84556134dd2d725171a5e0448e474134d134c5b8419ba4649399f5a16e5ab91a",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:20491:0": {
+      "sourceDigest": "9010f1966db6a5267837127dbbda2c22095127fcfa84a1d99efac0b04d6e39ff",
+      "rawDigest": "04432b1f777853108087d77379bb80dbec5dfd2c5e8e5be69d45f792824723b4",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:3f3a5a35"
+      }
+    },
+    "4408:move:10629": {
+      "sourceDigest": "75d7f7cdbd91099e0ee6c259e04973ad51e80a49352de624b7cdbf0adb7e5fa6",
+      "rawDigest": "5bcc872008046ed3379766cc1944c05ed0ea02380fc56447afbf847c2ca336a5",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:move:21153": {
+      "sourceDigest": "9ddd7a7be8ef4ad7eccd9c53c3ccc3f55962de37a041509e46a713028be5d61a",
+      "rawDigest": "270a4e53410a54bd4bd6ad82d6a6dddc30aa41536e5edfe48aa7e8960e716daa",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:21153:0": {
+      "sourceDigest": "830ad2b34b485a87b1a9319de55e4d13742dba62b9e2c9a73a03bdaf85bb3bdd",
+      "rawDigest": "a355d2da76e0a07d56a90a2fe811bbaeb89ce1fea839bb6101ebaa3e0142ebe4",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:f00228e2"
+      }
+    },
+    "4408:skill:21153:1": {
+      "sourceDigest": "6bb37d5b731ca8aa020fe02058f9e967e07851c26f8d290fa16158a8d53e7990",
+      "rawDigest": "2f7f1c7275aa4b11d4f3f54d7e2c22cce3f5a7e1c9a3c8e26d519fb574abfd4f",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:f00228e2"
+      }
+    },
+    "4408:move:11531": {
+      "sourceDigest": "bd876aad051a43a4969a347889d1fb2da0ba35486e0602c133eb8d82db26f94b",
+      "rawDigest": "371e12e25f8193c743ba82985050678d72717391bbf76bf8f50dbf152e424390",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:move:36055": {
+      "sourceDigest": "4a9fa81b193f41240ec5cd0c8b86e5215789663585b1d46410588a7fa5448e2f",
+      "rawDigest": "bc27a702f3addb8cc258848153149edf7cb30da1b9c0cd45d87f9195f5858777",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:36055:0": {
+      "sourceDigest": "c416561476cab128c579a2664510d5915e215a9fa016b8315b82376f2af1097d",
+      "rawDigest": "b4fbd47ec5998ecafc01a84ee6bf712d0af405956a40713f4881a797ac1a1ab2",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:e4d428b6"
+      }
+    },
+    "4408:skill:36055:1": {
+      "sourceDigest": "3b3644865a08071a9c6ec9d94e8cdc922f32ab7dde8d401305263a612bfc6146",
+      "rawDigest": "b2dbd4d810a407d6a92032656c32be5821d2384cf696aba5e55a4a451f7c586b",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:e4d428b6"
+      }
+    },
+    "4408:move:22020": {
+      "sourceDigest": "6694693de5340b60e56a14a85749a6c7945be0327732de3ab375eb0191ace96a",
+      "rawDigest": "c0213770d1e4cbd2ee81eb45b9311943511ca3461b6a5d328b4c69fccbf415e5",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:22020:0": {
+      "sourceDigest": "bba2037d11b136e757b9349d6c1224717c0d18e74de6a08c16129691e3c918cb",
+      "rawDigest": "a8366ad6341ad79e5cb192cf31bec3785cdcd34cb3cf32ed5d228b1efd303791",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:a48eb5c2"
+      }
+    },
+    "4408:move:11025": {
+      "sourceDigest": "d186afaecfc51f140cb5cc73c95afc0386fdf7f96dc91730ca0386309cdc4cf1",
+      "rawDigest": "b7c4323a342736c04dbd9a0d06d27a768e956aadd56c61e27f91a5e6dfb2ed4c",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:11025:0": {
+      "sourceDigest": "0f34c5aea392518ef611748485d8471ea77b28bf1ba772fc25c2872595c2c829",
+      "rawDigest": "8c6bc248fd71f2bd671cf0b23bd5a71bcffb8c82a0b3cdb7400eea7a50f29010",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:6a821725"
+      }
+    },
+    "4408:move:22052": {
+      "sourceDigest": "90378254a01019c02977a05ac1db4ee1af1764791d7fa3e7fdd88483d04835a1",
+      "rawDigest": "9003be7b80d6a3374d26426a7d88cb750cb121f974f2d198d90f2a0d57dad512",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:22052:0": {
+      "sourceDigest": "987eb4bca24371648315bc18132acd13fa24e35c3d30caf7e23c5143cb83a33f",
+      "rawDigest": "70fff84b921247d2fe88a2467c1563638d9ff9935ebbe9bcb9aed396f44f662a",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:54ef3c5b"
+      }
+    },
+    "4408:skill:22052:1": {
+      "sourceDigest": "4a9caef68c46aff1404d33e73361b536184c94dbec103482b576a298fdeb2a1d",
+      "rawDigest": "107fd1d8fbc616f7747a0010a4702209664d599f1bb383a275b6c54a3882ee2c",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:54ef3c5b"
+      }
+    },
+    "4408:skill:22052:2": {
+      "sourceDigest": "4861875b560f5e2681955e9c6f2d6ef7e1260b143431846dbe9e2746b8cae653",
+      "rawDigest": "d6368f8151dc17a7144b7cbcdc48e9aed22cde270a56f2721138d9d9cc7d6ac3",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:54ef3c5b"
+      }
+    },
+    "4408:skill:22052:3": {
+      "sourceDigest": "13a5da2657d04c92a444cb298399ab77e880fdbcd068031f8051e6119e0453bc",
+      "rawDigest": "f0f6bba3ce5cd5694c5059b9d535f2a6bfcb7a6fbd5c39ac272dc2dac0160790",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:54ef3c5b"
+      }
+    },
+    "4408:move:33057": {
+      "sourceDigest": "a29faa41aa4981294cad386433ae3b401c7ccc5ff45eaf40e4056ba018061e77",
+      "rawDigest": "826feb7e66e43935e248a246ace6a404d1cc2a066f2911fd6173461883a05708",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:33057:0": {
+      "sourceDigest": "eeb3a168410f87ffb4d5472f9af81fb2c8aa9ac4048d132e9491452310e177b3",
+      "rawDigest": "1da483d2fd853b327040f865a82007bd180691d2f8e8c2d53f3b4e170e32fd7d",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:7cf7b188"
+      }
+    },
+    "4408:move:26617": {
+      "sourceDigest": "f92801356e4852da682d52164cde9d8058cfdd8b7d6019b8cd410074d301ea56",
+      "rawDigest": "c6fb60b67c4db4ae2e9d380ab4369b95a64274a27256c704ea9388f8df8185b0",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:26617:0": {
+      "sourceDigest": "00a28773bdafbbecbbec044cb22dfed48f472c409e5ef4fbc28dfafccafc3ff7",
+      "rawDigest": "7a83242fb8c64ed56d8e4c58530c5a3feaa053fe1d9e3fa08ad90b78af0278cf",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:f8053aa3"
+      }
+    },
+    "4408:skill:26617:1": {
+      "sourceDigest": "ca8e166a3b9f7c800768b68d84986a24185579705f2d162bf99f74e03e5b22c9",
+      "rawDigest": "e67c54d6e87a3628e13096aa2fd186e9fe63a9e23356e8c13cec3377cbd5daa1",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:f8053aa3"
+      }
+    },
+    "4408:move:36056": {
+      "sourceDigest": "8fac52a6090514ad38eb3e1b54591e936656085db407af1bccd36eefe13dab26",
+      "rawDigest": "376352822611de4f9fcbddd90d8de6d86487b94fbbde3fbf01ba951c04593036",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:36056:0": {
+      "sourceDigest": "d352ac358e895e4877caa1b33ab8fe23bbbd78bfc294af77cea65b3722c02083",
+      "rawDigest": "d26e36f85a961d5999c8356faa26be8d8a5029ca207dd593ba4a387607a4de5a",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:a7d79dbb"
+      }
+    },
+    "4408:skill:36056:1": {
+      "sourceDigest": "13ebe25017882bb888fbfca905b4806a8c71946f750f1138b745f20a55a52bcc",
+      "rawDigest": "8438817c843222bb001ab7e52e1b5294b78f1e2aa355ed91a2a49179e09af6e8",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:a7d79dbb"
+      }
+    },
+    "4408:move:28051": {
+      "sourceDigest": "c2ef397cdc9f06f729dfed7097929945f02a0b358aa4111d0b1c77bb32912962",
+      "rawDigest": "8ac58df379594265a65e9297e712cdd255cdeeb0c9b6283f2a760b9a8f162a60",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:28051:0": {
+      "sourceDigest": "17bf557bd997ded15dbb179444ef7823ab92823fa54337014d6012435eb7c31b",
+      "rawDigest": "0b048952109e5eefa97486902a9f77b92fb086ed8ee670d40bdcb1b6d3f43ada",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c231824e"
+      }
+    },
+    "4408:skill:28051:1": {
+      "sourceDigest": "8d1b500341d533e129515fa52433e5ecd083e338ddcf7c182e6b63ffa560da2d",
+      "rawDigest": "94a2ed9bf93c1ec3f69b9ecd5793242971bfb905b51f32dbded288c31eb55b61",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c231824e"
+      }
+    },
+    "4408:skill:28051:2": {
+      "sourceDigest": "bb865a8ed88f3264a3d9c64a9d8f3f080c3a3ee1e9c4e233b9e07c136c5260d2",
+      "rawDigest": "98b7b4c3a7761f7aa4d9f4f9610d0220a948fb86e97936f0ae3fcfa7d82ca85b",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c231824e"
+      }
+    },
+    "4408:skill:28051:3": {
+      "sourceDigest": "303011d5e0992506fe607f326be12d5c16be5ce45a4ae01d9adc404b1bdf9883",
+      "rawDigest": "8ab5e6263c15ad97ada520f610126cd75efc7713158b01552c07a2758f57cc52",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c231824e"
+      }
+    },
+    "4408:move:36057": {
+      "sourceDigest": "84bc7d59ad6022f6ecf0e96ca8c2e28b410e8b943ad3feda6f123835180ef204",
+      "rawDigest": "0615a00765a45010953ff7dd14c233cde81aba70d4d81e4c26395425c95249cc",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:36057:0": {
+      "sourceDigest": "d0d525c2b1d90d56146165bd02f7d3aa607bde9a29cd6a8dbd38cadac20159bf",
+      "rawDigest": "45ba48d0fd149ff80578bb90b0d6c05cf18e8147b56093d0c3256b97768d7a70",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:67de80ab"
+      }
+    },
+    "4408:move:28052": {
+      "sourceDigest": "d0339e4c678f36d9dd666d5abf27411f006e866b33787e077dfb75548422c170",
+      "rawDigest": "b0cd96ac565c0e1dc249f2a6bc99a774d9c57e7a38068ee66fd29f564ed5cfc1",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:28052:0": {
+      "sourceDigest": "623681bca1fd92118f3610331712a7a465adeacee65e417f7463401a0f2f7741",
+      "rawDigest": "4507028bbab01d8b98189365497a4eae3fac8e378032e92317df8f40e34ad933",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:537cc6a9"
+      }
+    },
+    "4408:skill:28052:1": {
+      "sourceDigest": "771d0cbdaf2183e363c031087cfd2482f572ed92bfa7b1417c934cc47fab1e66",
+      "rawDigest": "013ab187645ce064cb7dc32f296b216772c382f6bf9ed527c3b7109ce366eeba",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:537cc6a9"
+      }
+    },
+    "4408:skill:28052:2": {
+      "sourceDigest": "eb94657c07b5c2a2c8b1bc7278c34700d034080caf89445c9064112c732af6f1",
+      "rawDigest": "bdac5b75f3d227426080aa7c9662be1b9844aba0135475a68c442be25cb6c953",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:537cc6a9"
+      }
+    },
+    "4408:move:36058": {
+      "sourceDigest": "9e851486f5fe4e230377169ebfd072faa7fcf2621b3770e4d71ed338a45cfd89",
+      "rawDigest": "2a08d607be89ef1728cc1a69d1772ea2fae4a531b854e716da0a8fc00a7c3ca4",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:36058:0": {
+      "sourceDigest": "7cc42de3d2ce90a1c414e81e403796585cd94e3c7975a7d118fcbf7b289e4573",
+      "rawDigest": "ac0bf4436bcb5c063328831b0647da70fc94ea63e2b0d849fb3ea6306071505b",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:25851907"
+      }
+    },
+    "4408:skill:36058:1": {
+      "sourceDigest": "896a1b691c61168c11be929772c1dcd3c1b995486eaf7b4d9d452eb1010a8fca",
+      "rawDigest": "3ce45522e8c6e4ff5d9ff0ed5aa56b39123a3da7b66dfae6b2682ea25f7595c4",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:25851907"
+      }
+    },
+    "4408:move:36059": {
+      "sourceDigest": "ccad300de0c382d742bc4e38893426b2b2251697363227f094584a15b9bd3bf3",
+      "rawDigest": "41361629ca3e7841d7571c8133de524464f053552195e13532ced38ba68c422c",
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4408",
+        "revision": "a817afca",
+        "loadedAt": "2026-10-21T22:47:20.905Z",
+        "storage": "local",
+        "savedAt": "2026-10-23T10:43:16.827Z"
+      }
+    },
+    "4408:skill:36059:0": {
+      "sourceDigest": "a961f3401f392135bb5f1274ab389c099f74e812948b605f2a08d38d7d5838da",
+      "rawDigest": "46944a916f5ace3ac56abf1f6a2d3b2afe1ed4726594fdf7cb0469f8396001a9",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c3e9f2ad"
+      }
+    },
+    "4408:skill:36059:1": {
+      "sourceDigest": "6f77411798b27debdc15f897aed1ee722d4c73509344a44721a4cc1883b2d145",
+      "rawDigest": "ef978bc473e52ddf158e87c3bf4ee7858a2ec5c7da19ff770ee4a2f451e0aaec",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c3e9f2ad"
+      }
+    },
+    "4408:skill:36059:2": {
+      "sourceDigest": "23c27c065d1fe865a38dfdfc2baa2a2431d80e26c72a4b09eff7b47f72df19f7",
+      "rawDigest": "808f180b2563cccd0d19e391a2bce1da6b23cb67331cdb9bdf25fee56db2da79",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c3e9f2ad"
+      }
+    },
+    "4408:skill:36059:3": {
+      "sourceDigest": "6fcea8fc4d5509719f0ef475a7be149456935dd9b76d7769dcb89bea3571220a",
+      "rawDigest": "aade2212e580a46db620a02f777fb0070a0105d5f59f553615143a1dfaf53275",
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4408",
+          "revision": "a817afca",
+          "loadedAt": "2026-10-21T22:47:20.905Z",
+          "storage": "local",
+          "savedAt": "2026-10-23T10:43:16.827Z"
+        },
+        "skillRevision": "seerapi:c3e9f2ad"
+      }
+    }
+  }
+}

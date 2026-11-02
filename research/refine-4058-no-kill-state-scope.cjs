@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/souls.js';let s=fs.readFileSync(p,'utf8');s=s.replace('for(const f of fs){const pending=f.soulState.roundNoKillPP??[],t=fs[1-f.side];','for(const f of fs){if(!f.soulState.roundNoKillPP)continue;const pending=f.soulState.roundNoKillPP,t=fs[1-f.side];');fs.writeFileSync(p,s);

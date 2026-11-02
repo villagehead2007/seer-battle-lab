@@ -1,0 +1,1 @@
+const fs=require('fs'),p='dist/range-effects.js';let s=fs.readFileSync(p,'utf8');s=s.replace("c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'攻击伤害倍数'","c.ailment(c.t,p[1]===39?'神游':ailments[p[1]],c.a)))c.timed(c.a,'攻击伤害倍数'");fs.writeFileSync(p,s);

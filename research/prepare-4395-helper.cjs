@@ -1,0 +1,1 @@
+const fs=require('fs');let s=fs.readFileSync('tests/helpers/4394-battle.cjs','utf8').replaceAll('4394','4395').replace('unknown=[764]','unknown=[1391]').replaceAll('moveId:10250','moveId:10234');fs.writeFileSync('tests/helpers/4395-battle.cjs',s);

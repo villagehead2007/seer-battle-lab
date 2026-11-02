@@ -1,0 +1,3 @@
+'use strict';
+const fs=require('fs'),path=require('path'),Module=require('module'),old=Module.prototype._compile,range=path.resolve(__dirname,'../../../dist/range-souls.js'),souls=path.resolve(__dirname,'../../../dist/souls.js');
+Module.prototype._compile=function(code,file){if(path.resolve(file)===range){const at=code.lastIndexOf('\n});');if(at<0)throw Error('1847 closing anchor');code=code.slice(0,at)+'\nregistry[1847]=require('+JSON.stringify(path.join(__dirname,'soul1847.draft.cjs'))+');\n'+code.slice(at);}if(path.resolve(file)===souls)for(const p of require('./souls.production-edits.json')){if(code.split(p.old).length!==2)throw Error('1847 exact source seam '+p.label);code=code.replace(p.old,p.replacement);}return old.call(this,code,file);};

@@ -1,0 +1,9 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),base='research/next50-answer-takeover-2026-10-26T17-09-55-144Z/';function edit(file,changes){let s=fs.readFileSync(file,'utf8');fs.writeFileSync(base+'4663-before/'+file.split('/').pop(),s,{flag:'wx'});for(const[a,b]of changes){assert.ok(s.includes(a),a);s=s.replace(a,b);}fs.writeFileSync(file,s);}
+edit('tests/next50-4663-soul.test.cjs',[
+ ["assert.throws(()=>turn(structuredClone(s),20456,20456,{roll:.55}),/Q-N50-4663-001/);","const natural=structuredClone(s);turn(natural,20456,20456,{roll:.55});assert.equal(natural.fighters[0].soulState.tiger1867.rolls.at(-1).probability,.6);assert.ok(natural.fighters[1].ailments['焚烬']);"],
+ ["assert.throws(()=>turn(structuredClone(s)),/Q-N50-4663-002/);","const natural=structuredClone(s);turn(natural);assert.equal(natural.fighters[1].ailments['烧伤'],undefined);assert.equal(natural.fighters[0].soulState.resolvedPriority.value,0);"]]);
+edit('tests/next50-4663-skills.test.cjs',[
+ ["assert.throws(()=>turn(zero,x.moveId,10001),/Q-N50-4618-002/);","timer(zero,1,'免异常');turn(zero,x.moveId,10001);assert.equal(zero.fighters[0].hp,9000);assert.equal(zero.fighters[1].effects['免异常'],undefined);"],
+ ["assert.throws(()=>turn(multi,x.moveId,10646),/Q-A60-4075-012/);","timer(multi,1,'免异常');turn(multi,x.moveId,10646);assert.equal(multi.fighters[1].effects['免异常'],undefined);assert.equal(multi.damageEvents.filter(e=>e.type==='attack'&&e.targetSide===0).length>=2,true);"],
+ ["assert.throws(()=>turn(make(x)),/Q-N50-4625-011/);","const natural=make(x,{hp:1000});turn(natural);assert.equal(natural.fighters[0].hp,4000);assert.equal(natural.fighters[1].hp,6000);"],
+ ["assert.throws(()=>turn(s),/Q-N50-4665-001/);","turn(s);assert.equal(sum(s),0);assert.equal(s.fighters[0].suitState.shield,300);"]]);

@@ -1,0 +1,1 @@
+const fs=require('fs'),p='tests/deployed-3652-soul.test.cjs';let s=fs.readFileSync(p,'utf8');s=s.replace('neutral.fighters[0].soulId=null;','').replace('b.fighters[0].lastAttackDamage*2','b.fighters[0].lastAttackDamage*(b.fighters[0].effects.id984?2:1)').replaceAll('spa:9000','atk:9000');fs.writeFileSync(p,s);

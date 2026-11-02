@@ -1,0 +1,14 @@
+[
+  {
+    "file": "dist/status-rules.js",
+    "label": "optional post-admission/pre-application soul1860 transform",
+    "old": "durationFallback=null,randomSelection=false,merge='max-remaining',source=null,notify=()=>{}}={})",
+    "replacement": "durationFallback=null,randomSelection=false,merge='max-remaining',source=null,notify=()=>{},admissionTransform=null}={})"
+  },
+  {
+    "file": "dist/status-rules.js",
+    "label": "apply transformed final status without original ailment side effects",
+    "old": "    const remaining=active(f,k,r)?f.ailments[k]-r+1:0;\n    const appliedDuration=k==='衰弱'&&!randomSelection?3:merge==='max-remaining'?Math.max(remaining,n):n;\n    apply(f,k,r,appliedDuration);\n    f.statusState??={};f.statusState.sources??={};if(Number.isInteger(source?.side))f.statusState.sources[k]=source.side;\n    if(k==='狂信'&&f.statusState?.faithSourceSide===undefined&&Number.isInteger(source?.side)){f.statusState??={};f.statusState.faithSourceSide=source.side;}\n    const out=result('applied',{...details,appliedDuration,endRound:f.ailments[k],merge});notify(out);if(f.soulId===1844&&f.soulState?.starActive1844&&f.soulState.starRecord1844===k&&k!=='星赐'){const converted=convertExisting(f,k,'星赐',r,{source,durationOverride:3});if(converted){out.convertedTo='星赐';out.convertedDuration=3;(f.soulState.starConversions1844??=[]).push({round:r,from:k,to:'星赐',duration:3,originalAppliedDuration:appliedDuration});}}return out;",
+    "replacement": "    const conversion=typeof admissionTransform==='function'?admissionTransform(f,k,n,r):null;\n    if(conversion&&(!conversion.kind||!Number.isInteger(conversion.duration)||conversion.duration<1))throw Error('异常准入后转换载荷无效');\n    const appliedKind=conversion?.kind??k,requested=conversion?.duration??n;\n    const remaining=active(f,appliedKind,r)?f.ailments[appliedKind]-r+1:0;\n    const appliedDuration=appliedKind==='衰弱'&&!randomSelection?3:merge==='max-remaining'?Math.max(remaining,requested):requested;\n    if(conversion&&k!==appliedKind)clear(f,k);\n    apply(f,appliedKind,r,appliedDuration);\n    f.statusState??={};f.statusState.sources??={};if(Number.isInteger(source?.side))f.statusState.sources[appliedKind]=source.side;\n    if(appliedKind==='狂信'&&f.statusState?.faithSourceSide===undefined&&Number.isInteger(source?.side))f.statusState.faithSourceSide=source.side;\n    const out=result('applied',{...details,appliedDuration,endRound:f.ailments[appliedKind],merge,...(conversion?{convertedTo:appliedKind,convertedDuration:conversion.duration,originalStatus:k}:{} )});notify(out);if(f.soulId===1844&&f.soulState?.starActive1844&&f.soulState.starRecord1844===k&&k!=='星赐'){const converted=convertExisting(f,k,'星赐',r,{source,durationOverride:3});if(converted){out.convertedTo='星赐';out.convertedDuration=3;(f.soulState.starConversions1844??=[]).push({round:r,from:k,to:'星赐',duration:3,originalAppliedDuration:appliedDuration});}}return out;"
+  }
+]

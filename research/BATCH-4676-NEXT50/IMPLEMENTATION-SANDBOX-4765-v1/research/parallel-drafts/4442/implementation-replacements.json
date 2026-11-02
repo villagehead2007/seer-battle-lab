@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-23T10:46:03.910Z",
+  "patches": [
+    {
+      "file": "dist/range-souls.js",
+      "baseSHA256": "647099ef831207cc30d8dcb4065c03e51f355470f36f2d2531630a847687314a",
+      "needle": "afterUse(c){if(c.a.hp<=0||['status','item'].includes(c.m.kind))return;const st=c.a.soulState,attack=c.actionAttackDamage??0,all=c.actionSettledDamage??0;if(attack<=400&&all<=400){st.martinaHits=Math.min(8,st.martinaHits+2);return;}if(attack>400&&all>400){st.martinaHits=2;if(attack===all){if(c.t.hp>0)c.hurt(c.t,attack,'眠降高伤百分比追加','percent');}else if(c.t.hp>0)st.pendingMartinaExtra={round:c.round,attack,all,question:'Q-N20-4442-001'};return;}st.pendingMartinaCounter={round:c.round,attack,all,currentHits:st.martinaHits,question:'Q-N20-4442-001'};}",
+      "insert": "afterUse(c){if(c.a.hp<=0||['status','item'].includes(c.m.kind))return;const st=c.a.soulState,attack=c.outgoingSettledDamage('attack');if(attack<=400){st.martinaHits=Math.min(8,st.martinaHits+2);return;}st.martinaHits=2;if(c.t.hp>0)c.hurt(c.t,attack,'眠降高伤百分比追加','percent');}",
+      "why": "Q4442-001: whole-round outgoing settled red only; no pending mixed damage branches"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "72e513250dc64f8e6ab265df9a220412bd9eb0bf0bbb3903805283a481583467",
+      "needle": "const amount=Math.floor(panel(c,c.a,stats[p[0]])*p[1]/100),before=c.outgoingSettledDamage('percent');if(c.t.hp>0)c.hurt(c.t,amount,c.m.name+'面板百分比追加','percent');const settled=c.outgoingSettledDamage('percent')-before;if(settled===amount)c.heal(c.a,amount,c.m.name+'等量回复');else (c.a.soulState.pendingPanel819Heal??=[]).push({round:c.round,index:c.effectInstanceIndex,amount,settled,question:'Q-N20-4442-002'});",
+      "insert": "const amount=Math.floor(panel(c,c.a,stats[p[0]])*p[1]/100);if(c.t.hp>0)c.hurt(c.t,amount,c.m.name+'面板百分比追加','percent');c.heal(c.a,amount,c.m.name+'等量回复');",
+      "why": "Q4442-002: panel819 theory heal independent from percent damage immunity/shields"
+    },
+    {
+      "file": "dist/range-effects.js",
+      "baseSHA256": "72e513250dc64f8e6ab265df9a220412bd9eb0bf0bbb3903805283a481583467",
+      "needle": "registry[819]=Object.freeze({...registry[819],singleStagePending:'Q-N20-4442-002：普通足额结算的共同回复已实现，伤免/抵挡后理论或结算量回复口径待确认'});",
+      "insert": "",
+      "why": "remove answered 819 pending compilation guard"
+    }
+  ]
+}

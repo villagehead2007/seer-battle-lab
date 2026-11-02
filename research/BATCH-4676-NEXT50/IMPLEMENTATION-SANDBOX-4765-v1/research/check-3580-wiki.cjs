@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('node:fs'),{createClient}=require('../wiki-client.cjs');
+const client=createClient(async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});const text=await r.text();let body;try{body=JSON.parse(text);}catch{throw Error('HTTP '+r.status+' non-JSON: '+text.slice(0,120));}return {status:r.status,body,retryAfter:r.headers.get('retry-after')};});
+(async()=>{const url='https://wiki.biligame.com/seer/api.php?'+new URLSearchParams({action:'query',format:'json',prop:'revisions',rvprop:'ids|timestamp|content',rvslots:'main',titles:'对战机制'});const report={url,checkedAt:new Date().toISOString()};try{report.data=await client.request(url);}catch(e){report.error=e.message;report.cause=e.cause?.message;process.exitCode=1;}fs.writeFileSync('research/3580-wiki-mechanics-source.json',JSON.stringify(report,null,2)+'\n');console.log(report.error??'Source saved');})();

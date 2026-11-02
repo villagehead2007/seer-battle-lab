@@ -1,0 +1,9 @@
+    function scatterFatalMarks(s,f,count,source,effectId=null,emit=null){
+      if(!Number.isInteger(count)||count<0)throw Error('致命印记数量必须为非负整数');if(f.hp<=0)return 0;
+      const marks=f.soulState.fatalMarks??(f.soulState.fatalMarks={});let total=Object.values(marks).reduce((sum,n)=>sum+n,0),added=0;
+      while(added<count&&total<5){const pool=f.moves.filter(id=>(marks[id]??0)<3);if(!pool.length)break;
+        const id=pool[Math.floor(rng(s)*pool.length)],before=marks[id]??0;marks[id]=before+1;total++;added++;
+        s.fatalMarkEvents??=[];s.fatalMarkEvents.push({round:s.round,sourceSide:source?.side,targetSide:f.side,effectId,skillId:id,before,count:marks[id],total,candidates:pool.slice()});
+        emit?.((f.side===0?'A':'B')+' 方 '+(s.moveDefinitions??E.MOVES)[id].name+'获得1枚致命印记（技能'+marks[id]+'，当前精灵'+total+'）。');
+      }return added;
+    }

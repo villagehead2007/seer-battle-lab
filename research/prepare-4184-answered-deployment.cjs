@@ -1,0 +1,16 @@
+'use strict';const fs=require('fs'),assert=require('node:assert/strict'),p=require('../completion-policy.cjs'),store=require('../local-species.cjs');
+const snapshot=structuredClone(require('./4184-reviewed-snapshot.json'));for(const m of snapshot.moves)if([29019,34895].includes(m.id))m.limitations=[];
+const file='SINGLE-STAGE-REVIEWS.json',reviews=JSON.parse(fs.readFileSync(file)),cf='research/FIXED60-ANSWER-USER-CONFIRMATIONS.json',c=JSON.parse(fs.readFileSync(cf));fs.writeFileSync('research/4184-reviews-before-answers.json',JSON.stringify(Object.fromEntries(Object.entries(reviews.entries).filter(([k])=>k.startsWith('4184:'))),null,2)+'\n');
+const names=[...fs.readFileSync('tests/deployed-4184-answers.test.cjs','utf8').matchAll(/test\('([^']+)'/g)].map(x=>x[1]);
+for(const e of p.inventory(snapshot)){
+ const v=reviews.entries[e.key];assert.ok(v);v.reviewedAt=new Date().toISOString();for(const refs of Object.values(v.tests??{}))for(const ref of refs)ref.name=ref.name.replace('2229纯反转沿用未决公共038，不能猜测为已确认消强','2229纯反转按公共038解释一触发当前原地登场');
+ if(e.kind==='soul'||[1667,2229].includes(e.raw.instance?.id)||['4184:move:29019','4184:move:34895'].includes(e.key)){
+  for(const k of ['question','questions','pendingSingleBehavior'])delete v[k];v.reviewStatus='reviewed';v.rationale='043确认时空漩涡仅为束缚与真实主动切换限制统称，不新增领域；原版60%封顶/+1与强化40%/+2按明确用户说明分别真实实现；038解释一覆盖2229纯反转登场反制，真实伙伴自身强化不延期。';
+  if(v.deferredBehavior)v.deferredBehavior=v.deferredBehavior.replace('当前束缚已实现，时空漩涡自身领域语义仍待043','当前束缚已实现，043明确不新增、替换或刷新领域');
+  for(const b of ['success','failure','boundary','interaction']){v.tests[b]??=[];if(e.raw.instance?.id!==2229)v.tests[b].push(...names.map(name=>({file:'tests/deployed-4184-answers.test.cjs',name,assertion:'领域真实3回合到期、500盾罩、第五束缚及免疫、第五不刷新不替换领域、0PP携带资格随领域失效；不是只校验注册'})));else v.tests[b].push({file:'tests/deployed-4184-partial.test.cjs',name:'4184 2229纯反转按公共038解释一触发当前原地登场',assertion:'实际六项+2反转为-2并于当回合按敌当前500HP触发次元领域，删除机械领域，持续至回合4'});}
+  c.instanceBindings[e.key]={questionIds:[e.raw.instance?.id===2229||e.key==='4184:move:29019'?'Q-A60-4163-038':'Q-A60-4184-043'],sourceDigest:e.sourceDigest,source:e.source,raw:e.raw,status:'implemented-awaiting-gate'};
+ }
+}
+assert.deepEqual(store.issues(snapshot),[]);const saved=store.save(snapshot);assert.equal(saved.saved,true);for(const e of p.inventory(saved.snapshot))reviews.entries[e.key].sourceDigest=e.sourceDigest;fs.writeFileSync(file,JSON.stringify(reviews,null,2)+'\n');fs.writeFileSync(cf,JSON.stringify(c,null,2)+'\n');
+const pendingFile='data/species-pending/4184.json',pending=JSON.parse(fs.readFileSync(pendingFile));pending.historicalQuestionsBeforeAnswers??=pending.questions;pending.questions=[];pending.status='implemented-awaiting-verification';pending.snapshot=saved.snapshot;fs.writeFileSync(pendingFile,JSON.stringify(pending,null,2)+'\n');fs.writeFileSync('tests/deployed-4184.test.cjs',"'use strict';require('./deployed-4184-partial.test.cjs');require('./deployed-4184-answers.test.cjs');\n");
+console.log(JSON.stringify({id:4184,coverage:p.reviewCoverage(saved.snapshot,reviews),issues:store.issues(saved.snapshot),failures:p.validateCoverage(saved.snapshot,reviews,require('./build-multiplayer-todo.cjs').build([saved.snapshot],reviews),process.cwd(),false)}));

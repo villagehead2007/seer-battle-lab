@@ -1,0 +1,1 @@
+'use strict';const fs=require('node:fs'),assert=require('node:assert/strict'),p='dist/range-souls.js';let s=fs.readFileSync(p,'utf8');const old="partial:true,unimplemented:['Q-N50-4511-006：命运庇护与次数免异/反弹共存']";assert.ok(s.includes(old));fs.writeFileSync(p,s.replace(old,'partial:false,unimplemented:[]'));

@@ -1,0 +1,14 @@
+const fs=require('fs');let f='dist/souls.js',s=fs.readFileSync(f,'utf8');fs.copyFileSync(f,__dirname+'/4697-before-survival-order-souls.js',fs.constants.COPYFILE_EXCL);
+s=s.replace("const timed=(f,k,n,data,start=r)=>{set(f,k,n,start,effectLabel(k,data));Object.assign(f.effects[k],data);};","const nextSurvivalOrder=f=>(f.soulState.survivalGrantOrder=(f.soulState.survivalGrantOrder??0)+1);\n    const timed=(f,k,n,data,start=r)=>{set(f,k,n,start,effectLabel(k,data));Object.assign(f.effects[k],data);if(['致命保留','死亡时技能回复'].includes(k))f.effects[k].survivalOrder=nextSurvivalOrder(f);};\n    function rebirthFirst2243(f){const e=f.soulState.rebirth2243;if(!e?.armed)return false;const other=Math.max(on(f,'致命保留')?f.effects['致命保留'].survivalOrder??0:0,f.soulState.nextLethalFloor?f.soulState.nextLethalOrder??0:0,on(f,'死亡时技能回复')?f.effects['死亡时技能回复'].survivalOrder??0:0);return (e.order??0)>=other;}");
+s=s.replace('return {a,t,m,grantCharm1999:', 'return {a,t,m,nextSurvivalOrder,grantCharm1999:');
+s=s.replace('function preventLethal(f,n,damage=true){','function preventLethal(f,n,damage=true){if(damage&&rebirthFirst2243(f))return n;');
+s=s.replace("if(!bypass&&on(f,'致命保留')&&", "if(!bypass&&!rebirthFirst2243(f)&&on(f,'致命保留')&&");
+s=s.replace('if(!bypass&&f.soulState.nextLethalFloor&&','if(!bypass&&!rebirthFirst2243(f)&&f.soulState.nextLethalFloor&&');
+s=s.replace("&&on(t,'致命保留')&&t.hp>0&&settledDamage>=t.hp)","&&!rebirthFirst2243(t)&&on(t,'致命保留')&&t.hp>0&&settledDamage>=t.hp)");
+s=s.replace('&&t.soulState.nextLethalFloor&&t.hp>0&&settledDamage>=t.hp)','&&!rebirthFirst2243(t)&&t.soulState.nextLethalFloor&&t.hp>0&&settledDamage>=t.hp)');
+const signature='function resolveDeath(f,defeater=null,deathKind=null){';
+s=s.replace(signature,signature+"if(f.hp<=0&&!f.soulState.deathResolved&&!f.soulState.vanished&&deathKind!=='direct'&&f.soulState.rebirth2243?.armed&&on(f,'死亡时技能回复')&&!rebirthFirst2243(f)){delete f.effects['死亡时技能回复'];heal(f,f.stats.maxHp,'先手死亡时技能回复','skill',true);if(f.hp>0){statusRules.clearAll(f,n=>statusRemoved(f,n));if(!on(f,'弱化不可解除反转'))for(const k of keys)if(f.stages[k]<0)f.stages[k]=0;return;}}");
+fs.writeFileSync(f,s);
+f='dist/range-effects.js';s=fs.readFileSync(f,'utf8');fs.copyFileSync(f,__dirname+'/4697-before-survival-order-range-effects.js',fs.constants.COPYFILE_EXCL);
+s=s.replace("if(c.a.side===c.first)c.a.soulState.nextLethalFloor=1;","if(c.a.side===c.first){c.a.soulState.nextLethalFloor=1;c.a.soulState.nextLethalOrder=c.nextSurvivalOrder(c.a);}");
+s=s.replace("rebirth2243={armed:true,source:c.m.wikiId??c.m.id,hash:c.m.revision,round:c.round}","rebirth2243={armed:true,source:c.m.wikiId??c.m.id,hash:c.m.revision,round:c.round,order:c.nextSurvivalOrder(c.a)}");fs.writeFileSync(f,s);

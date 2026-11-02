@@ -1,0 +1,9 @@
+const fs=require('fs'),Module=require('module'),path=require('path'),old=Module.prototype._compile;
+Module.prototype._compile=function(code,file){
+ if(path.resolve(file)===path.resolve(__dirname,'../../../dist/range-effects.js')){const at=code.lastIndexOf('\n});');if(at<0)throw Error('4661 range fragment anchor');code=code.slice(0,at)+fs.readFileSync(path.join(__dirname,'range-effects.production-fragment.draft.js'),'utf8')+'\n'+code.slice(at);}
+ if(path.resolve(file)===path.resolve(__dirname,'../../../dist/range-souls.js')){const at=code.lastIndexOf('\n});');if(at<0)throw Error('4661 soul fragment anchor');const src=fs.readFileSync(path.join(__dirname,'soul1862.draft.cjs'),'utf8').replace(/^\uFEFF/,'').replace("'use strict';",'').replace('module.exports=function soul1862Factory()', 'const soul1862Factory=function soul1862Factory()');code=code.slice(0,at)+src+'\n'+fs.readFileSync(path.join(__dirname,'soul-testing-fixture.draft.js'),'utf8')+'\n'+code.slice(at);}
+ if(path.resolve(file)===path.resolve(__dirname,'../../../dist/souls.js'))for(const e of require('./souls.production-edits.draft.json')){const n=code.split(e.find).length-1;if(n!==1)throw Error(e.name+' unique anchor '+n);code=code.replace(e.find,e.replace);}
+ if(path.resolve(file)===path.resolve(__dirname,'../../../dist/wiki-support.js'))for(const e of require('./wiki-support.production-edits.draft.json')){const n=code.split(e.find).length-1;if(n!==1)throw Error(e.name+' unique anchor '+n);code=code.replace(e.find,e.replace);}
+ if(path.resolve(file)===path.resolve(__dirname,'../../../dist/effect-registry.js')){const at=code.indexOf('return Object.freeze({statusDeclarations,registry:');if(at<0)throw Error('4661 final legacy tail anchor');code=code.slice(0,at)+fs.readFileSync(path.join(__dirname,'effect-registry-tail.production-fragment.draft.js'),'utf8')+'\n'+code.slice(at);}
+ return old.call(this,code,file);
+};

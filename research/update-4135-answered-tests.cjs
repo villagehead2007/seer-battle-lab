@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict'),file='tests/deployed-4135-partial.test.cjs';
+if(!fs.existsSync('research/4135-tests-before-answers.txt'))fs.copyFileSync(file,'research/4135-tests-before-answers.txt');
+let t=fs.readFileSync(file,'utf8');const replace=(a,b)=>{assert.ok(t.includes(a),a);t=t.replace(a,b);};
+replace("assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('追加第五来源版本尚未审核')));","assert.equal(require('../local-species.cjs').issues(source).some(x=>x.includes('追加第五来源版本尚未审核')),false);");
+replace('assert.equal(o.fighters[0].soulState.cleria634Pending,true);','assert.equal(o.fighters[0].soulState.cleria634Before.higher,false);');
+replace("assert.ok(E.SOULS.registry[soul].unimplemented.some(x=>x.includes('重生')));","assert.equal(typeof E.SOULS.registry[soul].hooks.death,'function');");
+replace("assert.equal(x.fighters[0].soulState.cleriaHalfPending,true);assert.equal(x.fighters[0].effects['克丽娅次回合减攻伤'],undefined);","assert.ok(x.fighters[0].hp>4500);assert.equal(x.fighters[0].effects['克丽娅次回合减攻伤'].start,2);");
+const renames=[['双第五四版本原始标记保留且未绕过部署门槛','双第五四版本原始标记与用户精确授权一致'],['634前后HP比较跨门槛准确保留待确认，不以旧实现猜回复','634跨门槛仍按攻击前HP比较，不错误触发回复'],['未确认重复次数不冒充完成','整回合次数由用户回答专项覆盖'],['跨半血显式待确认而重生没有伪实现','跨半血按回复前获得而重生有真实死亡处理']];for(const [a,b]of renames)t=t.replaceAll(a,b);
+fs.writeFileSync(file,t);fs.writeFileSync('research/4135-answer-test-renames.json',JSON.stringify(renames,null,2)+'\n');

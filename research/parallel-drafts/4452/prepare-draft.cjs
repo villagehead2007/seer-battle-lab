@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),root=path.resolve(__dirname,'../../..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const helper=read('tests/helpers/4452-battle.cjs').replace("require('../../dist/engine.js')","require('../../../dist/engine.js')").replace("require('../../research/4452-reviewed-snapshot.json')","require('../../../research/4452-reviewed-snapshot.json')");
+fs.writeFileSync(path.join(__dirname,'draft-helper.cjs'),helper);fs.writeFileSync(path.join(__dirname,'PREPARATION.json'),JSON.stringify({at:new Date().toISOString(),helper:'tests/helpers/4452-battle.cjs',baseSHA256:crypto.createHash('sha256').update(read('tests/helpers/4452-battle.cjs')).digest('hex'),changes:'relocate only require paths; no source/implementation patch or original tests run',formalFilesWritten:false},null,2)+'\n');

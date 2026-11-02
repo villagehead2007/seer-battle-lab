@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict'),file='tests/seerapi-4169-source-target.test.cjs';if(!fs.existsSync('research/4169-source-target-tests-before-user-scope.txt'))fs.copyFileSync(file,'research/4169-source-target-tests-before-user-scope.txt');let text=fs.readFileSync(file,'utf8');
+text=text.replace('三目标来源单挑正常伤害且其余目标延期','三目标来源单挑正常伤害且范围按用户忽略');
+const before="const h=require('./helpers/4169-battle.cjs'),s=h.make";assert.ok(text.includes(before));text=text.replace(before,"const h=require('./helpers/4169-battle.cjs');const compiled=h.E.WIKI.compile(m,h.source);assert.equal(compiled.issue,'');assert.equal(compiled.deferred.length,0);assert.equal(compiled.ignoredSourceFeatures.length,1);assert.equal(compiled.ignoredSourceFeatures[0].value,3);assert.equal(m.sourceTargetCount,3);const s=h.make");fs.writeFileSync(file,text);

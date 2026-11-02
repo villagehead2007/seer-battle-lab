@@ -1,0 +1,1 @@
+const fs=require('fs'),src=require('./4030-reviewed-snapshot.json'),e=src.effects.find(x=>x.id===69),p='dist/range-effects.js';let s=fs.readFileSync(p,'utf8');s=s.replace("add(69,'afterHit'",'metadata[69]='+JSON.stringify({info:e.template,args_num:e.argsNum})+";\nadd(69,'afterHit'");fs.writeFileSync(p,s);
