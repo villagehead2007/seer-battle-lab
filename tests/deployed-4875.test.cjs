@@ -1,0 +1,7 @@
+'use strict';
+require('./remaining-4875-soul.test.cjs');
+require('./remaining-4875-skills.test.cjs');
+require('./remaining-4875-interactions.test.cjs');
+require('./answered-4875.test.cjs');
+
+require('./virtual-burn-refresh.test.cjs');

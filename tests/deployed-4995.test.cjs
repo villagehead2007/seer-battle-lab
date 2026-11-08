@@ -1,0 +1,10 @@
+'use strict';
+require('./remaining-4995-soul.test.cjs');
+require('./remaining-4995-known.test.cjs');
+require('./remaining-4995-public.test.cjs');
+require('./remaining-4995-cross.test.cjs');
+require('./remaining-4995-boundaries.test.cjs');
+require('./remaining-4995-base.test.cjs');
+require('./remaining-4995-native.test.cjs');
+require('./answered-4995.test.cjs');
+require('./attribute-4853-baf-2144.test.cjs');

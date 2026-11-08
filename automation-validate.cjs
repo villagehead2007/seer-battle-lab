@@ -20,15 +20,20 @@ function readTodo() {
 function runNpmTest(failures) {
   const startedAt = new Date().toISOString();
   const npmLog = path.join(root, 'research', `validator-${id}-npm-${startedAt.replace(/[:.]/g, '-')}.log`);
-  const options = { cwd:root, encoding:'utf8', timeout:270*60*1000, maxBuffer:8*1024*1024, windowsHide:true };
-  const result = process.platform === 'win32'
+  // The latest 13k-test full run took 7.5h. Keep its complete output on disk
+  // while it runs, and allow enough time without changing the test command.
+  const fd=fs.openSync(npmLog,'wx');
+  const options = { cwd:root, encoding:'utf8', timeout:12*60*60*1000, windowsHide:true, stdio:['ignore',fd,fd] };
+  console.log(`validator npm test started: ${path.relative(root,npmLog)}`);
+  let result;
+  try { result = process.platform === 'win32'
     ? cp.spawnSync('cmd.exe', ['/d','/s','/c','npm test'], options)
     : cp.spawnSync('npm', ['test'], options);
-  fs.writeFileSync(npmLog, `${result.stdout ?? ''}\n${result.stderr ?? ''}`, { flag:'wx' });
+  } finally { fs.closeSync(fd); }
   fs.writeFileSync(npmLog.replace(/\.log$/, '-result.json'), JSON.stringify({ startedAt, completedAt:new Date().toISOString(), exitCode:result.status, signal:result.signal, error:result.error?.message ?? null, log:path.relative(root,npmLog), executedInsideValidator:true }, null, 2)+'\n', { flag:'wx' });
   console.log(`validator npm test log: ${path.relative(root,npmLog)}`);
   if (result.error) failures.push(`tests: npm test 无法启动：${result.error.message}`);
-  else if (result.status !== 0) failures.push(`tests: npm test 失败（退出码 ${result.status}）${`${result.stdout ?? ''}\n${result.stderr ?? ''}`.trim().slice(-2000)}`);
+  else if (result.status !== 0) failures.push(`tests: npm test 失败（退出码 ${result.status}）${fs.readFileSync(npmLog,'utf8').trim().slice(-2000)}`);
 }
 
 if (process.argv[2] === '--state') {
@@ -62,17 +67,29 @@ if (preflight) {
   const queueLines = fs.readFileSync(path.join(root, 'seer_id.txt'), 'utf8').split(/\r?\n/);
   const approvals = [
     {file:'research/next50-answer-takeover-2026-10-26T17-09-55-144Z/USER-BATCH-VALIDATION-AUTHORIZATION-2026-10-27.json',start:226,end:276},
-    {file:'research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/USER-BATCH-VALIDATION-AUTHORIZATION-2026-10-31.json',start:276,end:326}
+    {file:'research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/USER-BATCH-VALIDATION-AUTHORIZATION-2026-10-31.json',start:276,end:326},
+    {file:'research/BATCH-4816-REMAINING/AUTHORIZATION.json',start:326,end:378,count:52,snapshot:'research/BATCH-4816-REMAINING/QUEUE-SNAPSHOT.json',queueHash:'9893e8955c830cadd9478e98b5dca51885a7a92b1e434abcf4863f2dade83fea'}
   ];
-  const authorized = approvals.some(entry=>{
+  const temporaryAuthorityFile=path.join(root,'research/LIGHT-SP-2026-11-07/SHARED-REGRESSION-AUTHORIZATION.json');
+  let authorizedTemporary=false;
+  if(fs.existsSync(temporaryAuthorityFile)){
+    try{authorizedTemporary=require('./shared-stage-authorization.cjs').allows(JSON.parse(fs.readFileSync(temporaryAuthorityFile,'utf8')),id,complete,fs.readFileSync(path.join(root,'seer_id.txt')));}catch{/* Invalid authority never permits preflight. */}
+  }
+  const authorized = authorizedTemporary || approvals.some(entry=>{
     const file=path.join(root,entry.file);
     if(!fs.existsSync(file))return false;
     const data=JSON.parse(fs.readFileSync(file,'utf8')),ids=data.ids;
     const queue=queueLines.slice(entry.start,entry.end).map(x=>Number(x.trim()));
-    return Array.isArray(ids)&&ids.length===50&&JSON.stringify(ids)===JSON.stringify(queue)&&ids.includes(id);
+    if(entry.snapshot){
+      const frozen=JSON.parse(fs.readFileSync(path.join(root,entry.snapshot),'utf8'));
+      if(data.fixedQueue!==entry.queueHash||frozen.sha256!==entry.queueHash||!Array.isArray(frozen.targets)||
+        JSON.stringify(frozen.targets)!==JSON.stringify(queue.map((id,index)=>({id,line:entry.start+index+1})))||
+        data.executionFrequency!=='full-regression-after-fixed-range-independent-work')return false;
+    }
+    return Array.isArray(ids)&&ids.length===(entry.count??50)&&JSON.stringify(ids)===JSON.stringify(queue)&&ids.includes(id);
   });
   if (complete || !authorized) {
-    console.error('preflight rejected: authorized fixed NEXT50 single-stage scope required');
+    console.error('preflight rejected: authorized fixed single-stage scope required');
     process.exit(2);
   }
 }
@@ -112,7 +129,7 @@ if (snapshot) {
   // the rule-only gate passed.
   if (snapshot.source?.storage !== 'local') failures.push('integration: snapshot is not marked as locally deployed');
   if (snapshot.deployment?.scope !== 'single') failures.push('integration: single-stage deployment record missing');
-  if (snapshot.source?.provider !== 'seerapi' || !snapshot.source?.revision || !snapshot.source?.url) {
+  if ((snapshot.source?.provider !== 'seerapi' && !(snapshot.source?.provider==='composite'&&require('./source-policy.cjs').compositeIssues(snapshot,root).length===0)) || !snapshot.source?.revision || !snapshot.source?.url) {
     failures.push('snapshot: missing SeerAPI provider or revision');
   }
   if (!Array.isArray(snapshot.souls) || snapshot.souls.length === 0) {
@@ -122,7 +139,7 @@ if (snapshot) {
     const rule = E.SOULS.registry[soul.id];
     if (!rule) failures.push(`soulmark ${soul.id}: no registered implementation`);
     else {
-      if (snapshot.source?.provider === 'seerapi' && rule.sourceHash !== soul.hash) {
+      if (['seerapi','composite'].includes(snapshot.source?.provider) && !E.SOULS.acceptsSource(soul.id,soul.hash)) {
         failures.push(`soulmark ${soul.id}: source hash mismatch`);
       }
       for (const description of rule.deferred ?? []) {

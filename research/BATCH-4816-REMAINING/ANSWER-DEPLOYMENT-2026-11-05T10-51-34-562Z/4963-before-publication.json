@@ -1,0 +1,1391 @@
+{
+  "at": "2026-11-05T20:16:35.211Z",
+  "reviews": {
+    "4963:soul:2160": {
+      "scope": "mixed",
+      "rationale": "己方所有精灵包含当前自己，当前免攻授盾与自身41回复立即实现；仅真正其他队友回复延期。",
+      "singleBehavior": "回合初异常快照免受到的普通攻击红伤，成功按实际被免完整量授同源刷新盾，异源盾保留；后加异常不追授本回合免疫，属性附伤不误免，战阶自身回复41且技能禁疗不封；其他攻击免疫共存Q002待答。",
+      "deferredBehavior": "战斗阶段结束时，为真正己方其他在场或场下成员恢复41体力，按各自来源与回复限制执行。",
+      "trigger": "战斗阶段结束，实际存在其他己方成员",
+      "futureMechanisms": [
+        "真实队伍存活成员遍历与场下体力回复"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "team-members",
+          "quote": "己方所有精灵"
+        }
+      ],
+      "sourceDigest": "a7654c0abebc0c416ab6e1e3dd3c38acecb46fc3df63c77abab8ac012ce2ab52",
+      "reviewedBy": "Codex sourced current-state verification",
+      "reviewedAt": "2026-11-04T10:59:58.294Z",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js",
+        "dist/status-rules.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+            "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚",
+            "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');assert.throws(()=>turn(q,38618,10127),/Q-4963-002/);assert.equal(q.round,1);assert.equal(q.fighters[0].suitState.shield,0);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+            "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+            "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+            "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚",
+            "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');assert.throws(()=>turn(q,38618,10127),/Q-4963-002/);assert.equal(q.round,1);assert.equal(q.fighters[0].suitState.shield,0);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+            "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+            "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+            "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚",
+            "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');assert.throws(()=>turn(q,38618,10127),/Q-4963-002/);assert.equal(q.round,1);assert.equal(q.fighters[0].suitState.shield,0);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+            "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+            "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+            "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚",
+            "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存待答明确回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');assert.throws(()=>turn(q,38618,10127),/Q-4963-002/);assert.equal(q.round,1);assert.equal(q.fighters[0].suitState.shield,0);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+            "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4963-soul.test.cjs",
+            "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+            "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+          }
+        ]
+      }
+    },
+    "4963:move:38618": null,
+    "4963:skill:38618:0": null,
+    "4963:skill:38618:1": null,
+    "4963:move:29498": null,
+    "4963:skill:29498:0": null,
+    "4963:skill:29498:1": null,
+    "4963:skill:29498:2": null,
+    "4963:skill:29498:3": null,
+    "4963:move:29499": null,
+    "4963:skill:29499:0": null,
+    "4963:skill:29499:1": null,
+    "4963:skill:29499:2": null,
+    "4963:move:38619": null,
+    "4963:skill:38619:0": null,
+    "4963:skill:38619:1": null,
+    "4963:move:38620": null,
+    "4963:skill:38620:0": null,
+    "4963:skill:38620:1": null,
+    "4963:skill:38620:2": null
+  },
+  "pending": {
+    "schema": 1,
+    "status": "partial-awaiting-confirmation",
+    "notDeployed": true,
+    "snapshot": {
+      "id": 4963,
+      "name": "云舆瑞兽",
+      "base": {
+        "maxHp": 170,
+        "atk": 70,
+        "def": 115,
+        "spa": 150,
+        "spd": 110,
+        "spe": 130
+      },
+      "missingEffects": [],
+      "deployment": {
+        "scope": "single"
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z"
+      },
+      "gender": {
+        "id": 0,
+        "url": "https://api.seerapi.com/v1/pet_gender/0",
+        "source": {
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1"
+        }
+      },
+      "typeChart": {
+        "rows": {
+          "草": {
+            "草": 0.5,
+            "水": 2,
+            "火": 0.5,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "水": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 2,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "火": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "飞行": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "电": {
+            "草": 0.5,
+            "水": 2,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 0,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 2
+          },
+          "机械": {
+            "草": 1,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "地面": {
+            "草": 0.5,
+            "水": 1,
+            "火": 2,
+            "飞行": 0,
+            "电": 2,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 2,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "普通": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "冰": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 2,
+            "虚空": 1
+          },
+          "超能": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 0,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "战斗": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "光": {
+            "草": 0,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 0.5
+          },
+          "暗影": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "神秘": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 0.5,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 2,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 2,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "龙": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "圣灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 0.5,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "次元": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 2
+          },
+          "远古": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 2,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "邪灵": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 1
+          },
+          "自然": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 2,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "王": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "混沌": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 0
+          },
+          "神灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "轮回": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "虫": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 2,
+            "光": 0.5,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "虚空": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 2,
+            "战斗": 2,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 1
+          }
+        },
+        "aliases": {
+          "草": [
+            "草"
+          ],
+          "水": [
+            "水"
+          ],
+          "火": [
+            "火"
+          ],
+          "飞行": [
+            "飞行"
+          ],
+          "电": [
+            "电"
+          ],
+          "机械": [
+            "机械"
+          ],
+          "地面": [
+            "地面"
+          ],
+          "普通": [
+            "普通"
+          ],
+          "冰": [
+            "冰"
+          ],
+          "超能": [
+            "超能"
+          ],
+          "战斗": [
+            "战斗"
+          ],
+          "光": [
+            "光"
+          ],
+          "暗影": [
+            "暗影"
+          ],
+          "神秘": [
+            "神秘"
+          ],
+          "龙": [
+            "龙"
+          ],
+          "圣灵": [
+            "圣灵"
+          ],
+          "次元": [
+            "次元"
+          ],
+          "远古": [
+            "远古"
+          ],
+          "邪灵": [
+            "邪灵"
+          ],
+          "自然": [
+            "自然"
+          ],
+          "王": [
+            "王"
+          ],
+          "混沌": [
+            "混沌"
+          ],
+          "神灵": [
+            "神灵"
+          ],
+          "轮回": [
+            "轮回"
+          ],
+          "虫": [
+            "虫"
+          ],
+          "虚空": [
+            "虚空"
+          ],
+          "自然 龙": [
+            "自然",
+            "龙"
+          ],
+          "自然龙": [
+            "自然",
+            "龙"
+          ]
+        },
+        "revision": "seerapi:c9d6b67f",
+        "provider": "seerapi"
+      },
+      "type": "自然龙",
+      "moves": [
+        {
+          "id": 38618,
+          "name": "披云",
+          "type": "自然龙",
+          "kind": "special",
+          "power": 85,
+          "pp": 20,
+          "priority": 3,
+          "accuracy": 97,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1199,
+            989
+          ],
+          "effectInstances": [
+            {
+              "id": 1199,
+              "args": [
+                3
+              ],
+              "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力"
+            },
+            {
+              "id": 989,
+              "args": [
+                300,
+                300
+              ],
+              "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+            }
+          ],
+          "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力；造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍",
+          "revision": "seerapi:21a91275",
+          "hash": "21a91275",
+          "level": 1,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29498,
+          "name": "四象帷",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            191,
+            463,
+            156,
+            1670
+          ],
+          "effectInstances": [
+            {
+              "id": 191,
+              "args": [
+                4
+              ],
+              "description": "4回合内免疫并反弹所有受到的异常状态"
+            },
+            {
+              "id": 463,
+              "args": [
+                3,
+                300
+              ],
+              "description": "3回合内每回合所受的伤害减少300点"
+            },
+            {
+              "id": 156,
+              "args": [
+                3
+              ],
+              "description": "3回合内使得对手所有能力增强效果失效"
+            },
+            {
+              "id": 1670,
+              "args": [
+                50,
+                10,
+                100
+              ],
+              "description": "50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果"
+            }
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+          "revision": "seerapi:1b71e559",
+          "hash": "1b71e559",
+          "level": 5,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29499,
+          "name": "乘瑞气",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            911,
+            852,
+            843
+          ],
+          "effectInstances": [
+            {
+              "id": 911,
+              "args": [
+                1
+              ],
+              "description": "全属性+1，自身处于能力提升状态时强化效果翻倍"
+            },
+            {
+              "id": 852,
+              "args": [
+                30,
+                2
+              ],
+              "description": "附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍"
+            },
+            {
+              "id": 843,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合令自身所有技能先制+2"
+            }
+          ],
+          "description": "全属性+1，自身处于能力提升状态时强化效果翻倍；附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍；下2回合令自身所有技能先制+2",
+          "revision": "seerapi:305366a0",
+          "hash": "305366a0",
+          "level": 9,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38619,
+          "name": "云雷变",
+          "type": "自然龙",
+          "kind": "special",
+          "power": 150,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 97,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            2529,
+            169
+          ],
+          "effectInstances": [
+            {
+              "id": 2529,
+              "args": [
+                2,
+                30
+              ],
+              "description": "2回合内若对手处于沉默则对手无法行动"
+            },
+            {
+              "id": 169,
+              "args": [
+                2,
+                100,
+                30
+              ],
+              "description": "2回合内每回合额外附加100%概率令对手沉默"
+            }
+          ],
+          "description": "2回合内若对手处于沉默则对手无法行动；2回合内每回合额外附加100%概率令对手沉默",
+          "revision": "seerapi:1a2bc458",
+          "hash": "1a2bc458",
+          "level": 13,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38620,
+          "name": "天门跃",
+          "type": "自然龙",
+          "kind": "special",
+          "power": 160,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            915,
+            1923,
+            1467
+          ],
+          "effectInstances": [
+            {
+              "id": 915,
+              "args": [
+                2,
+                100,
+                6
+              ],
+              "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕"
+            },
+            {
+              "id": 1923,
+              "args": [
+                1
+              ],
+              "description": "1回合内令对手使用的攻击技能无效"
+            },
+            {
+              "id": 1467,
+              "args": [
+                3,
+                1
+              ],
+              "description": "随机使自身3项能力值+1，先出手时提升效果翻倍"
+            }
+          ],
+          "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕；1回合内令对手使用的攻击技能无效；随机使自身3项能力值+1，先出手时提升效果翻倍",
+          "revision": "seerapi:4e3ae928",
+          "hash": "4e3ae928",
+          "level": 76,
+          "fifth": true,
+          "sourceFlags": {
+            "is_fifth": true,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "fifth"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        }
+      ],
+      "effects": [
+        {
+          "id": 1199,
+          "argsNum": 1,
+          "template": "吸取对手能力提升状态，吸取成功则对手{0}回合内无法通过自身技能恢复体力",
+          "revision": "seerapi:460b07bf"
+        },
+        {
+          "id": 989,
+          "argsNum": 2,
+          "template": "造成的伤害低于{0}则附加{1}点固定伤害，自身体力低于对手时固定伤害翻倍",
+          "revision": "seerapi:90412566"
+        },
+        {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        },
+        {
+          "id": 463,
+          "argsNum": 2,
+          "template": "{0}回合内每回合所受的伤害减少{1}点",
+          "revision": "seerapi:f74b5b1b"
+        },
+        {
+          "id": 156,
+          "argsNum": 1,
+          "template": "{0}回合内使得对手所有能力增强效果失效",
+          "revision": "seerapi:5b873120"
+        },
+        {
+          "id": 1670,
+          "argsNum": 3,
+          "template": "{0}%令对手{1}，对手为自身天敌时概率提升{2}%，未触发则消除对手回合类效果",
+          "revision": "seerapi:86a7e4fa"
+        },
+        {
+          "id": 911,
+          "argsNum": 1,
+          "template": "全属性+{0}，自身处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:570cd71c"
+        },
+        {
+          "id": 852,
+          "argsNum": 2,
+          "template": "附加自身最大体力{0}%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/{1}则恢复效果和百分比伤害翻倍",
+          "revision": "seerapi:737d1f13"
+        },
+        {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        },
+        {
+          "id": 2529,
+          "argsNum": 2,
+          "template": "{0}回合内若对手处于{1}则对手无法行动",
+          "revision": "seerapi:5a583eee"
+        },
+        {
+          "id": 169,
+          "argsNum": 3,
+          "template": "{0}回合内每回合额外附加{1}%概率令对手{2}",
+          "revision": "seerapi:68d00cca"
+        },
+        {
+          "id": 915,
+          "argsNum": 3,
+          "template": "消除对手回合类效果，消除成功则自身下{0}回合攻击有{1}%使对手{2}",
+          "revision": "seerapi:b9b1d058"
+        },
+        {
+          "id": 1923,
+          "argsNum": 1,
+          "template": "{0}回合内令对手使用的攻击技能无效",
+          "revision": "seerapi:ff680459"
+        },
+        {
+          "id": 1467,
+          "argsNum": 2,
+          "template": "随机使自身{0}项能力值+{1}，先出手时提升效果翻倍",
+          "revision": "seerapi:4c9d7d8e"
+        }
+      ],
+      "souls": [
+        {
+          "id": 2160,
+          "description": "回合开始时，若自身处于异常状态，则免疫受到的攻击伤害，免疫成功则获得等量的护盾|战斗阶段结束时，恢复己方所有精灵41点体力|（boss无效）",
+          "desc_formatting_adjustment": null,
+          "analyze_desc": "[sprite name=dot4][color=#57c975]回合开始时[/color]，若自身处于异常状态，则免疫受到的攻击伤害，免疫成功则获得等量的[color=#57c975]护盾[/color]|[sprite name=dot4][color=#57c975]战斗阶段结束时[/color]，恢复[color=#52a5f2]己方[/color]所有精灵41点体力",
+          "hash": "6a2bbb52",
+          "eid": 2565,
+          "args": [
+            1,
+            0
+          ],
+          "isAdvanced": false,
+          "source": {
+            "url": "https://api.seerapi.com/v1/soulmark/2160",
+            "revision": "6a2bbb52",
+            "loadedAt": "2026-11-04T01:44:18.170Z"
+          },
+          "from": null,
+          "intensifiedTo": null
+        }
+      ]
+    }
+  }
+}

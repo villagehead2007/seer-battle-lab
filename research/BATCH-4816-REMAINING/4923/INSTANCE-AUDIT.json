@@ -1,0 +1,2509 @@
+{
+  "at": "2026-11-03T09:10:11.706Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "accepted": false,
+  "items": [
+    {
+      "key": "4923:soul:2119",
+      "kind": "soul",
+      "raw": {
+        "id": 2119,
+        "description": "战斗开始时，为己方附加4座蜃楼|回合开始时，若对手当回合未选择技能，则2回合内自身受到的非真实伤害减少50%，若对手选择了技能，则自身当回合与此技能类型相同的技能使用后令对手石化1回合，不同的技能先制+1|（boss无效）",
+        "desc_formatting_adjustment": null,
+        "analyze_desc": "[sprite name=dot4]战斗开始时，为[color=#52a5f2]己方[/color]附加4座[color=#f35555]蜃楼[/color]|[sprite name=dot4][color=#57c975]回合开始时[/color]，若[color=#52a5f2]对手[/color][color=#52a5f2]当回合[/color]未选择技能，则2回合内自身受到的非[color=#52a5f2]真实伤害[/color]减少50%，若[color=#52a5f2]对手[/color]选择了技能，则自身[color=#52a5f2]当回合[/color]与此技能类型相同的技能使用后令[color=#52a5f2]对手[/color][color=#57c975]石化[/color]1回合，不同的[color=#52a5f2]技能先制[/color]+1",
+        "hash": "cb360285",
+        "eid": 2529,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2119",
+          "revision": "cb360285",
+          "loadedAt": "2026-11-03T06:17:12.490Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "30d757fcf2ca0d9c8d8a1585def045ad655c62651853e80a643ca5999c2503cc",
+      "scope": "mixed",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-soul.test.cjs",
+          "name": "4923真实2119初始四蜃楼，四个实装技能顺序的真实异常转超频与逐双向延长",
+          "assertion": "test('4923真实2119初始四蜃楼，四个实装技能顺序的真实异常转超频与逐双向延长',()=>{const s=make({move:29398,soul:true,loadout});resistance(s);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);for(let r=1;r<=4;r++){observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'害怕',c.t,false,false,2);},()=>turn(s,29398,20117));const st=s.fighters[0].soulState.mirage2119;assert.deepEqual(st.cities.map(x=>x.name),['序','源','逐','理'].slice(0,r));assert.equal(st.remaining,4-r);assert.equal(s.fighters[0].ailments['害怕'],undefined);assert.equal(s.fighters[0].ailments['超频'],r+2);}observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0){c.ailment(c.a,'凝滞',c.t,false,false,2);c.ailment(c.t,'凝滞',c.a,false,false,2);}},()=>turn(s,38460,20117));assert.equal(s.fighters[0].ailments['凝滞'],7);assert.equal(s.fighters[1].ailments['凝滞'],7);});"
+        },
+        {
+          "file": "tests/remaining-4923-soul.test.cjs",
+          "name": "4923真实2119异常免疫/抗性成功不转楼，非控制抗性与无槽不转；非四对应技能明确回滚待答",
+          "assertion": "test('4923真实2119异常免疫/抗性成功不转楼，非控制抗性与无槽不转；非四对应技能明确回滚待答',()=>{for(const mode of['immune','resist','aux','none']){const s=make({move:29398,soul:true,loadout});resistance(s,mode==='aux'?'超频':'害怕',mode==='resist'?100:0);if(mode==='immune')s.fighters[0].counts.immune=1;if(mode==='none')s.fighters[0].build.resistance.slots=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,mode==='aux'?'超频':'害怕',c.t,false,false,2);},()=>turn(s,29398,20117));assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);}const s=make({move:38464,soul:true});resistance(s);assert.throws(()=>observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'害怕',c.t,false,false,2);},()=>turn(s,38464,20117)),/Q-4923-001/);assert.equal(s.round,1);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);});"
+        },
+        {
+          "file": "tests/remaining-4923-soul.test.cjs",
+          "name": "4923真实2119敌选技能不同类先制1，相同类实际用招石化1；整招无效仍使用，被控和药剂不算",
+          "assertion": "test('4923真实2119敌选技能不同类先制1，相同类实际用招石化1；整招无效仍使用，被控和药剂不算',()=>{for(const mode of['different','same','invalid','controlled','potion']){const s=make({move:38464,soul:true});if(mode==='invalid')timer(s,0,'attackBlock');if(mode==='controlled')s.fighters[0].ailments['睡眠']=2;let stone;observe((e,c)=>{if(e==='afterUse'&&c.a.side===0)stone=c.t.ailments['石化'];},()=>turn(s,mode==='potion'?null:38464,mode==='different'?20117:10127));if(mode==='different'){assert.equal(s.fighters[0].soulState.resolvedPriority.value,1);assert.equal(stone,undefined);}else if(['same','invalid'].includes(mode)){assert.equal(stone,1);assert.equal(s.fighters[1].pp[key(10127)],40);}else assert.equal(stone,undefined);}});"
+        },
+        {
+          "file": "tests/remaining-4923-soul.test.cjs",
+          "name": "4923真实2119敌未选技能减非真伤50%持续两回合，真伤及直接损失不减，第三回到期",
+          "assertion": "test('4923真实2119敌未选技能减非真伤50%持续两回合，真伤及直接损失不减，第三回到期',()=>{for(const type of['fixed','percent','true','direct']){const s=make({move:38464,soul:true});observe((e,c)=>{if(e==='afterUse'&&c.a.side===0)c.hurt(c.a,100,'fixture',type,true&&type==='direct');},()=>turn(s,38464,null));assert.equal(s.fighters[0].hp,['fixed','percent'].includes(type)?8950:8900);}const s=make({move:38464,soul:true}),z=make({move:38464});turn(s,38464,null);turn(z,38464,null);turn(s,38464,10716);turn(z,38464,10716);assert.ok(Math.abs(sum(s,'attack',1)-sum(z,'attack',1)*.5)<=1);turn(s,38464,10716);turn(z,38464,10716);assert.equal(sum(s,'attack',1),sum(z,'attack',1));});"
+        },
+        {
+          "file": "tests/remaining-4923-soul.test.cjs",
+          "name": "4923蜃都之理双方当前无法选择的真实技能回末各回1PP，可选技能不补且来源序条件免PP仍可选",
+          "assertion": "test('4923蜃都之理双方当前无法选择的真实技能回末各回1PP，可选技能不补且来源序条件免PP仍可选',()=>{const s=make({move:29398,soul:true,loadout});s.fighters[0].soulState.mirage2119.cities=[{name:'理'},{name:'序'}];for(const f of s.fighters){f.pp[f.moves[0]]=0;f.pp[f.moves[1]]--;}turn(s,29398,20309);assert.equal(s.fighters[0].pp[key(29395)],0);assert.equal(s.fighters[0].pp[key(29396)],4);assert.equal(s.fighters[1].pp[key(20117)],1);assert.equal(s.fighters[1].pp[key(10127)],39);assert.ok(E.availableMoves(s.fighters[0],s.round).includes(key(29395)));});"
+        },
+        {
+          "file": "tests/remaining-4923-interactions.test.cjs",
+          "name": "4923魂印真实登场异常转换亦依实装逆序，超频转换不再受免异/逐延长影响",
+          "assertion": "test('4923魂印真实登场异常转换亦依实装逆序，超频转换不再受免异/逐延长影响',()=>{const s=observe((e,c)=>{if(e==='battleStart'&&c.a.side===0){c.a.build.resistance.slots=[{name:'害怕',chance:0},{name:'',chance:0},{name:'',chance:0}];c.entryAilment(c.a,'害怕',2,c.t);}},()=>make({soul:true,move:29398,loadout:[38460,29397,29396,29395,29398]}));assert.deepEqual(s.fighters[0].soulState.mirage2119.cities.map(x=>x.name),['理']);assert.equal(s.fighters[0].ailments['超频'],3);assert.equal(s.fighters[0].ailments['害怕'],undefined);});"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4923-001"
+      ]
+    },
+    {
+      "key": "4923:move:29403",
+      "kind": "move",
+      "raw": {
+        "id": 29403,
+        "name": "无风广厦",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          972
+        ],
+        "effectInstances": [
+          {
+            "id": 972,
+            "args": [
+              1
+            ],
+            "description": "出手时若自身体力低于对手，则免疫下1次受到的攻击伤害"
+          }
+        ],
+        "description": "出手时若自身体力低于对手，则免疫下1次受到的攻击伤害",
+        "revision": "seerapi:f219cf67",
+        "hash": "f219cf67",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "76645efcc93b50e5fd9d36af4e82d2c240b5673e0b665cea62a49c8a9c0932b4",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29403:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 972,
+          "args": [
+            1
+          ],
+          "description": "出手时若自身体力低于对手，则免疫下1次受到的攻击伤害"
+        },
+        "index": 0,
+        "description": "出手时若自身体力低于对手，则免疫下1次受到的攻击伤害",
+        "metadata": {
+          "id": 972,
+          "argsNum": 1,
+          "template": "出手时若自身体力低于对手，则免疫下{0}次受到的攻击伤害",
+          "revision": "seerapi:12a9f1b2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:f219cf67"
+      },
+      "sourceDigest": "1883f1ff1a4e88d43b5d4b7ab18779838f9dfb1c2f51deca842bef28bce5b233",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/972出手时严格低于敌HP才免疫下一次攻击，等于不授，免攻实际消费",
+          "assertion": "test('4923/972出手时严格低于敌HP才免疫下一次攻击，等于不授，免攻实际消费',()=>{for(const hp of[8999,9000]){const s=make({...row(972),hp});turn(s,s.auditMoveId,10127);assert.equal(sum(s,'attack',1)===0,hp===8999);assert.equal(s.fighters[0].counts.attackNullify??0,0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:38464",
+      "kind": "move",
+      "raw": {
+        "id": 38464,
+        "name": "建构",
+        "type": "机械地面",
+        "kind": "physical",
+        "power": 40,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:7f5ecfb0",
+        "hash": "7f5ecfb0",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "fde5e04456fd1143c3a7e80f24f94a91d015de6c59c957eb68f2657f93c54d0e",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:38465",
+      "kind": "move",
+      "raw": {
+        "id": 38465,
+        "name": "规划",
+        "type": "机械地面",
+        "kind": "special",
+        "power": 60,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:d7ce565c",
+        "hash": "d7ce565c",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "01c30ad51747049944a3e869b2167738a7e79840ca324ad7b5987f53fd257440",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29395",
+      "kind": "move",
+      "raw": {
+        "id": 29395,
+        "name": "序曲",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 97,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2534,
+          2390,
+          1561
+        ],
+        "effectInstances": [
+          {
+            "id": 2534,
+            "args": [],
+            "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制"
+          },
+          {
+            "id": 2390,
+            "args": [
+              2
+            ],
+            "description": "消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效"
+          },
+          {
+            "id": 1561,
+            "args": [
+              150,
+              1
+            ],
+            "description": "获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力"
+          }
+        ],
+        "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制；消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效；获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力",
+        "revision": "seerapi:51cf1aa3",
+        "hash": "51cf1aa3",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "a50e0b8f59dd70092f8720204e94bb3069f3c8dfab9d7489ee8d7a29321187b6",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29395:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2534,
+          "args": [],
+          "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制"
+        },
+        "index": 0,
+        "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制；消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效；获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力",
+        "metadata": {
+          "id": 2534,
+          "argsNum": 0,
+          "template": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制",
+          "revision": "seerapi:7317671c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:51cf1aa3"
+      },
+      "sourceDigest": "9e9ac016657590e4439811d93020bfaca586ef6bd8f1c87047e8ff550b1d044c",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2534蜃序位于理后才真实零PP选择与执行，其他顺序仍拒绝",
+          "assertion": "test('4923/2534蜃序位于理后才真实零PP选择与执行，其他顺序仍拒绝',()=>{for(const names of[['理','序'],['序','理'],['序'],[]]){const s=make({...row(2534),loadout});cities(s,names);s.fighters[0].pp[key(29395)]=0;if(names[0]==='理'){turn(s,29395,20117);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(29395)],0);}else{assert.throws(()=>turn(s,29395,20117),/PP/);assert.equal(s.round,1);}}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29395:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2390,
+          "args": [
+            2
+          ],
+          "description": "消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效"
+        },
+        "index": 1,
+        "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制；消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效；获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力",
+        "metadata": {
+          "id": 2390,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则下{0}回合对手攻击技能无法造成伤害且命中效果失效",
+          "revision": "seerapi:7f6015d5"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:51cf1aa3"
+      },
+      "sourceDigest": "0a32b3f164554c23c04e2b9f7e249ada54fc92b594cfbd14844915c1ee22495b",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2390清回合成功次两轮攻击命中但红粉真均零、命中效果封锁且不触发无效补偿，到期恢复",
+          "assertion": "test('4923/2390清回合成功次两轮攻击命中但红粉真均零、命中效果封锁且不触发无效补偿，到期恢复',()=>{const s=make({...row(2390),loadout});timer(s,1,'test-round');turn(s,29395,20117);for(let r=2;r<=4;r++){const hp=s.fighters[0].hp;skillObserve((e,c)=>{if(e==='afterUse'&&c.a.side===1){c.hurt(c.t,100,'skill additional','fixed');c.hurt(c.t,100,'skill additional','percent');c.hurt(c.t,100,'skill additional','true');}},()=>turn(s,29398,10127));assert.equal(sum(s,'attack',1)===0,r<=3);if(r<=3)assert.equal(s.fighters[0].hp,hp);else assert.ok(s.fighters[0].hp<hp);}const f=make(row(2390));f.fighters[1].effects={};turn(f,f.auditMoveId,20117);assert.equal(f.fighters[1].effects['莫缇攻击无法伤害'],undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29395:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1561,
+          "args": [
+            150,
+            1
+          ],
+          "description": "获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力"
+        },
+        "index": 2,
+        "description": "己方拥有蜃都之序时，若己方蜃都之序的转化顺序位于蜃都之理之后则不受PP值限制；消除对手回合类效果，消除成功则下2回合对手攻击技能无法造成伤害且命中效果失效；获得点数等同于双方最大体力差值的护盾，最高150点，护盾被击破时自身下1次使用的攻击技能附加与双方最大体力差护盾值相同的威力",
+        "metadata": {
+          "id": 1561,
+          "argsNum": 2,
+          "template": "获得点数等同于双方最大体力差值的护盾，最高{0}点，护盾被击破时自身下{1}次使用的攻击技能附加与双方最大体力差护盾值相同的威力",
+          "revision": "seerapi:2f4fdd55"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:51cf1aa3"
+      },
+      "sourceDigest": "211a91045f40d36c240cdab4e9c7db9a4a43a70a3ed03bfb908d5b138cc55033",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/1561最大HP差盾上限150，同源刷新与异源保留；真实击破授下一次实际攻击等量威力，清盾不授",
+          "assertion": "test('4923/1561最大HP差盾上限150，同源刷新与异源保留；真实击破授下一次实际攻击等量威力，清盾不授',()=>{for(const gap of[0,50,200,-100]){const s=make({...row(1561),bStats:{maxHp:9000+gap}});turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].suitState.shield,Math.min(150,Math.abs(gap)));turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].suitState.shield,Math.min(150,Math.abs(gap)));}const s=make({...row(1561),bStats:{maxHp:9100},loadout:[29395,38464,29397,38460,29398]});observe((e,c)=>{if(e==='beforeDamage'&&c.a.side===1)c.minimumDamage=200;},()=>turn(s,29395,10127));assert.equal(s.fighters[0].soulState.miragePower1561.amount,100);const z=structuredClone(s);delete z.fighters[0].soulState.miragePower1561;turn(s,38464,20117);turn(z,38464,20117);assert.ok(sum(s)>sum(z)*2);assert.equal(s.fighters[0].soulState.miragePower1561,undefined);turn(s,38464,20117);turn(z,38464,20117);assert.equal(sum(s),sum(z));});"
+        },
+        {
+          "file": "tests/remaining-4923-interactions.test.cjs",
+          "name": "4923/1561重授零盾清旧反应，后续异源盾破不误授旧威力；无魂印选招不凭空生成蜃楼",
+          "assertion": "test('4923/1561重授零盾清旧反应，后续异源盾破不误授旧威力；无魂印选招不凭空生成蜃楼',()=>{const s=make({move:29395,index:2,bStats:{maxHp:9100},loadout});assert.equal(s.fighters[0].soulState.mirage2119,undefined);turn(s,29395,20117);s.fighters[1].stats.maxHp=9000;s.fighters[1].hp=Math.min(9000,s.fighters[1].hp);turn(s,29395,20117);assert.equal(s.fighters[0].suitState.shield,0);assert.deepEqual(s.fighters[0].soulState.sourceShieldReactions,{});S.refresh(s.fighters[0],1,'other');turn(s,29398,10127);assert.equal(s.fighters[0].soulState.miragePower1561,undefined);assert.equal(s.fighters[0].soulState.mirage2119,undefined);});"
+        },
+        {
+          "file": "tests/remaining-4923-interactions.test.cjs",
+          "name": "4923/1561异源盾共存、直接消费只消盾不授破盾威力、未命中实际攻击消费已授次数",
+          "assertion": "test('4923/1561异源盾共存、直接消费只消盾不授破盾威力、未命中实际攻击消费已授次数',()=>{const s=make({move:29395,index:2,bStats:{maxHp:9100},loadout});S.refresh(s.fighters[0],30,'foreign');turn(s,29395,20117);assert.equal(s.fighters[0].suitState.shield,130);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.consumeOrdinaryShield(c.t);},()=>turn(s,29398,20117));assert.equal(s.fighters[0].suitState.shield,0);assert.equal(s.fighters[0].soulState.miragePower1561,undefined);s.fighters[0].soulState.miragePower1561={amount:100,count:1};timer(s,0,'attackBlock');turn(s,38460,20117);assert.equal(sum(s),0);assert.equal(s.fighters[0].soulState.miragePower1561,undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:37118",
+      "kind": "move",
+      "raw": {
+        "id": 37118,
+        "name": "分支",
+        "type": "超能",
+        "kind": "physical",
+        "power": 40,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1538
+        ],
+        "effectInstances": [
+          {
+            "id": 1538,
+            "args": [
+              0
+            ],
+            "description": "将对手攻击和特攻中最高的能力值作为自己的能力值进行攻击"
+          }
+        ],
+        "description": "将对手攻击和特攻中最高的能力值作为自己的能力值进行攻击",
+        "revision": "seerapi:b2fe2023",
+        "hash": "b2fe2023",
+        "level": 17,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false,
+        "sourceParameterConfirmation": {
+          "question": "Q-N50-4600-001",
+          "record": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4600-user-confirmations.json",
+          "speciesId": 4600,
+          "skillId": 37118,
+          "skillHash": "b2fe2023",
+          "index": 0,
+          "effectId": 1538,
+          "args": [
+            0
+          ],
+          "effectRevision": "seerapi:a2b94e77",
+          "semantics": "保留原始参数；额外参数仅冗余，无额外战斗含义",
+          "answerOriginal": "是"
+        }
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "44151b0aaf8d6a0a177e73e2606c04a616e88cf34b93c1cb060b0a18f46877c9",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:37118:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1538,
+          "args": [
+            0
+          ],
+          "description": "将对手攻击和特攻中最高的能力值作为自己的能力值进行攻击"
+        },
+        "index": 0,
+        "description": "将对手攻击和特攻中最高的能力值作为自己的能力值进行攻击",
+        "metadata": {
+          "id": 1538,
+          "argsNum": 0,
+          "template": "将对手攻击和特攻中最高的能力值作为自己的能力值进行攻击",
+          "revision": "seerapi:a2b94e77"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:b2fe2023"
+      },
+      "sourceDigest": "e871bac3a422a51352b8cdb90690482669c383ae72447002281d94e526629279",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1538同版冗余0保留，按敌双攻最高面板真实攻击且等级变化不改变替代面板",
+          "assertion": "test('4923/1538同版冗余0保留，按敌双攻最高面板真实攻击且等级变化不改变替代面板',()=>{let base;for(const level of[-6,0,6]){const s=make({...row(1538),bStats:{atk:600,spa:200}});s.fighters[1].stages.atk=level;turn(s,s.auditMoveId,20117);if(base==null)base=sum(s);else assert.equal(sum(s),base);}const low=make({...row(1538),bStats:{atk:100,spa:200}});turn(low,low.auditMoveId,20117);assert.ok(sum(low)<base);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:37119",
+      "kind": "move",
+      "raw": {
+        "id": 37119,
+        "name": "根系",
+        "type": "自然",
+        "kind": "special",
+        "power": 45,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1296
+        ],
+        "effectInstances": [
+          {
+            "id": 1296,
+            "args": [
+              5,
+              100
+            ],
+            "description": "5回合内受到攻击100%进入自然庇佑"
+          }
+        ],
+        "description": "5回合内受到攻击100%进入自然庇佑",
+        "revision": "seerapi:61fe527c",
+        "hash": "61fe527c",
+        "level": 21,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "771a98eaea0d1e5c2f5d1dfd478ac9c94b9415bd041cbf76ef0d0a9e43958d17",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:37119:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1296,
+          "args": [
+            5,
+            100
+          ],
+          "description": "5回合内受到攻击100%进入自然庇佑"
+        },
+        "index": 0,
+        "description": "5回合内受到攻击100%进入自然庇佑",
+        "metadata": {
+          "id": 1296,
+          "argsNum": 2,
+          "template": "{0}回合内受到攻击{1}%进入自然庇佑",
+          "revision": "seerapi:3f4631b0"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:61fe527c"
+      },
+      "sourceDigest": "1d5a79a2612855693a6fcac74da8249c19cadbca86635bfc2c6a3b5ef046d667",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1296自然庇佑复用已确认50/30/20回复200/300/400、零红也触发与技能禁疗",
+          "assertion": "test('4923/1296自然庇佑复用已确认50/30/20回复200/300/400、零红也触发与技能禁疗',()=>{const values=new Set();for(let seed=1;seed<=48;seed++){const s=make({...row(1296),hp:1000,seed:Math.imul(seed,2654435761)>>>0});timer(s,0,'攻击伤害免疫');turn(s,s.auditMoveId,10127);assert.equal(sum(s,'attack',1),0);values.add(s.fighters[0].hp-1000);}assert.deepEqual(values,new Set([200,300,400]));const s=make({...row(1296),hp:1000});timer(s,0,'技能禁疗');timer(s,0,'攻击伤害免疫');turn(s,s.auditMoveId,10127);assert.equal(s.fighters[0].hp,1000);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29404",
+      "kind": "move",
+      "raw": {
+        "id": 29404,
+        "name": "大命天网",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          200,
+          449,
+          1248
+        ],
+        "effectInstances": [
+          {
+            "id": 200,
+            "args": [
+              100,
+              2
+            ],
+            "description": "若对手处于能力提升状态，100%概率令对手烧伤"
+          },
+          {
+            "id": 449,
+            "args": [
+              100,
+              5
+            ],
+            "description": "若对手处于能力下降状态则100%概率冻伤"
+          },
+          {
+            "id": 1248,
+            "args": [
+              100,
+              1
+            ],
+            "description": "对手处于异常状态时100%令对手中毒"
+          }
+        ],
+        "description": "若对手处于能力提升状态，100%概率令对手烧伤；若对手处于能力下降状态则100%概率冻伤；对手处于异常状态时100%令对手中毒",
+        "revision": "seerapi:a4260c71",
+        "hash": "a4260c71",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "23b707cc85e898c62c3fc7f9580c119f338c1112752e01ee67d7722714e1be63",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29404:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 200,
+          "args": [
+            100,
+            2
+          ],
+          "description": "若对手处于能力提升状态，100%概率令对手烧伤"
+        },
+        "index": 0,
+        "description": "若对手处于能力提升状态，100%概率令对手烧伤；若对手处于能力下降状态则100%概率冻伤；对手处于异常状态时100%令对手中毒",
+        "metadata": {
+          "id": 200,
+          "argsNum": 2,
+          "template": "若对手处于能力提升状态，{0}%概率令对手{1}",
+          "revision": "seerapi:9f89b0"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:a4260c71"
+      },
+      "sourceDigest": "562ca7e7801e5c9a2695bf4e209bcf02a354da6b3c770108c6a7fec5f9600f95",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1296自然庇佑复用已确认50/30/20回复200/300/400、零红也触发与技能禁疗",
+          "assertion": "test('4923/1296自然庇佑复用已确认50/30/20回复200/300/400、零红也触发与技能禁疗',()=>{const values=new Set();for(let seed=1;seed<=48;seed++){const s=make({...row(1296),hp:1000,seed:Math.imul(seed,2654435761)>>>0});timer(s,0,'攻击伤害免疫');turn(s,s.auditMoveId,10127);assert.equal(sum(s,'attack',1),0);values.add(s.fighters[0].hp-1000);}assert.deepEqual(values,new Set([200,300,400]));const s=make({...row(1296),hp:1000});timer(s,0,'技能禁疗');timer(s,0,'攻击伤害免疫');turn(s,s.auditMoveId,10127);assert.equal(s.fighters[0].hp,1000);});"
+        },
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立",
+          "assertion": "test('4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立',()=>{for(const id of[200,449,1248])for(const condition of[false,true]){const s=make(row(id));if(condition){if(id===200)s.fighters[1].stages.atk=1;else if(id===449)s.fighters[1].stages.atk=-1;else s.fighters[1].ailments['超频']=3;}turn(s,s.auditMoveId,20309);assert.equal(!!s.fighters[1].ailments[id===200?'烧伤':id===449?'冻伤':'中毒'],condition);}const s=make(row(200));s.fighters[1].stages.atk=1;s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20309);assert.equal(s.fighters[1].ailments['烧伤'],undefined);assert.equal(s.fighters[1].counts.immune,0);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29404:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 449,
+          "args": [
+            100,
+            5
+          ],
+          "description": "若对手处于能力下降状态则100%概率冻伤"
+        },
+        "index": 1,
+        "description": "若对手处于能力提升状态，100%概率令对手烧伤；若对手处于能力下降状态则100%概率冻伤；对手处于异常状态时100%令对手中毒",
+        "metadata": {
+          "id": 449,
+          "argsNum": 2,
+          "template": "若对手处于能力下降状态则{0}%概率{1}",
+          "revision": "seerapi:57b6d157"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:a4260c71"
+      },
+      "sourceDigest": "af945962772fdc1917357f852700e7e3747b34971eae66551aceeeb6af56cd83",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立",
+          "assertion": "test('4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立',()=>{for(const id of[200,449,1248])for(const condition of[false,true]){const s=make(row(id));if(condition){if(id===200)s.fighters[1].stages.atk=1;else if(id===449)s.fighters[1].stages.atk=-1;else s.fighters[1].ailments['超频']=3;}turn(s,s.auditMoveId,20309);assert.equal(!!s.fighters[1].ailments[id===200?'烧伤':id===449?'冻伤':'中毒'],condition);}const s=make(row(200));s.fighters[1].stages.atk=1;s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20309);assert.equal(s.fighters[1].ailments['烧伤'],undefined);assert.equal(s.fighters[1].counts.immune,0);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29404:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1248,
+          "args": [
+            100,
+            1
+          ],
+          "description": "对手处于异常状态时100%令对手中毒"
+        },
+        "index": 2,
+        "description": "若对手处于能力提升状态，100%概率令对手烧伤；若对手处于能力下降状态则100%概率冻伤；对手处于异常状态时100%令对手中毒",
+        "metadata": {
+          "id": 1248,
+          "argsNum": 2,
+          "template": "对手处于异常状态时{0}%令对手{1}",
+          "revision": "seerapi:b584c3a3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:a4260c71"
+      },
+      "sourceDigest": "17f39102ddf9e9eff9bacc0f046d526c261174ede3e54dda38153a8780d48c21",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立",
+          "assertion": "test('4923/200正级烧伤、449负级冻伤、1248已有异常中毒，三项按实际条件与免异独立',()=>{for(const id of[200,449,1248])for(const condition of[false,true]){const s=make(row(id));if(condition){if(id===200)s.fighters[1].stages.atk=1;else if(id===449)s.fighters[1].stages.atk=-1;else s.fighters[1].ailments['超频']=3;}turn(s,s.auditMoveId,20309);assert.equal(!!s.fighters[1].ailments[id===200?'烧伤':id===449?'冻伤':'中毒'],condition);}const s=make(row(200));s.fighters[1].stages.atk=1;s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20309);assert.equal(s.fighters[1].ailments['烧伤'],undefined);assert.equal(s.fighters[1].counts.immune,0);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:37124",
+      "kind": "move",
+      "raw": {
+        "id": 37124,
+        "name": "质析",
+        "type": "次元",
+        "kind": "physical",
+        "power": 40,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1767
+        ],
+        "effectInstances": [
+          {
+            "id": 1767,
+            "args": [
+              0
+            ],
+            "description": "攻击时将对手的能力提升状态视为相应的能力下降状态"
+          }
+        ],
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态",
+        "revision": "seerapi:aaa27a62",
+        "hash": "aaa27a62",
+        "level": 29,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false,
+        "sourceParameterConfirmation": {
+          "questionId": "Q-N50-4600-001-4604-1767",
+          "record": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4604-user-confirmations.json",
+          "speciesId": 4604,
+          "skillId": 37124,
+          "skillHash": "aaa27a62",
+          "effectId": 1767,
+          "index": 0,
+          "args": [
+            0
+          ],
+          "effectRevision": "seerapi:d25219b2",
+          "answerOriginal": "是，0仅为冗余，按零参数语义执行"
+        }
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "1bdcb943d131d623c37cdcdc6a6659572c0413044ccd6645eddaa22ec01b5cc2",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:37124:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1767,
+          "args": [
+            0
+          ],
+          "description": "攻击时将对手的能力提升状态视为相应的能力下降状态"
+        },
+        "index": 0,
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态",
+        "metadata": {
+          "id": 1767,
+          "argsNum": 0,
+          "template": "攻击时将对手的能力提升状态视为相应的能力下降状态",
+          "revision": "seerapi:d25219b2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:aaa27a62"
+      },
+      "sourceDigest": "155c9f7b8f3d05e7a7ecea0582220b0157cfe1b321ee932662228afb029fa9b3",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1767同版冗余0保留，敌防御正级投影负级提高实际红伤但真实敌等级保留",
+          "assertion": "test('4923/1767同版冗余0保留，敌防御正级投影负级提高实际红伤但真实敌等级保留',()=>{let base;for(const level of[-2,0,2]){const s=make({...row(1767),targetHp:9000});s.fighters[1].stages.def=level;turn(s,s.auditMoveId,20309);if(level===-2)base=sum(s);if(level===2)assert.equal(sum(s),base);if(level===0)assert.ok(sum(s)<base);assert.equal(s.fighters[1].stages.def,level);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:37125",
+      "kind": "move",
+      "raw": {
+        "id": 37125,
+        "name": "余波",
+        "type": "水",
+        "kind": "special",
+        "power": 45,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          549
+        ],
+        "effectInstances": [
+          {
+            "id": 549,
+            "args": [
+              1
+            ],
+            "description": "随机附加烧伤、冻伤、中毒、害怕、疲惫、麻痹其中1种异常状态"
+          }
+        ],
+        "description": "随机附加烧伤、冻伤、中毒、害怕、疲惫、麻痹其中1种异常状态",
+        "revision": "seerapi:e7038ceb",
+        "hash": "e7038ceb",
+        "level": 33,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "ada0ffb80251ec4e4a14e60d04c80172cd4f7c5da58db678c69bbd1928b53b57",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:37125:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 549,
+          "args": [
+            1
+          ],
+          "description": "随机附加烧伤、冻伤、中毒、害怕、疲惫、麻痹其中1种异常状态"
+        },
+        "index": 0,
+        "description": "随机附加烧伤、冻伤、中毒、害怕、疲惫、麻痹其中1种异常状态",
+        "metadata": {
+          "id": 549,
+          "argsNum": 1,
+          "template": "随机附加烧伤、冻伤、中毒、害怕、疲惫、麻痹其中{0}种异常状态",
+          "revision": "seerapi:de4e481a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:e7038ceb"
+      },
+      "sourceDigest": "2758e8f1d0de86f8dd25ae665390948d41d1376032d1c6f5a6aa9b541b071dce",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/549六种限定池与独立2或3回合，559另六种敌实际攻击限定池，免异不重抽",
+          "assertion": "test('4923/549六种限定池与独立2或3回合，559另六种敌实际攻击限定池，免异不重抽',()=>{for(const id of[549,559]){const names=new Set(),times=new Set();for(let seed=1;seed<=64;seed++){const s=make({...row(id),seed:Math.imul(seed,2654435761)>>>0});turn(s,s.auditMoveId,id===559?10127:20117);for(const[name,end]of Object.entries(s.fighters[1].ailments)){names.add(name);times.add(end);}}assert.deepEqual(names,new Set(id===549?['烧伤','冻伤','中毒','害怕','疲惫','麻痹']:['烧伤','冻伤','中毒','麻痹','害怕','睡眠']));assert.deepEqual(times,new Set([2,3]));const s=make(row(id));s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,id===559?10127:20117);assert.deepEqual(s.fighters[1].ailments,{});assert.equal(s.fighters[1].counts.immune,0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29405",
+      "kind": "move",
+      "raw": {
+        "id": 29405,
+        "name": "浮光海市",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          559,
+          849
+        ],
+        "effectInstances": [
+          {
+            "id": 559,
+            "args": [
+              3
+            ],
+            "description": "3回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态"
+          },
+          {
+            "id": 849,
+            "args": [
+              3,
+              3
+            ],
+            "description": "3回合内每回合使用技能则造成伤害前随机吸取对手3项能力值-1"
+          }
+        ],
+        "description": "3回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态；3回合内每回合使用技能则造成伤害前随机吸取对手3项能力值-1",
+        "revision": "seerapi:2db6a5af",
+        "hash": "2db6a5af",
+        "level": 37,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "3c108e9303a626157c03a5275cdb316083a2befa92768107f2a12b710296b91e",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29405:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 559,
+          "args": [
+            3
+          ],
+          "description": "3回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态"
+        },
+        "index": 0,
+        "description": "3回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态；3回合内每回合使用技能则造成伤害前随机吸取对手3项能力值-1",
+        "metadata": {
+          "id": 559,
+          "argsNum": 1,
+          "template": "{0}回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态",
+          "revision": "seerapi:6d31f1d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:2db6a5af"
+      },
+      "sourceDigest": "6e26c7472ee0b731fc3b5b1c2fa594da9e69a2b27849a86f8796630ae70672a0",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/549六种限定池与独立2或3回合，559另六种敌实际攻击限定池，免异不重抽",
+          "assertion": "test('4923/549六种限定池与独立2或3回合，559另六种敌实际攻击限定池，免异不重抽',()=>{for(const id of[549,559]){const names=new Set(),times=new Set();for(let seed=1;seed<=64;seed++){const s=make({...row(id),seed:Math.imul(seed,2654435761)>>>0});turn(s,s.auditMoveId,id===559?10127:20117);for(const[name,end]of Object.entries(s.fighters[1].ailments)){names.add(name);times.add(end);}}assert.deepEqual(names,new Set(id===549?['烧伤','冻伤','中毒','害怕','疲惫','麻痹']:['烧伤','冻伤','中毒','麻痹','害怕','睡眠']));assert.deepEqual(times,new Set([2,3]));const s=make(row(id));s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,id===559?10127:20117);assert.deepEqual(s.fighters[1].ailments,{});assert.equal(s.fighters[1].counts.immune,0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29405:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 849,
+          "args": [
+            3,
+            3
+          ],
+          "description": "3回合内每回合使用技能则造成伤害前随机吸取对手3项能力值-1"
+        },
+        "index": 1,
+        "description": "3回合内若对手使用攻击技能则随机附加烧伤、冻伤、中毒、麻痹、害怕、睡眠中的一种异常状态；3回合内每回合使用技能则造成伤害前随机吸取对手3项能力值-1",
+        "metadata": {
+          "id": 849,
+          "argsNum": 2,
+          "template": "{0}回合内每回合使用技能则造成伤害前随机吸取对手{1}项能力值-1",
+          "revision": "seerapi:fb8abbcf"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:2db6a5af"
+      },
+      "sourceDigest": "6074f8222811c9b849ae48dedf806f2c2792cd571dde4de9b6f10a5a315bd5a5",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/849每实际使用技能吸三项、免弱不补抽且自身独立强化，423按实际防御固定伤害",
+          "assertion": "test('4923/849每实际使用技能吸三项、免弱不补抽且自身独立强化，423按实际防御固定伤害',()=>{for(const immune of[false,true]){const s=make(row(849));if(immune)timer(s,1,'免弱');turn(s,s.auditMoveId,20309);assert.equal(keys.filter(k=>s.fighters[0].stages[k]===1).length,3);assert.equal(keys.filter(k=>s.fighters[1].stages[k]===-1).length,immune?0:3);}for(const level of[-2,0,2]){const s=make(row(423));s.fighters[1].stages.def=level;turn(s,s.auditMoveId,20117);assert.equal(sum(s,'fixed'),level===-2?150:level===2?600:300);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:36292",
+      "kind": "move",
+      "raw": {
+        "id": 36292,
+        "name": "奇点",
+        "type": "神秘",
+        "kind": "physical",
+        "power": 0,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          423
+        ],
+        "effectInstances": [
+          {
+            "id": 423,
+            "args": [],
+            "description": "直接造成等同于对手防御值的固定伤害"
+          }
+        ],
+        "description": "直接造成等同于对手防御值的固定伤害",
+        "revision": "seerapi:ad4de666",
+        "hash": "ad4de666",
+        "level": 41,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "9310670cf6f1de0f446ace67a78895d7533af0e60df0fd5c26b904b40a0cb868",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:36292:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 423,
+          "args": [],
+          "description": "直接造成等同于对手防御值的固定伤害"
+        },
+        "index": 0,
+        "description": "直接造成等同于对手防御值的固定伤害",
+        "metadata": {
+          "id": 423,
+          "argsNum": 0,
+          "template": "直接造成等同于对手防御值的固定伤害",
+          "revision": "seerapi:a02ad5ac"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:ad4de666"
+      },
+      "sourceDigest": "b055107ab01ea2a95be65689eadd967597ab6a2f142b56a15f76bcb2da2ff995",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/849每实际使用技能吸三项、免弱不补抽且自身独立强化，423按实际防御固定伤害",
+          "assertion": "test('4923/849每实际使用技能吸三项、免弱不补抽且自身独立强化，423按实际防御固定伤害',()=>{for(const immune of[false,true]){const s=make(row(849));if(immune)timer(s,1,'免弱');turn(s,s.auditMoveId,20309);assert.equal(keys.filter(k=>s.fighters[0].stages[k]===1).length,3);assert.equal(keys.filter(k=>s.fighters[1].stages[k]===-1).length,immune?0:3);}for(const level of[-2,0,2]){const s=make(row(423));s.fighters[1].stages.def=level;turn(s,s.auditMoveId,20117);assert.equal(sum(s,'fixed'),level===-2?150:level===2?600:300);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:36293",
+      "kind": "move",
+      "raw": {
+        "id": 36293,
+        "name": "浅梦",
+        "type": "机械",
+        "kind": "special",
+        "power": 45,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          513
+        ],
+        "effectInstances": [
+          {
+            "id": 513,
+            "args": [],
+            "description": "处在烧伤、中毒、冻伤状态时威力翻倍，命中后解除这些异常状态"
+          }
+        ],
+        "description": "处在烧伤、中毒、冻伤状态时威力翻倍，命中后解除这些异常状态",
+        "revision": "seerapi:9092932",
+        "hash": "9092932",
+        "level": 45,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "72a635df066008f8ea0ddcf7f411c626674313106528e500c6e09ddfc6034a17",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:36293:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 513,
+          "args": [],
+          "description": "处在烧伤、中毒、冻伤状态时威力翻倍，命中后解除这些异常状态"
+        },
+        "index": 0,
+        "description": "处在烧伤、中毒、冻伤状态时威力翻倍，命中后解除这些异常状态",
+        "metadata": {
+          "id": 513,
+          "argsNum": 0,
+          "template": "处在烧伤、中毒、冻伤状态时威力翻倍，命中后解除这些异常状态",
+          "revision": "seerapi:2f331c69"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:9092932"
+      },
+      "sourceDigest": "d3857c9be609d5ccf83a783fe1996e0048c6c6e767192679caffd10dd4c1b71a",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/513烧毒冻威力翻倍命中才解除，1908原0%自伤100%附加自身半maxHP，技能等级不影响",
+          "assertion": "test('4923/513烧毒冻威力翻倍命中才解除，1908原0%自伤100%附加自身半maxHP，技能等级不影响',()=>{for(const status of['烧伤','中毒','冻伤']){const s=make(row(513)),z=make({...row(513),index:-1});s.fighters[0].ailments[status]=3;z.fighters[0].ailments[status]=3;turn(s,s.auditMoveId,20117);turn(z,z.auditMoveId,20117);assert.ok(sum(s)>sum(z)*1.8);assert.equal(s.fighters[0].ailments[status],undefined);}for(const level of[-6,0,6]){const s=make(row(1908));s.fighters[0].stages.spa=level;turn(s,s.auditMoveId,20117);assert.equal(sum(s,'percent'),4500);assert.equal(s.fighters[0].hp,9000);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29406",
+      "kind": "move",
+      "raw": {
+        "id": 29406,
+        "name": "座天星标",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1908
+        ],
+        "effectInstances": [
+          {
+            "id": 1908,
+            "args": [
+              0,
+              2,
+              100,
+              2
+            ],
+            "description": "0%概率受到自身最大体力1/2的百分比伤害，剩下100%概率附加自身最大体力1/2的百分比伤害"
+          }
+        ],
+        "description": "0%概率受到自身最大体力1/2的百分比伤害，剩下100%概率附加自身最大体力1/2的百分比伤害",
+        "revision": "seerapi:1a780c65",
+        "hash": "1a780c65",
+        "level": 49,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "6bf3d9141a9bb62388bfb39d2a3e9549915687aa732cd830ad949461b7b5cf00",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29406:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1908,
+          "args": [
+            0,
+            2,
+            100,
+            2
+          ],
+          "description": "0%概率受到自身最大体力1/2的百分比伤害，剩下100%概率附加自身最大体力1/2的百分比伤害"
+        },
+        "index": 0,
+        "description": "0%概率受到自身最大体力1/2的百分比伤害，剩下100%概率附加自身最大体力1/2的百分比伤害",
+        "metadata": {
+          "id": 1908,
+          "argsNum": 4,
+          "template": "{0}%概率受到自身最大体力1/{1}的百分比伤害，剩下{2}%概率附加自身最大体力1/{3}的百分比伤害",
+          "revision": "seerapi:cc0b9fdf"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:1a780c65"
+      },
+      "sourceDigest": "7cd3ecad37aa8d3912134c9cf3b51bac78c4d6b1084bff4f7945169039d77997",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/513烧毒冻威力翻倍命中才解除，1908原0%自伤100%附加自身半maxHP，技能等级不影响",
+          "assertion": "test('4923/513烧毒冻威力翻倍命中才解除，1908原0%自伤100%附加自身半maxHP，技能等级不影响',()=>{for(const status of['烧伤','中毒','冻伤']){const s=make(row(513)),z=make({...row(513),index:-1});s.fighters[0].ailments[status]=3;z.fighters[0].ailments[status]=3;turn(s,s.auditMoveId,20117);turn(z,z.auditMoveId,20117);assert.ok(sum(s)>sum(z)*1.8);assert.equal(s.fighters[0].ailments[status],undefined);}for(const level of[-6,0,6]){const s=make(row(1908));s.fighters[0].stages.spa=level;turn(s,s.auditMoveId,20117);assert.equal(sum(s,'percent'),4500);assert.equal(s.fighters[0].hp,9000);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29396",
+      "kind": "move",
+      "raw": {
+        "id": 29396,
+        "name": "源数",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2535,
+          191,
+          2109,
+          1004
+        ],
+        "effectInstances": [
+          {
+            "id": 2535,
+            "args": [],
+            "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1"
+          },
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 2109,
+            "args": [
+              1
+            ],
+            "description": "免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态"
+          },
+          {
+            "id": 1004,
+            "args": [
+              4,
+              150
+            ],
+            "description": "4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍"
+          }
+        ],
+        "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1；4回合内免疫并反弹所有受到的异常状态；免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态；4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍",
+        "revision": "seerapi:570e0371",
+        "hash": "570e0371",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "91f7879bc873facf6950b77b67d380406c19c59c6c810e2242d035d4f066ae9c",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29396:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2535,
+          "args": [],
+          "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1"
+        },
+        "index": 0,
+        "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1；4回合内免疫并反弹所有受到的异常状态；免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态；4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍",
+        "metadata": {
+          "id": 2535,
+          "argsNum": 0,
+          "template": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1",
+          "revision": "seerapi:acdcaf"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:570e0371"
+      },
+      "sourceDigest": "99394e8cc08dcd2cc56897a501e9b089ca5b3f71a315589fefddcad9e44ca10f",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1",
+          "assertion": "test('4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1',()=>{for(const good of[false,true]){const s=make(row(2535));cities(s,good?['序','源']:['源','序']);turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].soulState.resolvedPriority.value,good?1:0);const p=make(row(2536));cities(p,good?['源','逐']:['逐','源']);turn(p,p.auditMoveId,20117);assert.equal(!!p.fighters[1].ailments['冻伤'],good);}const s=make(row(2536));cities(s,['源','逐']);s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20117);assert.equal(s.fighters[1].ailments['冻伤'],undefined);const a=make(row(2537)),b=make(row(2537));cities(a,['逐','理']);cities(b,['理','逐']);a.fighters[1].type=b.fighters[1].type='飞行';turn(a,a.auditMoveId,20117);turn(b,b.auditMoveId,20117);assert.ok(sum(a)>sum(b));});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29396:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 1,
+        "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1；4回合内免疫并反弹所有受到的异常状态；免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态；4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:570e0371"
+      },
+      "sourceDigest": "c9036d1a0ffb4a6be869f89613d4cb1863a4971ad2986352fca3311cac5e5126",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2",
+          "assertion": "test('4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2',()=>{const p=make(row(191));p.fighters[0].counts.immune=1;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(p,p.auditMoveId,20117));assert.equal(p.fighters[0].counts.immune,1);assert.ok(p.fighters[1].ailments['中毒']);const s=make(row(2109));s.fighters[1].stages.atk=2;timer(s,1,'test-round');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(s,s.auditMoveId,20309));assert.equal(s.fighters[1].stages.atk,0);assert.equal(s.fighters[1].effects['test-round'],undefined);assert.equal(s.fighters[0].ailments['中毒'],undefined);for(const boost of[0,1]){const x=make(row(962));x.fighters[0].stages.atk=boost;turn(x,x.auditMoveId,20117);assert.equal(x.fighters[0].stages.atk,2);assert.equal(x.fighters[0].stages.def,boost?1:2);}const a=make({...row(843),loadout:[29397,38464,29395,29396,29398]});turn(a,29397,20117);for(let r=2;r<=4;r++){turn(a,38464,20117);assert.equal(a.fighters[0].soulState.resolvedPriority.value,r<=3?2:0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29396:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2109,
+          "args": [
+            1
+          ],
+          "description": "免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态"
+        },
+        "index": 2,
+        "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1；4回合内免疫并反弹所有受到的异常状态；免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态；4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍",
+        "metadata": {
+          "id": 2109,
+          "argsNum": 1,
+          "template": "免疫下{0}次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态",
+          "revision": "seerapi:46f9875b"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:570e0371"
+      },
+      "sourceDigest": "d8a69bbde6b22275bbd4920519d199a65f56971065d9f78e0532fedefc339dd6",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2",
+          "assertion": "test('4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2',()=>{const p=make(row(191));p.fighters[0].counts.immune=1;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(p,p.auditMoveId,20117));assert.equal(p.fighters[0].counts.immune,1);assert.ok(p.fighters[1].ailments['中毒']);const s=make(row(2109));s.fighters[1].stages.atk=2;timer(s,1,'test-round');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(s,s.auditMoveId,20309));assert.equal(s.fighters[1].stages.atk,0);assert.equal(s.fighters[1].effects['test-round'],undefined);assert.equal(s.fighters[0].ailments['中毒'],undefined);for(const boost of[0,1]){const x=make(row(962));x.fighters[0].stages.atk=boost;turn(x,x.auditMoveId,20117);assert.equal(x.fighters[0].stages.atk,2);assert.equal(x.fighters[0].stages.def,boost?1:2);}const a=make({...row(843),loadout:[29397,38464,29395,29396,29398]});turn(a,29397,20117);for(let r=2;r<=4;r++){turn(a,38464,20117);assert.equal(a.fighters[0].soulState.resolvedPriority.value,r<=3?2:0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29396:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1004,
+          "args": [
+            4,
+            150
+          ],
+          "description": "4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍"
+        },
+        "index": 3,
+        "description": "己方拥有蜃都之源时，若己方蜃都之源的转化顺序位于蜃都之序之后则此技能先制+1；4回合内免疫并反弹所有受到的异常状态；免疫下1次受到的异常状态，免疫成功后消除对手回合类效果与能力提升状态；4回合内使用技能附加150点固定伤害，若自身体力高于对手则效果翻倍",
+        "metadata": {
+          "id": 1004,
+          "argsNum": 2,
+          "template": "{0}回合内使用技能附加{1}点固定伤害，若自身体力高于对手则效果翻倍",
+          "revision": "seerapi:8996699c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:570e0371"
+      },
+      "sourceDigest": "d9d8349a23dbb7414a99ed25aaa2567da76b1430e412037af498bdfb84cbfce9",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1004实际用招固定150，高于敌HP才翻倍，1808命中前回合条件增红并命中后清除",
+          "assertion": "test('4923/1004实际用招固定150，高于敌HP才翻倍，1808命中前回合条件增红并命中后清除',()=>{for(const hp of[7999,8000,8001]){const s=make({...row(1004),hp,targetHp:8000});turn(s,s.auditMoveId,20117);assert.equal(sum(s,'fixed'),hp>8000?300:150);}const s=make(row(1808)),z=make(row(1808));timer(s,1,'test-round');z.fighters[1].effects={};turn(s,s.auditMoveId,20117);turn(z,z.auditMoveId,20117);assert.ok(Math.abs(sum(s)-sum(z)*2)<=1);assert.equal(s.fighters[1].effects['test-round'],undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29397",
+      "kind": "move",
+      "raw": {
+        "id": 29397,
+        "name": "逐海",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2536,
+          962,
+          1892,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 2536,
+            "args": [],
+            "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤"
+          },
+          {
+            "id": 962,
+            "args": [
+              1
+            ],
+            "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+          },
+          {
+            "id": 1892,
+            "args": [
+              4,
+              300,
+              2,
+              150
+            ],
+            "description": "4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤；全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:455946da",
+        "hash": "455946da",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "60c46b2b3f97d4b9d999ea119d706bf1e6bf828308accea6402a7b95267f1366",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29397:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2536,
+          "args": [],
+          "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤"
+        },
+        "index": 0,
+        "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤；全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 2536,
+          "argsNum": 0,
+          "template": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤",
+          "revision": "seerapi:732df097"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:455946da"
+      },
+      "sourceDigest": "dbe7ca80a4168ad7d59c9c9caeab54a1a3a63937de57ed9f3f8a1d4e623429ed",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1",
+          "assertion": "test('4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1',()=>{for(const good of[false,true]){const s=make(row(2535));cities(s,good?['序','源']:['源','序']);turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].soulState.resolvedPriority.value,good?1:0);const p=make(row(2536));cities(p,good?['源','逐']:['逐','源']);turn(p,p.auditMoveId,20117);assert.equal(!!p.fighters[1].ailments['冻伤'],good);}const s=make(row(2536));cities(s,['源','逐']);s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20117);assert.equal(s.fighters[1].ailments['冻伤'],undefined);const a=make(row(2537)),b=make(row(2537));cities(a,['逐','理']);cities(b,['理','逐']);a.fighters[1].type=b.fighters[1].type='飞行';turn(a,a.auditMoveId,20117);turn(b,b.auditMoveId,20117);assert.ok(sum(a)>sum(b));});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29397:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 962,
+          "args": [
+            1
+          ],
+          "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+        },
+        "index": 1,
+        "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤；全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 962,
+          "argsNum": 1,
+          "template": "全属性+{0}，自身不处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:40fccdb9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:455946da"
+      },
+      "sourceDigest": "8fc9cd23acbecef432b0331b00cfe7cb9a6d65145861c5aa72f86821e874a728",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2",
+          "assertion": "test('4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2',()=>{const p=make(row(191));p.fighters[0].counts.immune=1;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(p,p.auditMoveId,20117));assert.equal(p.fighters[0].counts.immune,1);assert.ok(p.fighters[1].ailments['中毒']);const s=make(row(2109));s.fighters[1].stages.atk=2;timer(s,1,'test-round');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(s,s.auditMoveId,20309));assert.equal(s.fighters[1].stages.atk,0);assert.equal(s.fighters[1].effects['test-round'],undefined);assert.equal(s.fighters[0].ailments['中毒'],undefined);for(const boost of[0,1]){const x=make(row(962));x.fighters[0].stages.atk=boost;turn(x,x.auditMoveId,20117);assert.equal(x.fighters[0].stages.atk,2);assert.equal(x.fighters[0].stages.def,boost?1:2);}const a=make({...row(843),loadout:[29397,38464,29395,29396,29398]});turn(a,29397,20117);for(let r=2;r<=4;r++){turn(a,38464,20117);assert.equal(a.fighters[0].soulState.resolvedPriority.value,r<=3?2:0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29397:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1892,
+          "args": [
+            4,
+            300,
+            2,
+            150
+          ],
+          "description": "4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害"
+        },
+        "index": 2,
+        "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤；全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1892,
+          "argsNum": 4,
+          "template": "{0}回合内每回合使用技能吸取对手{1}点体力，吸取体力时若自身体力低于最大体力的1/{2}则吸取效果翻倍，若对手未受到固定伤害则额外附加{3}点真实伤害",
+          "revision": "seerapi:7cb271f1"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:455946da"
+      },
+      "sourceDigest": "fa95ca2b198f5d1b20a13364369f3225da1c6bb8e159f4944e4c0a2ea48e7355",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/1892实际用招固定吸取正常300低体600理论回复，免固零伤额外150真伤，MISS仍触发",
+          "assertion": "test('4923/1892实际用招固定吸取正常300低体600理论回复，免固零伤额外150真伤，MISS仍触发',()=>{for(const mode of['normal','low','immune','invalid','ban']){const s=make({...row(1892),hp:mode==='low'?4499:4500,loadout});if(mode==='immune')timer(s,1,'固定百分比免疫');if(mode==='ban')timer(s,0,'技能禁疗');turn(s,29397,20117);assert.equal(sum(s,'fixed'),mode==='immune'?0:mode==='low'?600:300);assert.equal(sum(s,'true'),mode==='immune'?150:0);assert.equal(s.fighters[0].hp,mode==='low'?5099:mode==='ban'?4500:4800);if(mode==='invalid'){timer(s,0,'skillBlock');turn(s,29395,20117);assert.equal(sum(s,'fixed'),300);assert.equal(s.fighters[0].hp,5100);}}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29397:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 3,
+        "description": "己方拥有蜃都之逐时，若己方蜃都之逐的转化顺序位于蜃都之源之后则令对手冻伤；全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手300点体力，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，若对手未受到固定伤害则额外附加150点真实伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:455946da"
+      },
+      "sourceDigest": "77cf09629abcb58ff175a5d9fdf618c3608be5e57a8a16620d1c7de6d8456232",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2",
+          "assertion": "test('4923/191反弹优先计次免异，2109次数成功清敌回合和正级，962无强化全二、已有全一，843次两回全先制2',()=>{const p=make(row(191));p.fighters[0].counts.immune=1;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(p,p.auditMoveId,20117));assert.equal(p.fighters[0].counts.immune,1);assert.ok(p.fighters[1].ailments['中毒']);const s=make(row(2109));s.fighters[1].stages.atk=2;timer(s,1,'test-round');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.ailment(c.t,'中毒',c.a,false,false,3);},()=>turn(s,s.auditMoveId,20309));assert.equal(s.fighters[1].stages.atk,0);assert.equal(s.fighters[1].effects['test-round'],undefined);assert.equal(s.fighters[0].ailments['中毒'],undefined);for(const boost of[0,1]){const x=make(row(962));x.fighters[0].stages.atk=boost;turn(x,x.auditMoveId,20117);assert.equal(x.fighters[0].stages.atk,2);assert.equal(x.fighters[0].stages.def,boost?1:2);}const a=make({...row(843),loadout:[29397,38464,29395,29396,29398]});turn(a,29397,20117);for(let r=2;r<=4;r++){turn(a,38464,20117);assert.equal(a.fighters[0].soulState.resolvedPriority.value,r<=3?2:0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:38460",
+      "kind": "move",
+      "raw": {
+        "id": 38460,
+        "name": "理律",
+        "type": "机械地面",
+        "kind": "special",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2537,
+          1808,
+          2459,
+          2121
+        ],
+        "effectInstances": [
+          {
+            "id": 2537,
+            "args": [],
+            "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1"
+          },
+          {
+            "id": 1808,
+            "args": [
+              100
+            ],
+            "description": "若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果"
+          },
+          {
+            "id": 2459,
+            "args": [
+              1,
+              100
+            ],
+            "description": "与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%"
+          },
+          {
+            "id": 2121,
+            "args": [
+              30
+            ],
+            "description": "未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合"
+          }
+        ],
+        "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1；若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果；与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%；未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合",
+        "revision": "seerapi:45d1e022",
+        "hash": "45d1e022",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "83e6fb1f3f2ac732b22787c653754dfe5f4c8f0c250d9ee46831d9398a53c761",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:38460:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2537,
+          "args": [],
+          "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1"
+        },
+        "index": 0,
+        "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1；若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果；与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%；未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合",
+        "metadata": {
+          "id": 2537,
+          "argsNum": 0,
+          "template": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1",
+          "revision": "seerapi:fc7a933"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:45d1e022"
+      },
+      "sourceDigest": "97b1032952d2e66b5272e000f1a5132028c5286051f7836c3c99f2cbd993afd5",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1",
+          "assertion": "test('4923/2535源在序后先制1，2536逐在源后实际冻伤及免疫失败，2537理在逐后真实克制下限1',()=>{for(const good of[false,true]){const s=make(row(2535));cities(s,good?['序','源']:['源','序']);turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].soulState.resolvedPriority.value,good?1:0);const p=make(row(2536));cities(p,good?['源','逐']:['逐','源']);turn(p,p.auditMoveId,20117);assert.equal(!!p.fighters[1].ailments['冻伤'],good);}const s=make(row(2536));cities(s,['源','逐']);s.fighters[1].counts.immune=1;turn(s,s.auditMoveId,20117);assert.equal(s.fighters[1].ailments['冻伤'],undefined);const a=make(row(2537)),b=make(row(2537));cities(a,['逐','理']);cities(b,['理','逐']);a.fighters[1].type=b.fighters[1].type='飞行';turn(a,a.auditMoveId,20117);turn(b,b.auditMoveId,20117);assert.ok(sum(a)>sum(b));});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:38460:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1808,
+          "args": [
+            100
+          ],
+          "description": "若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果"
+        },
+        "index": 1,
+        "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1；若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果；与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%；未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合",
+        "metadata": {
+          "id": 1808,
+          "argsNum": 1,
+          "template": "若对手处于回合类效果则造成伤害提升{0}%并消除对手回合类效果",
+          "revision": "seerapi:12ba126b"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:45d1e022"
+      },
+      "sourceDigest": "6bb599cee592a8e69a6615cf9f5f176a8b50801f8e8155623bf3a2f0dbbb50fd",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-public.test.cjs",
+          "name": "4923/1004实际用招固定150，高于敌HP才翻倍，1808命中前回合条件增红并命中后清除",
+          "assertion": "test('4923/1004实际用招固定150，高于敌HP才翻倍，1808命中前回合条件增红并命中后清除',()=>{for(const hp of[7999,8000,8001]){const s=make({...row(1004),hp,targetHp:8000});turn(s,s.auditMoveId,20117);assert.equal(sum(s,'fixed'),hp>8000?300:150);}const s=make(row(1808)),z=make(row(1808));timer(s,1,'test-round');z.fighters[1].effects={};turn(s,s.auditMoveId,20117);turn(z,z.auditMoveId,20117);assert.ok(Math.abs(sum(s)-sum(z)*2)<=1);assert.equal(s.fighters[1].effects['test-round'],undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:38460:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2459,
+          "args": [
+            1,
+            100
+          ],
+          "description": "与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%"
+        },
+        "index": 2,
+        "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1；若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果；与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%；未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合",
+        "metadata": {
+          "id": 2459,
+          "argsNum": 2,
+          "template": "与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下{0}次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升{1}%",
+          "revision": "seerapi:91690af2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:45d1e022"
+      },
+      "sourceDigest": "56652ed859aea4db4ebe1028eb6e2eda4c8023098ba6dfa234727cd7a836cb5c",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2459仅交换己低于敌等级、按交换后真实状态授来源免攻及次轮红伤翻倍",
+          "assertion": "test('4923/2459仅交换己低于敌等级、按交换后真实状态授来源免攻及次轮红伤翻倍',()=>{const s=make({...row(2459),loadout});s.fighters[0].stages.atk=-2;s.fighters[1].stages.atk=2;s.fighters[0].stages.def=3;s.fighters[1].stages.def=1;turn(s,38460,20309);assert.equal(s.fighters[0].stages.atk,2);assert.equal(s.fighters[1].stages.atk,-2);assert.equal(s.fighters[0].stages.def,3);assert.equal(s.fighters[1].stages.def,1);assert.equal(s.fighters[0].counts.attackNullify,1);const z=structuredClone(s);delete z.fighters[0].effects.id913;turn(s,38460,10127);turn(z,38460,10127);assert.ok(Math.abs(sum(s)-sum(z)*2)<=1);assert.equal(sum(s,'attack',1),0);});"
+        },
+        {
+          "file": "tests/remaining-4923-interactions.test.cjs",
+          "name": "4923/2459次数免攻同源刷新不叠加，技能禁疗独立于2121免粉理论回复",
+          "assertion": "test('4923/2459次数免攻同源刷新不叠加，技能禁疗独立于2121免粉理论回复',()=>{const s=make({move:38460,index:2,loadout});s.fighters[0].stages.atk=1;s.fighters[1].stages.def=-1;turn(s,38460,20309);assert.equal(s.fighters[0].counts.attackNullify,1);turn(s,38460,20309);assert.equal(s.fighters[0].counts.attackNullify,1);const p=make({move:38460,index:3,hp:1000});timer(p,0,'技能禁疗');timer(p,1,'固定百分比免疫');turn(p,38460,20117);assert.equal(p.fighters[0].hp,1000);assert.equal(sum(p,'percent'),0);assert.equal(p.fighters[0].soulState.continuations2121_4753.length,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:38460:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2121,
+          "args": [
+            30
+          ],
+          "description": "未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合"
+        },
+        "index": 3,
+        "description": "己方拥有蜃都之理时，若己方蜃都之理的转化顺序位于蜃都之逐之后则此技能克制系数至少为1；若对手处于回合类效果则造成伤害提升100%并消除对手回合类效果；与对手交换自身低于对手的能力等级，然后若对手处于能力下降状态则自身免疫下1次受到的攻击，若自身处于能力提升状态则自身下回合造成的攻击伤害提升100%；未击败对手则己方在场精灵吸取对手最大体力的30%，吸取后若对手体力未减少则延续至下回合",
+        "metadata": {
+          "id": 2121,
+          "argsNum": 1,
+          "template": "未击败对手则己方在场精灵吸取对手最大体力的{0}%，吸取后若对手体力未减少则延续至下回合",
+          "revision": "seerapi:1960cdb5"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:45d1e022"
+      },
+      "sourceDigest": "b7483eda6f92230e729ffbcbb3cccc323cf28d5700960ae4d6c002d4a83608dc",
+      "scope": "mixed",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2121未KO按敌max30%理论回复，免粉仍回复并次回实际用招延续一次，药剂不消费且过期",
+          "assertion": "test('4923/2121未KO按敌max30%理论回复，免粉仍回复并次回实际用招延续一次，药剂不消费且过期',()=>{for(const next of['skill','potion']){const s=make({...row(2121),hp:1000,loadout});timer(s,1,'固定百分比免疫');turn(s,38460,20117);assert.equal(s.fighters[0].hp,3700);assert.equal(sum(s,'percent'),0);assert.equal(s.fighters[0].soulState.continuations2121_4753.length,1);delete s.fighters[1].effects['固定百分比免疫'];turn(s,next==='skill'?29398:null,20117);assert.equal(sum(s,'percent'),next==='skill'?2700:0);assert.equal(s.fighters[0].hp,next==='skill'?6400:3950);turn(s,29398,20117);assert.equal(sum(s,'percent'),0);}const k=make({...row(2121),hp:1000,targetHp:1});turn(k,k.auditMoveId,20117);assert.equal(k.fighters[0].hp,1000);});"
+        },
+        {
+          "file": "tests/remaining-4923-interactions.test.cjs",
+          "name": "4923/2459次数免攻同源刷新不叠加，技能禁疗独立于2121免粉理论回复",
+          "assertion": "test('4923/2459次数免攻同源刷新不叠加，技能禁疗独立于2121免粉理论回复',()=>{const s=make({move:38460,index:2,loadout});s.fighters[0].stages.atk=1;s.fighters[1].stages.def=-1;turn(s,38460,20309);assert.equal(s.fighters[0].counts.attackNullify,1);turn(s,38460,20309);assert.equal(s.fighters[0].counts.attackNullify,1);const p=make({move:38460,index:3,hp:1000});timer(p,0,'技能禁疗');timer(p,1,'固定百分比免疫');turn(p,38460,20117);assert.equal(p.fighters[0].hp,1000);assert.equal(sum(p,'percent'),0);assert.equal(p.fighters[0].soulState.continuations2121_4753.length,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:move:29398",
+      "kind": "move",
+      "raw": {
+        "id": 29398,
+        "name": "彼空都·蜃气楼",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2538,
+          1794
+        ],
+        "effectInstances": [
+          {
+            "id": 2538,
+            "args": [],
+            "description": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵"
+          },
+          {
+            "id": 1794,
+            "args": [
+              2,
+              1,
+              50
+            ],
+            "description": "技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%"
+          }
+        ],
+        "description": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵；技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%",
+        "revision": "seerapi:b4a7b601",
+        "hash": "b4a7b601",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4923",
+        "revision": "ab61fbe6",
+        "loadedAt": "2026-11-03T06:17:05.922Z"
+      },
+      "sourceDigest": "97a4c82750715d488d5eb6d4739f56e88ea0489093361c7184c79f7f838488f3",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-native.test.cjs",
+          "name": "4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射",
+          "assertion": "test('4923全部17招各64种子真实HP/PP及原生2119全部17招用招，不伪造未答蜃楼映射',()=>{for(const m of source.moves)for(let seed=1;seed<=64;seed++){const s=make({move:m.id,seed:Math.imul(seed,2654435761)>>>0}),pp=s.fighters[0].pp[key(m.id)];turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].pp[key(m.id)],pp-1);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}for(const m of source.moves){const s=make({move:m.id,soul:true});turn(s,m.id,20309);assert.equal(s.round,2);assert.equal(s.fighters[0].soulState.mirage2119.remaining,4);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)&&f.hp>=0&&f.hp<=f.stats.maxHp));}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29398:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2538,
+          "args": [],
+          "description": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵"
+        },
+        "index": 0,
+        "description": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵；技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%",
+        "metadata": {
+          "id": 2538,
+          "argsNum": 0,
+          "template": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵",
+          "revision": "seerapi:f00d7102"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:b4a7b601"
+      },
+      "sourceDigest": "1843401aa5753bfd60f4297998d0b4d6dcdaf90bacdac24598674e84f6e93c67",
+      "scope": "multiplayer",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2538四楼条件仅登记真实换宠限制不封当前行动；1794整招无效半体技能回复与下次减红50%，命中零红不补偿",
+          "assertion": "test('4923/2538四楼条件仅登记真实换宠限制不封当前行动；1794整招无效半体技能回复与下次减红50%，命中零红不补偿',()=>{const s=make(row(2538));cities(s,['序','源','逐','理']);turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].soulState.mirageSwitchRequest4923.through,4);assert.equal(s.fighters[1].stages.atk,1);for(const invalid of[false,true]){const p=make({...row(1794),hp:1000});if(invalid)timer(p,0,'statusBlock');turn(p,p.auditMoveId,20117);assert.equal(p.fighters[0].hp,invalid?5500:1000);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4923:skill:29398:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1794,
+          "args": [
+            2,
+            1,
+            50
+          ],
+          "description": "技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%"
+        },
+        "index": 1,
+        "description": "己方同时拥有蜃都之序、蜃都之源、蜃都之逐、蜃都之理时，对手4回合内无法主动切换精灵；技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%",
+        "metadata": {
+          "id": 1794,
+          "argsNum": 3,
+          "template": "技能无效时，恢复自身最大体力的1/2且下1次受到的攻击伤害额外减少50%",
+          "revision": "seerapi:8650c556"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4923",
+          "revision": "ab61fbe6",
+          "loadedAt": "2026-11-03T06:17:05.922Z"
+        },
+        "skillRevision": "seerapi:b4a7b601"
+      },
+      "sourceDigest": "e17ceb8c8c1b416ab0c527ab3f12f2a8d57443ba2a8b5aa4a43eff02be41e8a0",
+      "scope": "single",
+      "status": "known-branches-state-tested",
+      "tests": [
+        {
+          "file": "tests/remaining-4923-skills.test.cjs",
+          "name": "4923/2538四楼条件仅登记真实换宠限制不封当前行动；1794整招无效半体技能回复与下次减红50%，命中零红不补偿",
+          "assertion": "test('4923/2538四楼条件仅登记真实换宠限制不封当前行动；1794整招无效半体技能回复与下次减红50%，命中零红不补偿',()=>{const s=make(row(2538));cities(s,['序','源','逐','理']);turn(s,s.auditMoveId,20117);assert.equal(s.fighters[0].soulState.mirageSwitchRequest4923.through,4);assert.equal(s.fighters[1].stages.atk,1);for(const invalid of[false,true]){const p=make({...row(1794),hp:1000});if(invalid)timer(p,0,'statusBlock');turn(p,p.auditMoveId,20117);assert.equal(p.fighters[0].hp,invalid?5500:1000);}});"
+        }
+      ],
+      "pendingQuestions": []
+    }
+  ],
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4923-001"
+  ],
+  "pendingBatchWork": [
+    "最终同版专项/接入及新完整npm"
+  ]
+}

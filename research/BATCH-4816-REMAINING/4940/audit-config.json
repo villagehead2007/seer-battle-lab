@@ -1,0 +1,103 @@
+{
+  "id": 4940,
+  "proofs": [
+    "known-v1",
+    "native-v2",
+    "affected-v1"
+  ],
+  "files": [
+    "tests/remaining-4940-soul.test.cjs",
+    "tests/remaining-4940-skills.test.cjs",
+    "tests/remaining-4940-public.test.cjs",
+    "tests/remaining-4940-interactions.test.cjs",
+    "tests/remaining-4940-native.test.cjs"
+  ],
+  "questions": [
+    "Q-4940-001"
+  ],
+  "pendingByKey": {
+    "4940:skill:29440:1": [
+      "Q-4940-001"
+    ]
+  },
+  "reviews": {
+    "4940:soul:2140": {
+      "scope": "mixed",
+      "rationale": "原文明示己方下只出战精灵，不能以当前对手代替。",
+      "singleBehavior": "回合开始严格高半免麻痹与成功清回合清强；实际麻痹准入记录、死亡继承条件已实现验证。",
+      "deferredBehavior": "实际下一只己方出场获得本场永久免麻痹，换宠重建本次在场记录。",
+      "trigger": "自身被击败且本次在场实际受到过麻痹。",
+      "futureMechanisms": [
+        "队伍与真实下一只出场",
+        "跨精灵永久免疫状态传递",
+        "再次登场在场记录生命周期"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "next-entry",
+          "quote": "则己方下只出战精灵本场战斗免疫麻痹状态",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4940/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2140",
+            "revision": "356c53e0"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js",
+        "dist/effect-registry.js"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4940:skill:29440:1": {
+      "scope": "mixed",
+      "rationale": "主动切换精灵需要真实换宠；盾罩清除、比较及封属性技能当前可触发。",
+      "singleBehavior": "双方护盾与护罩分别累计并清除，非零相等封属性3回合；不等不封，零对零抛出待答错误并回滚。",
+      "deferredBehavior": "阻止对手实际主动换宠3回合。",
+      "trigger": "清除的护盾总额与护罩总额相等，零对零尚待确认。",
+      "futureMechanisms": [
+        "主动换宠选择与合法性校验",
+        "与被动换宠的区分"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "switch",
+          "quote": "对手3回合内无法主动切换精灵且属性技能无效",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4940/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/29440",
+            "revision": "seerapi:31105950"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js",
+        "dist/effect-registry.js"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    }
+  },
+  "implementation": [
+    "dist/range-effects.js",
+    "dist/range-souls.js",
+    "dist/souls.js",
+    "dist/effect-registry.js"
+  ],
+  "summary": "22招及2140/356c53e0已知当前分支已核验；2492零盾罩比较待答，下一只出场继承与真正主动换宠独立延期。",
+  "limitations": [
+    "全部技能链每招16种子；29440仅预置双方盾罩总额不等的已知情况，未认证零对零分支。",
+    "魂印当前分支完整，但该精灵技能仍有待答问题，正式接入保持拒绝。"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "at": "2026-11-04T06:58:29.663Z",
+  "originalAssertionsPreserved": true,
+  "failures": [
+    {
+      "proof": "soul-v1",
+      "pass": 2,
+      "fail": 3,
+      "reasons": [
+        "测试最大HP10000超过既有1–9999约束，改用9999",
+        "模拟Soul beforeUse追加并非技能伤害，虚无正确不拦；改用真实11261固定伤害检验待答",
+        "轮回恢复误插入提前死亡返回支路，移动到真实回合最终返回前"
+      ]
+    },
+    {
+      "proof": "soul-v2",
+      "pass": 4,
+      "fail": 1,
+      "reasons": [
+        "第二次攻击被虚无正确免疫，不能错误期待轮回不复活即死亡；验证免疫消耗后第三次致死不再轮回"
+      ]
+    },
+    {
+      "proof": "known-v1",
+      "pass": 10,
+      "fail": 1,
+      "reasons": [
+        "24319真实PP为5，断言改为来源字段，回滚PP保护断言保留"
+      ]
+    },
+    {
+      "proof": "public-v1",
+      "pass": 18,
+      "fail": 5,
+      "reasons": [
+        "11274原先制-6，先手试验须实际先制提升；断言实际先手后保持无前伤害无反馈",
+        "20117攻击强化在偷取后发生，干扰敌等级归零，改用不强化真实20309",
+        "18006和31142原先制1，不能用速度制造后手；改用真实先制3技能37920并断言实际顺序",
+        "伤害向下取整使低值28与72比例有整数偏差，改用更高合法面板增强分辨率，原2.5倍率断言保留"
+      ]
+    },
+    {
+      "proof": "boundaries-v1",
+      "pass": 3,
+      "fail": 1,
+      "reasons": [
+        "完全免疫可能没有damageEvents数组，按空账本求和并新增目标HP保持9000断言"
+      ]
+    }
+  ],
+  "semanticCorrection": {
+    "effect": 52,
+    "sourceHash": "e2d8f796",
+    "reason": "旧代码只在施放时判断先手并授两回封锁，未按持续期间每回合的条件；本源改为两回逐轮实际物特先手，先手属性范围仍明确Q003，不修改旧来源。"
+  },
+  "final": [
+    {
+      "proof": "conditional-v1",
+      "pass": 28,
+      "fail": 0,
+      "inputUnchanged": true
+    },
+    {
+      "proof": "native-current-v2",
+      "pass": 53,
+      "fail": 0,
+      "inputUnchanged": true
+    }
+  ],
+  "earlierAffected": {
+    "proof": "current-native-affected-v1",
+    "pass": 88,
+    "fail": 0,
+    "note": "52后续修正之前的历史版本，包含4885与完整伤害回归，不冒称最终同版"
+  },
+  "formalAccepted": false
+}

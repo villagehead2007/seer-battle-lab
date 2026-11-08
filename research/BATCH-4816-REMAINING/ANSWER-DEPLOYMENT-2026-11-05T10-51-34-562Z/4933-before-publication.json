@@ -1,0 +1,1561 @@
+{
+  "at": "2026-11-05T17:52:41.820Z",
+  "reviews": {
+    "4933:soul:2128": {
+      "sourceDigest": "6935be6f86c13239017d5cce5478f86d4e5d7cd49bfd7d2e143a42fcd4526946",
+      "scope": "mixed",
+      "reviewedBy": "Codex exact API and current state verification",
+      "reviewedAt": "2026-11-03T10:28:20.696Z",
+      "rationale": "信仰是当前精灵恒常规则属性；当前正邪、单信仰者增减伤与意念消费均不能延期，未知计数结算明确阻塞。",
+      "singleBehavior": "真实初始双攻比较决定正邪，正邪均令当前自身信仰对象为自身，平值不触发条件。单信仰者HP比例分档增减伤独立测试；回合初正气消耗意念魂印回血、邪气下一攻击固定附伤。四题仍待答，增减伤获意念未认证。",
+      "deferredBehavior": "正气登场修改真实己方队伍信仰对象，场下信仰者HP参与总计与平均回复，法之意念下场保留及再次登场生命周期。",
+      "trigger": "正气登场将己方精灵信仰对象改为自身；以自身为信仰对象的精灵总合计体力；法之意念下场保留",
+      "futureMechanisms": [
+        "真实队伍信仰对象",
+        "场下HP及队伍回复",
+        "换宠保留"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "team-members",
+          "quote": "将己方精灵的信仰对象改为自身",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4933/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2128",
+            "revision": "e6162ec1"
+          }
+        },
+        {
+          "kind": "switch",
+          "quote": "下场保留",
+          "glossary": 554,
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/COMMON-GLOSSARY-SOURCE.json",
+            "url": "https://api.seerapi.com/v1/glossary_entry/554",
+            "revision": "8f064210"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-souls.js",
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方",
+            "assertion": "test('4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方',()=>{for(const [atk,spa,form]of[[200,100,'positive'],[100,200,'evil'],[100,100,null]]){const s=make({move:29425,index:-1,soul:true,aStats:{atk,spa}});assert.equal(s.fighters[0].soulState.shura2128.form,form);assert.equal(s.fighters[0].statusState?.faithSourceSide,form?0:undefined);s.fighters[0].ailments['狂信']=5;turn(s,29425,20117);assert.equal(s.fighters[0].pp[key(29425)],4);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗",
+            "assertion": "test('4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗',()=>{for(const mode of['normal','skillBan','cut','full']){const s=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100},hp:mode==='full'?9000:1000});s.fighters[0].soulState.shura2128.thought=300;if(mode==='skillBan')timer(s,0,'技能禁疗');if(mode==='cut')timer(s,0,'回复效果削减',{fraction:.5});turn(s,29425,20117);assert.equal(s.fighters[0].hp,mode==='full'?9000:mode==='cut'?1150:1300);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次",
+            "assertion": "test('4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次',()=>{for(const immune of[false,true]){const s=make({move:29425,index:-1,soul:true,aStats:{atk:100,spa:200}});s.fighters[0].soulState.shura2128.thought=300;turn(s,29425,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);turn(s,null,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);s.moveDefinitions[key(38494)].operations=[];if(immune)timer(s,1,'固定百分比免疫');turn(s,38494,20309);assert.equal(sum(s,'fixed'),immune?0:300);assert.equal(s.fighters[0].soulState.shura2128.extra,0);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造",
+            "assertion": "test('4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造',()=>{const reduced=[];for(const hp of[9000,4499]){const s=make({move:29425,index:-1,soul:true,hp,aStats:{atk:200,spa:100}});withoutUnconfirmedAccounting(()=>turn(s,29425,10127));reduced.push(sum(s,'attack',1));assert.equal(s.fighters[0].hp,hp-reduced.at(-1));}assert.ok(reduced[0]<reduced[1]);const damages=[];for(const hp of[9000,4499]){const s=make({move:38494,index:-1,soul:true,hp,aStats:{atk:100,spa:200}});withoutUnconfirmedAccounting(()=>turn(s,38494,20309));damages.push(sum(s));}assert.ok(damages[1]>damages[0]);const p=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100}});assert.throws(()=>turn(p,29425,10127),/Q-4933-002/);assert.equal(p.round,1);assert.equal(p.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态",
+            "assertion": "test('4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态',()=>{for(const mode of['two','freeze','extra']){const s=make({move:38494,index:-1,soul:true,aStats:{atk:100,spa:200}}),st=s.fighters[0].soulState.shura2128;if(mode==='two')s.fighters[1].statusState={faithSourceSide:0};else st.thought=100;if(mode==='freeze')timer(s,0,'修罗意念不减');if(mode==='extra')st.extra=200;assert.throws(()=>turn(s,38494,20117),new RegExp('Q-4933-00'+({two:1,freeze:3,extra:4}[mode])));assert.equal(s.round,1);assert.equal(s.fighters[0].pp[key(38494)],5);}});"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方",
+            "assertion": "test('4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方',()=>{for(const [atk,spa,form]of[[200,100,'positive'],[100,200,'evil'],[100,100,null]]){const s=make({move:29425,index:-1,soul:true,aStats:{atk,spa}});assert.equal(s.fighters[0].soulState.shura2128.form,form);assert.equal(s.fighters[0].statusState?.faithSourceSide,form?0:undefined);s.fighters[0].ailments['狂信']=5;turn(s,29425,20117);assert.equal(s.fighters[0].pp[key(29425)],4);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗",
+            "assertion": "test('4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗',()=>{for(const mode of['normal','skillBan','cut','full']){const s=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100},hp:mode==='full'?9000:1000});s.fighters[0].soulState.shura2128.thought=300;if(mode==='skillBan')timer(s,0,'技能禁疗');if(mode==='cut')timer(s,0,'回复效果削减',{fraction:.5});turn(s,29425,20117);assert.equal(s.fighters[0].hp,mode==='full'?9000:mode==='cut'?1150:1300);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次",
+            "assertion": "test('4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次',()=>{for(const immune of[false,true]){const s=make({move:29425,index:-1,soul:true,aStats:{atk:100,spa:200}});s.fighters[0].soulState.shura2128.thought=300;turn(s,29425,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);turn(s,null,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);s.moveDefinitions[key(38494)].operations=[];if(immune)timer(s,1,'固定百分比免疫');turn(s,38494,20309);assert.equal(sum(s,'fixed'),immune?0:300);assert.equal(s.fighters[0].soulState.shura2128.extra,0);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造",
+            "assertion": "test('4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造',()=>{const reduced=[];for(const hp of[9000,4499]){const s=make({move:29425,index:-1,soul:true,hp,aStats:{atk:200,spa:100}});withoutUnconfirmedAccounting(()=>turn(s,29425,10127));reduced.push(sum(s,'attack',1));assert.equal(s.fighters[0].hp,hp-reduced.at(-1));}assert.ok(reduced[0]<reduced[1]);const damages=[];for(const hp of[9000,4499]){const s=make({move:38494,index:-1,soul:true,hp,aStats:{atk:100,spa:200}});withoutUnconfirmedAccounting(()=>turn(s,38494,20309));damages.push(sum(s));}assert.ok(damages[1]>damages[0]);const p=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100}});assert.throws(()=>turn(p,29425,10127),/Q-4933-002/);assert.equal(p.round,1);assert.equal(p.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态",
+            "assertion": "test('4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态',()=>{for(const mode of['two','freeze','extra']){const s=make({move:38494,index:-1,soul:true,aStats:{atk:100,spa:200}}),st=s.fighters[0].soulState.shura2128;if(mode==='two')s.fighters[1].statusState={faithSourceSide:0};else st.thought=100;if(mode==='freeze')timer(s,0,'修罗意念不减');if(mode==='extra')st.extra=200;assert.throws(()=>turn(s,38494,20117),new RegExp('Q-4933-00'+({two:1,freeze:3,extra:4}[mode])));assert.equal(s.round,1);assert.equal(s.fighters[0].pp[key(38494)],5);}});"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方",
+            "assertion": "test('4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方',()=>{for(const [atk,spa,form]of[[200,100,'positive'],[100,200,'evil'],[100,100,null]]){const s=make({move:29425,index:-1,soul:true,aStats:{atk,spa}});assert.equal(s.fighters[0].soulState.shura2128.form,form);assert.equal(s.fighters[0].statusState?.faithSourceSide,form?0:undefined);s.fighters[0].ailments['狂信']=5;turn(s,29425,20117);assert.equal(s.fighters[0].pp[key(29425)],4);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗",
+            "assertion": "test('4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗',()=>{for(const mode of['normal','skillBan','cut','full']){const s=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100},hp:mode==='full'?9000:1000});s.fighters[0].soulState.shura2128.thought=300;if(mode==='skillBan')timer(s,0,'技能禁疗');if(mode==='cut')timer(s,0,'回复效果削减',{fraction:.5});turn(s,29425,20117);assert.equal(s.fighters[0].hp,mode==='full'?9000:mode==='cut'?1150:1300);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次",
+            "assertion": "test('4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次',()=>{for(const immune of[false,true]){const s=make({move:29425,index:-1,soul:true,aStats:{atk:100,spa:200}});s.fighters[0].soulState.shura2128.thought=300;turn(s,29425,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);turn(s,null,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);s.moveDefinitions[key(38494)].operations=[];if(immune)timer(s,1,'固定百分比免疫');turn(s,38494,20309);assert.equal(sum(s,'fixed'),immune?0:300);assert.equal(s.fighters[0].soulState.shura2128.extra,0);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造",
+            "assertion": "test('4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造',()=>{const reduced=[];for(const hp of[9000,4499]){const s=make({move:29425,index:-1,soul:true,hp,aStats:{atk:200,spa:100}});withoutUnconfirmedAccounting(()=>turn(s,29425,10127));reduced.push(sum(s,'attack',1));assert.equal(s.fighters[0].hp,hp-reduced.at(-1));}assert.ok(reduced[0]<reduced[1]);const damages=[];for(const hp of[9000,4499]){const s=make({move:38494,index:-1,soul:true,hp,aStats:{atk:100,spa:200}});withoutUnconfirmedAccounting(()=>turn(s,38494,20309));damages.push(sum(s));}assert.ok(damages[1]>damages[0]);const p=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100}});assert.throws(()=>turn(p,29425,10127),/Q-4933-002/);assert.equal(p.round,1);assert.equal(p.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态",
+            "assertion": "test('4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态',()=>{for(const mode of['two','freeze','extra']){const s=make({move:38494,index:-1,soul:true,aStats:{atk:100,spa:200}}),st=s.fighters[0].soulState.shura2128;if(mode==='two')s.fighters[1].statusState={faithSourceSide:0};else st.thought=100;if(mode==='freeze')timer(s,0,'修罗意念不减');if(mode==='extra')st.extra=200;assert.throws(()=>turn(s,38494,20117),new RegExp('Q-4933-00'+({two:1,freeze:3,extra:4}[mode])));assert.equal(s.round,1);assert.equal(s.fighters[0].pp[key(38494)],5);}});"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方",
+            "assertion": "test('4933正邪按战斗开始面板决定，双攻相等两条件皆不触发，当前自身信仰可阻止狂信改指敌方',()=>{for(const [atk,spa,form]of[[200,100,'positive'],[100,200,'evil'],[100,100,null]]){const s=make({move:29425,index:-1,soul:true,aStats:{atk,spa}});assert.equal(s.fighters[0].soulState.shura2128.form,form);assert.equal(s.fighters[0].statusState?.faithSourceSide,form?0:undefined);s.fighters[0].ailments['狂信']=5;turn(s,29425,20117);assert.equal(s.fighters[0].pp[key(29425)],4);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗",
+            "assertion": "test('4933正气回合初消费意念实际魂印回复，不受技能禁疗、受一般回复削减且满血仍消耗',()=>{for(const mode of['normal','skillBan','cut','full']){const s=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100},hp:mode==='full'?9000:1000});s.fighters[0].soulState.shura2128.thought=300;if(mode==='skillBan')timer(s,0,'技能禁疗');if(mode==='cut')timer(s,0,'回复效果削减',{fraction:.5});turn(s,29425,20117);assert.equal(s.fighters[0].hp,mode==='full'?9000:mode==='cut'?1150:1300);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次",
+            "assertion": "test('4933邪气消耗意念为下一次攻击固定附伤，属性与药剂不消费，免固仍消费一次',()=>{for(const immune of[false,true]){const s=make({move:29425,index:-1,soul:true,aStats:{atk:100,spa:200}});s.fighters[0].soulState.shura2128.thought=300;turn(s,29425,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);turn(s,null,20117);assert.equal(s.fighters[0].soulState.shura2128.extra,300);s.moveDefinitions[key(38494)].operations=[];if(immune)timer(s,1,'固定百分比免疫');turn(s,38494,20309);assert.equal(sum(s,'fixed'),immune?0:300);assert.equal(s.fighters[0].soulState.shura2128.extra,0);assert.equal(s.fighters[0].soulState.shura2128.thought,0);}});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造",
+            "assertion": "test('4933单个当前信仰者HP比例分档增伤减伤有真实状态，未知意念增量单独阻塞不得伪造',()=>{const reduced=[];for(const hp of[9000,4499]){const s=make({move:29425,index:-1,soul:true,hp,aStats:{atk:200,spa:100}});withoutUnconfirmedAccounting(()=>turn(s,29425,10127));reduced.push(sum(s,'attack',1));assert.equal(s.fighters[0].hp,hp-reduced.at(-1));}assert.ok(reduced[0]<reduced[1]);const damages=[];for(const hp of[9000,4499]){const s=make({move:38494,index:-1,soul:true,hp,aStats:{atk:100,spa:200}});withoutUnconfirmedAccounting(()=>turn(s,38494,20309));damages.push(sum(s));}assert.ok(damages[1]>damages[0]);const p=make({move:29425,index:-1,soul:true,aStats:{atk:200,spa:100}});assert.throws(()=>turn(p,29425,10127),/Q-4933-002/);assert.equal(p.round,1);assert.equal(p.fighters[0].hp,9000);});"
+          },
+          {
+            "file": "tests/remaining-4933-soul.test.cjs",
+            "name": "4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态",
+            "assertion": "test('4933双方信仰合计、意念不减与未消费附伤再授各明确待答，事务回滚保留前态',()=>{for(const mode of['two','freeze','extra']){const s=make({move:38494,index:-1,soul:true,aStats:{atk:100,spa:200}}),st=s.fighters[0].soulState.shura2128;if(mode==='two')s.fighters[1].statusState={faithSourceSide:0};else st.thought=100;if(mode==='freeze')timer(s,0,'修罗意念不减');if(mode==='extra')st.extra=200;assert.throws(()=>turn(s,38494,20117),new RegExp('Q-4933-00'+({two:1,freeze:3,extra:4}[mode])));assert.equal(s.round,1);assert.equal(s.fighters[0].pp[key(38494)],5);}});"
+          }
+        ]
+      },
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4933:move:38492": null,
+    "4933:skill:38492:0": null,
+    "4933:skill:38492:1": null,
+    "4933:skill:38492:2": null,
+    "4933:skill:38492:3": null,
+    "4933:skill:38492:4": null,
+    "4933:move:29425": null,
+    "4933:skill:29425:0": null,
+    "4933:skill:29425:1": null,
+    "4933:skill:29425:2": null,
+    "4933:skill:29425:3": null,
+    "4933:move:29426": null,
+    "4933:skill:29426:0": null,
+    "4933:skill:29426:1": null,
+    "4933:skill:29426:2": null,
+    "4933:skill:29426:3": null,
+    "4933:skill:29426:4": null,
+    "4933:move:38493": null,
+    "4933:skill:38493:0": null,
+    "4933:skill:38493:1": null,
+    "4933:skill:38493:2": null,
+    "4933:skill:38493:3": null,
+    "4933:skill:38493:4": null,
+    "4933:move:38494": null,
+    "4933:skill:38494:0": null,
+    "4933:skill:38494:1": null,
+    "4933:skill:38494:2": null,
+    "4933:skill:38494:3": null,
+    "4933:skill:38494:4": null
+  },
+  "pending": {
+    "schema": 1,
+    "status": "partial-awaiting-confirmation",
+    "notDeployed": true,
+    "snapshot": {
+      "id": 4933,
+      "name": "修罗铠甲",
+      "base": {
+        "maxHp": 168,
+        "atk": 111,
+        "def": 116,
+        "spa": 111,
+        "spd": 116,
+        "spe": 138
+      },
+      "missingEffects": [],
+      "deployment": {
+        "scope": "single"
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4933",
+        "revision": "6c8af4ef",
+        "loadedAt": "2026-11-03T09:20:11.431Z"
+      },
+      "gender": {
+        "id": 1,
+        "url": "https://api.seerapi.com/v1/pet_gender/1",
+        "source": {
+          "url": "https://api.seerapi.com/v1/pet/4933",
+          "revision": "6c8af4ef"
+        }
+      },
+      "typeChart": {
+        "rows": {
+          "草": {
+            "草": 0.5,
+            "水": 2,
+            "火": 0.5,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "水": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 2,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "火": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "飞行": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "电": {
+            "草": 0.5,
+            "水": 2,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 0,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 2
+          },
+          "机械": {
+            "草": 1,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "地面": {
+            "草": 0.5,
+            "水": 1,
+            "火": 2,
+            "飞行": 0,
+            "电": 2,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 2,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "普通": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "冰": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 2,
+            "虚空": 1
+          },
+          "超能": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 0,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "战斗": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "光": {
+            "草": 0,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 0.5
+          },
+          "暗影": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "神秘": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 0.5,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 2,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 2,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "龙": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "圣灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 0.5,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "次元": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 2
+          },
+          "远古": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 2,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "邪灵": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 1
+          },
+          "自然": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 2,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "王": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "混沌": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 0
+          },
+          "神灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "轮回": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "虫": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 2,
+            "光": 0.5,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "虚空": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 2,
+            "战斗": 2,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 1
+          }
+        },
+        "aliases": {
+          "草": [
+            "草"
+          ],
+          "水": [
+            "水"
+          ],
+          "火": [
+            "火"
+          ],
+          "飞行": [
+            "飞行"
+          ],
+          "电": [
+            "电"
+          ],
+          "机械": [
+            "机械"
+          ],
+          "地面": [
+            "地面"
+          ],
+          "普通": [
+            "普通"
+          ],
+          "冰": [
+            "冰"
+          ],
+          "超能": [
+            "超能"
+          ],
+          "战斗": [
+            "战斗"
+          ],
+          "光": [
+            "光"
+          ],
+          "暗影": [
+            "暗影"
+          ],
+          "神秘": [
+            "神秘"
+          ],
+          "龙": [
+            "龙"
+          ],
+          "圣灵": [
+            "圣灵"
+          ],
+          "次元": [
+            "次元"
+          ],
+          "远古": [
+            "远古"
+          ],
+          "邪灵": [
+            "邪灵"
+          ],
+          "自然": [
+            "自然"
+          ],
+          "王": [
+            "王"
+          ],
+          "混沌": [
+            "混沌"
+          ],
+          "神灵": [
+            "神灵"
+          ],
+          "轮回": [
+            "轮回"
+          ],
+          "虫": [
+            "虫"
+          ],
+          "虚空": [
+            "虚空"
+          ],
+          "混沌 圣灵": [
+            "混沌",
+            "圣灵"
+          ],
+          "混沌圣灵": [
+            "混沌",
+            "圣灵"
+          ]
+        },
+        "revision": "seerapi:c9d6b67f",
+        "provider": "seerapi"
+      },
+      "type": "混沌圣灵",
+      "moves": [
+        {
+          "id": 38492,
+          "name": "修罗魔匕",
+          "type": "混沌圣灵",
+          "kind": "physical",
+          "power": 85,
+          "pp": 5,
+          "priority": 3,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            2554,
+            2302,
+            2028,
+            1471,
+            2145
+          ],
+          "effectInstances": [
+            {
+              "id": 2554,
+              "args": [],
+              "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算"
+            },
+            {
+              "id": 2302,
+              "args": [],
+              "description": "对手每有1个技能PP值小于3先制+1"
+            },
+            {
+              "id": 2028,
+              "args": [],
+              "description": "若自身为对手天敌则必定命中"
+            },
+            {
+              "id": 1471,
+              "args": [
+                100,
+                6,
+                3
+              ],
+              "description": "消除对手能力提升状态，消除成功则100%令对手害怕，未触发则恢复自身最大体力的1/3"
+            },
+            {
+              "id": 2145,
+              "args": [
+                2
+              ],
+              "description": "解除并附加给对手自身所处的异常状态，解除成功则对手2回合内技能命中效果失效"
+            }
+          ],
+          "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算；对手每有1个技能PP值小于3先制+1；若自身为对手天敌则必定命中；消除对手能力提升状态，消除成功则100%令对手害怕，未触发则恢复自身最大体力的1/3；解除并附加给对手自身所处的异常状态，解除成功则对手2回合内技能命中效果失效",
+          "revision": "seerapi:1a615f6c",
+          "hash": "1a615f6c",
+          "level": 1,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29425,
+          "name": "至强法念",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            191,
+            936,
+            1058,
+            924
+          ],
+          "effectInstances": [
+            {
+              "id": 191,
+              "args": [
+                4
+              ],
+              "description": "4回合内免疫并反弹所有受到的异常状态"
+            },
+            {
+              "id": 936,
+              "args": [
+                100,
+                7,
+                2
+              ],
+              "description": "100%令对手疲惫，未触发则令对手2回合内使用的属性技能无效"
+            },
+            {
+              "id": 1058,
+              "args": [
+                100,
+                6,
+                1
+              ],
+              "description": "命中则100%概率使对手害怕，未触发则对手1回合内攻击技能无效"
+            },
+            {
+              "id": 924,
+              "args": [
+                3,
+                3
+              ],
+              "description": "下3回合攻击技能吸取对手1/3最大体力值"
+            }
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态；100%令对手疲惫，未触发则令对手2回合内使用的属性技能无效；命中则100%概率使对手害怕，未触发则对手1回合内攻击技能无效；下3回合攻击技能吸取对手1/3最大体力值",
+          "revision": "seerapi:1a270d9b",
+          "hash": "1a270d9b",
+          "level": 5,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29426,
+          "name": "修罗炼狱",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            962,
+            1855,
+            2039,
+            1926,
+            843
+          ],
+          "effectInstances": [
+            {
+              "id": 962,
+              "args": [
+                1
+              ],
+              "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+            },
+            {
+              "id": 1855,
+              "args": [
+                4,
+                2,
+                3
+              ],
+              "description": "4回合内每回合使用技能额外恢复自身最大体力的1/2，若自身不处于能力提升状态则附加对手最大体力1/3的百分比伤害"
+            },
+            {
+              "id": 2039,
+              "args": [
+                4,
+                100,
+                11,
+                1
+              ],
+              "description": "4回合内若自身能力提升状态被消除或吸取则100%令对手衰弱，未触发则免疫下1次对手的攻击"
+            },
+            {
+              "id": 1926,
+              "args": [
+                2
+              ],
+              "description": "下2次攻击技能无视攻击免疫效果"
+            },
+            {
+              "id": 843,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合令自身所有技能先制+2"
+            }
+          ],
+          "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能额外恢复自身最大体力的1/2，若自身不处于能力提升状态则附加对手最大体力1/3的百分比伤害；4回合内若自身能力提升状态被消除或吸取则100%令对手衰弱，未触发则免疫下1次对手的攻击；下2次攻击技能无视攻击免疫效果；下2回合令自身所有技能先制+2",
+          "revision": "seerapi:68c06eaf",
+          "hash": "68c06eaf",
+          "level": 9,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38493,
+          "name": "修罗百破击",
+          "type": "混沌圣灵",
+          "kind": "special",
+          "power": 150,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            2554,
+            881,
+            835,
+            1771,
+            1821
+          ],
+          "effectInstances": [
+            {
+              "id": 2554,
+              "args": [],
+              "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算"
+            },
+            {
+              "id": 881,
+              "args": [],
+              "description": "若自身处于能力下降状态则技能先制+3"
+            },
+            {
+              "id": 835,
+              "args": [],
+              "description": "反转自身能力下降状态，反转成功则恢复自身全部体力"
+            },
+            {
+              "id": 1771,
+              "args": [
+                3
+              ],
+              "description": "反转对手能力提升状态，反转成功则3回合内对手的能力下降状态无法被解除或反转"
+            },
+            {
+              "id": 1821,
+              "args": [
+                5
+              ],
+              "description": "未击败对手则恢复自身所有技能5点PP值"
+            }
+          ],
+          "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则恢复自身全部体力；反转对手能力提升状态，反转成功则3回合内对手的能力下降状态无法被解除或反转；未击败对手则恢复自身所有技能5点PP值",
+          "revision": "seerapi:55a9b4f4",
+          "hash": "55a9b4f4",
+          "level": 13,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38494,
+          "name": "神魔灭绝劈",
+          "type": "混沌圣灵",
+          "kind": "physical",
+          "power": 160,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            2554,
+            2498,
+            1477,
+            820,
+            2555
+          ],
+          "effectInstances": [
+            {
+              "id": 2554,
+              "args": [],
+              "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算"
+            },
+            {
+              "id": 2498,
+              "args": [
+                28,
+                31,
+                1,
+                1
+              ],
+              "description": "消除对手回合类效果，消除成功则令对手束缚、臣服，每未触发1种当次攻击造成的伤害翻倍1次"
+            },
+            {
+              "id": 1477,
+              "args": [
+                3
+              ],
+              "description": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3"
+            },
+            {
+              "id": 820,
+              "args": [
+                2,
+                2
+              ],
+              "description": "未击败对手时，下2回合自身技能先制+2"
+            },
+            {
+              "id": 2555,
+              "args": [
+                3
+              ],
+              "description": "击败对手时，3回合内自身的法之意念不会减少"
+            }
+          ],
+          "description": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算；消除对手回合类效果，消除成功则令对手束缚、臣服，每未触发1种当次攻击造成的伤害翻倍1次；消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/3；未击败对手时，下2回合自身技能先制+2；击败对手时，3回合内自身的法之意念不会减少",
+          "revision": "seerapi:d821773b",
+          "hash": "d821773b",
+          "level": 76,
+          "fifth": true,
+          "sourceFlags": {
+            "is_fifth": true,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "fifth"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        }
+      ],
+      "effects": [
+        {
+          "id": 2554,
+          "argsNum": 0,
+          "template": "将自身攻击、特攻值之和作为攻击、特攻值进行伤害计算",
+          "revision": "seerapi:69e0a453"
+        },
+        {
+          "id": 2302,
+          "argsNum": 0,
+          "template": "对手每有1个技能PP值小于3先制+1",
+          "revision": "seerapi:31de87ba"
+        },
+        {
+          "id": 2028,
+          "argsNum": 0,
+          "template": "若自身为对手天敌则必定命中",
+          "revision": "seerapi:dce62a18"
+        },
+        {
+          "id": 1471,
+          "argsNum": 3,
+          "template": "消除对手能力提升状态，消除成功则{0}%令对手{1}，未触发则恢复自身最大体力的1/{2}",
+          "revision": "seerapi:2d57d44a"
+        },
+        {
+          "id": 2145,
+          "argsNum": 1,
+          "template": "解除并附加给对手自身所处的异常状态，解除成功则对手{0}回合内技能命中效果失效",
+          "revision": "seerapi:3919e992"
+        },
+        {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        },
+        {
+          "id": 936,
+          "argsNum": 3,
+          "template": "{0}%令对手{1}，未触发则令对手{2}回合内使用的属性技能无效",
+          "revision": "seerapi:645bbce2"
+        },
+        {
+          "id": 1058,
+          "argsNum": 3,
+          "template": "命中则{0}%概率使对手{1}，未触发则对手{2}回合内攻击技能无效",
+          "revision": "seerapi:6e5a443"
+        },
+        {
+          "id": 924,
+          "argsNum": 2,
+          "template": "下{0}回合攻击技能吸取对手1/{1}最大体力值",
+          "revision": "seerapi:a52f8a7d"
+        },
+        {
+          "id": 962,
+          "argsNum": 1,
+          "template": "全属性+{0}，自身不处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:40fccdb9"
+        },
+        {
+          "id": 1855,
+          "argsNum": 3,
+          "template": "{0}回合内每回合使用技能额外恢复自身最大体力的1/{1}，若自身不处于能力提升状态则附加对手最大体力1/{2}的百分比伤害",
+          "revision": "seerapi:2ac72e25"
+        },
+        {
+          "id": 2039,
+          "argsNum": 4,
+          "template": "{0}回合内若自身能力提升状态被消除或吸取则{1}%令对手{2}，未触发则免疫下{3}次对手的攻击",
+          "revision": "seerapi:f9d130fb"
+        },
+        {
+          "id": 1926,
+          "argsNum": 1,
+          "template": "下{0}次攻击技能无视攻击免疫效果",
+          "revision": "seerapi:e4bff6b9"
+        },
+        {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        },
+        {
+          "id": 881,
+          "argsNum": 0,
+          "template": "若自身处于能力下降状态则技能先制+3",
+          "revision": "seerapi:897c0169"
+        },
+        {
+          "id": 835,
+          "argsNum": 0,
+          "template": "反转自身能力下降状态，反转成功则恢复自身全部体力",
+          "revision": "seerapi:37df9c50"
+        },
+        {
+          "id": 1771,
+          "argsNum": 1,
+          "template": "反转对手能力提升状态，反转成功则{0}回合内对手的能力下降状态无法被解除或反转",
+          "revision": "seerapi:55ee0438"
+        },
+        {
+          "id": 1821,
+          "argsNum": 1,
+          "template": "未击败对手则恢复自身所有技能{0}点PP值",
+          "revision": "seerapi:27a88fca"
+        },
+        {
+          "id": 2498,
+          "argsNum": 4,
+          "template": "消除对手回合类效果，消除成功则令对手{0}、{1}，每未触发{2}种当次攻击造成的伤害翻倍{3}次",
+          "revision": "seerapi:8b2368bb"
+        },
+        {
+          "id": 1477,
+          "argsNum": 1,
+          "template": "消除敌我双方能力提升状态，消除任意一方成功则吸取对手最大体力的1/{0}",
+          "revision": "seerapi:c49e1cf2"
+        },
+        {
+          "id": 820,
+          "argsNum": 2,
+          "template": "未击败对手时，下{0}回合自身技能先制+{1}",
+          "revision": "seerapi:3fe8d2c9"
+        },
+        {
+          "id": 2555,
+          "argsNum": 1,
+          "template": "击败对手时，3回合内自身的法之意念不会减少",
+          "revision": "seerapi:51f55f1"
+        }
+      ],
+      "souls": [
+        {
+          "id": 2128,
+          "description": "战斗开始时，若自身的攻击值高于特攻值，则自身为正气状态，若特攻高于攻击值，则自身为邪气状态；自身为正气状态时，登场时将己方精灵的信仰对象改为自身，自身为邪气状态时，登场时将自身的信仰对象改为自身|以自身为信仰对象的精灵总合计体力每有15%，自身受到的攻击伤害额外减少10%，以自身为信仰对象的精灵总合计体力每损失10%，自身造成的攻击伤害额外提升15%；回合结束时，自身当回合每因前述效果增加、减少1点伤害，获得1点法之意念|（boss无效）",
+          "desc_formatting_adjustment": null,
+          "analyze_desc": "[sprite name=dot4]战斗开始时，若自身的攻击值高于特攻值，则自身为正气状态，若特攻高于攻击值，则自身为邪气状态；自身为正气状态时，[color=#57c975]登场时[/color]将[color=#52a5f2]己方[/color]精灵的[color=#57c975]信仰对象[/color]改为自身，自身为邪气状态时，[color=#57c975]登场时[/color]将自身的[color=#57c975]信仰对象[/color]改为自身|[sprite name=dot4]以自身为[color=#57c975]信仰对象[/color]的精灵总合计体力每有15%，自身受到的攻击[color=#57c975]伤害额外减少[/color]10%，以自身为[color=#57c975]信仰对象[/color]的精灵总合计体力每损失10%，自身造成的攻击[color=#52a5f2]伤害额外提升[/color]15%；[color=#57c975]回合结束时[/color]，自身[color=#52a5f2]当回合(411)[/color]每因前述效果增加、减少1点伤害，获得1点[color=#f35555]法之意念[/color]",
+          "hash": "e6162ec1",
+          "eid": 2539,
+          "args": [
+            1,
+            0
+          ],
+          "isAdvanced": false,
+          "source": {
+            "url": "https://api.seerapi.com/v1/soulmark/2128",
+            "revision": "e6162ec1",
+            "loadedAt": "2026-11-03T09:20:18.161Z"
+          },
+          "from": null,
+          "intensifiedTo": null
+        }
+      ]
+    }
+  }
+}

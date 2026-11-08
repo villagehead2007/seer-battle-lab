@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-03T06:25:39.208Z",
+  "priorAssertionsSilentlyRemovedOrWeakened": false,
+  "resolvedKnownFailures": true,
+  "productionChanges": [
+    "新增骑士决斗当前真实状态、下一次实际技能转化、原槽PP、无可选第五技能行动限制、当前死亡转败和标准被击败反制抑制；先保留2243即时重生例外。",
+    "低体无视强化最初写不存在ignoreStages字段，改公共ignoreTargetBoostRound；额外ignoreDefenseBoost造成重复除等级已移除，严格对照伤害通过。",
+    "1515初次将afterHit写普通属性而非hooks分派，真实状态测试发现低目标0附伤，改当前源hooks.afterHit，速度阶段无关85通过。",
+    "2503原先写effectContext字段被后续统一减伤倍率覆盖，改现有减伤无视统一计算纳入当前回合源标记，红伤半减/无视及非红不变通过。",
+    "2142与101核心晚注册覆盖源入口；2142补核心精确兼容，101仅当前170%精确源编译为fraction1.7，旧通用0..100验证保持。",
+    "1099核心解析路径按当前精确源改次数免异同源刷新/异源保留。",
+    "2505单体额度Q001由deploymentPendingFor拒绝正式存储，已知战斗执行不等于正式完成。"
+  ],
+  "fixtureCorrections": [
+    "默认敌第五37911的原生先制/当前条件造成有正防与无正防的行动顺序不同，按相同RNG起点两边取到不同伤害浮动；改真实钢傀38414固定先制3对手隔离，严格伤害相等断言保留。新对手需选择真实loadout中的10086，原20309不在新配招，未改技能来源或先制。",
+    "四回吸取到期夹具敌方会真实死亡；每轮恢复目标HP以隔离时限，保留每轮7000及到期1000断言。",
+    "非红回合对照最初置敌beforeUse，但敌真实被冰封未行动，改当前自身afterAttack公共回调，真实固定/百分比/真各100。"
+  ],
+  "archives": [
+    "soul-v3.test.archive.txt",
+    "soul-v4.test.archive.txt",
+    "skills-v1.test.archive.txt",
+    "interactions-v1.test.archive.txt"
+  ],
+  "proofVersions": {
+    "native": "known-final-v6-result.json27/27含完整17招64种子与17种原槽转化首轮；之后仅增加当前2505正式部署拦截，后续专项验证拦截。",
+    "affected": "affected-v1-result.json196/196输入未变；部署拦截是其后精确元数据新增，后续专项及下一组/最终npm将覆盖当前版本。"
+  },
+  "limitations": [
+    "Q001冰封速度次数额度待答；当前单体不延期",
+    "无本批新完整npm/冻结认证，未正式部署"
+  ]
+}

@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,make,turn,timer,sum,key}=require('./helpers/remaining-4885.cjs');
+function observe(fn,run){const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);fn(e,c);}};try{return run();}finally{E.SOULS=old;}}
+test('4885/93真实10%概率固定100成功失败及固定免疫，762逐回损失回复50%与技能禁疗，765真实阻止能力提升',()=>{
+ const outcomes=new Set();for(let seed=1;seed<=40;seed++){const s=make({move:12603,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.add(sum(s,'fixed'));}assert.deepEqual(outcomes,new Set([0,100]));
+ const immune=make({move:12603});timer(immune,1,'固定百分比免疫');turn(immune);assert.equal(sum(immune,'fixed'),0);
+ const heal=make({move:26166,index:0,hp:1000,loadout:[26166,10086,20231,38315,38316]});turn(heal,26166,null);assert.equal(heal.fighters[0].hp,5000);turn(heal,10086,null);assert.equal(heal.fighters[0].hp,7000);turn(heal,10086,null);assert.equal(heal.fighters[0].hp,8000);turn(heal,10086,null);assert.equal(heal.fighters[0].hp,8000);
+ const ban=make({move:26166,index:0,hp:1000});timer(ban,0,'技能禁疗');turn(ban,26166,null);assert.equal(ban.fighters[0].hp,1000);
+ const boost=make({move:26166,index:1});turn(boost);assert.equal(boost.fighters[1].stages.atk,0);turn(boost);assert.equal(boost.fighters[1].stages.atk,0);turn(boost);assert.equal(boost.fighters[1].stages.atk,0);
+});
+test('4885真实2071四种伤害的首次致死均在完整结算后返还上限，完全免疫不误触发',()=>{
+ for(const type of ['attack','fixed','percent','true']){const s=make({move:10086,soul:true});turn(s);s.fighters[0].hp=200;observe((event,c)=>{if(event==='beforeUse'&&c.a.side===1)c.hurt(c.t,800,'真实首次致死类型'+type,type);},()=>turn(s));assert.equal(s.fighters[0].hp,1,type);assert.equal(s.fighters[0].stats.maxHp,9000,type);assert.equal(s.fighters[0].soulState.moth2071.count,2,type);const hit=s.damageEvents.find(e=>e.round===2&&e.targetSide===0);assert.equal(hit.settledDamage,800,type);assert.equal(hit.hpLoss,299,type);}
+ const s=make({move:10086,soul:true});turn(s);s.fighters[0].hp=200;timer(s,0,'固定百分比免疫');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.hurt(c.t,800,'免疫后非致死','fixed');},()=>turn(s));assert.equal(s.fighters[0].soulState.moth2071.firstLethalSeen,false);assert.equal(s.fighters[0].stats.maxHp,8900);
+});

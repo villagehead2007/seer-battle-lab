@@ -1,0 +1,32 @@
+// The only application-test change is an unreferenced global test migrating
+// an already-answered requirement. Runtime, per-target tests, HTTP/source checks
+// and semantic reviews must remain byte-identical to the successful preflights.
+const assertReuse=require('assert/strict');
+const reuseGateFile=path.join(base,'FINAL-GATES/result-v6.json'),reuseGate=JSON.parse(fs.readFileSync(reuseGateFile)),reuseManifestFile=path.join(root,reuseGate.manifest),reuseManifest=JSON.parse(fs.readFileSync(reuseManifestFile)),migrationFile=path.join(base,'FINAL-GATES/EFFECT162-MIGRATION-REVIEW.json'),migration=JSON.parse(fs.readFileSync(migrationFile)),reuseAbortFile=path.join(base,'FINAL-GATES/ABORT-v6.json');
+const reuseEvidenceInputs=[reuseGateFile,reuseManifestFile,path.join(root,reuseGate.npm.log),migrationFile,reuseAbortFile,path.resolve(root,migration.canonicalProof),path.resolve(root,migration.archive)];
+for(const p of reuseGate.preflights){const f=path.resolve(root,p.result),r=JSON.parse(fs.readFileSync(f));reuseEvidenceInputs.push(f,path.resolve(root,r.log));}
+function verifyUnchangedPreflightInputs(current){
+ assertReuse.ok(Number(version.slice(1))>=7);
+ const ids=JSON.parse(fs.readFileSync(path.join(base,'FINAL-FIXED-SCOPE.json'))).ids,batch=JSON.parse(fs.readFileSync(path.join(base,'STATUS.json'))),target='tests/effect-162-source-preservation.test.cjs',after=JSON.parse(fs.readFileSync(path.resolve(root,migration.canonicalProof))),abort=JSON.parse(fs.readFileSync(reuseAbortFile));
+ assertReuse.equal(ids.length,52);assertReuse.deepEqual(batch.ids,ids);assertReuse.equal(batch.formalAccepted,0);assertReuse.equal(batch.answerDeployment.completedIndependentChecks.length,52);
+ assertReuse.equal(reuseGate.version,'v6');assertReuse.equal(reuseGate.status,'failed');assertReuse.equal(reuseGate.stage,'complete');assertReuse.equal(reuseGate.inputUnchanged,true);assertReuse.deepEqual(reuseGate.inputChanges,[]);assertReuse.equal(reuseGate.npmRuns,1);assertReuse.equal(reuseGate.npm.exitCode,1);assertReuse.equal(sha(path.resolve(root,reuseGate.npm.log)),reuseGate.npm.logSha256);
+ assertReuse.equal(abort.completedFullRegression,false);assertReuse.equal(abort.actualNpmInvocations,1);
+ assertReuse.equal(migration.runtimeChanged,false);assertReuse.equal(migration.originalTest,target);assertReuse.equal(sha(path.resolve(root,migration.archive)),migration.originalSha256);assertReuse.equal(reuseManifest.files[target],migration.originalSha256);assertReuse.equal(sha(path.resolve(root,migration.confirmation)),current[migration.confirmation]);
+ assertReuse.equal(after.exitCode,0);assertReuse.equal(after.inputUnchanged,true);assertReuse.ok(after.stats.includes('ℹ tests 2'));assertReuse.ok(after.stats.includes('ℹ pass 2'));assertReuse.ok(after.stats.includes('ℹ fail 0'));assertReuse.ok(after.stats.includes('ℹ skipped 0'));
+ assertReuse.equal(current[target],migration.canonicalSha256);assertReuse.equal(current[target],after.hashes[target]);for(const[f,h]of Object.entries(after.hashes))assertReuse.equal(sha(path.resolve(root,f)),h,'canonical migration proof drift '+f);
+ const oldTest=fs.readFileSync(path.resolve(root,migration.archive),'utf8'),oldName=oldTest.match(/test\('([^']+)'/)[1],oldNpmText=fs.readFileSync(path.resolve(root,reuseGate.npm.log),'utf8'),failures=[...new Set([...oldNpmText.matchAll(/^✖ (.+)$/gm)].map(m=>m[1].replace(/\s+\([\d.]+ms\)$/,'')).filter(n=>n!=='failing tests:'))];
+ assertReuse.deepEqual(failures,[oldName],'An additional failure requires independent review before recovery');
+ const changed=[];for(const[f,h]of Object.entries(reuseManifest.files)){assertReuse.ok(Object.hasOwn(current,f),'lost previous input '+f);if(current[f]!==h)changed.push(f);}assertReuse.deepEqual(changed,[target],'Runtime, sources, reviews or per-target tests changed; do not reuse');
+ const allowedAdded=new Set([rel(__filename),...reuseEvidenceInputs.map(rel)]),added=Object.keys(current).filter(f=>!Object.hasOwn(reuseManifest.files,f));for(const f of added)assertReuse.ok(allowedAdded.has(f),'unexpected new input '+f);
+ const reviews=JSON.parse(fs.readFileSync(path.join(root,'SINGLE-STAGE-REVIEWS.json')));for(const[k,v]of Object.entries(reviews.entries))assertReuse.ok(!JSON.stringify(v).includes('effect-162-source-preservation'),'migration test is referenced by semantic review '+k);
+ function reverseRefs(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name);if(e.isDirectory())reverseRefs(f);else if(/\.(?:cjs|js)$/.test(e.name)&&rel(f)!==target)assertReuse.ok(!fs.readFileSync(f,'utf8').includes('effect-162-source-preservation'),'migration test is imported or referenced by '+rel(f));}}
+ reverseRefs(path.join(root,'tests'));
+ assertReuse.deepEqual(reuseGate.ids,ids);assertReuse.deepEqual(reuseGate.preflights.map(p=>p.id),ids);
+ const at=new Date().toISOString(),preflights=reuseGate.preflights.map(p=>{
+  const r=JSON.parse(fs.readFileSync(path.resolve(root,p.result)));assertReuse.equal(p.exitCode,0);assertReuse.equal(p.inputUnchanged,true);assertReuse.equal(r.exitCode,0);assertReuse.equal(r.signal,null);assertReuse.equal(r.inputUnchanged,true);assertReuse.deepEqual(r.command,['node','automation-validate.cjs',String(p.id),'--preflight']);assertReuse.equal(sha(path.resolve(root,r.log)),r.logSha256);
+  const log=fs.readFileSync(path.resolve(root,r.log),'utf8');assertReuse.ok(log.includes('preflight gate: species '+p.id+' passed (pending-batch-full-regression; NOT stage complete)'));assertReuse.ok(log.includes('本地阶段完成精灵经浏览器请求客户端和HTTP搜索加载，全部技能可注入单挑'));
+  for(const[f,h]of Object.entries(r.hashes))assertReuse.equal(current[f],h,'target preflight input changed '+p.id+' '+f);
+  return {...p,reused:true,reusedFrom:rel(reuseGateFile),actualInputsUnchangedVerifiedAt:at,freshExecution:false};
+ });
+ return {ids,preflights,provenance:{at,kind:'reuse-only-byte-identical-runtime-and-actual-target-inputs',previousGate:rel(reuseGateFile),previousManifest:rel(reuseManifestFile),previousNpmCompleted:false,previousNpmObservedPasses:(oldNpmText.match(/^✔ /gm)||[]).length,previousNpmObservedFailureNames:failures,changedExistingInputs:changed,addedEvidenceInputs:added,unreferencedGlobalTest:target,canonicalTestProof:rel(path.resolve(root,migration.canonicalProof)),all52ActualInputsUnchanged:true,globalFullRegressionStillRequired:true}};
+}

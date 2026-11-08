@@ -1,0 +1,9 @@
+'use strict';
+require('./remaining-4903-soul.test.cjs');
+require('./remaining-4903-skills.test.cjs');
+require('./remaining-4903-public.test.cjs');
+require('./remaining-4903-native.test.cjs');
+require('./remaining-4903-extra.test.cjs');
+require('./answered-4903.test.cjs');
+
+require('./confirmed-1767-speed.test.cjs');

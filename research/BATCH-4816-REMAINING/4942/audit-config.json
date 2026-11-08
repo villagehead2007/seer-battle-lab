@@ -1,0 +1,227 @@
+{
+  "id": 4942,
+  "proofs": [
+    "all-v3",
+    "affected-v1"
+  ],
+  "files": [
+    "tests/remaining-4942-soul.test.cjs",
+    "tests/remaining-4942-skills.test.cjs",
+    "tests/remaining-4942-public.test.cjs",
+    "tests/remaining-4942-interactions.test.cjs",
+    "tests/remaining-4942-native.test.cjs"
+  ],
+  "questions": [
+    "Q-4942-001",
+    "Q-4942-002"
+  ],
+  "pendingByKey": {
+    "4942:skill:38523:0": [
+      "Q-4942-001"
+    ]
+  },
+  "reviews": {
+    "4942:soul:2141": {
+      "scope": "mixed",
+      "rationale": "来源明确当前分支与真实队伍依赖分别审核。",
+      "singleBehavior": "在场攻击/固定减伤50%，回合初条件冰呪/正级视负及增伤忽弱；当前死亡清回合与冰封立即实现",
+      "deferredBehavior": "场下支援保护被支援者HP；实际下一只出场冰呪，是否检查清除前或后仍标Q-4942-002，不影响已知当前死亡载荷",
+      "trigger": "存活场下支援；被击败死亡切换且无回合条件成立",
+      "futureMechanisms": [
+        "场下存活支援者查询",
+        "支援HP改变来源约束",
+        "真实死亡切换与下一只状态转移"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "自身存活于场下时，为己方提供霜域血装支援",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2141",
+            "revision": "2c0cff9e"
+          }
+        },
+        {
+          "kind": "next-entry",
+          "quote": "自身死亡切换下场时为己方下只出战精灵附加3回合冰呪",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2141",
+            "revision": "2c0cff9e"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4942:skill:29444:3": {
+      "scope": "multiplayer",
+      "rationale": "来源明确当前分支与真实队伍依赖分别审核。",
+      "singleBehavior": "",
+      "deferredBehavior": "按真实场下伤害累计260步数真伤汲取并回复实际场下精灵，最多敌最大HP100%",
+      "trigger": "使用命中后读取本场己方场下受伤累计",
+      "futureMechanisms": [
+        "场下实际伤害累计",
+        "场下回复对象与分配",
+        "真实汲取伤害及回复交互"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "己方精灵每在场下受到260点伤害",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/29444",
+            "revision": "seerapi:c45d3aa0"
+          }
+        },
+        {
+          "kind": "off-field",
+          "quote": "恢复至己方不在场精灵",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/29444",
+            "revision": "seerapi:c45d3aa0"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "verificationNote": "当前双方无场下伤害受益者时不制造伤害或回复",
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4942:skill:38523:0": {
+      "scope": "mixed",
+      "rationale": "来源明确当前分支与真实队伍依赖分别审核。",
+      "singleBehavior": "当前对手来源魂印匹配检查；1个时命中+100及20%免PP状态验证；取消死亡要求的触发时机Q-4942-001保持抛错",
+      "deferredBehavior": "查询对方队伍其他精灵特性并计算数量，不猜造其他精灵或共享条件",
+      "trigger": "对方实际特性包含秒杀",
+      "futureMechanisms": [
+        "对方队伍特性查询",
+        "多特性数量与概率叠加"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "team-state",
+          "quote": "对方存在含有“秒杀”特性的精灵时",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38523",
+            "revision": "seerapi:57e42775"
+          }
+        },
+        {
+          "kind": "team-state",
+          "quote": "每有1个含有“秒杀”的特性",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38523",
+            "revision": "seerapi:57e42775"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4942:skill:38524:2": {
+      "scope": "multiplayer",
+      "rationale": "来源明确当前分支与真实队伍依赖分别审核。",
+      "singleBehavior": "",
+      "deferredBehavior": "找实际首位场下阵亡精灵并施加消逝",
+      "trigger": "本次技能未击败对手",
+      "futureMechanisms": [
+        "阵亡顺序",
+        "场下消逝生命周期"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "对方场下阵亡的首位精灵消逝",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38524",
+            "revision": "seerapi:dd9926eb"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "verificationNote": "未击败当前对手不伪造场下目标",
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4942:skill:38524:4": {
+      "scope": "multiplayer",
+      "rationale": "来源明确当前分支与真实队伍依赖分别审核。",
+      "singleBehavior": "",
+      "deferredBehavior": "拦截真正主动换宠流程",
+      "trigger": "技能无效",
+      "futureMechanisms": [
+        "主动换宠合法性与被动换宠区分"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "switch",
+          "quote": "对手下回合无法主动切换精灵",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4942/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38524",
+            "revision": "seerapi:dd9926eb"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "verificationNote": "技能无效登记下回合真实禁换请求，命中零伤不视无效",
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    }
+  },
+  "implementation": [
+    "dist/range-effects.js",
+    "dist/range-souls.js",
+    "dist/souls.js"
+  ],
+  "summary": "27招及魂印2141当前已知分支已核验；2569死亡条件豁免触发时机待答，真实场下支援/队伍查询/下一只冰呪/消逝/禁换单独延期。",
+  "limitations": [
+    "2569已知命中与PP测试仅隔离未确认触发部分，完整含秒杀对手流程仍抛错回滚，未宣称完成。",
+    "Q-4942-002只影响真实下一只冰呪条件，不阻断当前死亡清回合冰封；不列入单精灵pendingEffects。",
+    "全技能链每招16种子使用无秒杀魂印当前对手，不能覆盖未确认触发。"
+  ]
+}

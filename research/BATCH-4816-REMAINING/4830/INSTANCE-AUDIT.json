@@ -1,0 +1,2000 @@
+{
+  "at": "2026-11-02T09:05:47.678Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "accepted": false,
+  "items": [
+    {
+      "key": "4830:soul:2020",
+      "kind": "soul",
+      "raw": {
+        "id": 2020,
+        "description": "登场时，对手每有30%的体力令对手流血1回合，对手已处于流血时改为每有30%的体力令对手的流血状态回合数+1且1回合内免疫能力下降状态|对手不处于流血状态时自身受到的攻击伤害、固定伤害、百分比伤害减少25%，每回合受到上述类型伤害达到2种后剩余的类型所对应的减伤效果当回合翻倍；对手处于流血状态时自身免疫控制类异常状态，每回合前2次触发后令对手的流血状态回合数+1|战斗阶段结束时吸取对手100点体力，对手所处的流血状态每有1回合效果增加100，对手免疫固定伤害则消除对手回合类效果|（boss无效）",
+        "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>登场效果：\r\n<indent=16><sprite=3><indent=32>登场时，对手每有30%的体力，<color=#64F9FA>令对手流血</color>1回合\r\n<indent=32><sprite=4><indent=48>对手已处于流血时改为每有30%的体力令对手的流血状态回合数+1且1回合内<color=#64F9FA>免疫</color><b>能力下降状态</b>\r\n\r\n<indent=0><sprite=0><indent=16>触发效果：\r\n<indent=16><sprite=3><indent=32>对手不处于流血状态时自身受到的<b>攻击伤害、固定伤害、百分比伤害</b><color=#64F9FA>减少</color>25%\r\n<indent=32><sprite=4><indent=48>每回合受到上述类型伤害达到2种后剩余的类型所对应的减伤效果当回合翻倍\r\n<indent=16><sprite=3><indent=32>对手处于流血状态时自身<color=#64F9FA>免疫</color>受到的<b>控制类异常状态</b>\r\n<indent=32><sprite=4><indent=48>每回合前2次触发后令对手的流血状态回合数+1\r\n\r\n<indent=0><sprite=0><indent=16>战阶结束效果：\r\n<indent=16><sprite=3><indent=32>战斗阶段结束时<color=#64F9FA>吸取</color>对手100点<b>体力</b>，对手所处的流血状态每有1回合效果增加100\r\n<indent=32><sprite=4><indent=48>对手免疫固定伤害则<color=#64F9FA>消除</color>对手<b>回合类效果</b>",
+        "analyze_desc": "",
+        "hash": "85843ca7",
+        "eid": 2442,
+        "args": [
+          30,
+          25,
+          2,
+          100,
+          1
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2020",
+          "revision": "85843ca7",
+          "loadedAt": "2026-11-02T08:31:25.454Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "572c708965c8e5c06a2a4aa87d44bf32b4f0948f5a281975713e073ca18212b0",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020满体登场流血3回合，体力30%分档边界及免异失败不补抽；已有流血免弱明确待答",
+          "assertion": " const a=make({move:38135,index:-1,soul:true});assert.equal(a.fighters[1].ailments['流血'],3);const immune=make({move:38135,index:-1,soul:true,entryImmune:1});assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.equal(immune.fighters[1].counts.immune,0);\n for(const [hp,n]of[[2699,0],[2700,1],[5399,1],[5400,2],[8099,2],[8100,3]]){const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0)c.t.hp=hp;old.run(e,c);}};try{const s=make({move:38135,index:-1,soul:true});assert.equal(s.fighters[1].ailments['流血']??0,n);}finally{E.SOULS=old;}}\n const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0)c.t.ailments['流血']=2;old.run(e,c);}};try{assert.throws(()=>make({move:38135,soul:true}),/Q-4830-001/);}finally{E.SOULS=old;}"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020敌无流血时攻固粉先25%第三类50%、真伤不减与逐回合清种类；其他异常不误判流血",
+          "assertion": " const s=make({move:29182,index:-1,soul:true});delete s.fighters[1].ailments['流血'];s.fighters[1].ailments['中毒']=99;const out=[];observe((e,c)=>{if(e==='afterUse'&&c.a.side===1)for(const t of['fixed','percent','fixed','true'])out.push(c.hurt(c.t,100,'三通道真实状态',t));},()=>turn(s,29182,10127));assert.deepEqual(out,[75,50,75,100]);assert.deepEqual(s.fighters[0].soulState.damageTypes2016.types,['attack','fixed','percent']);const next=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)next.push(c.hurt(c.t,100,'新回合固定首伤','fixed'));},()=>turn(s,29182));assert.deepEqual(next,[75]);"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020敌流血时不减伤且免控每回合前2次延长流血，第三次不延长、非控次数免异不冒充",
+          "assertion": " const s=make({move:29182,index:-1,soul:true});for(let r=1;r<=2;r++)observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){const start=c.a.ailments['流血'];for(let n=1;n<=3;n++){assert.equal(c.ailment(c.t,'害怕',c.a,false,false,2),false);assert.equal(c.a.ailments['流血'],start+Math.min(n,2));}c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,0);assert.equal(c.a.ailments['流血'],start+2);assert.equal(c.hurt(c.t,100,'流血关闭固定减伤','fixed'),100);}},()=>turn(s,29182));assert.equal(s.fighters[0].soulState.shark2020.controls,2);"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020战阶100加每剩余流血回合100固定吸取，理论回复不受目标低HP与免伤截断，免固才清回合",
+          "assertion": " const s=make({move:29182,index:-1,soul:true,hp:1000});turn(s);assert.equal(sum(s,'fixed'),480);assert.deepEqual(s.damageEvents.filter(e=>e.type==='fixed').map(e=>e.settledDamage),[80,400]);assert.equal(s.fighters[0].hp,1400);assert.equal(s.fighters[1].hp,8520);\n const low=make({move:29182,index:-1,soul:true,hp:1000,targetHp:200});turn(low);assert.equal(low.fighters[1].hp,0);assert.equal(low.fighters[0].hp,1400);assert.equal(sum(low,'fixed'),480);\n const immune=make({move:29182,index:-1,soul:true,hp:1000});timer(immune,1,'固定百分比免疫');timer(immune,0,'技能禁疗');turn(immune);assert.equal(sum(immune,'fixed'),0);assert.equal(immune.fighters[0].hp,1400);assert.equal(immune.fighters[1].effects['固定百分比免疫'],undefined);assert.equal(immune.fighters[1].effects['攻击必中'],undefined);\n const no=make({move:29182,index:-1,soul:true,hp:1000});delete no.fighters[1].ailments['流血'];turn(no);assert.equal(sum(no,'fixed'),100);assert.equal(no.fighters[0].hp,1100);"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020免固清回合可被保护，固伤护罩不视为免疫，死亡不复活",
+          "assertion": " const a=make({move:29182,index:-1,soul:true,hp:1000});a.fighters[1].suitState.barrier=1000;turn(a);assert.equal(a.fighters[0].hp,1400);assert.equal(a.fighters[1].effects['攻击必中'].end,99);\n const b=make({move:29182,index:-1,soul:true,hp:1});turn(b,29182,10127);assert.equal(b.fighters[0].hp,0);assert.equal(sum(b,'fixed'),0);"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020公共登场免控延长计入首回合前2次，首回合初不重置，次回合再可延长",
+          "assertion": " const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='battleStart'&&c.a.side===1){assert.equal(c.entryAilment(c.t,'害怕',2,c.a),false);assert.equal(c.entryAilment(c.t,'麻痹',2,c.a),false);assert.equal(c.a.ailments['流血'],5);}}};let s;try{s=make({move:29182,index:-1,soul:true});}finally{E.SOULS=old;}\n observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'害怕',c.a,false,false,2),false);assert.equal(c.a.ailments['流血'],5);}},()=>turn(s));observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'害怕',c.a,false,false,2),false);assert.equal(c.a.ailments['流血'],6);}},()=>turn(s));"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830真实2020常驻免控先于技能反弹，不反弹仍延长两次；免固清回合受免断保护",
+          "assertion": " const a=make({move:29182,index:-1,soul:true});timer(a,0,'reflect');observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){const before=c.a.ailments['流血'];assert.equal(c.ailment(c.t,'害怕',c.a,false,false,2),false);assert.equal(c.a.ailments['害怕'],undefined);assert.equal(c.a.ailments['流血'],before+1);}},()=>turn(a));\n const b=make({move:29182,index:-1,soul:true,hp:1000});timer(b,1,'固定百分比免疫');timer(b,1,'protect');turn(b);assert.equal(sum(b,'fixed'),0);assert.equal(b.fighters[0].hp,1400);assert.ok(b.fighters[1].effects['固定百分比免疫']);assert.ok(b.fighters[1].effects.protect);"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4830-001"
+      ]
+    },
+    {
+      "key": "4830:move:38123",
+      "kind": "move",
+      "raw": {
+        "id": 38123,
+        "name": "鱼雷攻击",
+        "type": "神秘战斗",
+        "kind": "physical",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          879,
+          1217
+        ],
+        "effectInstances": [
+          {
+            "id": 879,
+            "args": [],
+            "description": "消除对手回合类效果，消除成功则恢复自身全部体力"
+          },
+          {
+            "id": 1217,
+            "args": [
+              1
+            ],
+            "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效"
+          }
+        ],
+        "description": "消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "revision": "seerapi:d42d4075",
+        "hash": "d42d4075",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "45e953c64617af40b5cf4e7049ed04667f0a3a68b106ca13c2a06b1c7cfffed2",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38123:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 879,
+          "args": [],
+          "description": "消除对手回合类效果，消除成功则恢复自身全部体力"
+        },
+        "index": 0,
+        "description": "消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "metadata": {
+          "id": 879,
+          "argsNum": 0,
+          "template": "消除对手回合类效果，消除成功则恢复自身全部体力",
+          "revision": "seerapi:1bed42ef"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:d42d4075"
+      },
+      "sourceDigest": "e3fb214b4b936156509ac330586868bcbd610c0019bb357d891eb7240e8d6219",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/879旧新两真实实例消回合成功回满失败不回及禁疗，1217消强成功只封下一次攻击",
+          "assertion": " for(const n of[0,1]){const a=make({...row(879,n),hp:1000});turn(a);assert.equal(a.fighters[0].hp,9000);const b=make({...row(879,n),hp:1000});b.fighters[1].effects={};turn(b);assert.equal(b.fighters[0].hp,1000);const c=make({...row(879,n),hp:1000});timer(c,0,'技能禁疗');turn(c);assert.equal(c.fighters[0].hp,1000);}\n const d=make(row(1217,1));d.fighters[1].stages.atk=2;turn(d);assert.equal(d.fighters[1].counts.nextAttackInvalid,1);assert.equal(d.fighters[1].stages.atk,1);d.moveDefinitions[key(38137)].operations=[];turn(d,38137,10127);assert.equal(sum(d,'attack',1),0);assert.equal(d.fighters[1].counts.nextAttackInvalid,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38123:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1217,
+          "args": [
+            1
+          ],
+          "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效"
+        },
+        "index": 1,
+        "description": "消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "metadata": {
+          "id": 1217,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，消除成功则对手下{0}次攻击技能无效",
+          "revision": "seerapi:e15e591"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:d42d4075"
+      },
+      "sourceDigest": "39a148b32dc2b040615541825b44c1a71b44ae4475a9d4b5ec3a63d42ceb2e91",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/879旧新两真实实例消回合成功回满失败不回及禁疗，1217消强成功只封下一次攻击",
+          "assertion": " for(const n of[0,1]){const a=make({...row(879,n),hp:1000});turn(a);assert.equal(a.fighters[0].hp,9000);const b=make({...row(879,n),hp:1000});b.fighters[1].effects={};turn(b);assert.equal(b.fighters[0].hp,1000);const c=make({...row(879,n),hp:1000});timer(c,0,'技能禁疗');turn(c);assert.equal(c.fighters[0].hp,1000);}\n const d=make(row(1217,1));d.fighters[1].stages.atk=2;turn(d);assert.equal(d.fighters[1].counts.nextAttackInvalid,1);assert.equal(d.fighters[1].stages.atk,1);d.moveDefinitions[key(38137)].operations=[];turn(d,38137,10127);assert.equal(sum(d,'attack',1),0);assert.equal(d.fighters[1].counts.nextAttackInvalid,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:29173",
+      "kind": "move",
+      "raw": {
+        "id": 29173,
+        "name": "利齿鲨突袭",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          191,
+          1875,
+          1426
+        ],
+        "effectInstances": [
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 1875,
+            "args": [
+              4,
+              3,
+              2
+            ],
+            "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+          },
+          {
+            "id": 1426,
+            "args": [
+              100,
+              6
+            ],
+            "description": "若对手不处于异常状态则100%令对手害怕"
+          }
+        ],
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕",
+        "revision": "seerapi:e407b533",
+        "hash": "e407b533",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "0b45e5eb22c72c74bd77a41e420130c9ca45e37ea9cf37a6fa17a1b915ec77f0",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29173:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:e407b533"
+      },
+      "sourceDigest": "588c0d9c27f1fed4fba192a7bf3dd9c52e542afe0236f2a8fa1eef5c3aae42b8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29173:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1875,
+          "args": [
+            4,
+            3,
+            2
+          ],
+          "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+        },
+        "index": 1,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕",
+        "metadata": {
+          "id": 1875,
+          "argsNum": 3,
+          "template": "{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果翻倍",
+          "revision": "seerapi:73de7007"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:e407b533"
+      },
+      "sourceDigest": "9d2938cfde3a32771d13a4cc9f353a15e37e5845c4222aee865cc8145cd03fad",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29173:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1426,
+          "args": [
+            100,
+            6
+          ],
+          "description": "若对手不处于异常状态则100%令对手害怕"
+        },
+        "index": 2,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕",
+        "metadata": {
+          "id": 1426,
+          "argsNum": 2,
+          "template": "若对手不处于异常状态则{0}%令对手{1}",
+          "revision": "seerapi:db238a1a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:e407b533"
+      },
+      "sourceDigest": "d5dc9dad65a7c439664b4c98f9e378ee246495194d40307a1330e8b40d015f4b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:29174",
+      "kind": "move",
+      "raw": {
+        "id": 29174,
+        "name": "牙齿护理",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1397,
+          776,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 1397,
+            "args": [
+              1,
+              2
+            ],
+            "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+          },
+          {
+            "id": 776,
+            "args": [
+              2
+            ],
+            "description": "下2回合自身造成的攻击伤害翻倍"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:3467c048",
+        "hash": "3467c048",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "b12f712d08f4ceb29bb907d8fbf7ec713c92170faee8584469fabf2b6023b480",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29174:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1397,
+          "args": [
+            1,
+            2
+          ],
+          "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1397,
+          "argsNum": 2,
+          "template": "全属性+{0}，自身体力低于1/{1}时强化效果翻倍",
+          "revision": "seerapi:b5d969f3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3467c048"
+      },
+      "sourceDigest": "a8b683f1a8d70a961c3fe28a5f60d45d955d35a0cb0d9e4f6c948a1ad3489dd9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29174:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 776,
+          "args": [
+            2
+          ],
+          "description": "下2回合自身造成的攻击伤害翻倍"
+        },
+        "index": 1,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 776,
+          "argsNum": 1,
+          "template": "下{0}回合自身造成的攻击伤害翻倍",
+          "revision": "seerapi:e9884fa3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3467c048"
+      },
+      "sourceDigest": "d556d4b49a18166092fda4f82d48138ffbef8bef25ede0ae0f10a5a85c7e3a17",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29174:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 2,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3467c048"
+      },
+      "sourceDigest": "41bdf3e66ba41c141a55234d8e7a8359135caeaa4c5e3bbcbed3ddfa0f1771b7",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:38124",
+      "kind": "move",
+      "raw": {
+        "id": 38124,
+        "name": "鱼鳍龙卷风",
+        "type": "神秘战斗",
+        "kind": "physical",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1084,
+          2060
+        ],
+        "effectInstances": [
+          {
+            "id": 1084,
+            "args": [
+              200
+            ],
+            "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍"
+          },
+          {
+            "id": 2060,
+            "args": [
+              2,
+              100,
+              16,
+              3
+            ],
+            "description": "2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害"
+          }
+        ],
+        "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "revision": "seerapi:85ac2ed5",
+        "hash": "85ac2ed5",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "529befec7a9d00a464203900c0770a07a27e3fc281862b3c3e46a313ced45cf4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38124:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1084,
+          "args": [
+            200
+          ],
+          "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍"
+        },
+        "index": 0,
+        "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "metadata": {
+          "id": 1084,
+          "argsNum": 1,
+          "template": "附加{0}点固定伤害，对手处于异常状态时固定伤害翻倍",
+          "revision": "seerapi:2ba56bd9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:85ac2ed5"
+      },
+      "sourceDigest": "8553df4335afddd77e67dab5249de3873db4c0706c6187e28e79288c7b09c46f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1084异常固定200翻400，2060旧新敌属性流血失败净HP附伤与两回合到期",
+          "assertion": " for(const n of[0,1]){const a=make(row(1084,n));turn(a);assert.equal(sum(a,'fixed'),200);const b=make(row(1084,n));b.fighters[1].ailments['中毒']=99;turn(b);assert.equal(sum(b,'fixed'),400);const c=make({...row(2060,n),hp:8500});c.fighters[1].counts.immune=3;turn(c);assert.equal(c.fighters[0].hp,9000);assert.equal(sum(c,'percent'),500);c.moveDefinitions[key(38137)].operations=[];for(let r=2;r<=3;r++){c.fighters[0].hp=8000;turn(c,38137);assert.equal(sum(c,'percent'),r===2?1000:0);}}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38124:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2060,
+          "args": [
+            2,
+            100,
+            16,
+            3
+          ],
+          "description": "2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害"
+        },
+        "index": 1,
+        "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "metadata": {
+          "id": 2060,
+          "argsNum": 4,
+          "template": "{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害",
+          "revision": "seerapi:7cd0fb94"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:85ac2ed5"
+      },
+      "sourceDigest": "455f6faff20c337fa5be1cd645d07c9a34f7d9a800821222f5e119ce36afb859",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1084异常固定200翻400，2060旧新敌属性流血失败净HP附伤与两回合到期",
+          "assertion": " for(const n of[0,1]){const a=make(row(1084,n));turn(a);assert.equal(sum(a,'fixed'),200);const b=make(row(1084,n));b.fighters[1].ailments['中毒']=99;turn(b);assert.equal(sum(b,'fixed'),400);const c=make({...row(2060,n),hp:8500});c.fighters[1].counts.immune=3;turn(c);assert.equal(c.fighters[0].hp,9000);assert.equal(sum(c,'percent'),500);c.moveDefinitions[key(38137)].operations=[];for(let r=2;r<=3;r++){c.fighters[0].hp=8000;turn(c,38137);assert.equal(sum(c,'percent'),r===2?1000:0);}}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:38135",
+      "kind": "move",
+      "raw": {
+        "id": 38135,
+        "name": "狂雷弹幕",
+        "type": "神秘战斗",
+        "kind": "physical",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1767,
+          879,
+          1217
+        ],
+        "effectInstances": [
+          {
+            "id": 1767,
+            "args": [],
+            "description": "攻击时将对手的能力提升状态视为相应的能力下降状态"
+          },
+          {
+            "id": 879,
+            "args": [],
+            "description": "消除对手回合类效果，消除成功则恢复自身全部体力"
+          },
+          {
+            "id": 1217,
+            "args": [
+              1
+            ],
+            "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效"
+          }
+        ],
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态；消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "revision": "seerapi:3d77284a",
+        "hash": "3d77284a",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "9fd90f7eb75297041162e08ed2492cbd661f6366a9e635ab65a96f799f11a46d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38135:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1767,
+          "args": [],
+          "description": "攻击时将对手的能力提升状态视为相应的能力下降状态"
+        },
+        "index": 0,
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态；消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "metadata": {
+          "id": 1767,
+          "argsNum": 0,
+          "template": "攻击时将对手的能力提升状态视为相应的能力下降状态",
+          "revision": "seerapi:d25219b2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3d77284a"
+      },
+      "sourceDigest": "cd99d8fa5bf1cc4182cc39326b69782370a753ffd59ee2e6d0a1ec604e36134a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1767将敌强化视弱化计算红伤且保留真实战阶，2072自身异常先制1必中无异常正常命中",
+          "assertion": " const a=make(row(1767));a.fighters[1].stages.def=3;turn(a);const b=make({move:38135,index:-1});b.fighters[1].stages.def=-3;turn(b);assert.ok(Math.abs(sum(a)-sum(b))<=2);assert.equal(a.fighters[1].stages.def,3);\n const c=make({...row(2072),hit:false});c.fighters[0].ailments['流血']=99;c.fighters[0].stages.acc=-6;timer(c,0,'攻击必失');turn(c);assert.equal(c.fighters[0].soulState.resolvedPriority.value,1);assert.ok(sum(c)>0);assert.equal(c.moveDefinitions[key(38136)].alwaysHit,false);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38135:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 879,
+          "args": [],
+          "description": "消除对手回合类效果，消除成功则恢复自身全部体力"
+        },
+        "index": 1,
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态；消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "metadata": {
+          "id": 879,
+          "argsNum": 0,
+          "template": "消除对手回合类效果，消除成功则恢复自身全部体力",
+          "revision": "seerapi:1bed42ef"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3d77284a"
+      },
+      "sourceDigest": "7a933e1b52197d38819d52a3cadbd5e7e6cff1d10e0280f0180564f16769bf4c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/879旧新两真实实例消回合成功回满失败不回及禁疗，1217消强成功只封下一次攻击",
+          "assertion": " for(const n of[0,1]){const a=make({...row(879,n),hp:1000});turn(a);assert.equal(a.fighters[0].hp,9000);const b=make({...row(879,n),hp:1000});b.fighters[1].effects={};turn(b);assert.equal(b.fighters[0].hp,1000);const c=make({...row(879,n),hp:1000});timer(c,0,'技能禁疗');turn(c);assert.equal(c.fighters[0].hp,1000);}\n const d=make(row(1217,1));d.fighters[1].stages.atk=2;turn(d);assert.equal(d.fighters[1].counts.nextAttackInvalid,1);assert.equal(d.fighters[1].stages.atk,1);d.moveDefinitions[key(38137)].operations=[];turn(d,38137,10127);assert.equal(sum(d,'attack',1),0);assert.equal(d.fighters[1].counts.nextAttackInvalid,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38135:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1217,
+          "args": [
+            1
+          ],
+          "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效"
+        },
+        "index": 2,
+        "description": "攻击时将对手的能力提升状态视为相应的能力下降状态；消除对手回合类效果，消除成功则恢复自身全部体力；消除对手能力提升状态，消除成功则对手下1次攻击技能无效",
+        "metadata": {
+          "id": 1217,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，消除成功则对手下{0}次攻击技能无效",
+          "revision": "seerapi:e15e591"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:3d77284a"
+      },
+      "sourceDigest": "d6f2435a00eafc1538d50363a61c9d7c4ec173f50df4b2dfaec5add9d5980211",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/879旧新两真实实例消回合成功回满失败不回及禁疗，1217消强成功只封下一次攻击",
+          "assertion": " for(const n of[0,1]){const a=make({...row(879,n),hp:1000});turn(a);assert.equal(a.fighters[0].hp,9000);const b=make({...row(879,n),hp:1000});b.fighters[1].effects={};turn(b);assert.equal(b.fighters[0].hp,1000);const c=make({...row(879,n),hp:1000});timer(c,0,'技能禁疗');turn(c);assert.equal(c.fighters[0].hp,1000);}\n const d=make(row(1217,1));d.fighters[1].stages.atk=2;turn(d);assert.equal(d.fighters[1].counts.nextAttackInvalid,1);assert.equal(d.fighters[1].stages.atk,1);d.moveDefinitions[key(38137)].operations=[];turn(d,38137,10127);assert.equal(sum(d,'attack',1),0);assert.equal(d.fighters[1].counts.nextAttackInvalid,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:29181",
+      "kind": "move",
+      "raw": {
+        "id": 29181,
+        "name": "钢牙极突",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          191,
+          1875,
+          1426,
+          1882
+        ],
+        "effectInstances": [
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 1875,
+            "args": [
+              4,
+              3,
+              2
+            ],
+            "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+          },
+          {
+            "id": 1426,
+            "args": [
+              100,
+              6
+            ],
+            "description": "若对手不处于异常状态则100%令对手害怕"
+          },
+          {
+            "id": 1882,
+            "args": [
+              1,
+              100,
+              16
+            ],
+            "description": "令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血"
+          }
+        ],
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕；令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血",
+        "revision": "seerapi:90d785dc",
+        "hash": "90d785dc",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "fba39b1c248b80bd085fc24655318749ae007736f10d09fb13d07a9e14b12ad9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29181:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕；令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:90d785dc"
+      },
+      "sourceDigest": "497af2761df969c4a5183c8c7e262fcec9e6cd28301630e052fc5c6117623310",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29181:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1875,
+          "args": [
+            4,
+            3,
+            2
+          ],
+          "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+        },
+        "index": 1,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕；令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血",
+        "metadata": {
+          "id": 1875,
+          "argsNum": 3,
+          "template": "{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果翻倍",
+          "revision": "seerapi:73de7007"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:90d785dc"
+      },
+      "sourceDigest": "10d47a6bdf9d1f95aa2b09ab23508dae4607ee4b91257247df5b84f305f22a9f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29181:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1426,
+          "args": [
+            100,
+            6
+          ],
+          "description": "若对手不处于异常状态则100%令对手害怕"
+        },
+        "index": 2,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕；令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血",
+        "metadata": {
+          "id": 1426,
+          "argsNum": 2,
+          "template": "若对手不处于异常状态则{0}%令对手{1}",
+          "revision": "seerapi:db238a1a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:90d785dc"
+      },
+      "sourceDigest": "aceb25aabb1902f92a041fe8fbad49f0e8f987c80ee3413ac9f05c1be72f7369",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1875旧新用招当前回复低半翻倍、满体溢出与禁疗净HP等量粉；191免反次数共存与1426仅无异常害怕",
+          "assertion": " for(const n of[0,1])for(const [hp,heal]of[[1000,6000],[4500,3000],[8500,500],[9000,0]]){const a=make({...row(1875,n),hp});turn(a);assert.equal(a.fighters[0].hp,hp+heal);assert.equal(sum(a,'percent'),heal);}\n const no=make({...row(1875,1),hp:1000});timer(no,0,'技能禁疗');turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),0);const a=make(row(191,1));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=1;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38137));\n const b=make(row(1426,1));turn(b);assert.ok(b.fighters[1].ailments['害怕']);const c=make(row(1426,1));c.fighters[1].ailments['流血']=99;turn(c);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29181:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1882,
+          "args": [
+            1,
+            100,
+            16
+          ],
+          "description": "令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血"
+        },
+        "index": 3,
+        "description": "4回合内免疫并反弹所有受到的异常状态；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；若对手不处于异常状态则100%令对手害怕；令己方下只出战精灵抵挡下1次对手的攻击，且出战时100%流血",
+        "metadata": {
+          "id": 1882,
+          "argsNum": 3,
+          "template": "令己方下只出战精灵抵挡下{0}次对手的攻击，且出战时{1}%{2}",
+          "revision": "seerapi:26ad7fa0"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:90d785dc"
+      },
+      "sourceDigest": "65efba232fd2c1051a76e161d3e02ac0be26fce9cd5434968decd5ea7cd309e7",
+      "scope": "multiplayer",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "reviewed-deferred",
+      "tests": [],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:29182",
+      "kind": "move",
+      "raw": {
+        "id": 29182,
+        "name": "暗念驱动",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1397,
+          573,
+          776,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 1397,
+            "args": [
+              1,
+              2
+            ],
+            "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+          },
+          {
+            "id": 573,
+            "args": [
+              3,
+              100,
+              16,
+              3
+            ],
+            "description": "3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合"
+          },
+          {
+            "id": 776,
+            "args": [
+              2
+            ],
+            "description": "下2回合自身造成的攻击伤害翻倍"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:58af6269",
+        "hash": "58af6269",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "b5a14763986d3987891a2604b7b1f72e9e3916591a36da17777fdd43e0b76f21",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29182:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1397,
+          "args": [
+            1,
+            2
+          ],
+          "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1397,
+          "argsNum": 2,
+          "template": "全属性+{0}，自身体力低于1/{1}时强化效果翻倍",
+          "revision": "seerapi:b5d969f3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:58af6269"
+      },
+      "sourceDigest": "4846a61252c6ad9e9e4490ff1d37818a855b5fef7d07365c0360bee208bdc930",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29182:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 573,
+          "args": [
+            3,
+            100,
+            16,
+            3
+          ],
+          "description": "3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合"
+        },
+        "index": 1,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 573,
+          "argsNum": 4,
+          "template": "{0}回合内若自身能力提升状态被消除或吸取则{1}%使对手{2}{3}回合",
+          "revision": "seerapi:3e6ede29"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:58af6269"
+      },
+      "sourceDigest": "98b1645acae790e582e2ffba4323e252032c0c18477e4c4bd499d085821e84df",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/573消强或吸强真实触发指定3回合流血，未消强不触发与免异失败不补偿",
+          "assertion": " for(const kind of['clear','steal','none','immune']){const a=make(row(573));a.fighters[0].stages.atk=2;turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(kind==='immune')c.a.counts.immune=1;if(kind==='steal')c.steal(c.a,c.t,'测试真实吸强事件');else if(kind!=='none')c.clearBoost(c.t);}},()=>turn(a,38137));assert.equal(!!a.fighters[1].ailments['流血'],['clear','steal'].includes(kind));if(['clear','steal'].includes(kind))assert.equal(a.fighters[1].ailments['流血'],4);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29182:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 776,
+          "args": [
+            2
+          ],
+          "description": "下2回合自身造成的攻击伤害翻倍"
+        },
+        "index": 2,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 776,
+          "argsNum": 1,
+          "template": "下{0}回合自身造成的攻击伤害翻倍",
+          "revision": "seerapi:e9884fa3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:58af6269"
+      },
+      "sourceDigest": "be0a9520afe1a497cdc8caa6084e05fac71e3886ca6730c8dcb7c2fffd3b6fb4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:29182:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 3,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；3回合内若自身能力提升状态被消除或吸取则100%使对手流血3回合；下2回合自身造成的攻击伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:58af6269"
+      },
+      "sourceDigest": "6f4bf23f3224d138b5281db3a64db3ff9ac95f918b5ec84e3f78cd6d0239c8bf",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1397低半严格全强翻倍及禁强，776843下两回合倍红与所有技能先制2到期",
+          "assertion": " for(const n of[0,1])for(const [hp,want]of[[4499,2],[4500,1]]){const a=make({...row(1397,n),hp});turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],want);}const b=make(row(1397,1));timer(b,0,'禁强化');turn(b);assert.equal(b.fighters[0].stages.atk,0);\n for(const id of[776,843]){const a=make(row(id,1));turn(a);a.moveDefinitions[key(38137)].operations=[];const base=make({move:38137,index:-1});a.rng=base.rng;turn(a,38137);turn(base);if(id===776)assert.ok(Math.abs(sum(a)-2*sum(base))<=2);else assert.equal(a.fighters[0].soulState.resolvedPriority.value,2);turn(a,38137);turn(a,38137);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:38136",
+      "kind": "move",
+      "raw": {
+        "id": 38136,
+        "name": "复仇风瀑",
+        "type": "神秘战斗",
+        "kind": "physical",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          2072,
+          1084,
+          2060
+        ],
+        "effectInstances": [
+          {
+            "id": 2072,
+            "args": [],
+            "description": "自身处于异常状态时先制+1且必定命中"
+          },
+          {
+            "id": 1084,
+            "args": [
+              200
+            ],
+            "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍"
+          },
+          {
+            "id": 2060,
+            "args": [
+              2,
+              100,
+              16,
+              3
+            ],
+            "description": "2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害"
+          }
+        ],
+        "description": "自身处于异常状态时先制+1且必定命中；附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "revision": "seerapi:ced893b1",
+        "hash": "ced893b1",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "6282dc48a6bcbf418732ffeffb2bf7082df8b7400fc4b1f486d0a2fbfe630ec8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38136:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2072,
+          "args": [],
+          "description": "自身处于异常状态时先制+1且必定命中"
+        },
+        "index": 0,
+        "description": "自身处于异常状态时先制+1且必定命中；附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "metadata": {
+          "id": 2072,
+          "argsNum": 0,
+          "template": "自身处于异常状态时先制+1且必定命中",
+          "revision": "seerapi:84a311d0"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:ced893b1"
+      },
+      "sourceDigest": "102ae8ecddf1445a4d3b45e186b765575ab4222ec5fe53de2c1caa4700bd788a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1767将敌强化视弱化计算红伤且保留真实战阶，2072自身异常先制1必中无异常正常命中",
+          "assertion": " const a=make(row(1767));a.fighters[1].stages.def=3;turn(a);const b=make({move:38135,index:-1});b.fighters[1].stages.def=-3;turn(b);assert.ok(Math.abs(sum(a)-sum(b))<=2);assert.equal(a.fighters[1].stages.def,3);\n const c=make({...row(2072),hit:false});c.fighters[0].ailments['流血']=99;c.fighters[0].stages.acc=-6;timer(c,0,'攻击必失');turn(c);assert.equal(c.fighters[0].soulState.resolvedPriority.value,1);assert.ok(sum(c)>0);assert.equal(c.moveDefinitions[key(38136)].alwaysHit,false);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38136:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1084,
+          "args": [
+            200
+          ],
+          "description": "附加200点固定伤害，对手处于异常状态时固定伤害翻倍"
+        },
+        "index": 1,
+        "description": "自身处于异常状态时先制+1且必定命中；附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "metadata": {
+          "id": 1084,
+          "argsNum": 1,
+          "template": "附加{0}点固定伤害，对手处于异常状态时固定伤害翻倍",
+          "revision": "seerapi:2ba56bd9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:ced893b1"
+      },
+      "sourceDigest": "87399462f8aff42399c06f6cff766da3a164150fff86c18dc53125d4fceb12b9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1084异常固定200翻400，2060旧新敌属性流血失败净HP附伤与两回合到期",
+          "assertion": " for(const n of[0,1]){const a=make(row(1084,n));turn(a);assert.equal(sum(a,'fixed'),200);const b=make(row(1084,n));b.fighters[1].ailments['中毒']=99;turn(b);assert.equal(sum(b,'fixed'),400);const c=make({...row(2060,n),hp:8500});c.fighters[1].counts.immune=3;turn(c);assert.equal(c.fighters[0].hp,9000);assert.equal(sum(c,'percent'),500);c.moveDefinitions[key(38137)].operations=[];for(let r=2;r<=3;r++){c.fighters[0].hp=8000;turn(c,38137);assert.equal(sum(c,'percent'),r===2?1000:0);}}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38136:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2060,
+          "args": [
+            2,
+            100,
+            16,
+            3
+          ],
+          "description": "2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害"
+        },
+        "index": 2,
+        "description": "自身处于异常状态时先制+1且必定命中；附加200点固定伤害，对手处于异常状态时固定伤害翻倍；2回合内对手使用属性技能时100%令对手流血，未触发则恢复自身最大体力的1/3并造成等量百分比伤害",
+        "metadata": {
+          "id": 2060,
+          "argsNum": 4,
+          "template": "{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害",
+          "revision": "seerapi:7cd0fb94"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:ced893b1"
+      },
+      "sourceDigest": "2f0fcbe62853b27f4d5811f723067b3f2d1c6614a605ce964347689e4eece141",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1084异常固定200翻400，2060旧新敌属性流血失败净HP附伤与两回合到期",
+          "assertion": " for(const n of[0,1]){const a=make(row(1084,n));turn(a);assert.equal(sum(a,'fixed'),200);const b=make(row(1084,n));b.fighters[1].ailments['中毒']=99;turn(b);assert.equal(sum(b,'fixed'),400);const c=make({...row(2060,n),hp:8500});c.fighters[1].counts.immune=3;turn(c);assert.equal(c.fighters[0].hp,9000);assert.equal(sum(c,'percent'),500);c.moveDefinitions[key(38137)].operations=[];for(let r=2;r<=3;r++){c.fighters[0].hp=8000;turn(c,38137);assert.equal(sum(c,'percent'),r===2?1000:0);}}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:move:38137",
+      "kind": "move",
+      "raw": {
+        "id": 38137,
+        "name": "断金鳍锋斩",
+        "type": "神秘战斗",
+        "kind": "physical",
+        "power": 160,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1352,
+          1289,
+          1511,
+          2162
+        ],
+        "effectInstances": [
+          {
+            "id": 1352,
+            "args": [
+              2
+            ],
+            "description": "解除自身能力下降状态，解除成功则自身全属性+2"
+          },
+          {
+            "id": 1289,
+            "args": [
+              2
+            ],
+            "description": "将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效"
+          },
+          {
+            "id": 1511,
+            "args": [
+              100
+            ],
+            "description": "先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害"
+          },
+          {
+            "id": 2162,
+            "args": [
+              16
+            ],
+            "description": "下次击败对手时，令对方下只出战精灵流血"
+          }
+        ],
+        "description": "解除自身能力下降状态，解除成功则自身全属性+2；将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效；先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害；下次击败对手时，令对方下只出战精灵流血",
+        "revision": "seerapi:605ae0b5",
+        "hash": "605ae0b5",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4830",
+        "revision": "cfbb094b",
+        "loadedAt": "2026-11-02T08:31:18.898Z"
+      },
+      "sourceDigest": "d46ac8fa0e2d51bdfbd86226f09fd17aff192ee5ebf753cc99d0877bc576a1ca",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830全部9招完整原生2020初始化与有序实例PP，64种子基础、零PP拒绝和整招封锁不附伤",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2020);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'fixed'),0);assert.equal(sum(blocked,'percent'),0);}\n assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,9);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38137:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1352,
+          "args": [
+            2
+          ],
+          "description": "解除自身能力下降状态，解除成功则自身全属性+2"
+        },
+        "index": 0,
+        "description": "解除自身能力下降状态，解除成功则自身全属性+2；将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效；先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害；下次击败对手时，令对方下只出战精灵流血",
+        "metadata": {
+          "id": 1352,
+          "argsNum": 1,
+          "template": "解除自身能力下降状态，解除成功则自身全属性+{0}",
+          "revision": "seerapi:9ee766bc"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:605ae0b5"
+      },
+      "sourceDigest": "2f45fdb501f1cae8c254cdb4499739902f6020f6499aebc0398e10b2c87d84eb",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1352解弱再全强2，1289独立双反馈成功封2次技能，完整第五先解弱不会伪反馈",
+          "assertion": " const a=make(row(1352));a.fighters[0].stages.atk=-2;turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],2);const b=make(row(1289));b.fighters[0].stages.atk=-2;turn(b);assert.equal(b.fighters[1].stages.atk,-4);assert.equal(b.fighters[1].counts.nextSkillInvalid,1);assert.equal(b.fighters[0].stages.atk,0);const full=make({move:38137});full.fighters[0].stages.atk=-2;turn(full);assert.equal(full.fighters[0].stages.atk,2);assert.equal(full.fighters[1].stages.atk,1);assert.equal(full.fighters[1].counts.nextSkillInvalid??0,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38137:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1289,
+          "args": [
+            2
+          ],
+          "description": "将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效"
+        },
+        "index": 1,
+        "description": "解除自身能力下降状态，解除成功则自身全属性+2；将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效；先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害；下次击败对手时，令对方下只出战精灵流血",
+        "metadata": {
+          "id": 1289,
+          "argsNum": 1,
+          "template": "将自身的能力下降状态双倍反馈给对手，反馈成功则对手下{0}次技能无效",
+          "revision": "seerapi:b0b0c81c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:605ae0b5"
+      },
+      "sourceDigest": "50dff44741774298efe44142f1dff978f04ad4b123ed56ebb06129afb53543f8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1352解弱再全强2，1289独立双反馈成功封2次技能，完整第五先解弱不会伪反馈",
+          "assertion": " const a=make(row(1352));a.fighters[0].stages.atk=-2;turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],2);const b=make(row(1289));b.fighters[0].stages.atk=-2;turn(b);assert.equal(b.fighters[1].stages.atk,-4);assert.equal(b.fighters[1].counts.nextSkillInvalid,1);assert.equal(b.fighters[0].stages.atk,0);const full=make({move:38137});full.fighters[0].stages.atk=-2;turn(full);assert.equal(full.fighters[0].stages.atk,2);assert.equal(full.fighters[1].stages.atk,1);assert.equal(full.fighters[1].counts.nextSkillInvalid??0,0);"
+        },
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1289反馈成功两次无效逐次消费，敌免弱失败不封且不清自身弱化",
+          "assertion": " const a=make(row(1289));a.fighters[0].stages.atk=-2;turn(a);assert.equal(a.fighters[1].counts.nextSkillInvalid,1);a.moveDefinitions[key(38135)].operations=[];turn(a,38135,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].counts.nextSkillInvalid,0);turn(a,38135,10127);assert.ok(sum(a,'attack',1)>0);\n const b=make(row(1289));b.fighters[0].stages.atk=-2;timer(b,1,'免弱');turn(b);assert.equal(b.fighters[0].stages.atk,-2);assert.equal(b.fighters[1].counts.nextSkillInvalid??0,0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4830:skill:38137:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1511,
+          "args": [
+            100
+          ],
+          "description": "先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害"
+        },
+        "index": 2,
+        "description": "解除自身能力下降状态，解除成功则自身全属性+2；将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效；先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害；下次击败对手时，令对方下只出战精灵流血",
+        "metadata": {
+          "id": 1511,
+          "argsNum": 1,
+          "template": "先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值{0}%的百分比伤害",
+          "revision": "seerapi:c3787903"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:605ae0b5"
+      },
+      "sourceDigest": "ba415de52d49461b51530b7ebecaf1eb804ca6c39d4b1d9dfd5e003a9dfa8e1e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4830.test.cjs",
+          "name": "4830/1511先手非天敌免当回合红伤不免固粉，后手不授与到期；真实天敌反伤明确待答",
+          "assertion": " const a=make(row(1511)),values=[];observe((e,c)=>{if(e==='afterUse'&&c.a.side===1)for(const type of['fixed','percent'])values.push(c.hurt(c.t,100,'免红不免其他类型',type));},()=>turn(a,38137,10127));assert.equal(sum(a,'attack',1),0);assert.deepEqual(values,[100,100]);a.moveDefinitions[key(38135)].operations=[];turn(a,38135,10127);assert.ok(sum(a,'attack',1)>0);\n const b=make({...row(1511),aStats:{spe:1}});turn(b,38137,10127);assert.ok(sum(b,'attack',1)>0);assert.equal(b.fighters[0].effects['攻击伤害免疫'],undefined);\n const fs=require('fs'),opponent=fs.readdirSync('data/species').filter(f=>f.endsWith('.json')).map(f=>JSON.parse(fs.readFileSync('data/species/'+f)).snapshot).find(s=>s.moves?.some(m=>m.fifth)&&s.moves.filter(m=>!m.fifth).length>=4&&E.typeEffectiveness(s.type,source.type,source.typeChart)>1),moves=[...opponent.moves.filter(m=>!m.fifth).slice(0,4),opponent.moves.find(m=>m.fifth)],loadout=moves.map(m=>m.id),enemy=moves.find(m=>m.kind!=='status'&&m.power>0);assert.ok(enemy);const c=make({...row(1511),enemySource:opponent,enemyLoadout:loadout});assert.throws(()=>turn(c,38137,enemy.id),/Q-4830-002/);"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4830-002"
+      ]
+    },
+    {
+      "key": "4830:skill:38137:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2162,
+          "args": [
+            16
+          ],
+          "description": "下次击败对手时，令对方下只出战精灵流血"
+        },
+        "index": 3,
+        "description": "解除自身能力下降状态，解除成功则自身全属性+2；将自身的能力下降状态双倍反馈给对手，反馈成功则对手下2次技能无效；先出手时免疫当回合受到的攻击伤害，若对手为自身天敌则免疫并反弹给对手造成伤害值100%的百分比伤害；下次击败对手时，令对方下只出战精灵流血",
+        "metadata": {
+          "id": 2162,
+          "argsNum": 1,
+          "template": "下次击败对手时，令对方下只出战精灵{0}",
+          "revision": "seerapi:a9b4ca48"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4830",
+          "revision": "cfbb094b",
+          "loadedAt": "2026-11-02T08:31:18.898Z"
+        },
+        "skillRevision": "seerapi:605ae0b5"
+      },
+      "sourceDigest": "559d8dc4d01ab2ad880f640bf27756d929dd31ea8587123c685eb462bebb461d",
+      "scope": "multiplayer",
+      "reviewedAt": "2026-11-02T09:05:47.678Z",
+      "status": "reviewed-deferred",
+      "tests": [],
+      "pendingQuestions": []
+    }
+  ],
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4830-001已有流血登场免弱时长",
+    "Q-4830-002天敌反伤基数",
+    "答复实现后完整正式存储/HTTP及专项门槛"
+  ],
+  "pendingBatchWork": [
+    "最终同版专项/接入及新完整npm"
+  ]
+}

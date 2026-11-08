@@ -1,0 +1,2849 @@
+{
+  "at": "2026-11-02T06:01:49.032Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "items": [
+    {
+      "key": "4816:soul:2008",
+      "kind": "soul",
+      "raw": {
+        "id": 2008,
+        "description": "战斗开始时，自身为己方配置一个赛博共振器|自身每次登场时开启赛博共振器，之后每回合开始时若赛博共振器处于开启状态则令自身沸涌2回合，自身处于沸涌时改为使回合数+2，然后若沸涌回合数高于3则自身受到300点真实伤害|（boss无效）",
+        "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>战斗开始效果：\r\n<indent=16><sprite=3><indent=32>战斗开始时，自身为己方配置一个<color=#FFF779>赛博共振器</color>\r\n\r\n<indent=0><sprite=0><indent=16>登场效果：\r\n<indent=16><sprite=3><indent=32>自身每次登场时开启赛博共振器\r\n<indent=32><sprite=4><indent=48>之后每回合开始时若赛博共振器处于开启状态则<color=#64F9FA>令自身沸涌</color>2回合，自身处于沸涌时改为使回合数+2\r\n<indent=32><sprite=4><sprite=4><indent=64>然后若沸涌回合数高于3则当回合战斗阶段结束时自身<color=#64F9FA>受到</color>300点<b>真实伤害</b>\r\n\r\n<indent=0><sprite=5><indent=15>赛博共振器：\r\n<indent=16><sprite=6><indent=32>己方的<b>回合开始效果先制</b>+1\r\n<indent=16><sprite=6><indent=32>开启时双方的<b>技能</b><color=#64F9FA>无效 </color>\r\n<indent=16><sprite=6><indent=32>开启的每回合结束时，若在场的己方伊芙存在技能PP值为0，则<color=#64F9FA>恢复</color>此技能的<b>PP值</b>并<color=#64F9FA>反转</color>对手的<b>能力提升状态</b>\r\n<indent=32><sprite=4><indent=48>每恢复1点<color=#64F9FA>吸取</color>对手50点<b>体力</b>并<color=#64F9FA>获得</color>等量的<b>护盾、护罩</b>\r\n<indent=16><sprite=6><indent=32>双方任意一方使用第五技能时或自身下场时赛博共振器关闭\r\n\r\n<indent=0><sprite=5><indent=15>沸涌：\r\n<indent=16><sprite=6><indent=32>弱化类异常状态，处于该状态的精灵受到的攻击伤害至少为其最大体力的30%，对手打出致命一击时效果提升至50%",
+        "analyze_desc": "",
+        "hash": "ea98a00b",
+        "eid": 2432,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2008",
+          "revision": "ea98a00b",
+          "loadedAt": "2026-11-02T05:12:19.601Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "8324035239fb9704f41fd52f633acff015bd07a3bedf38f39dc0cf3b1f52f5bc",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008共振器开启阻断双方技能仍扣PP，第五实际使用关闭后恢复攻击",
+          "assertion": " const s=make({move:10234,soul:true});assert.equal(s.fighters[0].soulState.cyber2008.open,true);turn(s,10234,10127);assert.equal(damage(s),0);assert.equal(damage(s,'attack',1),0);assert.equal(s.fighters[0].pp[key(10234)],source.moves.find(x=>x.id===10234).pp-1);assert.ok(s.fighters[0].ailments['沸涌']);turn(s,38085,10127);assert.equal(s.fighters[0].soulState.cyber2008.open,false);assert.ok(s.fighters[1].ailments['沸涌']);turn(s,10234,10127);assert.ok(damage(s)>0);\n const t=make({move:10234,soul:true,slow:true});turn(t,10234,37911);assert.equal(t.fighters[0].soulState.cyber2008.open,false);assert.ok(damage(t)>0);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008沸涌2回合与逐次加2，超过3回合的过载记录300真实自伤",
+          "assertion": " const s=make({move:10234,soul:true});turn(s);assert.equal(s.fighters[0].ailments['沸涌'],2);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],4);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],6);assert.equal(s.fighters[0].hp,8700);const e=s.damageEvents.find(e=>e.round===3&&e.sourceSide===0&&e.targetSide===0);assert.equal(e.type,'true');assert.equal(e.settledDamage,300);assert.equal(e.hpLoss,300);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008免异阻止初始沸涌，关闭后不续期，零PP明确拒绝未确认分支",
+          "assertion": " const s=make({move:10234,soul:true});s.fighters[0].counts.immune=1;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);assert.equal(s.fighters[0].counts.immune,0);s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);\n const t=make({move:10234,soul:true});t.fighters[0].pp[key(10234)]=1;assert.throws(()=>turn(t),/Q-4816-001/);assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('单精灵分支未完成')));"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008在B方时回合初先制1先于A方普通回合初，沸涌状态已实际生效",
+          "assertion": " const order=[],old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='roundStart'){order.push(c.a.side);if(c.a.side===0)assert.equal(c.t.ailments['沸涌'],2);}}};try{Object.assign(s,E.resolveTurn(s,['wiki:20117','wiki:38083']));}finally{E.SOULS=old;}assert.deepEqual(order,[1,0]);assert.equal(s.fighters[1].ailments['沸涌'],2);"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4816-001"
+      ],
+      "rationale": "配置/首次开启、当前在场沸涌、第五关闭、当前双方技能无效、过载和回合初先制属于自身分支；零PP恢复量及其连带结算待Q-4816-001；仅下场与再次登场流程延期。"
+    },
+    {
+      "key": "4816:move:10234",
+      "kind": "move",
+      "raw": {
+        "id": 10234,
+        "name": "尖顶",
+        "type": "普通",
+        "kind": "physical",
+        "power": 40,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:43eff17f",
+        "hash": "43eff17f",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "885c04a82de954c792e88fc6afe85407ffb67b8196514dbcabfb25cce4723853",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:20065",
+      "kind": "move",
+      "raw": {
+        "id": 20065,
+        "name": "瞄准",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          4
+        ],
+        "effectInstances": [
+          {
+            "id": 4,
+            "args": [
+              5,
+              100,
+              1
+            ],
+            "description": "技能使用成功时，100%改变自身命中等级+1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变自身命中等级+1",
+        "revision": "seerapi:cc4d5c94",
+        "hash": "cc4d5c94",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "804f3ff2ca9900ffd63b072f1ccc4d9efe2c2fa480cff156afea2c4d17def0ab",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:20065:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            5,
+            100,
+            1
+          ],
+          "description": "技能使用成功时，100%改变自身命中等级+1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变自身命中等级+1",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:cc4d5c94"
+      },
+      "sourceDigest": "5a3ba0498c3103cce44c1a10f7507db6657437a89df283486e5dcbff296a4570",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:10047",
+      "kind": "move",
+      "raw": {
+        "id": 10047,
+        "name": "重击",
+        "type": "普通",
+        "kind": "physical",
+        "power": 50,
+        "pp": 35,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:b6e75e96",
+        "hash": "b6e75e96",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "6b85d2311ffce31f906efef2e8b4122e748a659425a897d1f1e8e4a5cc1724a7",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:10429",
+      "kind": "move",
+      "raw": {
+        "id": 10429,
+        "name": "四散光线",
+        "type": "超能",
+        "kind": "special",
+        "power": 60,
+        "pp": 35,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:80b3bf1e",
+        "hash": "80b3bf1e",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "d6ebbb4cd8f97613080da36ccac682a7aafdc4dd15c73e3042a4725cceebebb6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:20528",
+      "kind": "move",
+      "raw": {
+        "id": 20528,
+        "name": "进攻意识",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 20,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          4
+        ],
+        "effectInstances": [
+          {
+            "id": 4,
+            "args": [
+              0,
+              100,
+              2
+            ],
+            "description": "技能使用成功时，100%改变自身攻击等级+2"
+          }
+        ],
+        "description": "技能使用成功时，100%改变自身攻击等级+2",
+        "revision": "seerapi:8fa909b4",
+        "hash": "8fa909b4",
+        "level": 17,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "50fcf597211370231f19554c06f439e770cbe589ca81dfd12666384cfbd5fb48",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:20528:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            0,
+            100,
+            2
+          ],
+          "description": "技能使用成功时，100%改变自身攻击等级+2"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变自身攻击等级+2",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:8fa909b4"
+      },
+      "sourceDigest": "d0c0605d89274f4d2635b515b094d1643770d7a39aa1442667336f9907e9ce9d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:38083",
+      "kind": "move",
+      "raw": {
+        "id": 38083,
+        "name": "变容",
+        "type": "机械超能",
+        "kind": "special",
+        "power": 85,
+        "pp": 10,
+        "priority": 3,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          889,
+          988,
+          2228,
+          1793
+        ],
+        "effectInstances": [
+          {
+            "id": 889,
+            "args": [
+              36
+            ],
+            "description": "消除对手回合类效果，消除成功则令对手沸涌"
+          },
+          {
+            "id": 988,
+            "args": [
+              1
+            ],
+            "description": "消除对手能力提升状态，消除成功则对手下1回合技能失效"
+          },
+          {
+            "id": 2228,
+            "args": [
+              3,
+              80
+            ],
+            "description": "3回合内对手造成的固定伤害和百分比伤害减少80%"
+          },
+          {
+            "id": 1793,
+            "args": [
+              1,
+              300
+            ],
+            "description": "下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力"
+          }
+        ],
+        "description": "消除对手回合类效果，消除成功则令对手沸涌；消除对手能力提升状态，消除成功则对手下1回合技能失效；3回合内对手造成的固定伤害和百分比伤害减少80%；下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力",
+        "revision": "seerapi:efa910b5",
+        "hash": "efa910b5",
+        "level": 21,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "71d73951270f93532b9550f18f1f0a6aa590b41648bae90852f89f0892a9e646",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38083:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 889,
+          "args": [
+            36
+          ],
+          "description": "消除对手回合类效果，消除成功则令对手沸涌"
+        },
+        "index": 0,
+        "description": "消除对手回合类效果，消除成功则令对手沸涌；消除对手能力提升状态，消除成功则对手下1回合技能失效；3回合内对手造成的固定伤害和百分比伤害减少80%；下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力",
+        "metadata": {
+          "id": 889,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则令对手{0}",
+          "revision": "seerapi:3ec4f57"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:efa910b5"
+      },
+      "sourceDigest": "edc2437ffc0d6c0948548ba3ea77dfbe6b2e5c3eae2628779a3b69b874d4d1a6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-enums.test.cjs",
+          "name": "4816/889真实36沸涌：消除成功施加、无回合效果不施加、免异失败仍保留消除结果",
+          "assertion": " for(const mode of ['success','empty','immune']){const s=make(38083,0);s.fighters[1].effects={};if(mode!=='empty')s.fighters[1].effects['攻击必中']={start:1,end:99};if(mode==='immune')s.fighters[1].counts.immune=1;turn(s,38083);assert.equal(s.fighters[1].effects['攻击必中'],undefined);assert.equal(!!s.fighters[1].ailments['沸涌'],mode==='success');if(mode==='immune')assert.equal(s.fighters[1].counts.immune,0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38083:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 988,
+          "args": [
+            1
+          ],
+          "description": "消除对手能力提升状态，消除成功则对手下1回合技能失效"
+        },
+        "index": 1,
+        "description": "消除对手回合类效果，消除成功则令对手沸涌；消除对手能力提升状态，消除成功则对手下1回合技能失效；3回合内对手造成的固定伤害和百分比伤害减少80%；下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力",
+        "metadata": {
+          "id": 988,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，消除成功则对手下{0}回合技能失效",
+          "revision": "seerapi:864b8b2d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:efa910b5"
+      },
+      "sourceDigest": "e9c00721a50451aa2bcfd710a947b28bd2567fe665550f273a87af1b9920d34e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/988清强成功封下回合整招、无强化失败不封，2228固定百分输出八成减伤",
+          "assertion": " for(const boosted of [false,true]){const s=isolate(make({move:38083}),988);if(boosted)s.fighters[1].stages.def=2;turn(s);assert.equal(s.fighters[1].stages.def,0);assert.equal(!!s.fighters[1].effects.skillBlock,boosted);}\n const s=isolate(make({move:38083}),2228);turn(s);assert.equal(s.fighters[1].effects['固定百分比减伤输出'].fraction,.8);const old=E.SOULS;let observed;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1){const before=c.t.hp;c.hurt(c.t,100,'实际输出粉伤','percent');c.hurt(c.t,100,'实际输出固伤','fixed');observed=before-c.t.hp;}}};try{turn(s);}finally{E.SOULS=old;}assert.equal(observed,40);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38083:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2228,
+          "args": [
+            3,
+            80
+          ],
+          "description": "3回合内对手造成的固定伤害和百分比伤害减少80%"
+        },
+        "index": 2,
+        "description": "消除对手回合类效果，消除成功则令对手沸涌；消除对手能力提升状态，消除成功则对手下1回合技能失效；3回合内对手造成的固定伤害和百分比伤害减少80%；下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力",
+        "metadata": {
+          "id": 2228,
+          "argsNum": 2,
+          "template": "{0}回合内对手造成的固定伤害和百分比伤害减少{1}%",
+          "revision": "seerapi:c3d002a7"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:efa910b5"
+      },
+      "sourceDigest": "3305466b5587ee8f8fd44d2f51f24e4f19cd7ae9678ee1441897de96c0764c4a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/988清强成功封下回合整招、无强化失败不封，2228固定百分输出八成减伤",
+          "assertion": " for(const boosted of [false,true]){const s=isolate(make({move:38083}),988);if(boosted)s.fighters[1].stages.def=2;turn(s);assert.equal(s.fighters[1].stages.def,0);assert.equal(!!s.fighters[1].effects.skillBlock,boosted);}\n const s=isolate(make({move:38083}),2228);turn(s);assert.equal(s.fighters[1].effects['固定百分比减伤输出'].fraction,.8);const old=E.SOULS;let observed;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1){const before=c.t.hp;c.hurt(c.t,100,'实际输出粉伤','percent');c.hurt(c.t,100,'实际输出固伤','fixed');observed=before-c.t.hp;}}};try{turn(s);}finally{E.SOULS=old;}assert.equal(observed,40);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38083:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1793,
+          "args": [
+            1,
+            300
+          ],
+          "description": "下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力"
+        },
+        "index": 3,
+        "description": "消除对手回合类效果，消除成功则令对手沸涌；消除对手能力提升状态，消除成功则对手下1回合技能失效；3回合内对手造成的固定伤害和百分比伤害减少80%；下1次受到攻击伤害时，若伤害高于300，则自身恢复全部体力",
+        "metadata": {
+          "id": 1793,
+          "argsNum": 2,
+          "template": "下{0}次受到攻击伤害时，若伤害高于{1}，则自身恢复全部体力",
+          "revision": "seerapi:825a1783"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:efa910b5"
+      },
+      "sourceDigest": "eb9b05a74e1a707d3efcbd008382f54eb2533ffe775b678daa686c850c65249c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1793下一次实际红伤超过300回满，未过阈值也消费一次且不回血",
+          "assertion": " for(const high of [false,true]){const s=isolate(make({move:38083,hp:1000}),1793);s.fighters[1].stats.atk=high?3500:100;turn(s,38083,10127);assert.equal(s.fighters[0].counts.nextAttackHighHeal,0);if(high){assert.ok(damage(s,'attack',1)>300);assert.equal(s.fighters[0].hp,9000);}else{assert.ok(damage(s,'attack',1)<=300);assert.ok(s.fighters[0].hp<1000);}}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:12046",
+      "kind": "move",
+      "raw": {
+        "id": 12046,
+        "name": "先发制人",
+        "type": "普通",
+        "kind": "special",
+        "power": 80,
+        "pp": 20,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          40
+        ],
+        "effectInstances": [
+          {
+            "id": 40,
+            "args": [],
+            "description": "先出手的话威力为2倍"
+          }
+        ],
+        "description": "先出手的话威力为2倍",
+        "revision": "seerapi:b08d7934",
+        "hash": "b08d7934",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "293381c4e48998879ab84d0c6a53dd5957a89802fe8f9a4dcc0f549d75a9ccc8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:12046:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 40,
+          "args": [],
+          "description": "先出手的话威力为2倍"
+        },
+        "index": 0,
+        "description": "先出手的话威力为2倍",
+        "metadata": {
+          "id": 40,
+          "argsNum": 0,
+          "template": "先出手的话威力为2倍",
+          "revision": "seerapi:56a765d7"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:b08d7934"
+      },
+      "sourceDigest": "c97c2a6d478fa1cc7669a0d5de32416dfa92207f866adf65f83704bb57ec8432",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:20194",
+      "kind": "move",
+      "raw": {
+        "id": 20194,
+        "name": "软化光线",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 35,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5,
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              0,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手攻击等级-1"
+          },
+          {
+            "id": 5,
+            "args": [
+              2,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手特攻等级-1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手攻击等级-1；技能使用成功时，100%改变对手特攻等级-1",
+        "revision": "seerapi:10e58629",
+        "hash": "10e58629",
+        "level": 29,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "5741cf29c9e2075201514bfb80193f42975d18c36175069aeabb2f60285bfa7a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:20194:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            0,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手攻击等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手攻击等级-1；技能使用成功时，100%改变对手特攻等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:10e58629"
+      },
+      "sourceDigest": "4554f3b517bbe93faf0368cfb6ff7f7ef958638eb5df016c46c902e902e8b22c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/93与13304弱防概率均覆盖成功失败，防御最低负6不越界",
+          "assertion": " const fixed=new Set,weak=new Set;for(let seed=1;seed<=64;seed++){for(const [move,set]of [[13307,fixed],[13304,weak]]){const s=make({move});s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);set.add(move===13307?damage(s,'fixed')===50:s.fighters[1].stages.def===-1);}}assert.deepEqual(fixed,new Set([false,true]));assert.deepEqual(weak,new Set([false,true]));const s=make({move:13304});s.fighters[1].stages.def=-6;turn(s);assert.equal(s.fighters[1].stages.def,-6);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:20194:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            2,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手特攻等级-1"
+        },
+        "index": 1,
+        "description": "技能使用成功时，100%改变对手攻击等级-1；技能使用成功时，100%改变对手特攻等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:10e58629"
+      },
+      "sourceDigest": "e1a0b7185bf01311c1c4bc8492c89dd720d5863cf9946d2bc764095a88ca4ed8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/93与13304弱防概率均覆盖成功失败，防御最低负6不越界",
+          "assertion": " const fixed=new Set,weak=new Set;for(let seed=1;seed<=64;seed++){for(const [move,set]of [[13307,fixed],[13304,weak]]){const s=make({move});s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);set.add(move===13307?damage(s,'fixed')===50:s.fighters[1].stages.def===-1);}}assert.deepEqual(fixed,new Set([false,true]));assert.deepEqual(weak,new Set([false,true]));const s=make({move:13304});s.fighters[1].stages.def=-6;turn(s);assert.equal(s.fighters[1].stages.def,-6);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:11680",
+      "kind": "move",
+      "raw": {
+        "id": 11680,
+        "name": "涡轮磁暴",
+        "type": "机械",
+        "kind": "physical",
+        "power": 95,
+        "pp": 15,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:71f52076",
+        "hash": "71f52076",
+        "level": 33,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 3,
+        "deferredEffects": [
+          {
+            "field": "atk_num",
+            "description": "多目标字段 atk_num=3；单挑只攻击当前目标一次，多精灵目标选择延期",
+            "scope": "多精灵待实现"
+          }
+        ],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "5dc5ce66f9b0a9e8144d706ee7a23c62087a8b3dd31c5ead7a40d30ed98de966",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:13306",
+      "kind": "move",
+      "raw": {
+        "id": 13306,
+        "name": "磷光炸弹",
+        "type": "机械",
+        "kind": "special",
+        "power": 110,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          33
+        ],
+        "effectInstances": [
+          {
+            "id": 33,
+            "args": [],
+            "description": "消除对手能力提升状态"
+          }
+        ],
+        "description": "消除对手能力提升状态",
+        "revision": "seerapi:f408841a",
+        "hash": "f408841a",
+        "level": 37,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "3e07eb0ac44dbdbcfcd393d26a785ce597f3f95db4f24ed5cca58af09020117e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:13306:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 33,
+          "args": [],
+          "description": "消除对手能力提升状态"
+        },
+        "index": 0,
+        "description": "消除对手能力提升状态",
+        "metadata": {
+          "id": 33,
+          "argsNum": 0,
+          "template": "消除对手能力提升状态",
+          "revision": "seerapi:2fdd3e71"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:f408841a"
+      },
+      "sourceDigest": "d68ab16f5e447f43046fbdcf31a0611345552d7481b370166dc4a4c8b37a6ce1",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:21743",
+      "kind": "move",
+      "raw": {
+        "id": 21743,
+        "name": "超能定位",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          58
+        ],
+        "effectInstances": [
+          {
+            "id": 58,
+            "args": [
+              2
+            ],
+            "description": "下2回合自身攻击技能必定打出致命一击"
+          }
+        ],
+        "description": "下2回合自身攻击技能必定打出致命一击",
+        "revision": "seerapi:3ecd9332",
+        "hash": "3ecd9332",
+        "level": 41,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "368affc0e348dae251ae84e0f40cfc7c21a2d4114e59598b2666aa6072757763",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:21743:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 58,
+          "args": [
+            2
+          ],
+          "description": "下2回合自身攻击技能必定打出致命一击"
+        },
+        "index": 0,
+        "description": "下2回合自身攻击技能必定打出致命一击",
+        "metadata": {
+          "id": 58,
+          "argsNum": 1,
+          "template": "下{0}回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:a88e6bf3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:3ecd9332"
+      },
+      "sourceDigest": "e87f2f6a3dc153dad4fffc1ba504bd4111a5f7b604d26b08a68eab964f0ca8cb",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1558下轮真实暴击攻击增伤50%，非暴击不增；58下两回合必暴与到期",
+          "assertion": " const loadout=[29148,10234,21743,29147,38085];for(const critical of [false,true]){const results=[];for(const enabled of [false,true]){const s=isolate(make({move:29148,loadout}),...(enabled?[1558]:[]));turn(s);if(critical)s.fighters[0].effects['必定暴击']={start:s.round,end:99};turn(s,10234);results.push(damage(s));}if(critical)assert.ok(results[1]>results[0]*1.45);else assert.equal(results[1],results[0]);}\n const a=isolate(make({move:21743,loadout}),58);turn(a);assert.equal(a.fighters[0].effects['必定暴击'].start,2);assert.equal(a.fighters[0].effects['必定暴击'].end,3);turn(a,10234);assert.ok(a.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));turn(a,10234);turn(a,10234);assert.equal(a.fighters[0].effects['必定暴击'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:13304",
+      "kind": "move",
+      "raw": {
+        "id": 13304,
+        "name": "超声切割",
+        "type": "超能",
+        "kind": "physical",
+        "power": 130,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              1,
+              15,
+              -1
+            ],
+            "description": "技能使用成功时，15%改变对手防御等级-1"
+          }
+        ],
+        "description": "技能使用成功时，15%改变对手防御等级-1",
+        "revision": "seerapi:9bd30f57",
+        "hash": "9bd30f57",
+        "level": 45,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "4ced3842926334fdb929e05fe48f41c4b74da6001377fb543e9d842b8534b51b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:13304:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            1,
+            15,
+            -1
+          ],
+          "description": "技能使用成功时，15%改变对手防御等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，15%改变对手防御等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:9bd30f57"
+      },
+      "sourceDigest": "c69c6cab8d543729f0f3c2f8bec36a1230de030655ab9b35e6a9f50fdb1fd278",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实4与5强化弱化边界、33清正不清负、40先手增威",
+          "assertion": " for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}\n const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);\n const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);\n const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/93与13304弱防概率均覆盖成功失败，防御最低负6不越界",
+          "assertion": " const fixed=new Set,weak=new Set;for(let seed=1;seed<=64;seed++){for(const [move,set]of [[13307,fixed],[13304,weak]]){const s=make({move});s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);set.add(move===13307?damage(s,'fixed')===50:s.fighters[1].stages.def===-1);}}assert.deepEqual(fixed,new Set([false,true]));assert.deepEqual(weak,new Set([false,true]));const s=make({move:13304});s.fighters[1].stages.def=-6;turn(s);assert.equal(s.fighters[1].stages.def,-6);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:29147",
+      "kind": "move",
+      "raw": {
+        "id": 29147,
+        "name": "幻动激涌",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1932,
+          692,
+          2097,
+          2095
+        ],
+        "effectInstances": [
+          {
+            "id": 1932,
+            "args": [
+              4,
+              35
+            ],
+            "description": "4回合内免疫并反弹除超频外所有受到的异常状态"
+          },
+          {
+            "id": 692,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫受到的致命一击伤害并直接扣除对手等量体力"
+          },
+          {
+            "id": 2097,
+            "args": [
+              2
+            ],
+            "description": "自身不为满体力时2回合内对手属性技能无效"
+          },
+          {
+            "id": 2095,
+            "args": [
+              50,
+              8,
+              1,
+              1
+            ],
+            "description": "自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1"
+          }
+        ],
+        "description": "4回合内免疫并反弹除超频外所有受到的异常状态；4回合内免疫受到的致命一击伤害并直接扣除对手等量体力；自身不为满体力时2回合内对手属性技能无效；自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1",
+        "revision": "seerapi:12414e5e",
+        "hash": "12414e5e",
+        "level": 49,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "8e64bb8db7f5e3492eaeb50a3ccf9a91ea09f9f4c3dd3006679ac6e9df3e4ed3",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29147:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1932,
+          "args": [
+            4,
+            35
+          ],
+          "description": "4回合内免疫并反弹除超频外所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫并反弹除超频外所有受到的异常状态；4回合内免疫受到的致命一击伤害并直接扣除对手等量体力；自身不为满体力时2回合内对手属性技能无效；自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1",
+        "metadata": {
+          "id": 1932,
+          "argsNum": 2,
+          "template": "{0}回合内免疫并反弹除{1}外所有受到的异常状态",
+          "revision": "seerapi:b17912dc"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:12414e5e"
+      },
+      "sourceDigest": "c9bd7ccb45197bcadc63eb97ff171450c4698f4fd46e25d2884b558d93702003",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-enums.test.cjs",
+          "name": "4816/1932真实35超频：4回合反弹中毒、排除超频由次数免异挡且反弹不耗次数",
+          "assertion": " const s=make(29147,0);turn(s,29147);assert.equal(s.fighters[0].effects['免异常反弹除超频'].end,4);\n const old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='beforeUse'&&c.a.side===1){c.t.counts.immune=2;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,2);assert.ok(c.a.ailments['中毒']>=c.round);assert.equal(c.ailment(c.t,'超频',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.equal(c.a.ailments['超频'],undefined);}}};try{turn(s,29147);}finally{E.SOULS=old;}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29147:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 692,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫受到的致命一击伤害并直接扣除对手等量体力"
+        },
+        "index": 1,
+        "description": "4回合内免疫并反弹除超频外所有受到的异常状态；4回合内免疫受到的致命一击伤害并直接扣除对手等量体力；自身不为满体力时2回合内对手属性技能无效；自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1",
+        "metadata": {
+          "id": 692,
+          "argsNum": 1,
+          "template": "{0}回合内免疫受到的致命一击伤害并直接扣除对手等量体力",
+          "revision": "seerapi:c307192"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:12414e5e"
+      },
+      "sourceDigest": "ed8f9cec7a57c0773b25b777196c4a8a13af777aa715fa4cd98822da8819985e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/692真实暴击免攻直接扣对手等量HP，非暴击仍受伤",
+          "assertion": " for(const critical of [false,true]){const s=isolate(make({move:29147,hp:5000}),692);turn(s);if(critical)s.fighters[1].effects['必定暴击']={start:s.round,end:99};const before=s.fighters.map(f=>f.hp);turn(s,29147,10127);if(critical){assert.equal(s.fighters[0].hp,before[0]);assert.ok(s.fighters[1].hp<before[1]);assert.equal(damage(s,'attack',1),0);}else{assert.ok(s.fighters[0].hp<before[0]);assert.equal(s.fighters[1].hp,before[1]);}}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29147:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2097,
+          "args": [
+            2
+          ],
+          "description": "自身不为满体力时2回合内对手属性技能无效"
+        },
+        "index": 2,
+        "description": "4回合内免疫并反弹除超频外所有受到的异常状态；4回合内免疫受到的致命一击伤害并直接扣除对手等量体力；自身不为满体力时2回合内对手属性技能无效；自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1",
+        "metadata": {
+          "id": 2097,
+          "argsNum": 1,
+          "template": "自身不为满体力时{0}回合内对手属性技能无效",
+          "revision": "seerapi:569f5d1c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:12414e5e"
+      },
+      "sourceDigest": "9eb953a49b96c054684a94ca45f053a8eff3c9d03768ab18692fc301b7175b93",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2097非满封属性与满体失败，2095满体50%真实睡眠及未触发降先制",
+          "assertion": " for(const hp of [4000,9000]){const s=isolate(make({move:29147,hp}),2097);turn(s);assert.equal(!!s.fighters[1].effects.statusBlock,hp===4000);}\n const results=new Set;for(let seed=1;seed<=32;seed++){const s=isolate(make({move:29147}),2095);s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);const sleeping=!!s.fighters[1].ailments['睡眠'];results.add(sleeping);assert.equal(!!s.fighters[1].effects.id984,!sleeping);if(!sleeping)assert.equal(s.fighters[1].effects.id984.amount,-1);}assert.deepEqual(results,new Set([true,false]));const t=isolate(make({move:29147,hp:8999}),2095);turn(t);assert.equal(t.fighters[1].ailments['睡眠'],undefined);assert.equal(t.fighters[1].effects.id984,undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29147:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2095,
+          "args": [
+            50,
+            8,
+            1,
+            1
+          ],
+          "description": "自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1"
+        },
+        "index": 3,
+        "description": "4回合内免疫并反弹除超频外所有受到的异常状态；4回合内免疫受到的致命一击伤害并直接扣除对手等量体力；自身不为满体力时2回合内对手属性技能无效；自身为满体力时50%令对手睡眠，未触发则下1回合对手所有技能先制-1",
+        "metadata": {
+          "id": 2095,
+          "argsNum": 4,
+          "template": "自身为满体力时{0}%令对手{1}，未触发则下{2}回合对手所有技能先制-{3}",
+          "revision": "seerapi:db32045e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:12414e5e"
+      },
+      "sourceDigest": "b412de7f1be3ed5c990cb132dd614fd3cdf6e7601b8819c1f24fdc090a564245",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2097非满封属性与满体失败，2095满体50%真实睡眠及未触发降先制",
+          "assertion": " for(const hp of [4000,9000]){const s=isolate(make({move:29147,hp}),2097);turn(s);assert.equal(!!s.fighters[1].effects.statusBlock,hp===4000);}\n const results=new Set;for(let seed=1;seed<=32;seed++){const s=isolate(make({move:29147}),2095);s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);const sleeping=!!s.fighters[1].ailments['睡眠'];results.add(sleeping);assert.equal(!!s.fighters[1].effects.id984,!sleeping);if(!sleeping)assert.equal(s.fighters[1].effects.id984.amount,-1);}assert.deepEqual(results,new Set([true,false]));const t=isolate(make({move:29147,hp:8999}),2095);turn(t);assert.equal(t.fighters[1].ailments['睡眠'],undefined);assert.equal(t.fighters[1].effects.id984,undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:13307",
+      "kind": "move",
+      "raw": {
+        "id": 13307,
+        "name": "精准弹幕",
+        "type": "机械超能",
+        "kind": "special",
+        "power": 140,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          93
+        ],
+        "effectInstances": [
+          {
+            "id": 93,
+            "args": [
+              10,
+              50
+            ],
+            "description": "10%概率额外附加50点固定伤害"
+          }
+        ],
+        "description": "10%概率额外附加50点固定伤害",
+        "revision": "seerapi:e73f08d2",
+        "hash": "e73f08d2",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "100894fcc1ed7b84511c4a796728b4455b408e0a7172e363a0e1acf7580119e6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:13307:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 93,
+          "args": [
+            10,
+            50
+          ],
+          "description": "10%概率额外附加50点固定伤害"
+        },
+        "index": 0,
+        "description": "10%概率额外附加50点固定伤害",
+        "metadata": {
+          "id": 93,
+          "argsNum": 2,
+          "template": "{0}%概率额外附加{1}点固定伤害",
+          "revision": "seerapi:cf1c15d3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:e73f08d2"
+      },
+      "sourceDigest": "f315776c62cbfb3a25c932df998958af0743807454ac25391a1c468a297b8837",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/93与13304弱防概率均覆盖成功失败，防御最低负6不越界",
+          "assertion": " const fixed=new Set,weak=new Set;for(let seed=1;seed<=64;seed++){for(const [move,set]of [[13307,fixed],[13304,weak]]){const s=make({move});s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);set.add(move===13307?damage(s,'fixed')===50:s.fighters[1].stages.def===-1);}}assert.deepEqual(fixed,new Set([false,true]));assert.deepEqual(weak,new Set([false,true]));const s=make({move:13304});s.fighters[1].stages.def=-6;turn(s);assert.equal(s.fighters[1].stages.def,-6);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:29148",
+      "kind": "move",
+      "raw": {
+        "id": 29148,
+        "name": "魔动沸腾",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1344,
+          717,
+          1558,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 1344,
+            "args": [
+              1
+            ],
+            "description": "全属性+1，后出手时自身强化效果翻倍"
+          },
+          {
+            "id": 717,
+            "args": [
+              4,
+              3,
+              2
+            ],
+            "description": "4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+          },
+          {
+            "id": 1558,
+            "args": [
+              2,
+              50
+            ],
+            "description": "下2回合若打出致命一击则造成的攻击伤害提升50%"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，后出手时自身强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；下2回合若打出致命一击则造成的攻击伤害提升50%；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:cc8d187d",
+        "hash": "cc8d187d",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "1bf67d73e772026db31f9459fe6bfb5ef7a73a8335c828e1e1c12ed34efb7867",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29148:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1344,
+          "args": [
+            1
+          ],
+          "description": "全属性+1，后出手时自身强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，后出手时自身强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；下2回合若打出致命一击则造成的攻击伤害提升50%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1344,
+          "argsNum": 1,
+          "template": "全属性+{0}，后出手时自身强化效果翻倍",
+          "revision": "seerapi:f0a18e39"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:cc8d187d"
+      },
+      "sourceDigest": "c46d29da706934aefc792b884e09594fd5ef222f9a499997c639b5f4153bd8d4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1344先后手强化1或2、717每用招理论吸取与低体双回复、843下轮先制2",
+          "assertion": " for(const slow of [false,true]){const s=isolate(make({move:29148,slow}),1344);turn(s);assert.equal(s.fighters[0].stages.atk,slow?2:1);assert.equal(s.fighters[0].stages.def,slow?2:1);}\n const s=isolate(make({move:29148,hp:1000}),717);turn(s);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,7000);turn(s,38085);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,9000);const a=isolate(make({move:29148}),843);turn(a);turn(a,38085);assert.equal(a.fighters[0].soulState.resolvedPriority.value,-1);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29148:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 717,
+          "args": [
+            4,
+            3,
+            2
+          ],
+          "description": "4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+        },
+        "index": 1,
+        "description": "全属性+1，后出手时自身强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；下2回合若打出致命一击则造成的攻击伤害提升50%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 717,
+          "argsNum": 3,
+          "template": "{0}回合内每回合使用技能吸取对手最大体力的1/{1}，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果翻倍",
+          "revision": "seerapi:44c7542e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:cc8d187d"
+      },
+      "sourceDigest": "63e65d851b506efdf2f79f29acc6bc1809a6d40ff842f8571e7b3f9f20e1895a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1344先后手强化1或2、717每用招理论吸取与低体双回复、843下轮先制2",
+          "assertion": " for(const slow of [false,true]){const s=isolate(make({move:29148,slow}),1344);turn(s);assert.equal(s.fighters[0].stages.atk,slow?2:1);assert.equal(s.fighters[0].stages.def,slow?2:1);}\n const s=isolate(make({move:29148,hp:1000}),717);turn(s);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,7000);turn(s,38085);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,9000);const a=isolate(make({move:29148}),843);turn(a);turn(a,38085);assert.equal(a.fighters[0].soulState.resolvedPriority.value,-1);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29148:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1558,
+          "args": [
+            2,
+            50
+          ],
+          "description": "下2回合若打出致命一击则造成的攻击伤害提升50%"
+        },
+        "index": 2,
+        "description": "全属性+1，后出手时自身强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；下2回合若打出致命一击则造成的攻击伤害提升50%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1558,
+          "argsNum": 2,
+          "template": "下{0}回合若打出致命一击则造成的攻击伤害提升{1}%",
+          "revision": "seerapi:d227d545"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:cc8d187d"
+      },
+      "sourceDigest": "24d392eb77a64f30dc4d979297f28c7f4561ac11c42a85aacc02ed6b2388517e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1558下轮真实暴击攻击增伤50%，非暴击不增；58下两回合必暴与到期",
+          "assertion": " const loadout=[29148,10234,21743,29147,38085];for(const critical of [false,true]){const results=[];for(const enabled of [false,true]){const s=isolate(make({move:29148,loadout}),...(enabled?[1558]:[]));turn(s);if(critical)s.fighters[0].effects['必定暴击']={start:s.round,end:99};turn(s,10234);results.push(damage(s));}if(critical)assert.ok(results[1]>results[0]*1.45);else assert.equal(results[1],results[0]);}\n const a=isolate(make({move:21743,loadout}),58);turn(a);assert.equal(a.fighters[0].effects['必定暴击'].start,2);assert.equal(a.fighters[0].effects['必定暴击'].end,3);turn(a,10234);assert.ok(a.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));turn(a,10234);turn(a,10234);assert.equal(a.fighters[0].effects['必定暴击'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:29148:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 3,
+        "description": "全属性+1，后出手时自身强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；下2回合若打出致命一击则造成的攻击伤害提升50%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:cc8d187d"
+      },
+      "sourceDigest": "9a723161ee2de4c06d0660ce48a976070f5f631b9aa3194aa487e71510689351",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1344先后手强化1或2、717每用招理论吸取与低体双回复、843下轮先制2",
+          "assertion": " for(const slow of [false,true]){const s=isolate(make({move:29148,slow}),1344);turn(s);assert.equal(s.fighters[0].stages.atk,slow?2:1);assert.equal(s.fighters[0].stages.def,slow?2:1);}\n const s=isolate(make({move:29148,hp:1000}),717);turn(s);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,7000);turn(s,38085);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,9000);const a=isolate(make({move:29148}),843);turn(a);turn(a,38085);assert.equal(a.fighters[0].soulState.resolvedPriority.value,-1);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:38084",
+      "kind": "move",
+      "raw": {
+        "id": 38084,
+        "name": "宕式调和律",
+        "type": "机械超能",
+        "kind": "special",
+        "power": 300,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1395,
+          881,
+          1054,
+          2204,
+          2341
+        ],
+        "effectInstances": [
+          {
+            "id": 1395,
+            "args": [],
+            "description": "若先出手则必定打出致命一击"
+          },
+          {
+            "id": 881,
+            "args": [],
+            "description": "若自身处于能力下降状态则技能先制+3"
+          },
+          {
+            "id": 1054,
+            "args": [
+              19
+            ],
+            "description": "反转自身能力下降状态，反转成功则对手瘫痪"
+          },
+          {
+            "id": 2204,
+            "args": [
+              50,
+              50
+            ],
+            "description": "技能威力减少50%，对手处于异常状态时改为提升50%"
+          },
+          {
+            "id": 2341,
+            "args": [],
+            "description": "未击败对手则开启赛博共振器"
+          }
+        ],
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "revision": "seerapi:32ecde35",
+        "hash": "32ecde35",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "6355e440a2909fe9cbd5ed4a1ec006ac29ce63cedadd5b92a46882c12a77591d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38084:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1395,
+          "args": [],
+          "description": "若先出手则必定打出致命一击"
+        },
+        "index": 0,
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "metadata": {
+          "id": 1395,
+          "argsNum": 0,
+          "template": "若先出手则必定打出致命一击",
+          "revision": "seerapi:6be59f01"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:32ecde35"
+      },
+      "sourceDigest": "e07de734669c55dcfc93d66e6b2217e2fa0c0f03c1c19e87e953b9db58d51138",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1395先手必暴与881负级先制3，2340转移异常保留时长并解除自身",
+          "assertion": " const s=isolate(make({move:38084}),1395,881);s.fighters[0].stages.def=-1;turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,3);assert.ok(s.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));\n const late=isolate(make({move:38084,slow:true}),1395);turn(late);assert.equal(late.turns.at(-1).first,1);assert.equal(late.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.text.includes('致命一击')),false);\n for(const immune of [false,true]){const a=isolate(make({move:38085}),2340);a.fighters[0].ailments['中毒']=3;if(immune)a.fighters[1].counts.immune=1;turn(a);assert.equal(a.fighters[0].ailments['中毒'],undefined);assert.equal(a.fighters[1].ailments['中毒'],immune?undefined:3);if(immune)assert.equal(a.fighters[1].counts.immune,0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38084:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 881,
+          "args": [],
+          "description": "若自身处于能力下降状态则技能先制+3"
+        },
+        "index": 1,
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "metadata": {
+          "id": 881,
+          "argsNum": 0,
+          "template": "若自身处于能力下降状态则技能先制+3",
+          "revision": "seerapi:897c0169"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:32ecde35"
+      },
+      "sourceDigest": "93c55c46562fdab0aff0162ffeefef9d61ad32b2de724028acc830745f2733cb",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1395先手必暴与881负级先制3，2340转移异常保留时长并解除自身",
+          "assertion": " const s=isolate(make({move:38084}),1395,881);s.fighters[0].stages.def=-1;turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,3);assert.ok(s.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));\n const late=isolate(make({move:38084,slow:true}),1395);turn(late);assert.equal(late.turns.at(-1).first,1);assert.equal(late.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.text.includes('致命一击')),false);\n for(const immune of [false,true]){const a=isolate(make({move:38085}),2340);a.fighters[0].ailments['中毒']=3;if(immune)a.fighters[1].counts.immune=1;turn(a);assert.equal(a.fighters[0].ailments['中毒'],undefined);assert.equal(a.fighters[1].ailments['中毒'],immune?undefined:3);if(immune)assert.equal(a.fighters[1].counts.immune,0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38084:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1054,
+          "args": [
+            19
+          ],
+          "description": "反转自身能力下降状态，反转成功则对手瘫痪"
+        },
+        "index": 2,
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "metadata": {
+          "id": 1054,
+          "argsNum": 1,
+          "template": "反转自身能力下降状态，反转成功则对手{0}",
+          "revision": "seerapi:8d28925d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:32ecde35"
+      },
+      "sourceDigest": "32e03a496da0c0ccfc9dc2e36d21ac51c266f30a7c0a38f022c6425b9080b9b8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-enums.test.cjs",
+          "name": "4816/1054真实19瘫痪：负等级反转、零正级不触发、免弱不可解除与免异交互",
+          "assertion": " for(const mode of ['negative','zero','positive','locked','immune']){const s=make(38084,2);s.fighters[0].stages.def=mode==='zero'?0:mode==='positive'?2:-2;if(mode==='locked')s.fighters[0].effects['弱化不可解除反转']={start:1,end:99};if(mode==='immune')s.fighters[1].counts.immune=1;turn(s,38084);assert.equal(s.fighters[0].stages.def,mode==='locked'?-2:mode==='zero'?0:2);assert.equal(!!s.fighters[1].ailments['瘫痪'],mode==='negative');if(mode==='immune')assert.equal(s.fighters[1].counts.immune,0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38084:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2204,
+          "args": [
+            50,
+            50
+          ],
+          "description": "技能威力减少50%，对手处于异常状态时改为提升50%"
+        },
+        "index": 3,
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "metadata": {
+          "id": 2204,
+          "argsNum": 2,
+          "template": "技能威力减少{0}%，对手处于异常状态时改为提升{1}%",
+          "revision": "seerapi:e9c33e9b"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:32ecde35"
+      },
+      "sourceDigest": "4baaf5f5ce89adafc52374be7f16d1a2f5266699315bd8c38c2f13a1f2721e01",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2204实际攻击威力：对手无异常减半、有沸涌增半",
+          "assertion": " const values=[];for(const abnormal of [false,true]){const s=make({move:38084});if(abnormal)s.fighters[1].ailments['沸涌']=3;turn(s);values.push(damage(s));}assert.ok(values[1]>values[0]*2.5);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38084:4",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2341,
+          "args": [],
+          "description": "未击败对手则开启赛博共振器"
+        },
+        "index": 4,
+        "description": "若先出手则必定打出致命一击；若自身处于能力下降状态则技能先制+3；反转自身能力下降状态，反转成功则对手瘫痪；技能威力减少50%，对手处于异常状态时改为提升50%；未击败对手则开启赛博共振器",
+        "metadata": {
+          "id": 2341,
+          "argsNum": 0,
+          "template": "未击败对手则开启赛博共振器",
+          "revision": "seerapi:11e0ff31"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:32ecde35"
+      },
+      "sourceDigest": "af9cc6ba9d60e986797bcebbc55ef83aabdacd8f3a9b8a4bd9d0566cf25a7af1",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2341未击败后重开已有共振器，没有配置不能凭技能创造装置",
+          "assertion": " const s=make({move:38084,soul:true});s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].soulState.cyber2008.open,true);const t=make({move:38084});turn(t);assert.equal(t.fighters[0].soulState.cyber2008,undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:move:38085",
+      "kind": "move",
+      "raw": {
+        "id": 38085,
+        "name": "潮涌核共鸣",
+        "type": "机械超能",
+        "kind": "special",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          2339,
+          2340,
+          2052,
+          58,
+          675,
+          2054
+        ],
+        "effectInstances": [
+          {
+            "id": 2339,
+            "args": [],
+            "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3"
+          },
+          {
+            "id": 2340,
+            "args": [],
+            "description": "附加并解除自身所处的异常状态"
+          },
+          {
+            "id": 2052,
+            "args": [
+              3
+            ],
+            "description": "3回合内对手必定打出致命一击"
+          },
+          {
+            "id": 58,
+            "args": [
+              3
+            ],
+            "description": "下3回合自身攻击技能必定打出致命一击"
+          },
+          {
+            "id": 675,
+            "args": [
+              3
+            ],
+            "description": "下3回合对手打出致命一击的非必中技能无效"
+          },
+          {
+            "id": 2054,
+            "args": [
+              3,
+              1
+            ],
+            "description": "下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态"
+          }
+        ],
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "revision": "seerapi:51e1bed1",
+        "hash": "51e1bed1",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4816",
+        "revision": "acc15718",
+        "loadedAt": "2026-11-02T05:12:13.360Z"
+      },
+      "sourceDigest": "88c4b41504f5587f425d741f5551407527cff9be34f57e3b0584c68b31416ddc",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态",
+          "assertion": " assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP",
+          "assertion": " for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2339,
+          "args": [],
+          "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3"
+        },
+        "index": 0,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 2339,
+          "argsNum": 0,
+          "template": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3",
+          "revision": "seerapi:75aba560"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "cc758de5b6d812334a7ee2c085465fe54eeae89e3d8e6eb123e3b185ef939780",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2339真实非第五降先制与完整所受红伤三倍，第五分支回血且授双方必暴",
+          "assertion": " const s=make({move:38085,hp:2000});turn(s,38085,10127);assert.equal(s.turns[0].first,1);assert.ok(damage(s)>=damage(s,'attack',1)*3);assert.ok(s.fighters[1].effects['必定暴击']);assert.ok(s.fighters[0].effects['必定暴击']);\n const t=make({move:38085,hp:2000,enemyFifth:true});turn(t);assert.equal(t.fighters[0].soulState.resolvedPriority.value,0);assert.ok(t.fighters[0].hp>2000);assert.equal(t.fighters[1].effects['必定暴击'].start,1);assert.equal(t.fighters[1].effects['必定暴击'].end,3);assert.equal(t.fighters[0].effects['非必中暴击无效'].end,4);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2339按完整红伤而非保1的199HP损失取三倍，零红伤命中仍授必暴",
+          "assertion": " const s=make({move:38085,hp:200});s.fighters[0].effects['致命保留']={start:1,end:99,hp:1};s.fighters[1].stats.atk=5000;turn(s,38085,10127);const red=damage(s,'attack',1);assert.ok(red>200);assert.equal(s.damageEvents.find(e=>e.sourceSide===1&&e.type==='attack').hpLoss,199);assert.ok(damage(s)>=red*3);\n const t=make({move:38085});t.fighters[1].effects['攻击伤害免疫']={start:1,end:99};turn(t,38085,10127);assert.equal(damage(t),0);assert.ok(t.fighters[1].effects['必定暴击']);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2340,
+          "args": [],
+          "description": "附加并解除自身所处的异常状态"
+        },
+        "index": 1,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 2340,
+          "argsNum": 0,
+          "template": "附加并解除自身所处的异常状态",
+          "revision": "seerapi:5f5fdafa"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "9f6b232d3dda8cd8d9598f3e50d94a247f71c818f8c7147050d7cba540258325",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1395先手必暴与881负级先制3，2340转移异常保留时长并解除自身",
+          "assertion": " const s=isolate(make({move:38084}),1395,881);s.fighters[0].stages.def=-1;turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,3);assert.ok(s.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));\n const late=isolate(make({move:38084,slow:true}),1395);turn(late);assert.equal(late.turns.at(-1).first,1);assert.equal(late.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.text.includes('致命一击')),false);\n for(const immune of [false,true]){const a=isolate(make({move:38085}),2340);a.fighters[0].ailments['中毒']=3;if(immune)a.fighters[1].counts.immune=1;turn(a);assert.equal(a.fighters[0].ailments['中毒'],undefined);assert.equal(a.fighters[1].ailments['中毒'],immune?undefined:3);if(immune)assert.equal(a.fighters[1].counts.immune,0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2052,
+          "args": [
+            3
+          ],
+          "description": "3回合内对手必定打出致命一击"
+        },
+        "index": 2,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 2052,
+          "argsNum": 1,
+          "template": "{0}回合内对手必定打出致命一击",
+          "revision": "seerapi:f6bfb5f9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "3a59c3fa72bd5ee2e67dbed20cae90f9667ae85165a6d6828d76a462e45a40be",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2339真实非第五降先制与完整所受红伤三倍，第五分支回血且授双方必暴",
+          "assertion": " const s=make({move:38085,hp:2000});turn(s,38085,10127);assert.equal(s.turns[0].first,1);assert.ok(damage(s)>=damage(s,'attack',1)*3);assert.ok(s.fighters[1].effects['必定暴击']);assert.ok(s.fighters[0].effects['必定暴击']);\n const t=make({move:38085,hp:2000,enemyFifth:true});turn(t);assert.equal(t.fighters[0].soulState.resolvedPriority.value,0);assert.ok(t.fighters[0].hp>2000);assert.equal(t.fighters[1].effects['必定暴击'].start,1);assert.equal(t.fighters[1].effects['必定暴击'].end,3);assert.equal(t.fighters[0].effects['非必中暴击无效'].end,4);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 58,
+          "args": [
+            3
+          ],
+          "description": "下3回合自身攻击技能必定打出致命一击"
+        },
+        "index": 3,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 58,
+          "argsNum": 1,
+          "template": "下{0}回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:a88e6bf3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "50195672256b84885c279ea5b0a7739660f38277cb8d778596cdcf5833121854",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/1558下轮真实暴击攻击增伤50%，非暴击不增；58下两回合必暴与到期",
+          "assertion": " const loadout=[29148,10234,21743,29147,38085];for(const critical of [false,true]){const results=[];for(const enabled of [false,true]){const s=isolate(make({move:29148,loadout}),...(enabled?[1558]:[]));turn(s);if(critical)s.fighters[0].effects['必定暴击']={start:s.round,end:99};turn(s,10234);results.push(damage(s));}if(critical)assert.ok(results[1]>results[0]*1.45);else assert.equal(results[1],results[0]);}\n const a=isolate(make({move:21743,loadout}),58);turn(a);assert.equal(a.fighters[0].effects['必定暴击'].start,2);assert.equal(a.fighters[0].effects['必定暴击'].end,3);turn(a,10234);assert.ok(a.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));turn(a,10234);turn(a,10234);assert.equal(a.fighters[0].effects['必定暴击'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:4",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 675,
+          "args": [
+            3
+          ],
+          "description": "下3回合对手打出致命一击的非必中技能无效"
+        },
+        "index": 4,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 675,
+          "argsNum": 1,
+          "template": "下{0}回合对手打出致命一击的非必中技能无效",
+          "revision": "seerapi:9203c463"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "ca6960235c6b6add9758027a4350786351de919b6fb1a566bdd3beade9834dab",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/675真实非必中暴击失效、真实必中第五仍命中及回合参数3未丢失",
+          "assertion": " for(const hit of [false,true]){const s=isolate(make({move:38085}),675);turn(s);assert.equal(s.fighters[0].effects['非必中暴击无效'].end,4);s.fighters[1].effects['必定暴击']={start:s.round,end:99};delete s.fighters[1].effects['攻击必中'];turn(s,38085,hit?37911:10127);assert.equal(damage(s,'attack',1)>0,hit);}\n const m=structuredClone(source.moves.find(m=>m.id===38085));m.effectInstances[4].args=[0];assert.notEqual(E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m).issue,'');\n const expiry=isolate(make({move:38085,loadout:[38085,10234,29148,29147,21743]}),675);turn(expiry);expiry.fighters[1].effects['必定暴击']={start:2,end:99};delete expiry.fighters[1].effects['攻击必中'];turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.ok(damage(expiry,'attack',1)>0);assert.equal(expiry.fighters[0].effects['非必中暴击无效'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    },
+    {
+      "key": "4816:skill:38085:5",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2054,
+          "args": [
+            3,
+            1
+          ],
+          "description": "下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态"
+        },
+        "index": 5,
+        "description": "对手选择非第五技能的回合此技能先制-3且造成的攻击伤害不低于当回合所受攻击伤害的3倍，否则恢复自身最大体力的1/3；附加并解除自身所处的异常状态；3回合内对手必定打出致命一击；下3回合自身攻击技能必定打出致命一击；下3回合对手打出致命一击的非必中技能无效；下3回合攻击技能打出致命一击后自身免疫下1次受到的异常状态",
+        "metadata": {
+          "id": 2054,
+          "argsNum": 2,
+          "template": "下{0}回合攻击技能打出致命一击后自身免疫下{1}次受到的异常状态",
+          "revision": "seerapi:4b6b237a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4816",
+          "revision": "acc15718",
+          "loadedAt": "2026-11-02T05:12:13.360Z"
+        },
+        "skillRevision": "seerapi:51e1bed1"
+      },
+      "sourceDigest": "3956394ffaf5d77fa2e17d421e3cd8fbb51909c359cd94d6bc297c884280bd43",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:01:49.032Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816/2054真实下一轮暴击授一次免异，重复暴击同源刷新不叠加",
+          "assertion": " const s=isolate(make({move:38085}),2054);turn(s);assert.equal(s.fighters[0].counts.immune??0,0);turn(s,38084);assert.equal(s.fighters[0].counts.immune,1);turn(s,38084);assert.equal(s.fighters[0].counts.immune,1);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "保持真实技能基础参数或该有序实例原文/参数；当前在场单精灵分支，已映射真实状态测试；未宣布最终回归或正式接入通过。"
+    }
+  ],
+  "accepted": false,
+  "sourceIntegrity": "research/BATCH-4816-REMAINING/4816/source-integrity.json",
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4816-001：恢复量确定后实现零PP恢复、反转及按恢复点数吸取/盾罩连带结算",
+    "完整魂印正式存储与HTTP全部技能接入、正式验证门槛"
+  ],
+  "pendingBatchWork": [
+    "最终同版专项/接入及新完整npm；公共影响目标必要重验"
+  ]
+}

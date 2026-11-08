@@ -1,0 +1,2054 @@
+{
+  "at": "2026-11-05T11:07:04.612Z",
+  "reviews": {
+    "4823:soul:2014": {
+      "sourceDigest": "c813fab11f4683d88adec04554dee2cba68cf6d53d216ad720ca801401804ed7",
+      "scope": "mixed",
+      "reviewedBy": "Codex source and named state assertion review; partial, not accepted",
+      "reviewedAt": "2026-11-02T08:12:17.145Z",
+      "status": "partial-awaiting-confirmation",
+      "rationale": "首次登场及当前双方所有触发属于单精灵；仅再次登场依赖换宠。奇数减半仍待答，不以多宠延期。",
+      "singleBehavior": "首次冻伤10；偶数冻伤减半、每减少1回合当回合攻固粉减10%、真伤不减；属性用招消敌盾罩按实际种类加回合；自然递减后的末值高/低/相等分别清回合消强冰封、逐次冻伤成功全弱失败魂印回血、魂印回满PP。奇数减半明确拒绝未答分支。",
+      "implementation": [
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014初始冻伤10、偶数减半5回合并当回合攻固粉减50真伤不减，自然递减后六次冻伤全弱",
+            "assertion": " const s=make({move:10001,soul:true});assert.equal(s.fighters[0].ailments['冻伤'],10);const old=E.SOULS,received=[];E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1)for(const type of['fixed','percent','true'])received.push(c.hurt(c.t,100,'分通道验证',type));}};try{turn(s,10001,10127);}finally{E.SOULS=old;}assert.deepEqual(received,[50,50,100]);assert.equal(s.fighters[0].ailments['冻伤'],5);assert.equal(s.fighters[0].soulState.snow2014.removed,5);assert.equal(s.fighters[0].soulState.snow2014.end,4);assert.equal(s.fighters[0].soulState.snow2014.delta,-6);for(const k of keys)assert.equal(s.fighters[1].stages[k],-6);assert.ok(s.fighters[1].ailments['冻伤']);\n const baseline=make({move:10001});turn(baseline,10001,10127);assert.ok(Math.abs(sum(s,'attack',1)-sum(baseline,'attack',1)*.5)<=1);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014属性使用消除盾罩按种类各加1，末计数高则清回合清正并冰封；一种恰好抵自然递减回满全部PP",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].suitState.shield=300;a.fighters[1].suitState.barrier=300;a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].suitState.shield,0);assert.equal(a.fighters[1].suitState.barrier,0);assert.equal(a.fighters[0].ailments['冻伤'],12);assert.equal(a.fighters[0].soulState.snow2014.end,11);assert.ok(a.fighters[1].ailments['冰封']);assert.equal(a.fighters[1].stages.def,0);assert.equal(a.fighters[1].effects['攻击必中'],undefined);\n const b=make({move:10001,soul:true});b.fighters[1].suitState.shield=300;for(const k of b.fighters[0].moves)b.fighters[0].pp[k]=1;turn(b);assert.equal(b.fighters[0].soulState.snow2014.delta,0);for(const k of b.fighters[0].moves)assert.equal(b.fighters[0].pp[k],b.moveDefinitions[k].pp);assert.equal(b.fighters[1].ailments['冰封'],undefined);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014无盾属性后自然少1仍施冻伤，免异失败回复100不受技能禁疗，已有同名冻伤每次成功仍全弱",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].counts.immune=1;timer(a,0,'技能禁疗');turn(a);assert.equal(a.fighters[1].counts.immune,0);assert.equal(a.fighters[1].ailments['冻伤'],undefined);assert.equal(a.fighters[0].hp,7975);assert.equal(a.fighters[0].soulState.snow2014.delta,-1);\n const b=make({move:10001,soul:true});b.fighters[1].ailments['冻伤']=99;turn(b,10001,10127);assert.equal(b.fighters[1].ailments['冻伤'],99);for(const k of keys)assert.equal(b.fighters[1].stages[k],-6);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014奇数减半明确待答不猜取整，入场冻伤免疫后0减半和相等回满PP，死亡不复活",
+            "assertion": " const odd=make({move:10001,soul:true});odd.fighters[0].ailments['冻伤']=5;assert.throws(()=>turn(odd,10001,10127),/Q-4823-001/);const a=make({move:10001,soul:true,selfEntryImmune:1});assert.equal(a.fighters[0].ailments['冻伤'],undefined);assert.equal(a.fighters[0].counts.immune,0);turn(a,10001,10127);assert.equal(a.fighters[0].pp[key(10001)],35);assert.equal(a.fighters[0].soulState.snow2014.delta,0);\n const dead=make({move:10001,soul:true,hp:200});turn(dead,10001,10127);assert.equal(dead.fighters[0].hp,0);assert.equal(dead.fighters[1].ailments['冻伤'],undefined);"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014初始冻伤10、偶数减半5回合并当回合攻固粉减50真伤不减，自然递减后六次冻伤全弱",
+            "assertion": " const s=make({move:10001,soul:true});assert.equal(s.fighters[0].ailments['冻伤'],10);const old=E.SOULS,received=[];E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1)for(const type of['fixed','percent','true'])received.push(c.hurt(c.t,100,'分通道验证',type));}};try{turn(s,10001,10127);}finally{E.SOULS=old;}assert.deepEqual(received,[50,50,100]);assert.equal(s.fighters[0].ailments['冻伤'],5);assert.equal(s.fighters[0].soulState.snow2014.removed,5);assert.equal(s.fighters[0].soulState.snow2014.end,4);assert.equal(s.fighters[0].soulState.snow2014.delta,-6);for(const k of keys)assert.equal(s.fighters[1].stages[k],-6);assert.ok(s.fighters[1].ailments['冻伤']);\n const baseline=make({move:10001});turn(baseline,10001,10127);assert.ok(Math.abs(sum(s,'attack',1)-sum(baseline,'attack',1)*.5)<=1);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014属性使用消除盾罩按种类各加1，末计数高则清回合清正并冰封；一种恰好抵自然递减回满全部PP",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].suitState.shield=300;a.fighters[1].suitState.barrier=300;a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].suitState.shield,0);assert.equal(a.fighters[1].suitState.barrier,0);assert.equal(a.fighters[0].ailments['冻伤'],12);assert.equal(a.fighters[0].soulState.snow2014.end,11);assert.ok(a.fighters[1].ailments['冰封']);assert.equal(a.fighters[1].stages.def,0);assert.equal(a.fighters[1].effects['攻击必中'],undefined);\n const b=make({move:10001,soul:true});b.fighters[1].suitState.shield=300;for(const k of b.fighters[0].moves)b.fighters[0].pp[k]=1;turn(b);assert.equal(b.fighters[0].soulState.snow2014.delta,0);for(const k of b.fighters[0].moves)assert.equal(b.fighters[0].pp[k],b.moveDefinitions[k].pp);assert.equal(b.fighters[1].ailments['冰封'],undefined);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014无盾属性后自然少1仍施冻伤，免异失败回复100不受技能禁疗，已有同名冻伤每次成功仍全弱",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].counts.immune=1;timer(a,0,'技能禁疗');turn(a);assert.equal(a.fighters[1].counts.immune,0);assert.equal(a.fighters[1].ailments['冻伤'],undefined);assert.equal(a.fighters[0].hp,7975);assert.equal(a.fighters[0].soulState.snow2014.delta,-1);\n const b=make({move:10001,soul:true});b.fighters[1].ailments['冻伤']=99;turn(b,10001,10127);assert.equal(b.fighters[1].ailments['冻伤'],99);for(const k of keys)assert.equal(b.fighters[1].stages[k],-6);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014奇数减半明确待答不猜取整，入场冻伤免疫后0减半和相等回满PP，死亡不复活",
+            "assertion": " const odd=make({move:10001,soul:true});odd.fighters[0].ailments['冻伤']=5;assert.throws(()=>turn(odd,10001,10127),/Q-4823-001/);const a=make({move:10001,soul:true,selfEntryImmune:1});assert.equal(a.fighters[0].ailments['冻伤'],undefined);assert.equal(a.fighters[0].counts.immune,0);turn(a,10001,10127);assert.equal(a.fighters[0].pp[key(10001)],35);assert.equal(a.fighters[0].soulState.snow2014.delta,0);\n const dead=make({move:10001,soul:true,hp:200});turn(dead,10001,10127);assert.equal(dead.fighters[0].hp,0);assert.equal(dead.fighters[1].ailments['冻伤'],undefined);"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014初始冻伤10、偶数减半5回合并当回合攻固粉减50真伤不减，自然递减后六次冻伤全弱",
+            "assertion": " const s=make({move:10001,soul:true});assert.equal(s.fighters[0].ailments['冻伤'],10);const old=E.SOULS,received=[];E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1)for(const type of['fixed','percent','true'])received.push(c.hurt(c.t,100,'分通道验证',type));}};try{turn(s,10001,10127);}finally{E.SOULS=old;}assert.deepEqual(received,[50,50,100]);assert.equal(s.fighters[0].ailments['冻伤'],5);assert.equal(s.fighters[0].soulState.snow2014.removed,5);assert.equal(s.fighters[0].soulState.snow2014.end,4);assert.equal(s.fighters[0].soulState.snow2014.delta,-6);for(const k of keys)assert.equal(s.fighters[1].stages[k],-6);assert.ok(s.fighters[1].ailments['冻伤']);\n const baseline=make({move:10001});turn(baseline,10001,10127);assert.ok(Math.abs(sum(s,'attack',1)-sum(baseline,'attack',1)*.5)<=1);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014属性使用消除盾罩按种类各加1，末计数高则清回合清正并冰封；一种恰好抵自然递减回满全部PP",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].suitState.shield=300;a.fighters[1].suitState.barrier=300;a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].suitState.shield,0);assert.equal(a.fighters[1].suitState.barrier,0);assert.equal(a.fighters[0].ailments['冻伤'],12);assert.equal(a.fighters[0].soulState.snow2014.end,11);assert.ok(a.fighters[1].ailments['冰封']);assert.equal(a.fighters[1].stages.def,0);assert.equal(a.fighters[1].effects['攻击必中'],undefined);\n const b=make({move:10001,soul:true});b.fighters[1].suitState.shield=300;for(const k of b.fighters[0].moves)b.fighters[0].pp[k]=1;turn(b);assert.equal(b.fighters[0].soulState.snow2014.delta,0);for(const k of b.fighters[0].moves)assert.equal(b.fighters[0].pp[k],b.moveDefinitions[k].pp);assert.equal(b.fighters[1].ailments['冰封'],undefined);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014无盾属性后自然少1仍施冻伤，免异失败回复100不受技能禁疗，已有同名冻伤每次成功仍全弱",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].counts.immune=1;timer(a,0,'技能禁疗');turn(a);assert.equal(a.fighters[1].counts.immune,0);assert.equal(a.fighters[1].ailments['冻伤'],undefined);assert.equal(a.fighters[0].hp,7975);assert.equal(a.fighters[0].soulState.snow2014.delta,-1);\n const b=make({move:10001,soul:true});b.fighters[1].ailments['冻伤']=99;turn(b,10001,10127);assert.equal(b.fighters[1].ailments['冻伤'],99);for(const k of keys)assert.equal(b.fighters[1].stages[k],-6);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014奇数减半明确待答不猜取整，入场冻伤免疫后0减半和相等回满PP，死亡不复活",
+            "assertion": " const odd=make({move:10001,soul:true});odd.fighters[0].ailments['冻伤']=5;assert.throws(()=>turn(odd,10001,10127),/Q-4823-001/);const a=make({move:10001,soul:true,selfEntryImmune:1});assert.equal(a.fighters[0].ailments['冻伤'],undefined);assert.equal(a.fighters[0].counts.immune,0);turn(a,10001,10127);assert.equal(a.fighters[0].pp[key(10001)],35);assert.equal(a.fighters[0].soulState.snow2014.delta,0);\n const dead=make({move:10001,soul:true,hp:200});turn(dead,10001,10127);assert.equal(dead.fighters[0].hp,0);assert.equal(dead.fighters[1].ailments['冻伤'],undefined);"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014初始冻伤10、偶数减半5回合并当回合攻固粉减50真伤不减，自然递减后六次冻伤全弱",
+            "assertion": " const s=make({move:10001,soul:true});assert.equal(s.fighters[0].ailments['冻伤'],10);const old=E.SOULS,received=[];E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1)for(const type of['fixed','percent','true'])received.push(c.hurt(c.t,100,'分通道验证',type));}};try{turn(s,10001,10127);}finally{E.SOULS=old;}assert.deepEqual(received,[50,50,100]);assert.equal(s.fighters[0].ailments['冻伤'],5);assert.equal(s.fighters[0].soulState.snow2014.removed,5);assert.equal(s.fighters[0].soulState.snow2014.end,4);assert.equal(s.fighters[0].soulState.snow2014.delta,-6);for(const k of keys)assert.equal(s.fighters[1].stages[k],-6);assert.ok(s.fighters[1].ailments['冻伤']);\n const baseline=make({move:10001});turn(baseline,10001,10127);assert.ok(Math.abs(sum(s,'attack',1)-sum(baseline,'attack',1)*.5)<=1);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014属性使用消除盾罩按种类各加1，末计数高则清回合清正并冰封；一种恰好抵自然递减回满全部PP",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].suitState.shield=300;a.fighters[1].suitState.barrier=300;a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].suitState.shield,0);assert.equal(a.fighters[1].suitState.barrier,0);assert.equal(a.fighters[0].ailments['冻伤'],12);assert.equal(a.fighters[0].soulState.snow2014.end,11);assert.ok(a.fighters[1].ailments['冰封']);assert.equal(a.fighters[1].stages.def,0);assert.equal(a.fighters[1].effects['攻击必中'],undefined);\n const b=make({move:10001,soul:true});b.fighters[1].suitState.shield=300;for(const k of b.fighters[0].moves)b.fighters[0].pp[k]=1;turn(b);assert.equal(b.fighters[0].soulState.snow2014.delta,0);for(const k of b.fighters[0].moves)assert.equal(b.fighters[0].pp[k],b.moveDefinitions[k].pp);assert.equal(b.fighters[1].ailments['冰封'],undefined);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014无盾属性后自然少1仍施冻伤，免异失败回复100不受技能禁疗，已有同名冻伤每次成功仍全弱",
+            "assertion": " const a=make({move:10001,soul:true});a.fighters[1].counts.immune=1;timer(a,0,'技能禁疗');turn(a);assert.equal(a.fighters[1].counts.immune,0);assert.equal(a.fighters[1].ailments['冻伤'],undefined);assert.equal(a.fighters[0].hp,7975);assert.equal(a.fighters[0].soulState.snow2014.delta,-1);\n const b=make({move:10001,soul:true});b.fighters[1].ailments['冻伤']=99;turn(b,10001,10127);assert.equal(b.fighters[1].ailments['冻伤'],99);for(const k of keys)assert.equal(b.fighters[1].stages[k],-6);"
+          },
+          {
+            "file": "tests/remaining-4823.test.cjs",
+            "name": "4823真实2014奇数减半明确待答不猜取整，入场冻伤免疫后0减半和相等回满PP，死亡不复活",
+            "assertion": " const odd=make({move:10001,soul:true});odd.fighters[0].ailments['冻伤']=5;assert.throws(()=>turn(odd,10001,10127),/Q-4823-001/);const a=make({move:10001,soul:true,selfEntryImmune:1});assert.equal(a.fighters[0].ailments['冻伤'],undefined);assert.equal(a.fighters[0].counts.immune,0);turn(a,10001,10127);assert.equal(a.fighters[0].pp[key(10001)],35);assert.equal(a.fighters[0].soulState.snow2014.delta,0);\n const dead=make({move:10001,soul:true,hp:200});turn(dead,10001,10127);assert.equal(dead.fighters[0].hp,0);assert.equal(dead.fighters[1].ailments['冻伤'],undefined);"
+          }
+        ]
+      },
+      "deferredBehavior": "仅换宠后再次登场为自身重新附加10回合冻伤，保留2014/def51cc/eid2439/[1,0]。",
+      "trigger": "换宠后自身再次登场",
+      "futureMechanisms": [
+        "换宠事件",
+        "再次登场事件"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "switch",
+          "quote": "登场时为自身附加10回合的冻伤",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4823/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2014",
+            "revision": "def51cc"
+          }
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4823-001"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4823:move:10001": null,
+    "4823:move:20177": null,
+    "4823:skill:20177:0": null,
+    "4823:move:10361": null,
+    "4823:move:20618": null,
+    "4823:skill:20618:0": null,
+    "4823:move:14290": null,
+    "4823:skill:14290:0": null,
+    "4823:move:38112": null,
+    "4823:skill:38112:0": null,
+    "4823:skill:38112:1": null,
+    "4823:move:10218": null,
+    "4823:move:20644": null,
+    "4823:skill:20644:0": null,
+    "4823:skill:20644:1": null,
+    "4823:move:23745": null,
+    "4823:skill:23745:0": null,
+    "4823:skill:23745:1": null,
+    "4823:move:33280": null,
+    "4823:skill:33280:0": null,
+    "4823:move:26722": null,
+    "4823:skill:26722:0": null,
+    "4823:skill:26722:1": null,
+    "4823:skill:26722:2": null,
+    "4823:move:33281": null,
+    "4823:skill:33281:0": null,
+    "4823:move:29165": null,
+    "4823:skill:29165:0": null,
+    "4823:skill:29165:1": null,
+    "4823:skill:29165:2": null,
+    "4823:skill:29165:3": null,
+    "4823:move:33282": null,
+    "4823:skill:33282:0": null,
+    "4823:move:29166": null,
+    "4823:skill:29166:0": null,
+    "4823:skill:29166:1": null,
+    "4823:skill:29166:2": null,
+    "4823:skill:29166:3": null,
+    "4823:skill:29166:4": null,
+    "4823:move:38113": null,
+    "4823:skill:38113:0": null,
+    "4823:skill:38113:1": {
+      "sourceDigest": "8c3c576d1c0f5cc1dcfcb2a615fee96ff52c72372762360b6386776cf34475b8",
+      "scope": "multiplayer",
+      "reviewedBy": "Codex explicit switch source review",
+      "reviewedAt": "2026-11-02T08:12:17.145Z",
+      "rationale": "原文唯一行为为主动换宠封锁，依赖换宠流程，不豁免同招其他自身分支。",
+      "deferredBehavior": "下1回合令对手无法主动切换精灵",
+      "trigger": "38113命中后，下1回合对手尝试主动切换精灵",
+      "futureMechanisms": [
+        "主动换宠流程",
+        "回合换宠限制"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "switch",
+          "quote": "令对手无法主动切换精灵",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4823/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38113",
+            "revision": "seerapi:8f7d5bc7"
+          }
+        }
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4823:skill:38113:2": null,
+    "4823:move:38114": null,
+    "4823:skill:38114:0": null,
+    "4823:skill:38114:1": null,
+    "4823:skill:38114:2": null,
+    "4823:skill:38114:3": null
+  },
+  "pending": {
+    "schema": 1,
+    "status": "partial-awaiting-confirmation",
+    "notDeployed": true,
+    "snapshot": {
+      "id": 4823,
+      "name": "雪璞",
+      "base": {
+        "maxHp": 163,
+        "atk": 70,
+        "def": 112,
+        "spa": 149,
+        "spd": 112,
+        "spe": 134
+      },
+      "missingEffects": [],
+      "deployment": {
+        "scope": "single"
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4823",
+        "revision": "f29c2a4d",
+        "loadedAt": "2026-11-02T06:25:42.495Z"
+      },
+      "gender": {
+        "id": 2,
+        "url": "https://api.seerapi.com/v1/pet_gender/2",
+        "source": {
+          "url": "https://api.seerapi.com/v1/pet/4823",
+          "revision": "f29c2a4d"
+        }
+      },
+      "typeChart": {
+        "rows": {
+          "草": {
+            "草": 0.5,
+            "水": 2,
+            "火": 0.5,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "水": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 2,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "火": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "飞行": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "电": {
+            "草": 0.5,
+            "水": 2,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 0,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 2
+          },
+          "机械": {
+            "草": 1,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "地面": {
+            "草": 0.5,
+            "水": 1,
+            "火": 2,
+            "飞行": 0,
+            "电": 2,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 2,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "普通": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "冰": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 2,
+            "虚空": 1
+          },
+          "超能": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 0,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "战斗": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "光": {
+            "草": 0,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 0.5
+          },
+          "暗影": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "神秘": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 0.5,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 2,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 2,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "龙": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "圣灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 0.5,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "次元": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 2
+          },
+          "远古": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 2,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "邪灵": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 1
+          },
+          "自然": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 2,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "王": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "混沌": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 0
+          },
+          "神灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "轮回": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "虫": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 2,
+            "光": 0.5,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "虚空": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 2,
+            "战斗": 2,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 1
+          }
+        },
+        "aliases": {
+          "草": [
+            "草"
+          ],
+          "水": [
+            "水"
+          ],
+          "火": [
+            "火"
+          ],
+          "飞行": [
+            "飞行"
+          ],
+          "电": [
+            "电"
+          ],
+          "机械": [
+            "机械"
+          ],
+          "地面": [
+            "地面"
+          ],
+          "普通": [
+            "普通"
+          ],
+          "冰": [
+            "冰"
+          ],
+          "超能": [
+            "超能"
+          ],
+          "战斗": [
+            "战斗"
+          ],
+          "光": [
+            "光"
+          ],
+          "暗影": [
+            "暗影"
+          ],
+          "神秘": [
+            "神秘"
+          ],
+          "龙": [
+            "龙"
+          ],
+          "圣灵": [
+            "圣灵"
+          ],
+          "次元": [
+            "次元"
+          ],
+          "远古": [
+            "远古"
+          ],
+          "邪灵": [
+            "邪灵"
+          ],
+          "自然": [
+            "自然"
+          ],
+          "王": [
+            "王"
+          ],
+          "混沌": [
+            "混沌"
+          ],
+          "神灵": [
+            "神灵"
+          ],
+          "轮回": [
+            "轮回"
+          ],
+          "虫": [
+            "虫"
+          ],
+          "虚空": [
+            "虚空"
+          ],
+          "自然 冰": [
+            "自然",
+            "冰"
+          ],
+          "自然冰": [
+            "自然",
+            "冰"
+          ]
+        },
+        "revision": "seerapi:c9d6b67f",
+        "provider": "seerapi"
+      },
+      "type": "自然冰",
+      "moves": [
+        {
+          "id": 10001,
+          "name": "撞击",
+          "type": "普通",
+          "kind": "physical",
+          "power": 35,
+          "pp": 35,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:f1166c9c",
+          "hash": "f1166c9c",
+          "level": 1,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20177,
+          "name": "奋斗",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 40,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            4
+          ],
+          "effectInstances": [
+            {
+              "id": 4,
+              "args": [
+                0,
+                100,
+                1
+              ],
+              "description": "技能使用成功时，100%改变自身攻击等级+1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变自身攻击等级+1",
+          "revision": "seerapi:e3d4ec87",
+          "hash": "e3d4ec87",
+          "level": 5,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10361,
+          "name": "突斩",
+          "type": "普通",
+          "kind": "physical",
+          "power": 50,
+          "pp": 40,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:bea3e03c",
+          "hash": "bea3e03c",
+          "level": 9,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20618,
+          "name": "纯净之心",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            58
+          ],
+          "effectInstances": [
+            {
+              "id": 58,
+              "args": [
+                2
+              ],
+              "description": "下2回合自身攻击技能必定打出致命一击"
+            }
+          ],
+          "description": "下2回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:263f7df6",
+          "hash": "263f7df6",
+          "level": 13,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 14290,
+          "name": "急速狂抓",
+          "type": "普通",
+          "kind": "physical",
+          "power": 90,
+          "pp": 20,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            4
+          ],
+          "effectInstances": [
+            {
+              "id": 4,
+              "args": [
+                4,
+                20,
+                1
+              ],
+              "description": "技能使用成功时，20%改变自身速度等级+1"
+            }
+          ],
+          "description": "技能使用成功时，20%改变自身速度等级+1",
+          "revision": "seerapi:7d07bf12",
+          "hash": "7d07bf12",
+          "level": 17,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38112,
+          "name": "不觉寒",
+          "type": "自然冰",
+          "kind": "special",
+          "power": 85,
+          "pp": 3,
+          "priority": 3,
+          "accuracy": 97,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1542,
+            1773
+          ],
+          "effectInstances": [
+            {
+              "id": 1542,
+              "args": [
+                15,
+                1
+              ],
+              "description": "吸取对手能力提升状态，吸取成功则令对手冰封，若对手不处于能力提升状态则令对手全属性-1"
+            },
+            {
+              "id": 1773,
+              "args": [
+                50
+              ],
+              "description": "附加双方能力下降等级总和X50的固定伤害"
+            }
+          ],
+          "description": "吸取对手能力提升状态，吸取成功则令对手冰封，若对手不处于能力提升状态则令对手全属性-1；附加双方能力下降等级总和X50的固定伤害",
+          "revision": "seerapi:8809e0f0",
+          "hash": "8809e0f0",
+          "level": 21,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10218,
+          "name": "凝冻冰雹",
+          "type": "冰",
+          "kind": "special",
+          "power": 80,
+          "pp": 20,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:13722def",
+          "hash": "13722def",
+          "level": 25,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20644,
+          "name": "刺骨冰霜",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 30,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            5,
+            5
+          ],
+          "effectInstances": [
+            {
+              "id": 5,
+              "args": [
+                1,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手防御等级-1"
+            },
+            {
+              "id": 5,
+              "args": [
+                3,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手特防等级-1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变对手防御等级-1；技能使用成功时，100%改变对手特防等级-1",
+          "revision": "seerapi:396a1cf5",
+          "hash": "396a1cf5",
+          "level": 29,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 23745,
+          "name": "迷乱之风",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            5,
+            5
+          ],
+          "effectInstances": [
+            {
+              "id": 5,
+              "args": [
+                3,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手特防等级-1"
+            },
+            {
+              "id": 5,
+              "args": [
+                4,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手速度等级-1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变对手特防等级-1；技能使用成功时，100%改变对手速度等级-1",
+          "revision": "seerapi:b7e3c31c",
+          "hash": "b7e3c31c",
+          "level": 33,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 33280,
+          "name": "极寒撞击",
+          "type": "自然冰",
+          "kind": "physical",
+          "power": 120,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            14
+          ],
+          "effectInstances": [
+            {
+              "id": 14,
+              "args": [
+                50
+              ],
+              "description": "命中后50%令对方冻伤"
+            }
+          ],
+          "description": "命中后50%令对方冻伤",
+          "revision": "seerapi:87db92f1",
+          "hash": "87db92f1",
+          "level": 37,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 26722,
+          "name": "冰之低语",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            4,
+            4,
+            4
+          ],
+          "effectInstances": [
+            {
+              "id": 4,
+              "args": [
+                2,
+                100,
+                2
+              ],
+              "description": "技能使用成功时，100%改变自身特攻等级+2"
+            },
+            {
+              "id": 4,
+              "args": [
+                4,
+                100,
+                2
+              ],
+              "description": "技能使用成功时，100%改变自身速度等级+2"
+            },
+            {
+              "id": 4,
+              "args": [
+                5,
+                100,
+                2
+              ],
+              "description": "技能使用成功时，100%改变自身命中等级+2"
+            }
+          ],
+          "description": "技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身速度等级+2；技能使用成功时，100%改变自身命中等级+2",
+          "revision": "seerapi:d1e371ba",
+          "hash": "d1e371ba",
+          "level": 41,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 33281,
+          "name": "漫天霜花",
+          "type": "自然冰",
+          "kind": "special",
+          "power": 130,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1420
+          ],
+          "effectInstances": [
+            {
+              "id": 1420,
+              "args": [],
+              "description": "自身处于能力提升状态时50%打出致命一击"
+            }
+          ],
+          "description": "自身处于能力提升状态时50%打出致命一击",
+          "revision": "seerapi:b9a8f1fe",
+          "hash": "b9a8f1fe",
+          "level": 45,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29165,
+          "name": "欲作风宾",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            1932,
+            1122,
+            547,
+            676
+          ],
+          "effectInstances": [
+            {
+              "id": 1932,
+              "args": [
+                4,
+                5
+              ],
+              "description": "4回合内免疫并反弹除冻伤外所有受到的异常状态"
+            },
+            {
+              "id": 1122,
+              "args": [
+                1,
+                15
+              ],
+              "description": "使对手全属性-1，未触发则对手冰封"
+            },
+            {
+              "id": 547,
+              "args": [
+                5,
+                5
+              ],
+              "description": "使敌我双方同时冻伤5回合"
+            },
+            {
+              "id": 676,
+              "args": [
+                2,
+                35
+              ],
+              "description": "下2回合每回合使用攻击技能附加自身防御、特防值总和35%的百分比伤害"
+            }
+          ],
+          "description": "4回合内免疫并反弹除冻伤外所有受到的异常状态；使对手全属性-1，未触发则对手冰封；使敌我双方同时冻伤5回合；下2回合每回合使用攻击技能附加自身防御、特防值总和35%的百分比伤害",
+          "revision": "seerapi:d320fe7f",
+          "hash": "d320fe7f",
+          "level": 49,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 33282,
+          "name": "寒风席卷",
+          "type": "自然冰",
+          "kind": "physical",
+          "power": 140,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            130
+          ],
+          "effectInstances": [
+            {
+              "id": 130,
+              "args": [
+                1,
+                300
+              ],
+              "description": "对方为雄性则附加300点伤害"
+            }
+          ],
+          "description": "对方为雄性则附加300点伤害",
+          "revision": "seerapi:70e221b0",
+          "hash": "70e221b0",
+          "level": 53,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29166,
+          "name": "停霜漫怀",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            993,
+            2230,
+            1939,
+            1938,
+            843
+          ],
+          "effectInstances": [
+            {
+              "id": 993,
+              "args": [
+                1,
+                15
+              ],
+              "description": "全属性+1，对手处于冰封状态时强化效果翻倍"
+            },
+            {
+              "id": 2230,
+              "args": [
+                4,
+                2,
+                100,
+                28
+              ],
+              "description": "4回合内使用技能则恢复自身最大体力的1/2，若未恢复体力则100%令对手束缚"
+            },
+            {
+              "id": 1939,
+              "args": [
+                300
+              ],
+              "description": "为对手附加300点护罩"
+            },
+            {
+              "id": 1938,
+              "args": [
+                300
+              ],
+              "description": "为对手附加300点护盾"
+            },
+            {
+              "id": 843,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合令自身所有技能先制+2"
+            }
+          ],
+          "description": "全属性+1，对手处于冰封状态时强化效果翻倍；4回合内使用技能则恢复自身最大体力的1/2，若未恢复体力则100%令对手束缚；为对手附加300点护罩；为对手附加300点护盾；下2回合令自身所有技能先制+2",
+          "revision": "seerapi:96b321dd",
+          "hash": "96b321dd",
+          "level": 57,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38113,
+          "name": "乍暖雪",
+          "type": "自然冰",
+          "kind": "special",
+          "power": 150,
+          "pp": 3,
+          "priority": 0,
+          "accuracy": 97,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1684,
+            1478,
+            1438
+          ],
+          "effectInstances": [
+            {
+              "id": 1684,
+              "args": [
+                2
+              ],
+              "description": "2回合内对手的能力下降状态无法被解除或反转"
+            },
+            {
+              "id": 1478,
+              "args": [
+                1
+              ],
+              "description": "下1回合令对手无法主动切换精灵"
+            },
+            {
+              "id": 1438,
+              "args": [
+                2
+              ],
+              "description": "若对手处于能力下降状态，则2回合内令对手使用的属性技能无效"
+            }
+          ],
+          "description": "2回合内对手的能力下降状态无法被解除或反转；下1回合令对手无法主动切换精灵；若对手处于能力下降状态，则2回合内令对手使用的属性技能无效",
+          "revision": "seerapi:8f7d5bc7",
+          "hash": "8f7d5bc7",
+          "level": 61,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38114,
+          "name": "飞絮空澜没",
+          "type": "自然冰",
+          "kind": "special",
+          "power": 160,
+          "pp": 3,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            1234,
+            1895,
+            2035,
+            1821
+          ],
+          "effectInstances": [
+            {
+              "id": 1234,
+              "args": [
+                1
+              ],
+              "description": "消除对手回合类效果，消除成功则对手全属性-1"
+            },
+            {
+              "id": 1895,
+              "args": [
+                100,
+                100,
+                15
+              ],
+              "description": "吸取对手100点体力，若对手未受到固定伤害则100%令对手冰封"
+            },
+            {
+              "id": 2035,
+              "args": [
+                1,
+                1,
+                1
+              ],
+              "description": "下1次攻击命中时消耗所使用攻击技能的全部PP值，每消耗1点令对手全属性-1"
+            },
+            {
+              "id": 1821,
+              "args": [
+                2
+              ],
+              "description": "未击败对手则恢复自身所有技能2点PP值"
+            }
+          ],
+          "description": "消除对手回合类效果，消除成功则对手全属性-1；吸取对手100点体力，若对手未受到固定伤害则100%令对手冰封；下1次攻击命中时消耗所使用攻击技能的全部PP值，每消耗1点令对手全属性-1；未击败对手则恢复自身所有技能2点PP值",
+          "revision": "seerapi:f79bdbaa",
+          "hash": "f79bdbaa",
+          "level": 76,
+          "fifth": true,
+          "sourceFlags": {
+            "is_fifth": true,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "fifth"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        }
+      ],
+      "effects": [
+        {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        },
+        {
+          "id": 58,
+          "argsNum": 1,
+          "template": "下{0}回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:a88e6bf3"
+        },
+        {
+          "id": 1542,
+          "argsNum": 2,
+          "template": "吸取对手能力提升状态，吸取成功则令对手{0}，若对手不处于能力提升状态则令对手全属性-{1}",
+          "revision": "seerapi:497a3663"
+        },
+        {
+          "id": 1773,
+          "argsNum": 1,
+          "template": "附加双方能力下降等级总和X{0}的固定伤害",
+          "revision": "seerapi:f658e825"
+        },
+        {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        },
+        {
+          "id": 14,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方冻伤",
+          "revision": "seerapi:9fce2329"
+        },
+        {
+          "id": 1420,
+          "argsNum": 0,
+          "template": "自身处于能力提升状态时50%打出致命一击",
+          "revision": "seerapi:b25f83e6"
+        },
+        {
+          "id": 1932,
+          "argsNum": 2,
+          "template": "{0}回合内免疫并反弹除{1}外所有受到的异常状态",
+          "revision": "seerapi:b17912dc"
+        },
+        {
+          "id": 1122,
+          "argsNum": 2,
+          "template": "使对手全属性-{0}，未触发则对手{1}",
+          "revision": "seerapi:2f3a0ddd"
+        },
+        {
+          "id": 547,
+          "argsNum": 2,
+          "template": "使敌我双方同时{0}{1}回合",
+          "revision": "seerapi:e185e1b5"
+        },
+        {
+          "id": 676,
+          "argsNum": 2,
+          "template": "下{0}回合每回合使用攻击技能附加自身防御、特防值总和{1}%的百分比伤害",
+          "revision": "seerapi:129a48bc"
+        },
+        {
+          "id": 130,
+          "argsNum": 2,
+          "template": "对方为{0}则附加{1}点伤害",
+          "revision": "seerapi:c5dffd3a"
+        },
+        {
+          "id": 993,
+          "argsNum": 2,
+          "template": "全属性+{0}，对手处于{1}状态时强化效果翻倍",
+          "revision": "seerapi:7ff81073"
+        },
+        {
+          "id": 2230,
+          "argsNum": 4,
+          "template": "{0}回合内使用技能则恢复自身最大体力的1/{1}，若未恢复体力则{2}%令对手{3}",
+          "revision": "seerapi:1a2a74e5"
+        },
+        {
+          "id": 1939,
+          "argsNum": 1,
+          "template": "为对手附加{0}点护罩",
+          "revision": "seerapi:5a124709"
+        },
+        {
+          "id": 1938,
+          "argsNum": 1,
+          "template": "为对手附加{0}点护盾",
+          "revision": "seerapi:d137c9f0"
+        },
+        {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        },
+        {
+          "id": 1684,
+          "argsNum": 1,
+          "template": "{0}回合内对手的能力下降状态无法被解除或反转",
+          "revision": "seerapi:cd3afe55"
+        },
+        {
+          "id": 1478,
+          "argsNum": 1,
+          "template": "下{0}回合令对手无法主动切换精灵",
+          "revision": "seerapi:310e0a7e"
+        },
+        {
+          "id": 1438,
+          "argsNum": 1,
+          "template": "若对手处于能力下降状态，则{0}回合内令对手使用的属性技能无效",
+          "revision": "seerapi:2078d8b2"
+        },
+        {
+          "id": 1234,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则对手全属性-{0}",
+          "revision": "seerapi:a6ad3318"
+        },
+        {
+          "id": 1895,
+          "argsNum": 3,
+          "template": "吸取对手{0}点体力，若对手未受到固定伤害则{1}%令对手{2}",
+          "revision": "seerapi:3fb03590"
+        },
+        {
+          "id": 2035,
+          "argsNum": 3,
+          "template": "下{0}次攻击命中时消耗所使用攻击技能的全部PP值，每消耗{1}点令对手全属性-{2}",
+          "revision": "seerapi:ac41ca34"
+        },
+        {
+          "id": 1821,
+          "argsNum": 1,
+          "template": "未击败对手则恢复自身所有技能{0}点PP值",
+          "revision": "seerapi:27a88fca"
+        }
+      ],
+      "souls": [
+        {
+          "id": 2014,
+          "description": "登场时为自身附加10回合的冻伤，之后对手每次使用攻击技能时自身所处的冻伤回合数减半，每减少1回合当回合自身受到的攻击伤害、固定伤害、百分比伤害减少10%，对手每次使用属性技能时消除对手的护盾、护罩，每消除1种自身所处的冻伤回合数+1|   回合结束后，若自身所处的冻伤回合数高于回合开始，则消除对手回合类效果、能力提升状态并令对手冰封，若自身所处的冻伤回合数低于回合开始，则每减少1回合令对手冻伤1次，每触发成功1次对手全属性-1，每未触发1次恢复自身100点体力，若相等，则恢复自身全部PP值",
+          "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>登场效果：\r\n<indent=16><sprite=3><indent=32>每次登场时为自身<color=#64F9FA>附加</color>10回合的冻伤，之后：\r\n<indent=32><sprite=4><indent=48>对手每次使用攻击技能时自身所处的冻伤回合数减半\r\n<indent=32><sprite=4><sprite=4><indent=64>每减少1回合当回合自身受到的<b>攻击伤害、固定伤害、百分比伤害</b><color=#64F9FA>减少</color>10%\r\n<indent=32><sprite=4><indent=48>对手每次使用属性技能时<color=#64F9FA>消除</color>对手的<b>护盾、护罩</b>\r\n<indent=32><sprite=4><sprite=4><indent=64>每消除1种自身所处的冻伤回合数+1\r\n\r\n<indent=0><sprite=0><indent=16>回合结束效果：\r\n<indent=16><sprite=3><indent=32>回合结束后，若自身所处的冻伤回合数：\r\n<indent=32><sprite=4><indent=48>高于回合开始，则<color=#64F9FA>消除</color>对手<b>回合类效果、能力提升状态</b>并<color=#64F9FA>令对手冰封</color>\r\n<indent=32><sprite=4><indent=48>低于回合开始，则每减少1回合<color=#64F9FA>令对手冻伤</color>1次\r\n<indent=32><sprite=4><sprite=4><indent=64>每触发成功1次对手<color=#64F9FA>全属性-1</color>，每未触发1次<color=#64F9FA>恢复</color>自身100点<b>体力</b>\r\n<indent=32><sprite=4><indent=48>等于回合开始，则<color=#64F9FA>恢复</color>自身全部<b>PP值</b>",
+          "analyze_desc": "",
+          "hash": "def51cc",
+          "eid": 2439,
+          "args": [
+            1,
+            0
+          ],
+          "isAdvanced": false,
+          "source": {
+            "url": "https://api.seerapi.com/v1/soulmark/2014",
+            "revision": "def51cc",
+            "loadedAt": "2026-11-02T06:25:49.725Z"
+          },
+          "from": null,
+          "intensifiedTo": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+'use strict';const s=require('../../research/BATCH-4816-REMAINING/4905/snapshot.json');module.exports={...require('./remaining-battle.cjs')(s),V:id=>require('./remaining-battle.cjs')({...s,selectedSoulId:id})};

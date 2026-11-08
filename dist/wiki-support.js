@@ -9,7 +9,7 @@ function verifiedMoveIssue(m,snapshot){const rule=registry[m.id];if(!rule)return
 
 const effectsEngine=typeof module==='object'&&module.exports?require('./effect-registry.js'):globalThis.BattleEffectRegistry;
 const statNames={'攻击':'atk','防御':'def','特攻':'spa','特防':'spd','速度':'spe','命中':'acc'};
-function profileFor(s){const selected=s.souls.find(x=>x.id===(s.selectedSoulId??s.souls.at(-1)?.id));return (s.source?.provider!=='seerapi'?profiles[s.id]:null)??{key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:''),soul:selected&&s.source?.provider==='seerapi'&&E.SOULS.registry[selected.id]?.sourceHash&&E.SOULS.registry[selected.id].sourceHash===selected.hash?selected.id:null,defaults:[]};}
+function profileFor(s){const selected=s.souls.find(x=>x.id===(s.selectedSoulId??s.souls.at(-1)?.id));return (s.source?.provider!=='seerapi'?profiles[s.id]:null)??{key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:'')+(s.trainingCompatibility?':version:'+(s.selectedSkillVersion??'trained'):''),soul:selected&&['seerapi','composite'].includes(s.source?.provider)&&E.SOULS.registry[selected.id]?.sourceHash&&E.SOULS.acceptsSource(selected.id,selected.hash)?selected.id:null,defaults:[]};}
 // The source skill inventory is never filtered or rewritten. Groups describe
 // legal battle versions; shared ordinary skills remain available after awakening.
 function additionalFifthIssues(s){
@@ -45,6 +45,7 @@ function town4186VersionIssues(s){
  return issues;
 }
 function skillVersionIssues(s,completion=false){
+ if(s.trainingCompatibility!==undefined)return trainingVersionIssues(s);
  if(s.versionCompatibility!==undefined)return town4186VersionIssues(s);
  if(s.additionalFifths!==undefined)return additionalFifthIssues(s);
  const groups=s.skillVersions,issues=[],moves=s.moves??[];
@@ -71,8 +72,19 @@ function skillVersionIssues(s,completion=false){
  if(moves.some(m=>!groups.some(g=>g.moveIds?.includes(m.id))))issues.push('技能版本遗漏来源技能');
  return issues;
 }
-function versionSnapshots(s){return Array.isArray(s.skillVersions)?s.skillVersions.map(g=>({...s,selectedSoulId:g.soulId,selectedSkillVersion:g.id})):[s];}
-function availableMoves(s){if(s.skillVersions===undefined)return s.moves;const group=s.skillVersions?.find?.(g=>g.soulId===(s.selectedSoulId??s.souls.at(-1)?.id)&&(!s.selectedSkillVersion||g.id===s.selectedSkillVersion));return s.moves.filter(m=>group?.moveIds?.includes(m.id));}
+function trainingVersionIssues(s){
+ const issues=[],proof=s.trainingCompatibility,p=proof.rawPet,a=proof.advance,groups=s.skillVersions,moves=s.moves??[],base=x=>({maxHp:x.hp,atk:x.atk,def:x.def,spa:x.sp_atk,spd:x.sp_def,spe:x.spd});
+ if(s.source?.provider!=='seerapi'||p?.id!==s.id||p.hash!==s.source.revision||a?.pet?.id!==s.id||a.hash!==s.training?.raw?.hash||proof.advanceSource?.url!==`https://api.seerapi.com/v1/pet_advance/${a?.id}`||proof.advanceSource?.revision!==a.hash)issues.push('能力强化缺少匹配真实来源');
+ if(!Array.isArray(groups)||groups.length!==2)return [...issues,'能力强化须保留原版和强化版'];
+ const advanced=a?.skill?.map(x=>x.id)??[];
+ if(moves.length!==p?.skill?.length||moves.some(m=>m.advanced!==advanced.includes(m.id)||m.fifth!==p.skill.find(l=>l.skill.id===m.id)?.is_fifth))issues.push('能力强化技能标记或完整来源覆盖错误');
+ for(const g of groups){const trained=g.id==='trained',expected=moves.filter(m=>trained?m.advanced||!m.fifth:!m.advanced).map(m=>m.id),soul=s.souls.find(x=>x.id===g.soulId);if(!['original','trained'].includes(g.id)||!soul||g.soulHash!==soul.hash||g.soulId!==(trained?a.soulmark.id:p.soulmark[0].id))issues.push('能力强化魂印绑定错误');if(JSON.stringify(g.base)!==JSON.stringify(base(trained?a.base_stats:p.base_stats)))issues.push('能力强化种族值与来源不一致');if(!Array.isArray(g.moveIds)||new Set(g.moveIds).size!==g.moveIds.length||expected.length!==g.moveIds.length||expected.some(id=>!g.moveIds.includes(id))||g.moveIds.filter(id=>moves.find(m=>m.id===id)?.fifth).length!==1)issues.push('能力强化配招分组错误');const source=trained?proof.advanceSource:s.source;if(g.source?.url!==source.url||g.source?.revision!==source.revision)issues.push('能力强化分组来源错误');}
+ if(new Set(groups.map(g=>g.id)).size!==2)issues.push('能力强化版本重复');
+ const selected=groups.find(g=>g.id===(s.selectedSkillVersion??'trained'));if(!selected||JSON.stringify(s.base)!==JSON.stringify(selected.base))issues.push('所选能力强化版本与实际种族值不一致');
+ return issues;
+}
+function versionSnapshots(s){return Array.isArray(s.skillVersions)?s.skillVersions.map(g=>({...s,...(s.trainingCompatibility?{base:g.base}:{}),selectedSoulId:g.soulId,selectedSkillVersion:g.id})):[s];}
+function availableMoves(s){if(s.skillVersions===undefined)return s.moves;const version=s.selectedSkillVersion??(s.trainingCompatibility?s.skillVersions.at(-1)?.id:null),group=s.skillVersions?.find?.(g=>g.soulId===(s.selectedSoulId??s.souls.at(-1)?.id)&&(!version||g.id===version));return s.moves.filter(m=>group?.moveIds?.includes(m.id));}
 function slotCount(s){const moves=availableMoves(s);return moves.some(m=>m.fifth)?5:Math.min(4,moves.length);}
 function compileCore(m,s){
  if(m.limitations?.length)return {issue:m.limitations.join('；'),operations:[]};
@@ -94,7 +106,7 @@ function compileCore(m,s){
 function compile(m,s){const result=compileCore(m,s),ignored=(m.deferredEffects??[]).filter(x=>x.field==='atk_num'&&Number.isInteger(m.sourceTargetCount)&&m.sourceTargetCount>1);return {...result,experimental:(m.effectIds??[]).map(id=>effectsEngine.registry[id]?.experimental).filter(Boolean),ignoredSourceFeatures:ignored.map(x=>({field:'atk_num',value:m.sourceTargetCount,historicalRecord:x,confirmation:'research/MULTI-TARGET-USER-SCOPE.json',scope:'用户明确排除；当前目标一次普通攻击'})),deferred:[...(m.deferredEffects??[]).filter(x=>!ignored.includes(x)),...(result.operations??[]).filter(op=>op.deferred).map(op=>({effectId:op.effectId,description:op.deferred,scope:'多精灵待实现'}))]};}
 
 function moveIssue(m,s){return compile(m,s).issue;}
-function defaultMoves(s){const p=s.source?.provider!=='seerapi'?profiles[s.id]:null;if(p)return p.defaults.slice();const available=availableMoves(s).filter(m=>!moveIssue(m,s)).sort((a,b)=>b.level-a.level),fifth=available.find(m=>m.fifth),others=available.filter(m=>!m.fifth);return [...(fifth?[fifth]:[]),...others].slice(0,slotCount(s)).map(m=>m.id);}
+function defaultMoves(s){const p=s.source?.provider!=='seerapi'?profiles[s.id]:null;if(p)return p.defaults.slice();const preferred=s.trainingCompatibility&&(s.selectedSkillVersion??'trained')==='trained'?s.trainingCompatibility.advance.skill.map(x=>x.id):[],available=availableMoves(s).filter(m=>!moveIssue(m,s)).sort((a,b)=>Number(preferred.includes(b.id))-Number(preferred.includes(a.id))||b.level-a.level),fifth=available.find(m=>m.fifth),others=available.filter(m=>!m.fifth);return [...(fifth?[fifth]:[]),...others].slice(0,slotCount(s)).map(m=>m.id);}
 function effectiveness(a,b,chart){return E.TYPES.effectiveness(a,b,chart);}
 function assess(s,selected){const p=profileFor(s),issues=[];
  issues.push(...skillVersionIssues(s));
@@ -114,7 +126,7 @@ function prepare(snapshots,loadouts){if(!Array.isArray(snapshots)||snapshots.len
  const chart=mergeCharts(snapshots);
  if(chart){for(let i=0;i<2;i++){effectiveness(snapshots[i].type,snapshots[1-i].type,chart);for(const id of checks[i].selected){const m=snapshots[i].moves.find(m=>m.id===id);if(m.kind!=='status')effectiveness(m.type,snapshots[1-i].type,chart);}}}
  else if(new Set(snapshots.map(s=>s.id)).size!==2)throw new Error('同种对战需要通用属性克制表');
- if(snapshots[0].id===snapshots[1].id&&JSON.stringify(snapshots[0].base)!==JSON.stringify(snapshots[1].base))throw new Error('同种精灵种族值版本不一致');
+ if(snapshots[0].id===snapshots[1].id&&JSON.stringify(snapshots[0].base)!==JSON.stringify(snapshots[1].base)&&!snapshots.every(x=>x.trainingCompatibility&&trainingVersionIssues(x).length===0))throw new Error('同种精灵种族值版本不一致');
  const additions={},speciesAdditions={};
  for(let i=0;i<2;i++){const s=snapshots[i],c=checks[i],p=c.profile;
  const exactZero4661=s.id===4661&&s.source?.provider==='seerapi'&&s.source?.url==='https://api.seerapi.com/v1/pet/4661'&&String(s.source?.revision).replace(/^seerapi:/,'')==='5c1c001a'&&s.souls?.some(x=>x.id===1862&&x.hash==='9320d014')&&['maxHp','atk','def','spa','spd','spe'].every(k=>s.base?.[k]===0);for(const k of ['maxHp','atk','def','spa','spd','spe'])if(!exactZero4661&&(!Number.isInteger(s.base[k])||s.base[k]<1||s.base[k]>999))throw new Error('种族值无效');

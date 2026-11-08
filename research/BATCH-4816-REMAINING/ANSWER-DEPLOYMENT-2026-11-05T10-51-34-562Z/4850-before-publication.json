@@ -1,0 +1,2015 @@
+{
+  "at": "2026-11-05T11:34:22.290Z",
+  "reviews": {
+    "4850:soul:2040": {
+      "sourceDigest": "9db0f872b56475069f070dc19e870c219cb9885cc3993dfa9919364cd56cdf8f",
+      "scope": "mixed",
+      "reviewedBy": "Codex source-backed current-field branch review",
+      "reviewedAt": "2026-11-02T12:31:25.999Z",
+      "rationale": "不因场下或队伍词条而跳过当前在场双方分支。原始资料和字段差异完整保留。",
+      "singleBehavior": "回初流血回合红增、流血免异常逐次延长、完整红超过300按既有敌流血分流。",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040回初流血剩余回合红增15%封顶90%，固粉真不增",
+            "assertion": " const base=make({move:10001,index:-1});turn(base);const red=sum(base);for(const n of[0,1,6,9]){const s=make({move:10001,index:-1,soul:true});if(n)s.fighters[0].ailments['流血']=n;const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'测试非红',type));},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.bonus,Math.min(90,n*15));assert.ok(Math.abs(sum(s)-red*(1+Math.min(90,n*15)/100))<=2);assert.deepEqual(other,[100,100,100]);}"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040流血免异先于回合反弹及次数，逐次延长含自身流血，未流血不免",
+            "assertion": " const s=make({move:10001,index:-1,soul:true});s.fighters[0].ailments['流血']=3;timer(s,0,'reflect');s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){for(const k of['害怕','流血','中毒'])assert.equal(c.ailment(c.t,k,c.a,false,false,2),false);assert.equal(c.t.ailments['流血'],6);assert.equal(c.t.counts.immune,2);assert.equal(c.a.ailments['害怕'],undefined);}},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.remaining,3);\n const b=make({move:10001,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);},()=>turn(b));assert.ok(b.fighters[0].ailments['中毒']);"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040完整红大于300：原有敌流血改全强，否则敌我流血；敌免异仍自流血、击杀不省自身",
+            "assertion": " for(const existing of[false,true]){const s=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});if(existing)s.fighters[1].ailments['流血']=4;turn(s);assert.ok(sum(s)>300);if(existing){for(const k of keys)assert.equal(s.fighters[0].stages[k],1);assert.equal(s.fighters[0].ailments['流血'],undefined);}else{assert.ok(s.fighters[0].ailments['流血']);assert.ok(s.fighters[1].ailments['流血']);}}\n const immune=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.ok(immune.fighters[0].ailments['流血']);const ko=make({move:38195,index:-1,soul:true,aStats:{atk:1500},targetHp:1});turn(ko);assert.ok(sum(ko)>300);assert.ok(ko.fighters[0].ailments['流血']);const small=make({move:10001,index:-1,soul:true});turn(small);assert.ok(sum(small)<=300);assert.equal(small.fighters[0].ailments['流血'],undefined);"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040回初流血剩余回合红增15%封顶90%，固粉真不增",
+            "assertion": " const base=make({move:10001,index:-1});turn(base);const red=sum(base);for(const n of[0,1,6,9]){const s=make({move:10001,index:-1,soul:true});if(n)s.fighters[0].ailments['流血']=n;const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'测试非红',type));},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.bonus,Math.min(90,n*15));assert.ok(Math.abs(sum(s)-red*(1+Math.min(90,n*15)/100))<=2);assert.deepEqual(other,[100,100,100]);}"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040流血免异先于回合反弹及次数，逐次延长含自身流血，未流血不免",
+            "assertion": " const s=make({move:10001,index:-1,soul:true});s.fighters[0].ailments['流血']=3;timer(s,0,'reflect');s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){for(const k of['害怕','流血','中毒'])assert.equal(c.ailment(c.t,k,c.a,false,false,2),false);assert.equal(c.t.ailments['流血'],6);assert.equal(c.t.counts.immune,2);assert.equal(c.a.ailments['害怕'],undefined);}},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.remaining,3);\n const b=make({move:10001,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);},()=>turn(b));assert.ok(b.fighters[0].ailments['中毒']);"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040完整红大于300：原有敌流血改全强，否则敌我流血；敌免异仍自流血、击杀不省自身",
+            "assertion": " for(const existing of[false,true]){const s=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});if(existing)s.fighters[1].ailments['流血']=4;turn(s);assert.ok(sum(s)>300);if(existing){for(const k of keys)assert.equal(s.fighters[0].stages[k],1);assert.equal(s.fighters[0].ailments['流血'],undefined);}else{assert.ok(s.fighters[0].ailments['流血']);assert.ok(s.fighters[1].ailments['流血']);}}\n const immune=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.ok(immune.fighters[0].ailments['流血']);const ko=make({move:38195,index:-1,soul:true,aStats:{atk:1500},targetHp:1});turn(ko);assert.ok(sum(ko)>300);assert.ok(ko.fighters[0].ailments['流血']);const small=make({move:10001,index:-1,soul:true});turn(small);assert.ok(sum(small)<=300);assert.equal(small.fighters[0].ailments['流血'],undefined);"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040回初流血剩余回合红增15%封顶90%，固粉真不增",
+            "assertion": " const base=make({move:10001,index:-1});turn(base);const red=sum(base);for(const n of[0,1,6,9]){const s=make({move:10001,index:-1,soul:true});if(n)s.fighters[0].ailments['流血']=n;const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'测试非红',type));},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.bonus,Math.min(90,n*15));assert.ok(Math.abs(sum(s)-red*(1+Math.min(90,n*15)/100))<=2);assert.deepEqual(other,[100,100,100]);}"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040流血免异先于回合反弹及次数，逐次延长含自身流血，未流血不免",
+            "assertion": " const s=make({move:10001,index:-1,soul:true});s.fighters[0].ailments['流血']=3;timer(s,0,'reflect');s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){for(const k of['害怕','流血','中毒'])assert.equal(c.ailment(c.t,k,c.a,false,false,2),false);assert.equal(c.t.ailments['流血'],6);assert.equal(c.t.counts.immune,2);assert.equal(c.a.ailments['害怕'],undefined);}},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.remaining,3);\n const b=make({move:10001,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);},()=>turn(b));assert.ok(b.fighters[0].ailments['中毒']);"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040完整红大于300：原有敌流血改全强，否则敌我流血；敌免异仍自流血、击杀不省自身",
+            "assertion": " for(const existing of[false,true]){const s=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});if(existing)s.fighters[1].ailments['流血']=4;turn(s);assert.ok(sum(s)>300);if(existing){for(const k of keys)assert.equal(s.fighters[0].stages[k],1);assert.equal(s.fighters[0].ailments['流血'],undefined);}else{assert.ok(s.fighters[0].ailments['流血']);assert.ok(s.fighters[1].ailments['流血']);}}\n const immune=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.ok(immune.fighters[0].ailments['流血']);const ko=make({move:38195,index:-1,soul:true,aStats:{atk:1500},targetHp:1});turn(ko);assert.ok(sum(ko)>300);assert.ok(ko.fighters[0].ailments['流血']);const small=make({move:10001,index:-1,soul:true});turn(small);assert.ok(sum(small)<=300);assert.equal(small.fighters[0].ailments['流血'],undefined);"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040回初流血剩余回合红增15%封顶90%，固粉真不增",
+            "assertion": " const base=make({move:10001,index:-1});turn(base);const red=sum(base);for(const n of[0,1,6,9]){const s=make({move:10001,index:-1,soul:true});if(n)s.fighters[0].ailments['流血']=n;const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'测试非红',type));},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.bonus,Math.min(90,n*15));assert.ok(Math.abs(sum(s)-red*(1+Math.min(90,n*15)/100))<=2);assert.deepEqual(other,[100,100,100]);}"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040流血免异先于回合反弹及次数，逐次延长含自身流血，未流血不免",
+            "assertion": " const s=make({move:10001,index:-1,soul:true});s.fighters[0].ailments['流血']=3;timer(s,0,'reflect');s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){for(const k of['害怕','流血','中毒'])assert.equal(c.ailment(c.t,k,c.a,false,false,2),false);assert.equal(c.t.ailments['流血'],6);assert.equal(c.t.counts.immune,2);assert.equal(c.a.ailments['害怕'],undefined);}},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.remaining,3);\n const b=make({move:10001,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);},()=>turn(b));assert.ok(b.fighters[0].ailments['中毒']);"
+          },
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850真实2040完整红大于300：原有敌流血改全强，否则敌我流血；敌免异仍自流血、击杀不省自身",
+            "assertion": " for(const existing of[false,true]){const s=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});if(existing)s.fighters[1].ailments['流血']=4;turn(s);assert.ok(sum(s)>300);if(existing){for(const k of keys)assert.equal(s.fighters[0].stages[k],1);assert.equal(s.fighters[0].ailments['流血'],undefined);}else{assert.ok(s.fighters[0].ailments['流血']);assert.ok(s.fighters[1].ailments['流血']);}}\n const immune=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.ok(immune.fighters[0].ailments['流血']);const ko=make({move:38195,index:-1,soul:true,aStats:{atk:1500},targetHp:1});turn(ko);assert.ok(sum(ko)>300);assert.ok(ko.fighters[0].ailments['流血']);const small=make({move:10001,index:-1,soul:true});turn(small);assert.ok(sum(small)<=300);assert.equal(small.fighters[0].ailments['流血'],undefined);"
+          }
+        ]
+      },
+      "deferredBehavior": "己方存在西忒蕾妃/出战背包且自身无异常的下回合流血；description战斗阶段结束与格式化回合结束字段差异待第二阶段核实。",
+      "trigger": "真实队伍含西忒蕾妃且自身无异常时，在来源待核实结束事件安排下回合流血。",
+      "futureMechanisms": [
+        "真实队伍与出战背包成员",
+        "来源结束事件差异核实",
+        "下回合开始流血任务"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "team-state",
+          "quote": "若己方存在西忒蕾妃",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4850/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2040",
+            "revision": "5f4f9b5f"
+          }
+        }
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4850:move:10001": null,
+    "4850:move:20068": null,
+    "4850:skill:20068:0": null,
+    "4850:move:11188": null,
+    "4850:skill:11188:0": null,
+    "4850:move:10363": null,
+    "4850:move:20468": null,
+    "4850:skill:20468:0": null,
+    "4850:move:38194": null,
+    "4850:skill:38194:0": null,
+    "4850:skill:38194:1": null,
+    "4850:skill:38194:2": null,
+    "4850:move:10646": null,
+    "4850:skill:10646:0": null,
+    "4850:move:20070": null,
+    "4850:skill:20070:0": null,
+    "4850:move:11189": null,
+    "4850:move:10144": null,
+    "4850:skill:10144:0": null,
+    "4850:move:20469": null,
+    "4850:skill:20469:0": null,
+    "4850:skill:20469:1": null,
+    "4850:move:11190": null,
+    "4850:skill:11190:0": null,
+    "4850:move:29221": null,
+    "4850:skill:29221:0": null,
+    "4850:skill:29221:1": null,
+    "4850:skill:29221:2": null,
+    "4850:skill:29221:3": null,
+    "4850:move:11192": null,
+    "4850:skill:11192:0": null,
+    "4850:move:29222": null,
+    "4850:skill:29222:0": {
+      "sourceDigest": "2e0ed1a75817d2c378d19a853f9734e6cd5b876521a26624ae5f834494e76d68",
+      "scope": "mixed",
+      "reviewedBy": "Codex source-backed current-field branch review",
+      "reviewedAt": "2026-11-02T12:31:25.999Z",
+      "rationale": "不因场下或队伍词条而跳过当前在场双方分支。原始资料和字段差异完整保留。",
+      "singleBehavior": "当前全属性+1；没有场下死者时不虚构概率增幅。",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850/2137全部异常剩余回合求和且封顶150%只增红，2032当前全强1",
+            "assertion": " const base=make({...row(2137)});turn(base);for(const ailments of[{'流血':2,'中毒':2},{'流血':9}]){const s=make(row(2137));Object.assign(s.fighters[0].ailments,ailments);turn(s);const n=Math.min(150,Object.values(ailments).reduce((a,b)=>a+b,0)*25);assert.ok(Math.abs(sum(s)-sum(base)*(1+n/100))<=2);}const a=make(row(2032));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850/2137全部异常剩余回合求和且封顶150%只增红，2032当前全强1",
+            "assertion": " const base=make({...row(2137)});turn(base);for(const ailments of[{'流血':2,'中毒':2},{'流血':9}]){const s=make(row(2137));Object.assign(s.fighters[0].ailments,ailments);turn(s);const n=Math.min(150,Object.values(ailments).reduce((a,b)=>a+b,0)*25);assert.ok(Math.abs(sum(s)-sum(base)*(1+n/100))<=2);}const a=make(row(2032));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850/2137全部异常剩余回合求和且封顶150%只增红，2032当前全强1",
+            "assertion": " const base=make({...row(2137)});turn(base);for(const ailments of[{'流血':2,'中毒':2},{'流血':9}]){const s=make(row(2137));Object.assign(s.fighters[0].ailments,ailments);turn(s);const n=Math.min(150,Object.values(ailments).reduce((a,b)=>a+b,0)*25);assert.ok(Math.abs(sum(s)-sum(base)*(1+n/100))<=2);}const a=make(row(2032));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-4850.test.cjs",
+            "name": "4850/2137全部异常剩余回合求和且封顶150%只增红，2032当前全强1",
+            "assertion": " const base=make({...row(2137)});turn(base);for(const ailments of[{'流血':2,'中毒':2},{'流血':9}]){const s=make(row(2137));Object.assign(s.fighters[0].ailments,ailments);turn(s);const n=Math.min(150,Object.values(ailments).reduce((a,b)=>a+b,0)*25);assert.ok(Math.abs(sum(s)-sum(base)*(1+n/100))<=2);}const a=make(row(2032));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);"
+          }
+        ]
+      },
+      "deferredBehavior": "对方场下每死亡一只精灵的25%强化翻倍贡献。",
+      "trigger": "使用29222读取真实对方场下死亡数量。",
+      "futureMechanisms": [
+        "对方场下死亡名单",
+        "逐死亡成员25%强化翻倍"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "bench",
+          "quote": "对方场下每死亡一只精灵",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4850/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/29222",
+            "revision": "seerapi:e4bbe505"
+          }
+        }
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4850:skill:29222:1": null,
+    "4850:skill:29222:2": null,
+    "4850:move:38195": null,
+    "4850:skill:38195:0": null,
+    "4850:skill:38195:1": null,
+    "4850:skill:38195:2": null,
+    "4850:move:38196": null,
+    "4850:skill:38196:0": null,
+    "4850:skill:38196:1": null,
+    "4850:skill:38196:2": null,
+    "4850:skill:38196:3": null
+  },
+  "pending": {
+    "schema": 1,
+    "status": "partial-awaiting-confirmation",
+    "notDeployed": true,
+    "snapshot": {
+      "id": 4850,
+      "name": "图特摩斯",
+      "base": {
+        "maxHp": 169,
+        "atk": 142,
+        "def": 111,
+        "spa": 70,
+        "spd": 111,
+        "spe": 137
+      },
+      "missingEffects": [],
+      "deployment": {
+        "scope": "single"
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4850",
+        "revision": "870f808b",
+        "loadedAt": "2026-11-02T11:37:02.908Z"
+      },
+      "gender": {
+        "id": 1,
+        "url": "https://api.seerapi.com/v1/pet_gender/1",
+        "source": {
+          "url": "https://api.seerapi.com/v1/pet/4850",
+          "revision": "870f808b"
+        }
+      },
+      "typeChart": {
+        "rows": {
+          "草": {
+            "草": 0.5,
+            "水": 2,
+            "火": 0.5,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "水": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 2,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "火": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "飞行": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "电": {
+            "草": 0.5,
+            "水": 2,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 0,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 2
+          },
+          "机械": {
+            "草": 1,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "地面": {
+            "草": 0.5,
+            "水": 1,
+            "火": 2,
+            "飞行": 0,
+            "电": 2,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 2,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "普通": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "冰": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 2,
+            "虚空": 1
+          },
+          "超能": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 0,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "战斗": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "光": {
+            "草": 0,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 0.5
+          },
+          "暗影": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "神秘": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 0.5,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 2,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 2,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "龙": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "圣灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 0.5,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "次元": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 2
+          },
+          "远古": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 2,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "邪灵": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 1
+          },
+          "自然": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 2,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "王": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "混沌": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 0
+          },
+          "神灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "轮回": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "虫": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 2,
+            "光": 0.5,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "虚空": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 2,
+            "战斗": 2,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 1
+          }
+        },
+        "aliases": {
+          "草": [
+            "草"
+          ],
+          "水": [
+            "水"
+          ],
+          "火": [
+            "火"
+          ],
+          "飞行": [
+            "飞行"
+          ],
+          "电": [
+            "电"
+          ],
+          "机械": [
+            "机械"
+          ],
+          "地面": [
+            "地面"
+          ],
+          "普通": [
+            "普通"
+          ],
+          "冰": [
+            "冰"
+          ],
+          "超能": [
+            "超能"
+          ],
+          "战斗": [
+            "战斗"
+          ],
+          "光": [
+            "光"
+          ],
+          "暗影": [
+            "暗影"
+          ],
+          "神秘": [
+            "神秘"
+          ],
+          "龙": [
+            "龙"
+          ],
+          "圣灵": [
+            "圣灵"
+          ],
+          "次元": [
+            "次元"
+          ],
+          "远古": [
+            "远古"
+          ],
+          "邪灵": [
+            "邪灵"
+          ],
+          "自然": [
+            "自然"
+          ],
+          "王": [
+            "王"
+          ],
+          "混沌": [
+            "混沌"
+          ],
+          "神灵": [
+            "神灵"
+          ],
+          "轮回": [
+            "轮回"
+          ],
+          "虫": [
+            "虫"
+          ],
+          "虚空": [
+            "虚空"
+          ],
+          "战斗 地面": [
+            "战斗",
+            "地面"
+          ],
+          "战斗地面": [
+            "战斗",
+            "地面"
+          ]
+        },
+        "revision": "seerapi:c9d6b67f",
+        "provider": "seerapi"
+      },
+      "type": "战斗地面",
+      "moves": [
+        {
+          "id": 10001,
+          "name": "撞击",
+          "type": "普通",
+          "kind": "physical",
+          "power": 35,
+          "pp": 35,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:f1166c9c",
+          "hash": "f1166c9c",
+          "level": 1,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20068,
+          "name": "灰尘",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 30,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            5
+          ],
+          "effectInstances": [
+            {
+              "id": 5,
+              "args": [
+                2,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手特攻等级-1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变对手特攻等级-1",
+          "revision": "seerapi:5b992df",
+          "hash": "5b992df",
+          "level": 5,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11188,
+          "name": "邪恶利爪",
+          "type": "战斗",
+          "kind": "physical",
+          "power": 40,
+          "pp": 25,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            31
+          ],
+          "effectInstances": [
+            {
+              "id": 31,
+              "args": [
+                2,
+                3
+              ],
+              "description": "1回合做2~3次攻击"
+            }
+          ],
+          "description": "1回合做2~3次攻击",
+          "revision": "seerapi:8cb44a26",
+          "hash": "8cb44a26",
+          "level": 9,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10363,
+          "name": "刃气",
+          "type": "战斗",
+          "kind": "special",
+          "power": 55,
+          "pp": 40,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:70f1c782",
+          "hash": "70f1c782",
+          "level": 13,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20468,
+          "name": "诡异干扰",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 15,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            5
+          ],
+          "effectInstances": [
+            {
+              "id": 5,
+              "args": [
+                5,
+                100,
+                -1
+              ],
+              "description": "技能使用成功时，100%改变对手命中等级-1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变对手命中等级-1",
+          "revision": "seerapi:a6fb6217",
+          "hash": "a6fb6217",
+          "level": 17,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38194,
+          "name": "碎岩劈",
+          "type": "战斗地面",
+          "kind": "physical",
+          "power": 85,
+          "pp": 20,
+          "priority": 3,
+          "accuracy": 97,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            2072,
+            868,
+            2196
+          ],
+          "effectInstances": [
+            {
+              "id": 2072,
+              "args": [],
+              "description": "自身处于异常状态时先制+1且必定命中"
+            },
+            {
+              "id": 868,
+              "args": [
+                1
+              ],
+              "description": "消除对手能力提升状态，消除成功则令对手下回合所有技能先制-1"
+            },
+            {
+              "id": 2196,
+              "args": [
+                100,
+                16
+              ],
+              "description": "100%令自身流血"
+            }
+          ],
+          "description": "自身处于异常状态时先制+1且必定命中；消除对手能力提升状态，消除成功则令对手下回合所有技能先制-1；100%令自身流血",
+          "revision": "seerapi:826b3c6e",
+          "hash": "826b3c6e",
+          "level": 21,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10646,
+          "name": "连刃",
+          "type": "战斗",
+          "kind": "special",
+          "power": 30,
+          "pp": 30,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            31
+          ],
+          "effectInstances": [
+            {
+              "id": 31,
+              "args": [
+                2,
+                3
+              ],
+              "description": "1回合做2~3次攻击"
+            }
+          ],
+          "description": "1回合做2~3次攻击",
+          "revision": "seerapi:ea3c51b9",
+          "hash": "ea3c51b9",
+          "level": 25,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20070,
+          "name": "反击风暴",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            21
+          ],
+          "effectInstances": [
+            {
+              "id": 21,
+              "args": [
+                4,
+                5,
+                4
+              ],
+              "description": "作用4~5回合，每回合反弹对手1/4的伤害"
+            }
+          ],
+          "description": "作用4~5回合，每回合反弹对手1/4的伤害",
+          "revision": "seerapi:867ccddd",
+          "hash": "867ccddd",
+          "level": 29,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11189,
+          "name": "急速切割",
+          "type": "战斗地面",
+          "kind": "physical",
+          "power": 65,
+          "pp": 25,
+          "priority": 1,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:34f54130",
+          "hash": "34f54130",
+          "level": 33,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10144,
+          "name": "土龙闪",
+          "type": "地面",
+          "kind": "special",
+          "power": 50,
+          "pp": 30,
+          "priority": 0,
+          "accuracy": 90,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            30
+          ],
+          "effectInstances": [
+            {
+              "id": 30,
+              "args": [],
+              "description": "后出手的话威力为2倍"
+            }
+          ],
+          "description": "后出手的话威力为2倍",
+          "revision": "seerapi:a7c0fa96",
+          "hash": "a7c0fa96",
+          "level": 37,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20469,
+          "name": "硬化铠甲",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 20,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            4,
+            4
+          ],
+          "effectInstances": [
+            {
+              "id": 4,
+              "args": [
+                1,
+                100,
+                1
+              ],
+              "description": "技能使用成功时，100%改变自身防御等级+1"
+            },
+            {
+              "id": 4,
+              "args": [
+                3,
+                100,
+                1
+              ],
+              "description": "技能使用成功时，100%改变自身特防等级+1"
+            }
+          ],
+          "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特防等级+1",
+          "revision": "seerapi:f79a3b67",
+          "hash": "f79a3b67",
+          "level": 41,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11190,
+          "name": "锯刃穿刺",
+          "type": "战斗",
+          "kind": "physical",
+          "power": 110,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            63
+          ],
+          "effectInstances": [
+            {
+              "id": 63,
+              "args": [],
+              "description": "将能力下降状态反馈给对手"
+            }
+          ],
+          "description": "将能力下降状态反馈给对手",
+          "revision": "seerapi:2915bcc5",
+          "hash": "2915bcc5",
+          "level": 45,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29221,
+          "name": "黄沙进军",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            1932,
+            1975,
+            573,
+            486
+          ],
+          "effectInstances": [
+            {
+              "id": 1932,
+              "args": [
+                4,
+                16
+              ],
+              "description": "4回合内免疫并反弹除流血外所有受到的异常状态"
+            },
+            {
+              "id": 1975,
+              "args": [
+                3,
+                100,
+                16,
+                6
+              ],
+              "description": "3回合内100%闪避对手攻击，对手攻击技能命中时随机附加流血、害怕中的1种异常状态"
+            },
+            {
+              "id": 573,
+              "args": [
+                2,
+                100,
+                6,
+                2
+              ],
+              "description": "2回合内若自身能力提升状态被消除或吸取则100%使对手害怕2回合"
+            },
+            {
+              "id": 486,
+              "args": [
+                2
+              ],
+              "description": "下2回合若自身选择使用技能则无视对手能力提升状态"
+            }
+          ],
+          "description": "4回合内免疫并反弹除流血外所有受到的异常状态；3回合内100%闪避对手攻击，对手攻击技能命中时随机附加流血、害怕中的1种异常状态；2回合内若自身能力提升状态被消除或吸取则100%使对手害怕2回合；下2回合若自身选择使用技能则无视对手能力提升状态",
+          "revision": "seerapi:4784b625",
+          "hash": "4784b625",
+          "level": 49,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11192,
+          "name": "沙暴利刃",
+          "type": "战斗地面",
+          "kind": "special",
+          "power": 120,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            15
+          ],
+          "effectInstances": [
+            {
+              "id": 15,
+              "args": [
+                15
+              ],
+              "description": "命中后15%令对方害怕"
+            }
+          ],
+          "description": "命中后15%令对方害怕",
+          "revision": "seerapi:e7a1e2b",
+          "hash": "e7a1e2b",
+          "level": 53,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 29222,
+          "name": "王权震慑",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            2032,
+            1924,
+            843
+          ],
+          "effectInstances": [
+            {
+              "id": 2032,
+              "args": [
+                1,
+                25
+              ],
+              "description": "全属性+1，对方场下每死亡一只精灵则25%的概率强化效果翻倍"
+            },
+            {
+              "id": 1924,
+              "args": [
+                4,
+                350
+              ],
+              "description": "4回合内每回合使用技能恢复自身350点体力并造成等量固定伤害"
+            },
+            {
+              "id": 843,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合令自身所有技能先制+2"
+            }
+          ],
+          "description": "全属性+1，对方场下每死亡一只精灵则25%的概率强化效果翻倍；4回合内每回合使用技能恢复自身350点体力并造成等量固定伤害；下2回合令自身所有技能先制+2",
+          "revision": "seerapi:e4bbe505",
+          "hash": "e4bbe505",
+          "level": 57,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38195,
+          "name": "断沙斩",
+          "type": "战斗地面",
+          "kind": "physical",
+          "power": 150,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 97,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            881,
+            623,
+            2137
+          ],
+          "effectInstances": [
+            {
+              "id": 881,
+              "args": [],
+              "description": "若自身处于能力下降状态则技能先制+3"
+            },
+            {
+              "id": 623,
+              "args": [
+                1
+              ],
+              "description": "消除自身能力下降状态，消除成功下1回合自身直接攻击必定暴击"
+            },
+            {
+              "id": 2137,
+              "args": [
+                25,
+                150
+              ],
+              "description": "自身每有1回合异常状态造成伤害提升25%，最高150%"
+            }
+          ],
+          "description": "若自身处于能力下降状态则技能先制+3；消除自身能力下降状态，消除成功下1回合自身直接攻击必定暴击；自身每有1回合异常状态造成伤害提升25%，最高150%",
+          "revision": "seerapi:13ff68fd",
+          "hash": "13ff68fd",
+          "level": 61,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 38196,
+          "name": "破军灭魂袭",
+          "type": "战斗地面",
+          "kind": "physical",
+          "power": 160,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            797,
+            713,
+            2205,
+            1249
+          ],
+          "effectInstances": [
+            {
+              "id": 797,
+              "args": [
+                2
+              ],
+              "description": "消除对手回合类效果，消除成功2回合内对手无法通过自身技能恢复体力"
+            },
+            {
+              "id": 713,
+              "args": [
+                30
+              ],
+              "description": "附加自身能力提升等级总和X30的固定伤害"
+            },
+            {
+              "id": 2205,
+              "args": [],
+              "description": "自身处于异常状态时，克制倍数取自身对对手、对手对自身克制倍数中的最大值"
+            },
+            {
+              "id": 1249,
+              "args": [
+                50
+              ],
+              "description": "造成伤害的50%恢复自身体力，若对手处于异常状态则附加等量百分比伤害"
+            }
+          ],
+          "description": "消除对手回合类效果，消除成功2回合内对手无法通过自身技能恢复体力；附加自身能力提升等级总和X30的固定伤害；自身处于异常状态时，克制倍数取自身对对手、对手对自身克制倍数中的最大值；造成伤害的50%恢复自身体力，若对手处于异常状态则附加等量百分比伤害",
+          "revision": "seerapi:59171618",
+          "hash": "59171618",
+          "level": 76,
+          "fifth": true,
+          "sourceFlags": {
+            "is_fifth": true,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "fifth"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        }
+      ],
+      "effects": [
+        {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        },
+        {
+          "id": 31,
+          "argsNum": 2,
+          "template": "1回合做{0}次攻击",
+          "revision": "seerapi:3920f039"
+        },
+        {
+          "id": 2072,
+          "argsNum": 0,
+          "template": "自身处于异常状态时先制+1且必定命中",
+          "revision": "seerapi:84a311d0"
+        },
+        {
+          "id": 868,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，消除成功则令对手下回合所有技能先制-{0}",
+          "revision": "seerapi:4b7a739e"
+        },
+        {
+          "id": 2196,
+          "argsNum": 2,
+          "template": "{0}%令自身{1}",
+          "revision": "seerapi:fd8da601"
+        },
+        {
+          "id": 21,
+          "argsNum": 3,
+          "template": "作用{0}回合，每回合反弹对手1/{2}的伤害",
+          "revision": "seerapi:bfac52bf"
+        },
+        {
+          "id": 30,
+          "argsNum": 0,
+          "template": "后出手的话威力为2倍",
+          "revision": "seerapi:a580c02e"
+        },
+        {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        },
+        {
+          "id": 63,
+          "argsNum": 0,
+          "template": "将能力下降状态反馈给对手",
+          "revision": "seerapi:cfd3952f"
+        },
+        {
+          "id": 1932,
+          "argsNum": 2,
+          "template": "{0}回合内免疫并反弹除{1}外所有受到的异常状态",
+          "revision": "seerapi:b17912dc"
+        },
+        {
+          "id": 1975,
+          "argsNum": 4,
+          "template": "{0}回合内{1}%闪避对手攻击，对手攻击技能命中时随机附加{2}、{3}中的1种异常状态",
+          "revision": "seerapi:a4e44535"
+        },
+        {
+          "id": 573,
+          "argsNum": 4,
+          "template": "{0}回合内若自身能力提升状态被消除或吸取则{1}%使对手{2}{3}回合",
+          "revision": "seerapi:3e6ede29"
+        },
+        {
+          "id": 486,
+          "argsNum": 1,
+          "template": "下{0}回合若自身选择使用技能则无视对手能力提升状态",
+          "revision": "seerapi:a3f28b4a"
+        },
+        {
+          "id": 15,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方害怕",
+          "revision": "seerapi:798c777"
+        },
+        {
+          "id": 2032,
+          "argsNum": 2,
+          "template": "全属性+{0}，对方场下每死亡一只精灵则{1}%的概率强化效果翻倍",
+          "revision": "seerapi:ca66c9c1"
+        },
+        {
+          "id": 1924,
+          "argsNum": 2,
+          "template": "{0}回合内每回合使用技能恢复自身{1}点体力并造成等量固定伤害",
+          "revision": "seerapi:beeb77e"
+        },
+        {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        },
+        {
+          "id": 881,
+          "argsNum": 0,
+          "template": "若自身处于能力下降状态则技能先制+3",
+          "revision": "seerapi:897c0169"
+        },
+        {
+          "id": 623,
+          "argsNum": 1,
+          "template": "消除自身能力下降状态，消除成功下{0}回合自身直接攻击必定暴击",
+          "revision": "seerapi:53b9980c"
+        },
+        {
+          "id": 2137,
+          "argsNum": 2,
+          "template": "自身每有1回合异常状态造成伤害提升{0}%，最高{1}%",
+          "revision": "seerapi:879a4358"
+        },
+        {
+          "id": 797,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功{0}回合内对手无法通过自身技能恢复体力",
+          "revision": "seerapi:54a49081"
+        },
+        {
+          "id": 713,
+          "argsNum": 1,
+          "template": "附加自身能力提升等级总和X{0}的固定伤害",
+          "revision": "seerapi:d207c9f2"
+        },
+        {
+          "id": 2205,
+          "argsNum": 0,
+          "template": "自身处于异常状态时，克制倍数取自身对对手、对手对自身克制倍数中的最大值",
+          "revision": "seerapi:17a2ae54"
+        },
+        {
+          "id": 1249,
+          "argsNum": 1,
+          "template": "造成伤害的{0}%恢复自身体力，若对手处于异常状态则附加等量百分比伤害",
+          "revision": "seerapi:407be2fa"
+        }
+      ],
+      "souls": [
+        {
+          "id": 2040,
+          "description": "回合开始时自身每有1回合流血，当回合攻击技能造成的伤害提高15%，最高90%；自身处于流血时免疫受到的异常状态，触发成功自身流血回合数+1|自身攻击技能造成的伤害超过300时令敌我双方流血，若对手处于流血状态则改为令自身全属性+1|战斗阶段结束时，若己方存在西忒蕾妃且自身不处于异常状态，下回合开始时使自身流血1回合|（boss无效）",
+          "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>回合开始效果：\r\n<indent=16><sprite=3><indent=32>回合开始时自身每有1回合流血，当回合攻击技能造成的<b>攻击伤害</b><color=#64F9FA>提升</color>15%，最高90%\r\n\r\n<indent=0><sprite=0><indent=16>常驻效果：\r\n<indent=16><sprite=3><indent=32>自身处于流血时<color=#64F9FA>免疫</color>受到的<b>异常状态</b>，触发成功自身流血回合数+1\r\n\r\n<indent=0><sprite=0><indent=16>触发效果：\r\n<indent=16><sprite=3><indent=32>自身攻击技能造成的伤害超过300时<color=#64F9FA>令双方流血</color>，若对手处于流血状态则改为令自身<color=#64F9FA>全属性+1</color>\r\n\r\n<indent=0><sprite=0><indent=16>回合结束效果：\r\n<indent=16><sprite=3><indent=32>回合结束时，若西忒蕾妃位于出战背包且自身不处于异常状态，则下回合开始时<color=#64F9FA>令自身流血</color>1回合",
+          "analyze_desc": "",
+          "hash": "5f4f9b5f",
+          "eid": 2460,
+          "args": [
+            1,
+            0
+          ],
+          "isAdvanced": false,
+          "source": {
+            "url": "https://api.seerapi.com/v1/soulmark/2040",
+            "revision": "5f4f9b5f",
+            "loadedAt": "2026-11-02T11:37:09.445Z"
+          },
+          "from": null,
+          "intensifiedTo": null
+        }
+      ]
+    }
+  }
+}

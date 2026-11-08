@@ -1,0 +1,319 @@
+{
+  "at": "2026-11-07T06:53:15.781Z",
+  "rule": "真实伤害无论如何不可被免疫，“免疫所有伤害”词条也不能免疫真实伤害",
+  "sourceUnmodified": true,
+  "originalFailure": "true-immunity-history-v2.log",
+  "changes": [
+    {
+      "file": "tests/deployed-3986-partial.test.cjs",
+      "oldTitle": "3986用户确认1533补真伤遵循真伤免疫而不改为固定或百分比，MISS不触发",
+      "newTitle": "3986 Q-LIGHT-009覆盖旧1533真伤免疫确认，350真伤穿全免且MISS不触发",
+      "replacements": [
+        [
+          "assert.equal(o.fighters[1].hp,9000)",
+          "assert.equal(o.fighters[1].hp,8650);assert.equal(o.damageEvents.find(e=>e.type==='true').settledDamage,350)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-3986-partial.test.cjs",
+      "beforeSha256": "f3ea96854d869461ac323149519db262a6a8d36ebd90244948e537031b2a582d"
+    },
+    {
+      "file": "tests/deployed-4264-partial.test.cjs",
+      "oldTitle": "4264 1720取命中后残存真实护盾值50%真伤，不把护罩当护盾，无盾不追加且全伤害免疫生效",
+      "newTitle": "4264 1720按残存护盾50%真伤，护罩不算盾，无盾无追加，Q-LIGHT-009全免不挡真伤",
+      "replacements": [
+        [
+          "mode==='shield'?Math.floor(remaining*.5):0",
+          "['shield','immune'].includes(mode)?Math.floor(remaining*.5):0"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4264-partial.test.cjs",
+      "beforeSha256": "d389d042fb40fe6d8f82ac06566d0edc3a60258afb083803f846bafd28d12dda"
+    },
+    {
+      "file": "tests/deployed-4444.test.cjs",
+      "oldTitle": "4444 fixed/percent/true reductions ignored independently, all-type immunity/pink immunity/shields remain real",
+      "newTitle": "4444 reductions ignored independently; Q-LIGHT-009 true bypasses immunity while fixed/percent immunity and barriers remain",
+      "replacements": [
+        [
+          "mode==='immune'||mode==='barrier'&&type!=='true'?0:",
+          "(mode==='immune'||mode==='barrier')&&type!=='true'?0:"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4444.test.cjs",
+      "beforeSha256": "1bf2bcf0b7082f9d402047c5027f23533065cc2c52a3091dcd12d6cba8501cfe"
+    },
+    {
+      "file": "tests/deployed-4450.test.cjs",
+      "oldTitle": "4450 1894无解析或真实同名均按理论300回复，低HP/保1/全免/减免独立，禁疗倍率封顶继续有效",
+      "newTitle": "4450 1894理论300回复及残血保1禁疗倍率封顶，Q-LIGHT-009全免不挡真伤而减伤独立",
+      "replacements": [
+        [
+          "mode==='immune'?0:mode==='halfDamage'?150:300",
+          "mode==='halfDamage'?150:300"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4450.test.cjs",
+      "beforeSha256": "cb230d0a30c6f3ec152ce7f432c963620181f776c525a1c824a6bef56599b08c"
+    },
+    {
+      "file": "tests/deployed-4450.test.cjs",
+      "oldTitle": "4450 1889保留补偿仍遵守真实伤害免疫且正常命中不虚额外400，错误来源/index/参数拒绝",
+      "newTitle": "4450 1889命中封锁不触发补偿，正常命中不虚加400且错误来源/index/参数拒绝",
+      "replacements": [],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4450.test.cjs",
+      "beforeSha256": "d0d510d602cb06a6562b5fd836d5861d0dff29c92931e6348f81adad5264c5c7"
+    },
+    {
+      "file": "tests/deployed-4482.test.cjs",
+      "oldTitle": "4482 587 true500 with minimum1 retains complete damage and callbacks despiteoverkill,ordinary shield and immunity behave as true damage",
+      "newTitle": "4482 587 true500 keeps complete damage and HP floor1; Q-LIGHT-009 bypasses all immunity and shield behavior stays unchanged",
+      "replacements": [
+        [
+          "mode==='suppressed'||mode==='immune'",
+          "mode==='suppressed'"
+        ],
+        [
+          "mode==='immune'?0:500",
+          "500"
+        ],
+        [
+          "mode==='immune'?0:Math.min(before-1,500)",
+          "Math.min(before-1,500)"
+        ],
+        [
+          "mode==='immune'?before:Math.max(1,before-500)",
+          "Math.max(1,before-500)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4482.test.cjs",
+      "beforeSha256": "1dc9f89fe70ee3cc9c3c1dc8c8f2bcb13a57f5efe9f80e5d2e4b23ecbe6aac2a"
+    },
+    {
+      "file": "tests/deployed-4515-soul.test.cjs",
+      "oldTitle": "1727狂刃攻击使用后附加已保存的777真伤，属性不附加，免真阻挡",
+      "newTitle": "1727狂刃用攻附已保存777真伤，属性不附加，Q-LIGHT-009全免不挡真伤",
+      "replacements": [
+        [
+          "assert.equal(sum(turn(s),'true'),0)",
+          "assert.equal(sum(turn(s),'true'),777)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4515-soul.test.cjs",
+      "beforeSha256": "0ca55fe3507b82ef5f5a6b0202f64b3c3fe05b14ea296db8100c7c1ae8221e17"
+    },
+    {
+      "file": "tests/next50-4554-soul.test.cjs",
+      "oldTitle": "1764湮灭禁药剂行动与跨后期回复、真伤可被真实伤害免疫但状态效果不随免伤省略",
+      "newTitle": "1764湮灭禁药剂及回复，Q-LIGHT-009全免不挡238真伤且状态效果独立",
+      "replacements": [
+        [
+          "assert.equal(z.fighters[1].hp,9000)",
+          "assert.equal(z.fighters[1].hp,8762)"
+        ],
+        [
+          "assert.equal(damage(z,'true'),0)",
+          "assert.equal(damage(z,'true'),238)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/next50-4554-soul.test.cjs",
+      "beforeSha256": "92b64f71db18ddccec561b9fa990fbcc3451a61154187ab57790c3df15c16862"
+    },
+    {
+      "file": "tests/next50-4612-soul.test.cjs",
+      "oldTitle": "1820明确普通完全免疫无反弹无次数消费时非红两解释同0可执行",
+      "newTitle": "1820普通固粉免疫仍为零，Q-LIGHT-009全免不挡100真实伤害且不反弹不消费次数",
+      "replacements": [
+        [
+          "c.hurt(c.t,100,'普通全免真伤','true'),0",
+          "c.hurt(c.t,100,'普通全免真伤','true'),100"
+        ],
+        [
+          "assert.equal(o.fighters[1].hp,9000)",
+          "assert.equal(o.fighters[1].hp,8900)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/next50-4612-soul.test.cjs",
+      "beforeSha256": "036d4c24e72a2b8327a6a3ad14ac78a275576fc907551bea3f6ac51defe209e9"
+    },
+    {
+      "file": "tests/next50-4750.test.cjs",
+      "oldTitle": "4750琼花在对手行动开始给受影响者六分一真伤，护罩真免保1遵循公共完整伤害并3轮到期",
+      "newTitle": "4750琼花行动初六分一真伤，Q-LIGHT-009穿全免，护罩保1完整伤害及三轮到期独立",
+      "replacements": [
+        [
+          "mode==='immune'?0:1500",
+          "1500"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/next50-4750.test.cjs",
+      "beforeSha256": "4613d600493c31c5bc29411611a27424fafba9841aca86ec27d0fe4d51332d99"
+    },
+    {
+      "file": "tests/remaining-4000-interactions.test.cjs",
+      "oldTitle": "4000/2493负先制按零档，残血仍按理论汲取回复，技能禁疗与真伤免疫分别处理",
+      "newTitle": "4000/2493负先制按零档且残血按理论汲取回复，Q-LIGHT-009真伤穿全免而禁疗独立",
+      "replacements": [
+        [
+          "mode==='immune'?0:340",
+          "340"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/remaining-4000-interactions.test.cjs",
+      "beforeSha256": "2a75e0de7eb79e65ef7ee96f7867454707a0ad7d50165d323a0a6d302f1c2ef9"
+    },
+    {
+      "file": "tests/answered-4946-drain.test.cjs",
+      "oldTitle": "4946已答七成吸取及汲取均以敌最大HP为基数按理论量魂印回复，残血和免伤不降低，技能禁疗与一般倍率独立",
+      "newTitle": "4946七成吸取汲取按敌最大HP理论回复，Q-LIGHT-009转真后穿全免且禁疗倍率独立",
+      "replacements": [
+        [
+          "if(mode==='all-immune'){assert.equal(sum(s,'true'),0);assert.equal(result.settledDamage,0);}else{assert.equal(result.settledDamage,2100);assert.ok(result.hpLoss<2100);assert.equal(s.fighters[1].hp,0);}",
+          "assert.equal(result.settledDamage,2100);assert.ok(result.hpLoss<2100);assert.equal(s.fighters[1].hp,0);if(mode==='all-immune')assert.equal(sum(s,'true'),2100);"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/answered-4946-drain.test.cjs",
+      "beforeSha256": "232563ad72e4b10b7e1151b33b40178f7a785f12808ffc88f298b36015533f0c"
+    },
+    {
+      "file": "tests/remaining-4946-drain-boundaries.test.cjs",
+      "oldTitle": "4946/2146实际用攻整招无效仍执行魂印吸取；免粉改真即使真伤被免仍按理论量回复，不回退百分比",
+      "newTitle": "4946/2146整招无效仍吸取，Q-LIGHT-009免粉转真6300穿全免且理论回复不回退",
+      "replacements": [
+        [
+          "lastDrain.settledDamage,0",
+          "lastDrain.settledDamage,6300"
+        ],
+        [
+          "assert.equal(sum(x,'true'),0)",
+          "assert.equal(sum(x,'true'),6300)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/remaining-4946-drain-boundaries.test.cjs",
+      "beforeSha256": "3df0e565a65d54cf15f094d4284b5b621a0690664fa720b5dc5d1ab268ebfddc"
+    },
+    {
+      "file": "tests/deployed-4354.test.cjs",
+      "oldTitle": "4354真实2354无异常汲取按理论250回复，低HP完整真伤与护盾禁疗上限及整招免疫分开",
+      "newTitle": "4354真实2354理论250回复及完整真伤，Q-LIGHT-009穿全免而护盾禁疗上限独立",
+      "replacements": [
+        [
+          "if(mode==='wholeImmune')assert.equal(sum(o,'true',1),0)",
+          "if(mode==='wholeImmune')assert.equal(sum(o,'true',1),250)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4354.test.cjs",
+      "beforeSha256": "0eaa8a30ad0c08b83e4c65fd34758500a013b26c1c861ff662d8e1f3c4c0e0a1"
+    },
+    {
+      "file": "tests/deployed-4327-answers.test.cjs",
+      "oldTitle": "4327 Q092粉免优先于永久免疫和次数减伤，每次只消费一份且真正免疫触发补真",
+      "newTitle": "4327 Q092粉免优先且每次只消费一份，Q-LIGHT-009真正免粉后的2250补真穿全免",
+      "replacements": [
+        [
+          "if(mode!=='reflect')assert.equal(sum(z,'true',0),2250)",
+          "assert.equal(sum(z,'true',0),2250)"
+        ]
+      ],
+      "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/deployed-4327-answers.test.cjs",
+      "beforeSha256": "f41f5cc59d906d40099ed141dfd79a567077a58e7fe0b9a143b33a23ecaf1787"
+    }
+  ],
+  "affectedReviews": {
+    "3986:skill:33894:1": "f560ea9780993305fe2e42b91fdd41c6b6878be03fbe6fb15fcc6dcf867cf6d7",
+    "4264:skill:35321:1": "bce2062566040c7ed44f9683cc27917d503b1f109da48fd43405910ac0889e58",
+    "4327:soul:1553": "d74e4972800ca0366956b3f7d2c1933b04ce7f71c86a8d576a059ec636a96cdf",
+    "4327:skill:27856:2": "971ce65795252d29dcd6feff6032590c6236b0da5022a20bf3dd76cd625e6d38",
+    "4354:skill:38118:3": "39dd995970ac98ca615015747fe2f0134bdbd6bac3f15e11b1f216260f8b5a95",
+    "4444:soul:2085": "0d2c2f502220ac47d37b52668e5df133d937b9297ac75a2585e9c4f15110c993",
+    "4444:skill:24701:1": "6db4c44734060543e34810441cd8b1294f57d6ff9d0c7c278ded36ffc874d1c7",
+    "4444:skill:29345:1": "c6aecb8d9843b08a37e521b5451350458a6f94ae8398931f4e5000212850bfd6",
+    "4444:skill:29346:3": "c5ff34eecf7bacb0ca41848f6db3f455f5bd4d63b7a898eb343b0a56a3285852",
+    "4444:move:38384": "36e77cbcd26ba7fc8323cbe7a8d38f60125720b00cb34dfa4ba1b6f3d39c999e",
+    "4444:skill:38384:1": "0149091569f039d0613051efc7d923aa5d96fe5e176c2b2a61ef2e0d76ba3fe8",
+    "4450:soul:1664": "01a743d5fddcd659f1814e9e771078b76a47454fe8af1f9ca0082a9c4e85ea51",
+    "4450:skill:28166:1": "6fde4c9dd2036164d7be2e0f34f3133f8f2a0fe3da34539f9dfc1590df8030a8",
+    "4450:move:36300": "f26ac936358f6ec5a16ef2731932fbeca2c329efce28647bf1f358b63c50795d",
+    "4450:move:36301": "1ba1795db1094ee631a187b5bffe69e07daee2b60e5d587a1d17fdb0ceb38975",
+    "4450:move:36302": "ee6ac0300d3827fcbe7a1da37ebc0f67d760e446b06b646336c8b3721694c059",
+    "4450:move:36303": "3faac569030bfc205f1c90ef4f506fd7cd65f2a857008e8c5e1d70e69288fa13",
+    "4450:skill:36303:0": "fb456ed73b2b805cfc11da52fc49556cce3528e56ba0f01a4683b14cc8a582e6",
+    "4482:soul:1694": "faea2878e441e79d7682ba1c1cfa8d4d80585f707eaf6c050bb3a2dd8dcfbb8e",
+    "4482:move:36465": "d90c4f02a9ab2d174d4ec6b33e58246644f603f98e973b7f2c99073b81ba1f8a",
+    "4482:skill:36465:2": "60ae769a3821c5b0dae4b037f3173a7e15804edd2d9b05533a114479c598940e",
+    "4482:move:36466": "4eaf073d8851059cc760bd5988eb10660643e4aa09758e35a31c4a2a969b264b",
+    "4482:skill:36466:0": "e2a6e53265c7d3327c8673c821b1e7396dcd454463c698d150789c67706dc7f4",
+    "4482:move:28245": "871f1a6442911ce8c62f799908b15afc652185213fc2dbfad7b9257a3bacc547",
+    "4482:skill:28245:0": "9df3ee289e88b2a04e36b66d143f06c4cfdc69f1083d6407f40c12c5177c81dc",
+    "4482:move:28246": "fc5eb361fb6b599b8b759db63a08dbdb223d2da44b99a0b1738c586deca24d68",
+    "4482:skill:28246:3": "c4089660adbe11a2a65a36e0efee0247adfbc8abdcf6bd052c4e7ea3f41348b7",
+    "4482:move:36468": "6dbbafa08e93945d5bcd8d8e77f239a3f6019207b88c9fbb4aa76bfdd7b985e9",
+    "4482:skill:36468:0": "405145773227ec54dac0a7f6990bca5cc9a93167dc917776b7ebbd5dd4ef83f9",
+    "4482:skill:36468:1": "d5cf5d22db00af2621375e8319a85095a8095d730382b2c91ea2a812d4d0be3e",
+    "4482:move:36470": "cac73b27da78cab514f796fad865e1c467accdcbf95bb7aefce14170b2225a2e",
+    "4482:skill:36470:0": "1797fba81aa13370e9121f270c64ee1a8f6f731c4a6e0bc274d3edf8589b9fd5",
+    "4515:soul:1727": "2f6c083b5b0e529d3ff2676ac43c120688ec17498115c4a91ff10ceb47aa3d29",
+    "4554:soul:1764": "6eee83606d4da425cc9ea3c237cf224cf6a4309231ea6a80a8f7f63eb6d29321",
+    "4612:soul:1820": "dc45a60ff89722894d0a0a48a8ace4ea7dc5592fb3a37c31f7333ce8651c04f1",
+    "4946:soul:2146": "e550efd43bcd6ffbece3cf04a1e36150cb801ef7385bface883d5a39dba6b590",
+    "4000:skill:29371:2": "065939581468320376e2c82d020506c5e7339bc337e309a7ffaf66b7a9b7a9b5",
+    "4000:skill:38421:4": "df1ad29436f634be026cafdaeefe027d1796fa578036cb19bb8a4ea8d3c9b9f4",
+    "4000:skill:38422:4": "e146edc06c2531e975b76ba60147b5447f167dfe50f466857f8557289b25c0f9"
+  },
+  "additionalSharedHelper": {
+    "file": "tests/helpers/assert-1697-actual-immunity.cjs",
+    "archive": "research/LIGHT-SP-2026-11-07/Q-LIGHT-009-before/assert-1697-actual-immunity.cjs",
+    "targets": [
+      3763,
+      3883,
+      4239
+    ],
+    "failure": "full-v3-failure-3763.log",
+    "rule": "低伤免疫返还只反射第一次百分比免疫；随后的真实补偿不能被免疫或再次反射，完整真伤及真实HP减少必须保留。",
+    "oldAssertion": "fixed reflections [n,n]",
+    "newAssertions": "fixed reflections [n]; true compensation [n]; target HP=9000-n",
+    "targeted": "true-conditional-reflection-v3-result.json"
+  },
+  "indirectCases": {
+    "originalFailure": "immunity-indirect-cases-v1.log",
+    "fixed": "immunity-indirect-cases-v2-result.json",
+    "tests": 6,
+    "pass": 6,
+    "files": [
+      "tests/deployed-3883.test.cjs",
+      "tests/deployed-4222.test.cjs",
+      "tests/deployed-4239-partial.test.cjs",
+      "tests/deployed-4450-independent.test.cjs"
+    ],
+    "renamedWitness": {
+      "file": "tests/deployed-4450-independent.test.cjs",
+      "oldTitle": "4450再现的已知属性后PP分支独立真实其他技能回1受禁回PP，攻击再现50%独立乘数；未解析真伤被免仍按已答理论300回复",
+      "newTitle": "4450再现的已知属性后PP分支独立真实其他技能回1受禁回PP，攻击再现50%独立乘数；Q-LIGHT-009未解析300真伤穿全免且仍按理论300回复"
+    },
+    "sourceUnmodified": true,
+    "assertions": "3883全免仍受3600真伤；4222固定反射3000一次、自己HP6000、对方HP8700并300完整真伤；4239仅反射3000而2250真伤正常扣至6750；4450保留PP和倍率断言并新增300真伤和目标HP8700。",
+    "affectedReviews": {
+      "3763:skill:37141:1": "8b0bb4111f7741c040209dc24777ed69e89c276828ffd37779cc11907d220c39",
+      "3883:skill:38117:2": "4011be32f03baee0fafc0cd24eb1ebbb8637ef7d66a0e9776eac91a2bad5ed03",
+      "3883:skill:38117:3": "eafb4c6904b22fce362c38e715f94c1f3204c714e084b4cd404c7ff47c853f6b",
+      "4222:soul:1441": "8f65d5f850c5f32ed6095d0351878ea6cb44c550c11e31ca9f706ee80ae757b6",
+      "4222:skill:27585:3": "518b12ede1a40931bf11dce15fdf63c6adc93bff57a7f6fe1c731964660aeb67",
+      "4239:skill:35177:1": "cd288b7b3b411d108b57ae97f316748d95e6aa2e43837ca6c23248fd2d0e852a",
+      "4239:skill:29012:3": "7814649cb0c464b072f0b010939b2de37219695166bca4b7a2d2537aa2f843c7",
+      "4450:skill:36302:0": "2beab310e8b804bf643271ef37c3fd753b603572808b933eb35ed78abfa48ba8",
+      "4450:skill:36302:1": "bcd615a4a8796ba003cb2ab1239f4711358bddc3a9e42206a1c686dfebc9b4a7",
+      "4450:skill:36302:2": "e1d602da5a5e7222700a6eeb4894de16a18e390df9526c8aabcdce923df7382a",
+      "4450:skill:36302:3": "2723e2be3cb9e82453f2c0f9419812d74e0e557853158269f0e6345ff1671f70"
+    }
+  },
+  "profane1791": {
+    "file": "tests/next50-4586-soul.test.cjs",
+    "oldTitle": "1791非致死/完全免伤不会先解锁，真实攻击结算高于剩HP仍保1且完整伤害不截断",
+    "newTitle": "1791非致死与真正免疫不解锁，Q-LIGHT-009真伤穿全免触发保1且完整结算不截断",
+    "originalFailure": "immunity-audit-v1-80.log",
+    "preserved": "非致死999不触发；真正免疫的固定伤害仍不触发；原高完整红伤保1断言全部保留",
+    "added": "全免下9000真实伤害触发虚蛮，完整伤害9000，HP损失0且保持1HP",
+    "changedReviewCount": 1,
+    "sourceUnmodified": true
+  }
+}

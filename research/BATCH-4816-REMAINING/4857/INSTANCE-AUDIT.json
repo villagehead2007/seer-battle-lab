@@ -1,0 +1,2945 @@
+{
+  "at": "2026-11-02T14:28:52.338Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "accepted": false,
+  "items": [
+    {
+      "key": "4857:soul:2044",
+      "kind": "soul",
+      "raw": {
+        "id": 2044,
+        "description": "自身登场之后，奇数次的攻击技能命中后附加自身防御值50%的百分比伤害，偶数次的攻击技能命中后附加自身特防值50%的百分比伤害|每场战斗自身首次受到致死伤害时保留1点体力，防御值与特防值降低50%并主动恢复等量体力|（boss无效）",
+        "desc_formatting_adjustment": null,
+        "analyze_desc": "[sprite name=dot4]自身[color=#57c975]登场[/color][color=#52a5f2]之后[/color]，奇数次的[color=#57c975]攻击技能命中后[/color]附加自身防御值50%的百分比伤害，偶数次的[color=#57c975]攻击技能命中后[/color]附加自身特防值50%的[color=#52a5f2]百分比伤害[/color]|[sprite name=dot4]每场战斗自身[color=#52a5f2]首次[/color]受到[color=#52a5f2]致死伤害[/color]时[color=#52a5f2]保留[/color]1点体力，防御值与特防值降低50%并[color=#52a5f2]主动恢复[/color]等量体力",
+        "hash": "c27fd69e",
+        "eid": 2465,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2044",
+          "revision": "c27fd69e",
+          "loadedAt": "2026-11-02T12:56:04.979Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "303618affb29146f76c4346a6201914a82f93bfa110ae08f6db09ce09195851a",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857真实2044奇偶命中分别按防御和特防面板50%附粉，能力等级正零负基数均不变",
+          "assertion": " for(const level of[-6,0,6]){const s=make({move:10780,index:-1,soul:true,aStats:{def:300,spd:500}});s.fighters[0].stages.def=level;s.fighters[0].stages.spd=level;turn(s);assert.equal(sum(s,'percent'),150);assert.equal(s.fighters[0].soulState.phalanx2044.hits,1);turn(s);assert.equal(sum(s,'percent'),250);assert.equal(s.fighters[0].soulState.phalanx2044.hits,2);assert.equal(s.fighters[0].stages.def,level);assert.equal(s.fighters[0].stages.spd,level);}"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857真实2044未命中、整招无效、无法行动与属性招不计攻击命中；零红与附粉免疫仍计次",
+          "assertion": " for(const mode of['miss','blocked','control']){const s=make({move:10780,index:-1,soul:true,hit:mode!=='miss'});if(mode==='miss')timer(s,0,'攻击必失');if(mode==='blocked')timer(s,0,'skillBlock');if(mode==='control')s.fighters[0].ailments['害怕']=2;turn(s);assert.equal(s.fighters[0].soulState.phalanx2044?.hits??0,0);assert.equal(sum(s,'percent'),0);}\n const a=make({move:10780,index:-1,soul:true,aStats:{def:300,spd:500}});turn(a,24585);assert.equal(a.fighters[0].soulState.phalanx2044?.hits??0,0);turn(a);assert.equal(sum(a,'percent'),150);\n const b=make({move:10780,index:-1,soul:true,aStats:{def:300,spd:500}});timer(b,1,'攻击伤害免疫');timer(b,1,'固定百分比免疫');turn(b);assert.equal(sum(b),0);assert.equal(sum(b,'percent'),0);assert.equal(b.fighters[0].soulState.phalanx2044.hits,1);delete b.fighters[1].effects['固定百分比免疫'];turn(b);assert.equal(sum(b),0);assert.equal(sum(b,'percent'),250);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857真实2044首次致死保1前缀保留完整伤害与实际HP损失，后续降低回血明确待答；已消费不再次保命",
+          "assertion": " for(const type of['attack','fixed','percent','true']){const s=make({move:10780,index:-1,soul:true,hp:200,bStats:{atk:9999}});let seen=false;assert.throws(()=>observe((event,c)=>{if(event==='beforeUse'&&c.a.side===1&&type!=='attack')c.hurt(c.t,500,'致死测试',type);if(event==='damageTaken'&&c.a.side===0){assert.equal(c.a.hp,1);assert.equal(c.hpLoss,199);assert.ok(c.settledDamage>=200);assert.equal(c.a.soulState.phalanx2044.survivalUsed,true);seen=true;}},()=>turn(s,10780,type==='attack'?10127:20117),true),/Q-4857-001/);assert.equal(seen,true);assert.equal(s.fighters[0].hp,200,'未核实后缀使整回合拒绝提交，不冒充完整生存分支完成');}\n const used=make({move:10780,index:-1,soul:true,hp:100,bStats:{atk:9999}});used.fighters[0].soulState.phalanx2044={hits:0,survivalUsed:true,pendingSurvival:false};turn(used,10780,10127);assert.equal(used.fighters[0].hp,0);const zero=make({move:10780,index:-1,soul:true,hp:200});timer(zero,0,'攻击伤害免疫');turn(zero,10780,10127);assert.equal(zero.fighters[0].soulState.phalanx2044.survivalUsed,false);assert.equal(require('../local-species.cjs').save(source).saved,false);"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857真实2044与1768转盾先结算，原本致死攻击归零不会错误消耗首次致死资源",
+          "assertion": " const a=make({move:29235,soul:true,hp:100,bStats:{atk:9999}});turn(a,29235,10127);assert.equal(a.fighters[0].hp,100);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,300);assert.equal(a.fighters[0].soulState.phalanx2044?.survivalUsed??false,false);assert.equal(a.fighters[0].soulState.phalanx2044?.pendingSurvival??false,false);assert.equal(a.fighters[0].pp[key(29235)],4);"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4857-001"
+      ]
+    },
+    {
+      "key": "4857:move:10780",
+      "kind": "move",
+      "raw": {
+        "id": 10780,
+        "name": "影击",
+        "type": "暗影",
+        "kind": "physical",
+        "power": 40,
+        "pp": 30,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:74f9cfc4",
+        "hash": "74f9cfc4",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "fd6608cf9298fde03c3382bde0e31c95769a9bd37b4a87e0619f14b022ae421a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:20190",
+      "kind": "move",
+      "raw": {
+        "id": 20190,
+        "name": "迷惑",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 25,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              5,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手命中等级-1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手命中等级-1",
+        "revision": "seerapi:52c97b2",
+        "hash": "52c97b2",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "ecab72062528721a77a97dee07080d16b8bc4c65b77df1a39ab5e03b23ecfd4f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:20190:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            5,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手命中等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手命中等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:52c97b2"
+      },
+      "sourceDigest": "4da12364446b0dbd9f831ce35047c87e7b49b7237d2c698ba979e11ba0ec7624",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:12851",
+      "kind": "move",
+      "raw": {
+        "id": 12851,
+        "name": "暗光冰裂",
+        "type": "冰暗影",
+        "kind": "special",
+        "power": 70,
+        "pp": 20,
+        "priority": 1,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          14,
+          15
+        ],
+        "effectInstances": [
+          {
+            "id": 14,
+            "args": [
+              10
+            ],
+            "description": "命中后10%令对方冻伤"
+          },
+          {
+            "id": 15,
+            "args": [
+              10
+            ],
+            "description": "命中后10%令对方害怕"
+          }
+        ],
+        "description": "命中后10%令对方冻伤；命中后10%令对方害怕",
+        "revision": "seerapi:1787b4f6",
+        "hash": "1787b4f6",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "a088d5103bc3ed6538e5d98173f040a4a51b5b980e69c3ccd29b046afa63c502",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:12851:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 14,
+          "args": [
+            10
+          ],
+          "description": "命中后10%令对方冻伤"
+        },
+        "index": 0,
+        "description": "命中后10%令对方冻伤；命中后10%令对方害怕",
+        "metadata": {
+          "id": 14,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方冻伤",
+          "revision": "seerapi:9fce2329"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:1787b4f6"
+      },
+      "sourceDigest": "14998f1a6dd39e639f2a7a8bc1a4f95b08eccb4cbc66bd5c3629ea099ca8b352",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:12851:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 15,
+          "args": [
+            10
+          ],
+          "description": "命中后10%令对方害怕"
+        },
+        "index": 1,
+        "description": "命中后10%令对方冻伤；命中后10%令对方害怕",
+        "metadata": {
+          "id": 15,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方害怕",
+          "revision": "seerapi:798c777"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:1787b4f6"
+      },
+      "sourceDigest": "53c36ab21bc4de17701bc0fbd9a816cd50d5758306f9a405523b20e9eb307ef3",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:20594",
+      "kind": "move",
+      "raw": {
+        "id": 20594,
+        "name": "极限霜冻",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 75,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          14
+        ],
+        "effectInstances": [
+          {
+            "id": 14,
+            "args": [
+              100
+            ],
+            "description": "命中后100%令对方冻伤"
+          }
+        ],
+        "description": "命中后100%令对方冻伤",
+        "revision": "seerapi:d0bd927e",
+        "hash": "d0bd927e",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "5df72746d7883aa0ee000e3ff1dc697f01433ddd976adeba3d8abe430f2c378e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:20594:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 14,
+          "args": [
+            100
+          ],
+          "description": "命中后100%令对方冻伤"
+        },
+        "index": 0,
+        "description": "命中后100%令对方冻伤",
+        "metadata": {
+          "id": 14,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方冻伤",
+          "revision": "seerapi:9fce2329"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:d0bd927e"
+      },
+      "sourceDigest": "92546d6882bfd19b9e9c5007827b3fa4cab51aa469a41725deebbadd26959bd8",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:10832",
+      "kind": "move",
+      "raw": {
+        "id": 10832,
+        "name": "噬魂之刃",
+        "type": "暗影",
+        "kind": "physical",
+        "power": 80,
+        "pp": 20,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          38
+        ],
+        "effectInstances": [
+          {
+            "id": 38,
+            "args": [
+              25
+            ],
+            "description": "降低对方25点战斗时的最高HP"
+          }
+        ],
+        "description": "降低对方25点战斗时的最高HP",
+        "revision": "seerapi:fc7d9a6a",
+        "hash": "fc7d9a6a",
+        "level": 17,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "5b29c4984120e837ed8798587e85609d0495ab1bdfec2ea6aefb024eaf25ed24",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:10832:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 38,
+          "args": [
+            25
+          ],
+          "description": "降低对方25点战斗时的最高HP"
+        },
+        "index": 0,
+        "description": "降低对方25点战斗时的最高HP",
+        "metadata": {
+          "id": 38,
+          "argsNum": 1,
+          "template": "降低对方{0}点战斗时的最高HP",
+          "revision": "seerapi:c102f8bc"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:fc7d9a6a"
+      },
+      "sourceDigest": "7c94a92494f475c89d832ad2a301f19a80a7b8e5bd38f27ab102cb8949765b72",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/38真实最高HP降低25并按既有下限保1，不当作25固定伤害；961反弱成功下回合免攻及重授无空档",
+          "assertion": " const a=make(row(38)),base=make({move:10832,index:-1});turn(a);turn(base);assert.equal(a.fighters[1].stats.maxHp,8975);assert.equal(a.fighters[1].hp,Math.min(base.fighters[1].hp,8975));const min=make({...row(38),bStats:{maxHp:10}});timer(min,1,'攻击伤害免疫');turn(min);assert.equal(min.fighters[1].stats.maxHp,1);assert.equal(min.fighters[1].hp,1);\n const b=make(row(961));b.fighters[0].stages.def=-2;turn(b,38218,10127);assert.equal(b.fighters[0].stages.def,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].start,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].end,2);assert.ok(sum(b,'attack',1)>0);b.fighters[0].stages.spd=-1;turn(b,38218,10127);assert.equal(sum(b,'attack',1),0);assert.equal(b.fighters[0].effects['攻击伤害免疫'].start,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].end,3);b.moveDefinitions[key(38218)].operations=[];turn(b,38218,10127);assert.equal(sum(b,'attack',1),0);turn(b,38218,10127);assert.ok(sum(b,'attack',1)>0);const locked=make(row(961));timer(locked,0,'弱化不可解除反转');locked.fighters[0].stages.def=-2;turn(locked);assert.equal(locked.fighters[0].stages.def,-2);assert.equal(locked.fighters[0].effects['攻击伤害免疫'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:38216",
+      "kind": "move",
+      "raw": {
+        "id": 38216,
+        "name": "震魂冲拳",
+        "type": "暗影",
+        "kind": "physical",
+        "power": 85,
+        "pp": 10,
+        "priority": 3,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          453,
+          1465,
+          1719
+        ],
+        "effectInstances": [
+          {
+            "id": 453,
+            "args": [
+              6
+            ],
+            "description": "消除对手能力提升状态，若消除成功，则对手害怕"
+          },
+          {
+            "id": 1465,
+            "args": [
+              1
+            ],
+            "description": "先出手时50%的概率打出致命一击，未触发则令对手全属性-1"
+          },
+          {
+            "id": 1719,
+            "args": [
+              2,
+              30,
+              20
+            ],
+            "description": "击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%"
+          }
+        ],
+        "description": "消除对手能力提升状态，若消除成功，则对手害怕；先出手时50%的概率打出致命一击，未触发则令对手全属性-1；击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%",
+        "revision": "seerapi:834faf50",
+        "hash": "834faf50",
+        "level": 21,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "36530d48128d5b99a0c5a1259ccb81fac92019d0a29b8a9d720dcd814a9b962e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38216:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 453,
+          "args": [
+            6
+          ],
+          "description": "消除对手能力提升状态，若消除成功，则对手害怕"
+        },
+        "index": 0,
+        "description": "消除对手能力提升状态，若消除成功，则对手害怕；先出手时50%的概率打出致命一击，未触发则令对手全属性-1；击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%",
+        "metadata": {
+          "id": 453,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，若消除成功，则对手{0}",
+          "revision": "seerapi:f7da6505"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:834faf50"
+      },
+      "sourceDigest": "192fdde2dab24d30e2c9806c86029f4cae4e92e0e3856213827ef50bbf851af2",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38216:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1465,
+          "args": [
+            1
+          ],
+          "description": "先出手时50%的概率打出致命一击，未触发则令对手全属性-1"
+        },
+        "index": 1,
+        "description": "消除对手能力提升状态，若消除成功，则对手害怕；先出手时50%的概率打出致命一击，未触发则令对手全属性-1；击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%",
+        "metadata": {
+          "id": 1465,
+          "argsNum": 1,
+          "template": "先出手时50%的概率打出致命一击，未触发则令对手全属性-{0}",
+          "revision": "seerapi:9fb5c181"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:834faf50"
+      },
+      "sourceDigest": "bd699b0a30f610e365827b14d1f4c6576982b5f4455482fea9ebf2df64340fd0",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1465先手50%暴击失败全弱、后手不执行先手词条，1719普通或暴击击败授下两回合30或50%红增",
+          "assertion": " const seen=new Set();for(let seed=1;seed<=24;seed++){const a=make({...row(1465),criticals:true,seed:Math.imul(seed,0x9e3779b1)>>>0});let crit;observe((e,c)=>{if(e==='afterAttack'&&c.a.side===0)crit=c.crit;},()=>turn(a));seen.add(crit);for(const k of keys)assert.equal(a.fighters[1].stages[k],(k==='atk'?1:0)-(crit?0:1));}assert.equal(seen.size,2);const late=make(row(1465));timer(late,1,'id984',{amount:10});turn(late);for(const k of keys)assert.equal(late.fighters[1].stages[k],k==='atk'?1:0);\n for(const critical of[false,true]){const b=make({...row(1719),targetHp:1});if(critical)b.fighters[0].counts.nextCrit=1;turn(b);assert.equal(b.fighters[1].hp,0);const buff=Object.values(b.fighters[0].effects).find(e=>e.start===2&&e.end===3&&e.bonus!=null);assert.ok(buff);assert.equal(buff.bonus,critical?.5:.3);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38216:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1719,
+          "args": [
+            2,
+            30,
+            20
+          ],
+          "description": "击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%"
+        },
+        "index": 2,
+        "description": "消除对手能力提升状态，若消除成功，则对手害怕；先出手时50%的概率打出致命一击，未触发则令对手全属性-1；击败对手则下2回合自身造成的攻击伤害提升30%，若以致命一击击败对手则伤害再提升20%",
+        "metadata": {
+          "id": 1719,
+          "argsNum": 3,
+          "template": "击败对手则下{0}回合自身造成的攻击伤害提升{1}%，若以致命一击击败对手则伤害再提升{2}%",
+          "revision": "seerapi:6e5cc471"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:834faf50"
+      },
+      "sourceDigest": "b52aa68c20c92bef824cfd765126ca62a6d0aac2f268f8978675e4138ecfcb52",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1465先手50%暴击失败全弱、后手不执行先手词条，1719普通或暴击击败授下两回合30或50%红增",
+          "assertion": " const seen=new Set();for(let seed=1;seed<=24;seed++){const a=make({...row(1465),criticals:true,seed:Math.imul(seed,0x9e3779b1)>>>0});let crit;observe((e,c)=>{if(e==='afterAttack'&&c.a.side===0)crit=c.crit;},()=>turn(a));seen.add(crit);for(const k of keys)assert.equal(a.fighters[1].stages[k],(k==='atk'?1:0)-(crit?0:1));}assert.equal(seen.size,2);const late=make(row(1465));timer(late,1,'id984',{amount:10});turn(late);for(const k of keys)assert.equal(late.fighters[1].stages[k],k==='atk'?1:0);\n for(const critical of[false,true]){const b=make({...row(1719),targetHp:1});if(critical)b.fighters[0].counts.nextCrit=1;turn(b);assert.equal(b.fighters[1].hp,0);const buff=Object.values(b.fighters[0].effects).find(e=>e.start===2&&e.end===3&&e.bonus!=null);assert.ok(buff);assert.equal(buff.bonus,critical?.5:.3);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:21046",
+      "kind": "move",
+      "raw": {
+        "id": 21046,
+        "name": "冷冻气流",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              3,
+              100,
+              -2
+            ],
+            "description": "技能使用成功时，100%改变对手特防等级-2"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手特防等级-2",
+        "revision": "seerapi:5ea1e623",
+        "hash": "5ea1e623",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "0d2a7eb09437d575e643239760569390567a79c3324def4c2e2b3a624bb5d413",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:21046:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            3,
+            100,
+            -2
+          ],
+          "description": "技能使用成功时，100%改变对手特防等级-2"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手特防等级-2",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:5ea1e623"
+      },
+      "sourceDigest": "c1e6abfddb0ec58a3ca23296f61e2e606c22f23bfdb6ca263b24b0b525ab731b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:11313",
+      "kind": "move",
+      "raw": {
+        "id": 11313,
+        "name": "极寒冰锥",
+        "type": "冰",
+        "kind": "special",
+        "power": 105,
+        "pp": 15,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          14
+        ],
+        "effectInstances": [
+          {
+            "id": 14,
+            "args": [
+              15
+            ],
+            "description": "命中后15%令对方冻伤"
+          }
+        ],
+        "description": "命中后15%令对方冻伤",
+        "revision": "seerapi:83262768",
+        "hash": "83262768",
+        "level": 29,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "60e74472ce42127ee97cce00b07666b414952b469f2e23eef207f76e13a7ff40",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:11313:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 14,
+          "args": [
+            15
+          ],
+          "description": "命中后15%令对方冻伤"
+        },
+        "index": 0,
+        "description": "命中后15%令对方冻伤",
+        "metadata": {
+          "id": 14,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方冻伤",
+          "revision": "seerapi:9fce2329"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:83262768"
+      },
+      "sourceDigest": "43d61276a50112dc8a9fdeefbaa1edfbe2220de3df3420538748f602f8282aec",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:24583",
+      "kind": "move",
+      "raw": {
+        "id": 24583,
+        "name": "耀魂之晶",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          5,
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              3,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手特防等级-1"
+          },
+          {
+            "id": 5,
+            "args": [
+              4,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手速度等级-1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手特防等级-1；技能使用成功时，100%改变对手速度等级-1",
+        "revision": "seerapi:ad4f91e0",
+        "hash": "ad4f91e0",
+        "level": 33,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "1fd0af926e87c46783e128a5de582011ce1311ca13624a77eb20002575f01e51",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24583:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            3,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手特防等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手特防等级-1；技能使用成功时，100%改变对手速度等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:ad4f91e0"
+      },
+      "sourceDigest": "ffdaffe611540ad6109a1f5d6351c94664f89ceb1213107143d4a91cc806f6fd",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24583:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            4,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手速度等级-1"
+        },
+        "index": 1,
+        "description": "技能使用成功时，100%改变对手特防等级-1；技能使用成功时，100%改变对手速度等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:ad4f91e0"
+      },
+      "sourceDigest": "9200cc90ec7f8f624c3d6813226dcc4a4197caea44e27437c470cc67e1d6badf",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:12852",
+      "kind": "move",
+      "raw": {
+        "id": 12852,
+        "name": "禁锢魔力",
+        "type": "普通",
+        "kind": "special",
+        "power": 110,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          33
+        ],
+        "effectInstances": [
+          {
+            "id": 33,
+            "args": [],
+            "description": "消除对手能力提升状态"
+          }
+        ],
+        "description": "消除对手能力提升状态",
+        "revision": "seerapi:8ad45be1",
+        "hash": "8ad45be1",
+        "level": 37,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "ced804b0e81cf66ffc17963a07951c0b3c1a59097e0024f5d2839d3c47e1fdf0",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:12852:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 33,
+          "args": [],
+          "description": "消除对手能力提升状态"
+        },
+        "index": 0,
+        "description": "消除对手能力提升状态",
+        "metadata": {
+          "id": 33,
+          "argsNum": 0,
+          "template": "消除对手能力提升状态",
+          "revision": "seerapi:2fdd3e71"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:8ad45be1"
+      },
+      "sourceDigest": "ebb28a9cbd7ebd462574e74abab731691d31aadffe0483e12e01713b9b0ae62a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:24584",
+      "kind": "move",
+      "raw": {
+        "id": 24584,
+        "name": "魂之冰念",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          48,
+          47,
+          164
+        ],
+        "effectInstances": [
+          {
+            "id": 48,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫所有受到的异常状态"
+          },
+          {
+            "id": 47,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫能力下降状态"
+          },
+          {
+            "id": 164,
+            "args": [
+              4,
+              100,
+              5
+            ],
+            "description": "4回合内若受到攻击则有100%概率令对手冻伤"
+          }
+        ],
+        "description": "4回合内免疫所有受到的异常状态；4回合内免疫能力下降状态；4回合内若受到攻击则有100%概率令对手冻伤",
+        "revision": "seerapi:ad2e7688",
+        "hash": "ad2e7688",
+        "level": 41,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "de1ca96127466a8e2a3ac8e82a569a9b6b041af1554ebdd657959467cf368007",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24584:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 48,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫所有受到的异常状态；4回合内免疫能力下降状态；4回合内若受到攻击则有100%概率令对手冻伤",
+        "metadata": {
+          "id": 48,
+          "argsNum": 1,
+          "template": "{0}回合内免疫所有受到的异常状态",
+          "revision": "seerapi:edaf5826"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:ad2e7688"
+      },
+      "sourceDigest": "88426cd2b00d2c2e08c07faa683f66651180c5db270b5165f602a759faa7e99a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24584:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 47,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫能力下降状态"
+        },
+        "index": 1,
+        "description": "4回合内免疫所有受到的异常状态；4回合内免疫能力下降状态；4回合内若受到攻击则有100%概率令对手冻伤",
+        "metadata": {
+          "id": 47,
+          "argsNum": 1,
+          "template": "{0}回合内免疫能力下降状态",
+          "revision": "seerapi:2a09848d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:ad2e7688"
+      },
+      "sourceDigest": "942ebd3a7b0a7b03d63d6533d693aa8d82d57d4639567d619859f932b3d7b05a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24584:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 164,
+          "args": [
+            4,
+            100,
+            5
+          ],
+          "description": "4回合内若受到攻击则有100%概率令对手冻伤"
+        },
+        "index": 2,
+        "description": "4回合内免疫所有受到的异常状态；4回合内免疫能力下降状态；4回合内若受到攻击则有100%概率令对手冻伤",
+        "metadata": {
+          "id": 164,
+          "argsNum": 3,
+          "template": "{0}回合内若受到攻击则有{1}%概率令对手{2}",
+          "revision": "seerapi:dea9c0a7"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:ad2e7688"
+      },
+      "sourceDigest": "9fbe3fca8d414427b35c7c018642768ef674c546591e7ea8079b498a73deb414",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:18378",
+      "kind": "move",
+      "raw": {
+        "id": 18378,
+        "name": "死亡凝固",
+        "type": "冰暗影",
+        "kind": "physical",
+        "power": 120,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          29
+        ],
+        "effectInstances": [
+          {
+            "id": 29,
+            "args": [
+              150
+            ],
+            "description": "额外附加150点固定伤害"
+          }
+        ],
+        "description": "额外附加150点固定伤害",
+        "revision": "seerapi:77becb1a",
+        "hash": "77becb1a",
+        "level": 45,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "94b85f9647d953e2133cf92e5dd0cb74d1312e59acfef965694d3426991e349e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:18378:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 29,
+          "args": [
+            150
+          ],
+          "description": "额外附加150点固定伤害"
+        },
+        "index": 0,
+        "description": "额外附加150点固定伤害",
+        "metadata": {
+          "id": 29,
+          "argsNum": 1,
+          "template": "额外附加{0}点固定伤害",
+          "revision": "seerapi:415f01ba"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:77becb1a"
+      },
+      "sourceDigest": "5bd161a5c813478bc308b7b52439f92307703354d382faa3dc52b9bccf81ce99",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:29235",
+      "kind": "move",
+      "raw": {
+        "id": 29235,
+        "name": "毒素外甲",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          191,
+          817,
+          1768
+        ],
+        "effectInstances": [
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 817,
+            "args": [
+              3
+            ],
+            "description": "3回合内受到攻击则对手下回合受到的伤害翻倍"
+          },
+          {
+            "id": 1768,
+            "args": [
+              1,
+              300
+            ],
+            "description": "将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点"
+          }
+        ],
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内受到攻击则对手下回合受到的伤害翻倍；将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点",
+        "revision": "seerapi:74ccb697",
+        "hash": "74ccb697",
+        "level": 49,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "405d759d6ce1957bb18446e18f77bf771d377988019b96b05cc7b6ca50bb6830",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29235:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内受到攻击则对手下回合受到的伤害翻倍；将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:74ccb697"
+      },
+      "sourceDigest": "8787c8dda17ae5cf501469cd603017b33c6ccd76af078f224407734c4e509dcd",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29235:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 817,
+          "args": [
+            3
+          ],
+          "description": "3回合内受到攻击则对手下回合受到的伤害翻倍"
+        },
+        "index": 1,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内受到攻击则对手下回合受到的伤害翻倍；将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点",
+        "metadata": {
+          "id": 817,
+          "argsNum": 1,
+          "template": "{0}回合内受到攻击则对手下回合受到的伤害翻倍",
+          "revision": "seerapi:d73982f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:74ccb697"
+      },
+      "sourceDigest": "ab56384970780f86604a7451faca0621dd4cb6bad10eab8e766210178ea048a9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1768下次攻击真实转盾至多300且次数消费，817受到已命中攻击后次回合翻红不增固粉真",
+          "assertion": " const a=make({...row(1768),bStats:{atk:9999}});turn(a,29235,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,300);assert.equal(a.fighters[0].counts.nextAttackShieldConversion,0);a.moveDefinitions[key(38218)].operations=[];turn(a,38218,10127);assert.ok(sum(a,'attack',1)>0);\n const b=make(row(817)),base=make({move:29235,index:-1});for(const s of[b,base]){s.moveDefinitions[key(38218)].operations=[];turn(s,29235,10127);}const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'非红不增',type));},()=>turn(b,38218));turn(base,38218);assert.deepEqual(other,[100,100,100]);assert.ok(Math.abs(sum(b)-sum(base)*2)<=2);"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857毒素外甲完整191/817/1768：转盾零红仍授下回合红易伤，真实第五红翻倍但1800粉不翻倍",
+          "assertion": " const a=make({move:29235}),base=make({move:29235,index:2});for(const s of[a,base]){turn(s,29235,10127);assert.equal(sum(s,'attack',1),0);assert.ok(s.fighters[0].suitState.shield>0);s.rng=0x9e3779b9;}turn(a,38218);turn(base,38218);assert.ok(Math.abs(sum(a)-2*sum(base))<=2);assert.equal(sum(a,'percent'),1800);assert.equal(sum(base,'percent'),1800);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29235:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1768,
+          "args": [
+            1,
+            300
+          ],
+          "description": "将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点"
+        },
+        "index": 2,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内受到攻击则对手下回合受到的伤害翻倍；将自身下1次受到的攻击伤害转化为等量护盾，最多获得300点",
+        "metadata": {
+          "id": 1768,
+          "argsNum": 2,
+          "template": "将自身下{0}次受到的攻击伤害转化为等量护盾，最多获得{1}点",
+          "revision": "seerapi:98820602"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:74ccb697"
+      },
+      "sourceDigest": "075ac7fdbc7126e4ddb2deb59f1575f15216b9c3dacc39b5e893cea1b413b061",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1768下次攻击真实转盾至多300且次数消费，817受到已命中攻击后次回合翻红不增固粉真",
+          "assertion": " const a=make({...row(1768),bStats:{atk:9999}});turn(a,29235,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,300);assert.equal(a.fighters[0].counts.nextAttackShieldConversion,0);a.moveDefinitions[key(38218)].operations=[];turn(a,38218,10127);assert.ok(sum(a,'attack',1)>0);\n const b=make(row(817)),base=make({move:29235,index:-1});for(const s of[b,base]){s.moveDefinitions[key(38218)].operations=[];turn(s,29235,10127);}const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'非红不增',type));},()=>turn(b,38218));turn(base,38218);assert.deepEqual(other,[100,100,100]);assert.ok(Math.abs(sum(b)-sum(base)*2)<=2);"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857毒素外甲完整191/817/1768：转盾零红仍授下回合红易伤，真实第五红翻倍但1800粉不翻倍",
+          "assertion": " const a=make({move:29235}),base=make({move:29235,index:2});for(const s of[a,base]){turn(s,29235,10127);assert.equal(sum(s,'attack',1),0);assert.ok(s.fighters[0].suitState.shield>0);s.rng=0x9e3779b9;}turn(a,38218);turn(base,38218);assert.ok(Math.abs(sum(a)-2*sum(base))<=2);assert.equal(sum(a,'percent'),1800);assert.equal(sum(base,'percent'),1800);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:24585",
+      "kind": "move",
+      "raw": {
+        "id": 24585,
+        "name": "玄冰之魂",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          4,
+          4,
+          4,
+          57,
+          573
+        ],
+        "effectInstances": [
+          {
+            "id": 4,
+            "args": [
+              1,
+              100,
+              1
+            ],
+            "description": "技能使用成功时，100%改变自身防御等级+1"
+          },
+          {
+            "id": 4,
+            "args": [
+              2,
+              100,
+              2
+            ],
+            "description": "技能使用成功时，100%改变自身特攻等级+2"
+          },
+          {
+            "id": 4,
+            "args": [
+              3,
+              100,
+              1
+            ],
+            "description": "技能使用成功时，100%改变自身特防等级+1"
+          },
+          {
+            "id": 57,
+            "args": [
+              4,
+              4
+            ],
+            "description": "4回合内每回合使用技能恢复自身最大体力的1/4"
+          },
+          {
+            "id": 573,
+            "args": [
+              3,
+              100,
+              5,
+              2
+            ],
+            "description": "3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合"
+          }
+        ],
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "revision": "seerapi:f18af597",
+        "hash": "f18af597",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "97d7bbde77887e41c85ce3ca34063a57a974eea4f653a38df18c938347729606",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24585:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            1,
+            100,
+            1
+          ],
+          "description": "技能使用成功时，100%改变自身防御等级+1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:f18af597"
+      },
+      "sourceDigest": "43e91a09ed45bb29b8fea9bad14b21bf9595d326d17c7e7390118b3e264f8d00",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24585:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            2,
+            100,
+            2
+          ],
+          "description": "技能使用成功时，100%改变自身特攻等级+2"
+        },
+        "index": 1,
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:f18af597"
+      },
+      "sourceDigest": "5158ff9a7d8cfae7d2ae5471679129d4483e7fbae5ce92447d9e33c13be055e3",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24585:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            3,
+            100,
+            1
+          ],
+          "description": "技能使用成功时，100%改变自身特防等级+1"
+        },
+        "index": 2,
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:f18af597"
+      },
+      "sourceDigest": "be7c1741c10c88e6051aacc2e47619696e88fd17e56b8da4e4714c909b2f5842",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/4与5全部重复能力实例、14与15真实概率与免疫，33清强遵守保护，29定额150固伤",
+          "assertion": " for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const a=make({move:m.id,index});turn(a);const side=e.id===4?0:1,k=keys[e.args[0]];assert.equal(a.fighters[side].stages[k],e.args[2]+(side===1&&k==='atk'?1:0));}\n for(const r of[row(14),row(15),row(14,1),row(14,2)]){const instance=source.moves.find(m=>m.id===r.move).effectInstances[r.index],name=instance.id===14?'冻伤':'害怕',seen=new Set();for(let seed=1;seed<=(instance.args[0]===100?1:32);seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);seen.add(!!a.fighters[1].ailments[name]);const b=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].ailments[name],undefined);}assert.ok(seen.has(true));if(instance.args[0]<100)assert.ok(seen.has(false));}\n const a=make(row(33));a.fighters[1].stages.def=2;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make(row(33));timer(b,1,'强化保护');b.fighters[1].stages.def=2;turn(b);assert.equal(b.fighters[1].stages.def,2);const c=make(row(29));turn(c);assert.equal(sum(c,'fixed'),150);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        },
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/453已命中零红仍清强附害怕，次数免异只挡害怕不回滚清强，强化保护使清强失败不附害怕",
+          "assertion": " const a=make({move:38216,index:0});a.fighters[1].stages.def=2;timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(a.fighters[1].stages.def,0);assert.ok(a.fighters[1].ailments['害怕']);const b=make({move:38216,index:0});b.fighters[1].stages.def=2;b.fighters[1].counts.immune=1;turn(b);assert.equal(b.fighters[1].stages.def,0);assert.equal(b.fighters[1].ailments['害怕'],undefined);assert.equal(b.fighters[1].counts.immune,0);const c=make({move:38216,index:0});c.fighters[1].stages.def=2;timer(c,1,'强化保护');turn(c);assert.equal(c.fighters[1].stages.def,2);assert.equal(c.fighters[1].ailments['害怕'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24585:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 57,
+          "args": [
+            4,
+            4
+          ],
+          "description": "4回合内每回合使用技能恢复自身最大体力的1/4"
+        },
+        "index": 3,
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "metadata": {
+          "id": 57,
+          "argsNum": 2,
+          "template": "{0}回合内每回合使用技能恢复自身最大体力的1/{1}",
+          "revision": "seerapi:91cca606"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:f18af597"
+      },
+      "sourceDigest": "c911f6d18f769a865d41b54796bb57392ce1f33e07f7d03dd9bfeb25b8c489cb",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/573仅清强吸强触发两回合冻伤、1701先手50%独立整招抽样后手100%，伤害翻倍不当异常执行",
+          "assertion": " for(const op of['clear','steal','reverse']){const a=make(row(573));turn(a);a.fighters[0].stages.def=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(op==='clear')c.clearBoost(c.t);else if(op==='steal')c.steal(c.a,c.t,'真实吸强');else c.rewriteStageValues(c.t,{def:-2},'reverse');}},()=>turn(a,38218));assert.equal(!!a.fighters[1].ailments['冻伤'],op!=='reverse');if(op!=='reverse')assert.equal(a.fighters[1].ailments['冻伤'],3);}\n const seen=new Set();for(let seed=1;seed<=24;seed++)for(const late of[false,true]){const a=make({...row(1701),seed:Math.imul(seed,0x9e3779b1)>>>0,aStats:{spe:late?1:500}});if(!late)timer(a,0,'id984',{amount:2});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(a));assert.ok([1,2].includes(c.modifier));if(late)assert.equal(c.modifier,2);else seen.add(c.modifier);}assert.equal(seen.size,2);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/57当前用招回血四回合与532先净回血再等量粉伤，低血溢出满血禁疗及真实时长",
+          "assertion": " const a=make({...row(57),hp:1000});a.moveDefinitions[key(38217)].operations=[];turn(a);assert.equal(a.fighters[0].hp,3250);for(let r=2;r<=5;r++){a.fighters[0].hp=1000;turn(a,38217);assert.equal(a.fighters[0].hp,r<=4?3250:1000);}\n for(const [hp,n]of[[1000,3000],[8990,10],[9000,0]]){const b=make({...row(532),hp});turn(b);assert.equal(b.fighters[0].hp,hp+n);assert.equal(sum(b,'percent'),n);}const ban=make({...row(532),hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:24585:4",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 573,
+          "args": [
+            3,
+            100,
+            5,
+            2
+          ],
+          "description": "3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合"
+        },
+        "index": 4,
+        "description": "技能使用成功时，100%改变自身防御等级+1；技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身特防等级+1；4回合内每回合使用技能恢复自身最大体力的1/4；3回合内若自身能力提升状态被消除或吸取则100%使对手冻伤2回合",
+        "metadata": {
+          "id": 573,
+          "argsNum": 4,
+          "template": "{0}回合内若自身能力提升状态被消除或吸取则{1}%使对手{2}{3}回合",
+          "revision": "seerapi:3e6ede29"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:f18af597"
+      },
+      "sourceDigest": "cd60d92681bebd26af785cf2b0dd6a3f747c995124d462425a6994e247d35767",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/573仅清强吸强触发两回合冻伤、1701先手50%独立整招抽样后手100%，伤害翻倍不当异常执行",
+          "assertion": " for(const op of['clear','steal','reverse']){const a=make(row(573));turn(a);a.fighters[0].stages.def=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(op==='clear')c.clearBoost(c.t);else if(op==='steal')c.steal(c.a,c.t,'真实吸强');else c.rewriteStageValues(c.t,{def:-2},'reverse');}},()=>turn(a,38218));assert.equal(!!a.fighters[1].ailments['冻伤'],op!=='reverse');if(op!=='reverse')assert.equal(a.fighters[1].ailments['冻伤'],3);}\n const seen=new Set();for(let seed=1;seed<=24;seed++)for(const late of[false,true]){const a=make({...row(1701),seed:Math.imul(seed,0x9e3779b1)>>>0,aStats:{spe:late?1:500}});if(!late)timer(a,0,'id984',{amount:2});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(a));assert.ok([1,2].includes(c.modifier));if(late)assert.equal(c.modifier,2);else seen.add(c.modifier);}assert.equal(seen.size,2);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:29236",
+      "kind": "move",
+      "raw": {
+        "id": 29236,
+        "name": "族群意志",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1014,
+          532,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 1014,
+            "args": [
+              1,
+              2
+            ],
+            "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍"
+          },
+          {
+            "id": 532,
+            "args": [
+              4,
+              3
+            ],
+            "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:3656335d",
+        "hash": "3656335d",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "1f93a61d88f6a37462da88e9256fe2d6dd4e95674887385475114ff547c8d471",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29236:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1014,
+          "args": [
+            1,
+            2
+          ],
+          "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1014,
+          "argsNum": 2,
+          "template": "全属性+{0}，自身当前体力高于最大体力的1/{1}时强化效果翻倍",
+          "revision": "seerapi:d640f675"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:3656335d"
+      },
+      "sourceDigest": "cb86f5059ec42502408fcd7d0f4ea1e53437ae81050da7023014eb55ebfa4ad5",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/48四回合免异与47免弱，164受击冻伤、191反弹不耗免异次数，1014严格高于半血双强",
+          "assertion": " const a=make(row(48));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);},()=>turn(a,38218));const b=make(row(47));turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-1,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(b,38218));const c=make(row(164));turn(c,24584,10127);assert.ok(c.fighters[1].ailments['冻伤']);const d=make(row(191));d.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(d));for(const [hp,want]of[[4500,1],[4501,2]]){const s=make({...row(1014),hp});turn(s);for(const k of keys)assert.equal(s.fighters[0].stages[k],want);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29236:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 532,
+          "args": [
+            4,
+            3
+          ],
+          "description": "4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害"
+        },
+        "index": 1,
+        "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 532,
+          "argsNum": 2,
+          "template": "{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害",
+          "revision": "seerapi:72c16473"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:3656335d"
+      },
+      "sourceDigest": "42e29eb9efeb75ecd0a72ce474c267032146df0740f847610b32e3e8345b4aeb",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/573仅清强吸强触发两回合冻伤、1701先手50%独立整招抽样后手100%，伤害翻倍不当异常执行",
+          "assertion": " for(const op of['clear','steal','reverse']){const a=make(row(573));turn(a);a.fighters[0].stages.def=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(op==='clear')c.clearBoost(c.t);else if(op==='steal')c.steal(c.a,c.t,'真实吸强');else c.rewriteStageValues(c.t,{def:-2},'reverse');}},()=>turn(a,38218));assert.equal(!!a.fighters[1].ailments['冻伤'],op!=='reverse');if(op!=='reverse')assert.equal(a.fighters[1].ailments['冻伤'],3);}\n const seen=new Set();for(let seed=1;seed<=24;seed++)for(const late of[false,true]){const a=make({...row(1701),seed:Math.imul(seed,0x9e3779b1)>>>0,aStats:{spe:late?1:500}});if(!late)timer(a,0,'id984',{amount:2});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(a));assert.ok([1,2].includes(c.modifier));if(late)assert.equal(c.modifier,2);else seen.add(c.modifier);}assert.equal(seen.size,2);"
+        },
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/57当前用招回血四回合与532先净回血再等量粉伤，低血溢出满血禁疗及真实时长",
+          "assertion": " const a=make({...row(57),hp:1000});a.moveDefinitions[key(38217)].operations=[];turn(a);assert.equal(a.fighters[0].hp,3250);for(let r=2;r<=5;r++){a.fighters[0].hp=1000;turn(a,38217);assert.equal(a.fighters[0].hp,r<=4?3250:1000);}\n for(const [hp,n]of[[1000,3000],[8990,10],[9000,0]]){const b=make({...row(532),hp});turn(b);assert.equal(b.fighters[0].hp,hp+n);assert.equal(sum(b,'percent'),n);}const ban=make({...row(532),hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:29236:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 2,
+        "description": "全属性+1，自身当前体力高于最大体力的1/2时强化效果翻倍；4回合内每回合使用技能恢复自身最大体力的1/3并造成等量百分比伤害；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:3656335d"
+      },
+      "sourceDigest": "851bd47ba30914b58a3d819c7c23002f34278d4bb87cea852bff534112caf487",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857-interactions.test.cjs",
+          "name": "4857/843下两回合全技能先制2，授予当回合不提前生效且第三个后继回合到期",
+          "assertion": " const a=make({move:29236,index:2});a.moveDefinitions[key(38218)].operations=[];turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,0);for(const expected of[2,2,0]){turn(a,38218);assert.equal(a.fighters[0].soulState.resolvedPriority.value,expected);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:38217",
+      "kind": "move",
+      "raw": {
+        "id": 38217,
+        "name": "破冰反击",
+        "type": "冰",
+        "kind": "physical",
+        "power": 85,
+        "pp": 5,
+        "priority": -1,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1701,
+          1179,
+          147
+        ],
+        "effectInstances": [
+          {
+            "id": 1701,
+            "args": [
+              50
+            ],
+            "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍"
+          },
+          {
+            "id": 1179,
+            "args": [
+              2,
+              50
+            ],
+            "description": "消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%"
+          },
+          {
+            "id": 147,
+            "args": [
+              100,
+              15
+            ],
+            "description": "后出手时，100%概率使对方冰封"
+          }
+        ],
+        "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍；消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%；后出手时，100%概率使对方冰封",
+        "revision": "seerapi:2bbf26b1",
+        "hash": "2bbf26b1",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "e9d6b163bf969a0f8426a998208a5971fc9c4eeddbd6c0d17aed25bdbc26e1ed",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38217:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1701,
+          "args": [
+            50
+          ],
+          "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍"
+        },
+        "index": 0,
+        "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍；消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%；后出手时，100%概率使对方冰封",
+        "metadata": {
+          "id": 1701,
+          "argsNum": 1,
+          "template": "{0}%的概率造成的伤害翻倍，若后出手则概率翻倍",
+          "revision": "seerapi:d5ce5d0d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:2bbf26b1"
+      },
+      "sourceDigest": "1b468f2b580bb1306070129b3e492b44152330241e433c072a39897bba7138a6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/573仅清强吸强触发两回合冻伤、1701先手50%独立整招抽样后手100%，伤害翻倍不当异常执行",
+          "assertion": " for(const op of['clear','steal','reverse']){const a=make(row(573));turn(a);a.fighters[0].stages.def=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(op==='clear')c.clearBoost(c.t);else if(op==='steal')c.steal(c.a,c.t,'真实吸强');else c.rewriteStageValues(c.t,{def:-2},'reverse');}},()=>turn(a,38218));assert.equal(!!a.fighters[1].ailments['冻伤'],op!=='reverse');if(op!=='reverse')assert.equal(a.fighters[1].ailments['冻伤'],3);}\n const seen=new Set();for(let seed=1;seed<=24;seed++)for(const late of[false,true]){const a=make({...row(1701),seed:Math.imul(seed,0x9e3779b1)>>>0,aStats:{spe:late?1:500}});if(!late)timer(a,0,'id984',{amount:2});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(a));assert.ok([1,2].includes(c.modifier));if(late)assert.equal(c.modifier,2);else seen.add(c.modifier);}assert.equal(seen.size,2);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38217:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1179,
+          "args": [
+            2,
+            50
+          ],
+          "description": "消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%"
+        },
+        "index": 1,
+        "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍；消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%；后出手时，100%概率使对方冰封",
+        "metadata": {
+          "id": 1179,
+          "argsNum": 2,
+          "template": "消除对手回合类效果，消除成功则自身下{0}次攻击技能造成的伤害额外提升{1}%",
+          "revision": "seerapi:31f07f66"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:2bbf26b1"
+      },
+      "sourceDigest": "39ee31642691e0989918254152583919e4cbbcf9c7070386ea8e57597195e75b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1179清回合成功授下两次50%红增，147后手冰封且免疫失败不补，747负阶段先制1",
+          "assertion": " const a=make(row(1179)),base=make({move:38217,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38218)].operations=[];turn(s);}base.fighters[1].effects={};assert.equal(a.fighters[0].counts.nextAttackBoost,2);for(const want of[1.5,1.5,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38218);}assert.ok(Math.abs(sum(a)-sum(base)*want)<=1);}const no=make(row(1179));timer(no,1,'protect');no.moveDefinitions[key(38218)].operations=[];turn(no);let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(no,38218));assert.equal(c.modifier,1);\n const late=make(row(147));turn(late);assert.ok(late.fighters[1].ailments['冰封']);const first=make(row(147));timer(first,0,'id984',{amount:2});turn(first);assert.equal(first.fighters[1].ailments['冰封'],undefined);const immune=make(row(147));immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['冰封'],undefined);for(const negative of[false,true]){const b=make(row(747));if(negative)b.fighters[0].stages.def=-1;turn(b);assert.equal(b.fighters[0].soulState.resolvedPriority.value,negative?1:0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38217:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 147,
+          "args": [
+            100,
+            15
+          ],
+          "description": "后出手时，100%概率使对方冰封"
+        },
+        "index": 2,
+        "description": "50%的概率造成的伤害翻倍，若后出手则概率翻倍；消除对手回合类效果，消除成功则自身下2次攻击技能造成的伤害额外提升50%；后出手时，100%概率使对方冰封",
+        "metadata": {
+          "id": 147,
+          "argsNum": 2,
+          "template": "后出手时，{0}%概率使对方{1}",
+          "revision": "seerapi:32e582d3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:2bbf26b1"
+      },
+      "sourceDigest": "7474b9b71699eb02214c3039e4b803bf35a8c5e90fb09348befe2c890bc1cd05",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1179清回合成功授下两次50%红增，147后手冰封且免疫失败不补，747负阶段先制1",
+          "assertion": " const a=make(row(1179)),base=make({move:38217,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38218)].operations=[];turn(s);}base.fighters[1].effects={};assert.equal(a.fighters[0].counts.nextAttackBoost,2);for(const want of[1.5,1.5,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38218);}assert.ok(Math.abs(sum(a)-sum(base)*want)<=1);}const no=make(row(1179));timer(no,1,'protect');no.moveDefinitions[key(38218)].operations=[];turn(no);let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(no,38218));assert.equal(c.modifier,1);\n const late=make(row(147));turn(late);assert.ok(late.fighters[1].ailments['冰封']);const first=make(row(147));timer(first,0,'id984',{amount:2});turn(first);assert.equal(first.fighters[1].ailments['冰封'],undefined);const immune=make(row(147));immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['冰封'],undefined);for(const negative of[false,true]){const b=make(row(747));if(negative)b.fighters[0].stages.def=-1;turn(b);assert.equal(b.fighters[0].soulState.resolvedPriority.value,negative?1:0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:move:38218",
+      "kind": "move",
+      "raw": {
+        "id": 38218,
+        "name": "碎甲重锤",
+        "type": "冰暗影",
+        "kind": "physical",
+        "power": 160,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          747,
+          961,
+          886,
+          1155
+        ],
+        "effectInstances": [
+          {
+            "id": 747,
+            "args": [
+              1
+            ],
+            "description": "自身处于能力下降时先制+1"
+          },
+          {
+            "id": 961,
+            "args": [
+              1
+            ],
+            "description": "反转自身能力下降，反转成功则自身下1回合免疫攻击伤害"
+          },
+          {
+            "id": 886,
+            "args": [
+              25
+            ],
+            "description": "下次攻击忽略对手双防值的25%"
+          },
+          {
+            "id": 1155,
+            "args": [
+              20,
+              5,
+              30
+            ],
+            "description": "附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%"
+          }
+        ],
+        "description": "自身处于能力下降时先制+1；反转自身能力下降，反转成功则自身下1回合免疫攻击伤害；下次攻击忽略对手双防值的25%；附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%",
+        "revision": "seerapi:dfd7d7d3",
+        "hash": "dfd7d7d3",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4857",
+        "revision": "cc5f5412",
+        "loadedAt": "2026-11-02T12:55:58.856Z"
+      },
+      "sourceDigest": "60ff66da81c94c5c3f6e5c81c4a2122abbe7fbadd6a55e5113458e33d26cd5d6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857全部17招原生2044有序实例、真实PP及64种子命中优先级暴击",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38218:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 747,
+          "args": [
+            1
+          ],
+          "description": "自身处于能力下降时先制+1"
+        },
+        "index": 0,
+        "description": "自身处于能力下降时先制+1；反转自身能力下降，反转成功则自身下1回合免疫攻击伤害；下次攻击忽略对手双防值的25%；附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%",
+        "metadata": {
+          "id": 747,
+          "argsNum": 1,
+          "template": "自身处于能力下降时先制+1",
+          "revision": "seerapi:bd7fc773"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:dfd7d7d3"
+      },
+      "sourceDigest": "2074fad28a6d3e78efe66d9e407d021b9b8e30f76e72b7c6bbe225c53518ce7c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/1179清回合成功授下两次50%红增，147后手冰封且免疫失败不补，747负阶段先制1",
+          "assertion": " const a=make(row(1179)),base=make({move:38217,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38218)].operations=[];turn(s);}base.fighters[1].effects={};assert.equal(a.fighters[0].counts.nextAttackBoost,2);for(const want of[1.5,1.5,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38218);}assert.ok(Math.abs(sum(a)-sum(base)*want)<=1);}const no=make(row(1179));timer(no,1,'protect');no.moveDefinitions[key(38218)].operations=[];turn(no);let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(no,38218));assert.equal(c.modifier,1);\n const late=make(row(147));turn(late);assert.ok(late.fighters[1].ailments['冰封']);const first=make(row(147));timer(first,0,'id984',{amount:2});turn(first);assert.equal(first.fighters[1].ailments['冰封'],undefined);const immune=make(row(147));immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['冰封'],undefined);for(const negative of[false,true]){const b=make(row(747));if(negative)b.fighters[0].stages.def=-1;turn(b);assert.equal(b.fighters[0].soulState.resolvedPriority.value,negative?1:0);}"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38218:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 961,
+          "args": [
+            1
+          ],
+          "description": "反转自身能力下降，反转成功则自身下1回合免疫攻击伤害"
+        },
+        "index": 1,
+        "description": "自身处于能力下降时先制+1；反转自身能力下降，反转成功则自身下1回合免疫攻击伤害；下次攻击忽略对手双防值的25%；附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%",
+        "metadata": {
+          "id": 961,
+          "argsNum": 1,
+          "template": "反转自身能力下降，反转成功则自身下{0}回合免疫攻击伤害",
+          "revision": "seerapi:fb017569"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:dfd7d7d3"
+      },
+      "sourceDigest": "b3ae335acc03cb9aa80e07e85acd10f201342c9c489bb5efb54ff1e947ec5080",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/38真实最高HP降低25并按既有下限保1，不当作25固定伤害；961反弱成功下回合免攻及重授无空档",
+          "assertion": " const a=make(row(38)),base=make({move:10832,index:-1});turn(a);turn(base);assert.equal(a.fighters[1].stats.maxHp,8975);assert.equal(a.fighters[1].hp,Math.min(base.fighters[1].hp,8975));const min=make({...row(38),bStats:{maxHp:10}});timer(min,1,'攻击伤害免疫');turn(min);assert.equal(min.fighters[1].stats.maxHp,1);assert.equal(min.fighters[1].hp,1);\n const b=make(row(961));b.fighters[0].stages.def=-2;turn(b,38218,10127);assert.equal(b.fighters[0].stages.def,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].start,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].end,2);assert.ok(sum(b,'attack',1)>0);b.fighters[0].stages.spd=-1;turn(b,38218,10127);assert.equal(sum(b,'attack',1),0);assert.equal(b.fighters[0].effects['攻击伤害免疫'].start,2);assert.equal(b.fighters[0].effects['攻击伤害免疫'].end,3);b.moveDefinitions[key(38218)].operations=[];turn(b,38218,10127);assert.equal(sum(b,'attack',1),0);turn(b,38218,10127);assert.ok(sum(b,'attack',1)>0);const locked=make(row(961));timer(locked,0,'弱化不可解除反转');locked.fighters[0].stages.def=-2;turn(locked);assert.equal(locked.fighters[0].stages.def,-2);assert.equal(locked.fighters[0].effects['攻击伤害免疫'],undefined);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38218:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 886,
+          "args": [
+            25
+          ],
+          "description": "下次攻击忽略对手双防值的25%"
+        },
+        "index": 2,
+        "description": "自身处于能力下降时先制+1；反转自身能力下降，反转成功则自身下1回合免疫攻击伤害；下次攻击忽略对手双防值的25%；附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%",
+        "metadata": {
+          "id": 886,
+          "argsNum": 1,
+          "template": "下次攻击忽略对手双防值的{0}%",
+          "revision": "seerapi:c73d764a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:dfd7d7d3"
+      },
+      "sourceDigest": "51a31481c6e51de8d14a7c50c51d092714f1278ab8f557e1bc0eabb350b32499",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/886下次攻击忽防25%只消费一次，1155连续20/25/30封顶且间断重置",
+          "assertion": " const a=make(row(886)),quarter=make({move:38218,index:-1,bStats:{def:225}}),base=make({move:38218,index:-1});for(const s of[a,quarter,base]){s.moveDefinitions[key(38217)].operations=[];turn(s);s.fighters[1].stages.def=2;}for(let round=2;round<=3;round++){for(const s of[a,quarter,base]){s.rng=0x9e3779b9;turn(s,38217);}assert.equal(sum(a),sum(round===2?quarter:base));}const b=make(row(1155));for(const n of[1800,2250,2700,2700]){turn(b);assert.equal(sum(b,'percent'),n);}const broken=make(row(1155));turn(broken);turn(broken);broken.moveDefinitions[key(29235)].operations=[];turn(broken,29235);turn(broken);assert.equal(sum(broken,'percent'),1800);"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4857:skill:38218:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1155,
+          "args": [
+            20,
+            5,
+            30
+          ],
+          "description": "附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%"
+        },
+        "index": 3,
+        "description": "自身处于能力下降时先制+1；反转自身能力下降，反转成功则自身下1回合免疫攻击伤害；下次攻击忽略对手双防值的25%；附加自身最大体力值20%的百分比伤害，连续使用每次增加5%，最高30%",
+        "metadata": {
+          "id": 1155,
+          "argsNum": 3,
+          "template": "附加自身最大体力值{0}%的百分比伤害，连续使用每次增加{1}%，最高{2}%",
+          "revision": "seerapi:7f4ce029"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4857",
+          "revision": "cc5f5412",
+          "loadedAt": "2026-11-02T12:55:58.856Z"
+        },
+        "skillRevision": "seerapi:dfd7d7d3"
+      },
+      "sourceDigest": "934e878c290999be4c0f0ff5e71eafd973655f56d3e1cefcde0ac6ea89e61703",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T14:28:52.338Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4857.test.cjs",
+          "name": "4857/886下次攻击忽防25%只消费一次，1155连续20/25/30封顶且间断重置",
+          "assertion": " const a=make(row(886)),quarter=make({move:38218,index:-1,bStats:{def:225}}),base=make({move:38218,index:-1});for(const s of[a,quarter,base]){s.moveDefinitions[key(38217)].operations=[];turn(s);s.fighters[1].stages.def=2;}for(let round=2;round<=3;round++){for(const s of[a,quarter,base]){s.rng=0x9e3779b9;turn(s,38217);}assert.equal(sum(a),sum(round===2?quarter:base));}const b=make(row(1155));for(const n of[1800,2250,2700,2700]){turn(b);assert.equal(sum(b,'percent'),n);}const broken=make(row(1155));turn(broken);turn(broken);broken.moveDefinitions[key(29235)].operations=[];turn(broken,29235);turn(broken);assert.equal(sum(broken,'percent'),1800);"
+        }
+      ],
+      "pendingQuestions": []
+    }
+  ],
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4857-001"
+  ],
+  "pendingBatchWork": [
+    "最终固定范围同版专项/接入及新完整npm"
+  ]
+}

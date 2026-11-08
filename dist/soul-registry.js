@@ -1,12 +1,13 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.BattleSoulRegistry=factory();})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
+function probabilityObserver4853(c,chance,value){return c.ailmentRoll4853?c.ailmentRoll4853(chance,value):value;}
 const guardStates=typeof module==='object'&&module.exports?require('./guard-states.js'):globalThis.BattleGuardStates;
 const healthRules=typeof module==='object'&&module.exports?require('./health-rules.js'):globalThis.BattleHealthRules;
 // Soul IDs have a distinct namespace from skill-effect IDs.
 // Natural blessing is an owned buff; shared original skills can grant it in either version.
 const natureBlessingTraits={attackPriority:f=>f.soulState.natureBlessings??0,attackReduction:f=>(f.soulState.natureBlessings??0)*.08,ailmentImmunityChance:f=>(f.soulState.natureBlessings??0)*.25};
 const registry={
-1015:{name:'加列韦',sourceHash:'f628ba9d',traits:{attackPriority:f=>f.ailments['烧伤']?1:0},hooks:{roundStart(c){if(c.random()<.5)c.ailment(c.t,'烧伤',c.a);if(c.random()<.5)c.ailment(c.a,'烧伤',c.a);},beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.ailments['烧伤']>=c.round)c.hurt(c.t,c.t.stats.maxHp/3,'加列韦烧伤追加','percent');},beforeDamage(c){if(c.a.ailments['烧伤']>=c.round)c.modifier*=2;}}},
+1015:{name:'加列韦',sourceHash:'f628ba9d',traits:{attackPriority:f=>f.ailments['烧伤']?1:0},hooks:{roundStart(c){if(probabilityObserver4853(c,(.5)*100,c.random())<.5)c.ailment(c.t,'烧伤',c.a);if(probabilityObserver4853(c,(.5)*100,c.random())<.5)c.ailment(c.a,'烧伤',c.a);},beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.ailments['烧伤']>=c.round)c.hurt(c.t,c.t.stats.maxHp/3,'加列韦烧伤追加','percent');},beforeDamage(c){if(c.a.ailments['烧伤']>=c.round)c.modifier*=2;}}},
  999:{name:'混沌·哈肯萨·原魂印',sourceHash:'829dc61',traits:{},hooks:{beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.hp>0)c.hurt(c.t,c.round*18,'混沌哈肯萨原魂印追加','fixed');},combatEnd(c){if(c.a.hp<=0)return;if(c.t.hp>c.a.hp){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'哈肯萨原魂印回复');c.hurt(c.t,c.a.hp-before,'哈肯萨原魂印回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:1},c.round+1);}}},
  1756:{name:'混沌·哈肯萨·觉醒魂印',sourceHash:'ee3379dc',deferred:['首次登场按对方出战背包龙系数量及龙神哈莫计算黯龙余恨；两种层数下场保留'],traits:{attackMultiplier:f=>1+(f.soulState.darkDragonHatred??0)*.02},hooks:{
  roundStart(c){c.a.soulState.fallenDragonResentment=Math.min(c.round,Math.max(0,50-(c.a.soulState.darkDragonHatred??0)));},
@@ -39,7 +40,7 @@ const registry={
   afterUse(c){
    if(c.a.hp<=0||c.t.hp<=0||c.m.kind==='item')return;
    c.markStatusEffect?.();const chance=c.a.soulState.serpentEnhancedSleepChance??50;
-   const applied=c.random()<chance/100&&c.ailment(c.t,'睡眠',c.a);
+   const applied=probabilityObserver4853(c,chance,c.random())<chance/100&&c.ailment(c.t,'睡眠',c.a);
    c.a.soulState.serpentEnhancedSleepChance=applied?0:100;
   }
  }},
@@ -54,7 +55,7 @@ const registry={
   },
   // Duration follows the shared Q001 user-confirmed project policy;
   // no species-specific duration or status behavior is introduced here.
-  afterUse(c){if(c.a.hp<=0||c.t.hp<=0||c.m.kind==='item')return;c.markStatusEffect?.();if(c.random()<(c.a.soulState.serpentSleepChance??30)/100)c.ailment(c.t,'睡眠',c.a);}
+  afterUse(c){if(c.a.hp<=0||c.t.hp<=0||c.m.kind==='item')return;c.markStatusEffect?.();if(probabilityObserver4853(c,(c.a.soulState.serpentSleepChance??30),c.random())<(c.a.soulState.serpentSleepChance??30)/100)c.ailment(c.t,'睡眠',c.a);}
  }},
  951:{name:'厉魇魔王·咤克斯',sourceHash:'d235892e',deferred:['自身每击败一只精灵所获累计增伤、减伤及秒杀概率，在下一只对手出场后继续应用与叠加；当前对手击败获得的一层已实现'],traits:{attackMultiplier:f=>1.2+(f.soulState.zakKills??0)*.1,attackReduction:f=>Math.min(1,.2+(f.soulState.zakKills??0)*.1)},hooks:{
   beforeOpponentAttack(c){c.a.soulState.zakFullBeforeHit=c.a.hp===c.a.stats.maxHp;},
@@ -107,7 +108,7 @@ const registry={
  919:{name:'奥佩娅',sourceHash:'94e9f841',deferred:['切换再次上场时触发第2次首回合攻击减伤/封属或免异常/封攻；每场战斗上限2次'],traits:{attackReduction:f=>f.soulState.opheaReduceRound===f.soulState.currentRound?.5:0,ailmentImmune:f=>f.soulState.opheaImmuneRound===f.soulState.currentRound},hooks:{
   roundStart(c){c.a.soulState.currentRound=c.round;},
   opponentBeforeUse(c){if(c.round!==1)return;if(c.m.kind==='status'){c.a.soulState.opheaImmuneRound=c.round;c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+1;}else if(c.m.kind!=='item'){c.a.soulState.opheaReduceRound=c.round;c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+1;}},
-  beforeUse(c){if(c.m.kind==='status'&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.clear(c.t);}
+  beforeUse(c){if(c.m.kind==='status'&&c.t.hp>0&&!(probabilityObserver4853(c,(.5)*100,c.random())<.5&&c.ailment(c.t,'害怕',c.a)))c.clear(c.t);}
  }},
  917:{name:'鬼面幽蝶·原魂印',sourceHash:'ca1e851b',traits:{skillPriority:f=>f.soulState.butterflyPriorityCurrent?2:0,dodgeChance:f=>f.soulState.butterflyDodge??0,attackReduction:f=>f.soulState.butterflyReduction??0},hooks:{
   choiceLocked(c){c.a.soulState.butterflyChoice=c.m.kind;},
@@ -134,8 +135,8 @@ const registry={
   damageTaken(c){const st=c.a.soulState;if(c.a.hp>0||st.warBlessed&&st.warBlessingRound!==c.round)return;const first=!st.warBlessed;st.warBlessed=true;st.warBlessingRound=c.round;c.a.hp=Math.max(1,Math.floor(c.a.stats.maxHp/2));c.emit(c.name(c.a)+' 圣战祝福保留半数体力。');if(first&&c.t.hp>0){c.hurt(c.t,c.a.stats.maxHp/2,'圣战祝福','percent');c.clearBoost(c.t);c.clear(c.t);}}
  }},
  885:{name:'燃魂巨兽',sourceHash:'28315919',traits:{entryMaxHp:200},hooks:{
-  beforeUse(c){if(c.m.kind!=='status'&&c.a.hp>0&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},
-  attackDamageTaken(c){if((c.settledDamage??c.dealt)>0&&c.a.hp>0&&c.t.hp>0&&!(c.random()<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},
+  beforeUse(c){if(c.m.kind!=='status'&&c.a.hp>0&&c.t.hp>0&&!(probabilityObserver4853(c,(.5)*100,c.random())<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},
+  attackDamageTaken(c){if((c.settledDamage??c.dealt)>0&&c.a.hp>0&&c.t.hp>0&&!(probabilityObserver4853(c,(.5)*100,c.random())<.5&&c.ailment(c.t,'害怕',c.a)))c.a.soulState.beastPending=(c.a.soulState.beastPending??0)+1;},
   roundEnd(c){const n=c.a.soulState.beastPending??0;delete c.a.soulState.beastPending;for(let i=0;i<n&&c.a.hp>0&&c.t.hp>0;i++)c.hurt(c.t,c.a.stats.maxHp/3,'燃魂巨兽未触发追加','percent');}
  }},
  1:{name:'攻击减伤',sourceHash:'f130a901',traits:{attackReduction:.1},hooks:{}},
@@ -167,16 +168,17 @@ const registry={
  878:{name:'诅咒之神·狄修',sourceHash:'4cf3ebf6',traits:{},hooks:{
   roundStart(c){c.a.soulState.curseLow=c.a.hp<c.t.hp;c.a.soulState.curseHigh=c.a.hp>c.t.hp;},
   attackDamageTaken(c){if(c.a.soulState.curseLow)c.clear(c.t);},
-  beforeUse(c){if(c.a.soulState.curseHigh&&c.m.kind==='status')c.clear(c.t);if(c.on(c.a,'咒怨反应')&&c.m.kind!=='status'){if(!(c.random()<.6&&c.ailment(c.t,'诅咒',c.a))){c.a.counts.nextSkillPriority=2;c.a.soulState.nextSkillPriorityAmount=1;}}},
+  beforeUse(c){if(c.a.soulState.curseHigh&&c.m.kind==='status')c.clear(c.t);if(c.on(c.a,'咒怨反应')&&c.m.kind!=='status'){if(!(probabilityObserver4853(c,(.6)*100,c.random())<.6&&c.ailment(c.t,'诅咒',c.a))){c.a.counts.nextSkillPriority=2;c.a.soulState.nextSkillPriorityAmount=1;}}},
   opponentBeforeUse(c){if(c.on(c.a,'强化诅咒')&&c.m.kind==='status')c.ailment(c.t,'诅咒',c.a);},
   roundEnd(c){if(c.a.hp<=0)return;if(!Object.values(c.a.stages).some(n=>n>0))c.timed(c.a,'咒怨反应',1,{},c.round+1);else c.timed(c.a,'强化诅咒',1,{},c.round+1);}
  }}
 };
 function id(f){return f.soulId??({emperor:622,king:527}[f.species]??null);}
 function trait(f,key){const value=registry[id(f)]?.traits[key],own=typeof value==='function'?value(f):value,g=guardStates.trait(f,key,f.soulState?.calculationRound??f.soulState?.availableRound??1);const base=g===undefined?own:g||own;return registry[1966]?.abilities?.trait(f,key,base)??base;}
-function run(event,c){if(event==='roundEnd'&&c.a.hp>0&&c.a.soulState.bright2009>=c.round){for(const k of c.t.moves)if(c.t.pp[k]===0)c.t.pp[k]=Math.min(5,c.maxPP(k));}const soul=registry[id(c.a)],defeatBlocked=c.a.hp<=0&&c.a.soulState?.defeatEffectsSuppressed&&(event==='death'||event==='executionDefeat'||soul?.defeatOnlyHooks?.includes(event));if(!defeatBlocked){soul?.hooks[event]?.(c);guardStates.run(event,c,key=>{const v=soul?.traits[key];return typeof v==='function'?v(c.a):v;});}if(!defeatBlocked||!['death','executionDefeat'].includes(event))soul?.copyImmunityEvent?.(event,c);c.syncStages?.();}
+function run(event,c){if(event==='roundEnd'&&c.a.hp>0&&c.a.soulState.bright2009>=c.round){for(const k of c.t.moves)if(c.t.pp[k]===0)c.t.pp[k]=Math.min(5,c.maxPP(k));}const soul=registry[id(c.a)],defeatBlocked=c.a.hp<=0&&c.a.soulState?.defeatEffectsSuppressed&&(event==='death'||event==='executionDefeat'||soul?.defeatOnlyHooks?.includes(event));if(!defeatBlocked){soul?.hooks[event]?.(c);guardStates.run(event,c,key=>{const v=soul?.traits[key];return typeof v==='function'?v(c.a):v;});}if(!defeatBlocked||!['death','executionDefeat'].includes(event))soul?.copyImmunityEvent?.(event,c);c.flushAilmentExecutions2058?.();c.syncStages?.();}
 const extend=typeof module==='object'&&module.exports?require('./range-souls.js'):globalThis.RangeSouls;extend(registry);
 for(const v of Object.values(registry)){Object.freeze(v.traits);Object.freeze(v.hooks);Object.freeze(v);}
 function copiedDamageImmune(c){return !!registry[id(c.a)]?.copiedDamageImmune?.(c);}
-return Object.freeze({registry:Object.freeze(registry),id,trait,run,copiedDamageImmune});
+function acceptsSource(soulId,hash){const rule=registry[soulId];return !!rule&&(rule.sourceHash===hash||rule.sourceHashes?.includes(hash)===true);}
+return Object.freeze({registry:Object.freeze(registry),id,trait,run,copiedDamageImmune,acceptsSource});
 });

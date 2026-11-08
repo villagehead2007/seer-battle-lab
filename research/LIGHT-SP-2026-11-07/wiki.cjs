@@ -1,0 +1,5 @@
+'use strict';
+const fs=require('fs'),{createClient}=require('../../wiki-client.cjs');
+const output=__dirname+'/wiki-sources.json',out=fs.existsSync(output)?JSON.parse(fs.readFileSync(output)):{records:[],failures:[]};
+const client=createClient(async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});return {status:r.status,retryAfter:r.headers.get('retry-after'),body:await r.json()};},{interval:2500,label:'BWIKI'});
+(async()=>{const url=new URL('https://wiki.biligame.com/seer/api.php');for(const[k,v]of Object.entries({action:'query',format:'json',prop:'revisions',rvprop:'ids|timestamp|content',rvslots:'main',titles:process.argv.slice(2).join('|')}))url.searchParams.set(k,v);try{const data=await client.request(url.href);out.records.push({url:url.href,loadedAt:new Date().toISOString(),data});console.log(JSON.stringify(data).slice(0,1200));}catch(e){out.failures.push({url:url.href,at:new Date().toISOString(),error:e.message,cause:e.cause?.message});console.error(e.message);process.exitCode=1;}fs.writeFileSync(output,JSON.stringify(out,null,2)+'\n');})();

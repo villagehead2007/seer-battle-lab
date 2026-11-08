@@ -1,0 +1,59 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),source=require('../research/BATCH-4816-REMAINING/4850/snapshot.json'),H=require('./helpers/remaining-battle.cjs')(source),{E,key,keys,make,turn,timer,sum}=H;
+const row=(id,n=0)=>source.moves.flatMap(m=>m.effectInstances.map((e,index)=>({move:m.id,index,id:e.id}))).filter(e=>e.id===id)[n];
+function observe(fn,run){const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);fn(e,c);}};try{return run();}finally{E.SOULS=old;}}
+test('4850全部17招真实魂印、有序实例、PP及64种子基础行为',()=>{
+ for(const m of source.moves){const s=make({move:m.id,soul:true});const c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);const z=make({move:m.id});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z),/有 PP/);}
+ let n=0;for(const m of source.moves){n+=require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}}).length;console.log('# 4850 base verified '+m.id);}assert.equal(n,17);
+});
+test('4850/21已知4到5回合真实抽样，已答回末百分反伤与正式存储资格',()=>{
+ const seen=new Set();for(let seed=1;seed<30;seed++){const s=make({...row(21),seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);seen.add(s.fighters[0].effects['反击风暴'].end);assert.equal(s.fighters[0].effects['反击风暴'].fraction,.25);}assert.deepEqual([...seen].sort(),[4,5]);
+ const s=make(row(21));turn(s);turn(s,20070,10127);assert.equal(sum(s,'percent'),Math.floor(sum(s,'attack',1)/4));assert.ok(sum(s,'percent')>0);assert.deepEqual(require('../local-species.cjs').issues(source),[]);
+});
+test('4850真实2040回初流血剩余回合红增15%封顶90%，固粉真不增',()=>{
+ const base=make({move:10001,index:-1});turn(base);const red=sum(base);for(const n of[0,1,6,9]){const s=make({move:10001,index:-1,soul:true});if(n)s.fighters[0].ailments['流血']=n;const other=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)for(const type of['fixed','percent','true'])other.push(c.hurt(c.t,100,'测试非红',type));},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.bonus,Math.min(90,n*15));assert.ok(Math.abs(sum(s)-red*(1+Math.min(90,n*15)/100))<=2);assert.deepEqual(other,[100,100,100]);}
+});
+test('4850真实2040流血免异先于回合反弹及次数，逐次延长含自身流血，未流血不免',()=>{
+ const s=make({move:10001,index:-1,soul:true});s.fighters[0].ailments['流血']=3;timer(s,0,'reflect');s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){for(const k of['害怕','流血','中毒'])assert.equal(c.ailment(c.t,k,c.a,false,false,2),false);assert.equal(c.t.ailments['流血'],6);assert.equal(c.t.counts.immune,2);assert.equal(c.a.ailments['害怕'],undefined);}},()=>turn(s));assert.equal(s.fighters[0].soulState.pharaoh2040.remaining,3);
+ const b=make({move:10001,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);},()=>turn(b));assert.ok(b.fighters[0].ailments['中毒']);
+});
+test('4850真实2040完整红大于300：原有敌流血改全强，否则敌我流血；敌免异仍自流血、击杀不省自身',()=>{
+ for(const existing of[false,true]){const s=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});if(existing)s.fighters[1].ailments['流血']=4;turn(s);assert.ok(sum(s)>300);if(existing){for(const k of keys)assert.equal(s.fighters[0].stages[k],1);assert.equal(s.fighters[0].ailments['流血'],undefined);}else{assert.ok(s.fighters[0].ailments['流血']);assert.ok(s.fighters[1].ailments['流血']);}}
+ const immune=make({move:38195,index:-1,soul:true,aStats:{atk:1500}});immune.fighters[1].counts.immune=1;turn(immune);assert.equal(immune.fighters[1].ailments['流血'],undefined);assert.ok(immune.fighters[0].ailments['流血']);const ko=make({move:38195,index:-1,soul:true,aStats:{atk:1500},targetHp:1});turn(ko);assert.ok(sum(ko)>300);assert.ok(ko.fighters[0].ailments['流血']);const small=make({move:10001,index:-1,soul:true});turn(small);assert.ok(sum(small)<=300);assert.equal(small.fighters[0].ailments['流血'],undefined);
+});
+test('4850/2072异常先制必中、2196自流血和868成功清强才下回合降先制',()=>{
+ const a=make(row(2072));a.fighters[0].ailments['流血']=3;turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,4);const b=make(row(2072));turn(b);assert.equal(b.fighters[0].soulState.resolvedPriority.value,3);const c=make(row(2196));turn(c);assert.ok(c.fighters[0].ailments['流血']);const d=make({...row(2196),soul:true});d.fighters[0].ailments['流血']=3;turn(d);assert.equal(d.fighters[0].ailments['流血'],4);
+ const e=make(row(868));e.fighters[1].stages.atk=2;turn(e);assert.equal(e.fighters[1].stages.atk,1);assert.ok(Object.values(e.fighters[1].effects).some(x=>x.start===2&&x.end===2));const f=make(row(868));timer(f,1,'幽蝶强化保护');f.fighters[1].stages.atk=2;turn(f);assert.equal(f.fighters[1].stages.atk,3);assert.equal(Object.values(f.fighters[1].effects).some(x=>x.start===2),false);
+});
+test('4850/2137全部异常剩余回合求和且封顶150%只增红，2032当前全强1',()=>{
+ const base=make({...row(2137)});turn(base);for(const ailments of[{'流血':2,'中毒':2},{'流血':9}]){const s=make(row(2137));Object.assign(s.fighters[0].ailments,ailments);turn(s);const n=Math.min(150,Object.values(ailments).reduce((a,b)=>a+b,0)*25);assert.ok(Math.abs(sum(s)-sum(base)*(1+n/100))<=2);}const a=make(row(2032));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);
+});
+test('4850/1924真实净回血与等量固伤，溢出和禁疗；713按全部正等级附固伤',()=>{
+ for(const [hp,n]of[[1000,350],[8900,100],[9000,0]]){const a=make({...row(1924),hp});turn(a);assert.equal(a.fighters[0].hp,hp+n);assert.equal(sum(a,'fixed'),n);}const b=make({...row(1924),hp:1000});timer(b,0,'技能禁疗');turn(b);assert.equal(b.fighters[0].hp,1000);assert.equal(sum(b,'fixed'),0);const c=make(row(713));c.fighters[0].stages.atk=2;c.fighters[0].stages.def=1;c.fighters[0].stages.spa=-3;turn(c);assert.equal(sum(c,'fixed'),90);
+});
+test('4850/63真实反馈成功清自身弱化、免弱失败保留；4与5逐实例真实战阶',()=>{
+ const a=make(row(63));a.fighters[0].stages.atk=-2;turn(a);assert.equal(a.fighters[0].stages.atk,0);assert.equal(a.fighters[1].stages.atk,-1);const b=make(row(63));b.fighters[0].stages.atk=-2;timer(b,1,'免弱');turn(b);assert.equal(b.fighters[0].stages.atk,-2);assert.equal(b.fighters[1].stages.atk,1);
+ for(const r of source.moves.flatMap(m=>m.effectInstances.map((e,index)=>({e,move:m.id,index}))).filter(x=>[4,5].includes(x.e.id))){const s=make(r),side=r.e.id===4?0:1,stat=keys[r.e.args[0]],n=r.e.args[2];turn(s);assert.equal(s.fighters[side].stages[stat],Math.max(-6,Math.min(6,n+(side===1&&stat==='atk'?1:0))));}
+});
+test('4850/1932流血例外可由次数免异挡，其他异常反弹不耗次数；573清强吸强反制但纯反转不触发',()=>{
+ const s=make(row(1932));turn(s);s.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);assert.equal(c.ailment(c.t,'流血',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);assert.equal(c.a.ailments['流血'],undefined);}},()=>turn(s));
+ for(const op of['clear','steal','reverse']){const a=make(row(573));turn(a);a.fighters[0].stages.atk=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){if(op==='clear')c.clearBoost(c.t);else if(op==='steal')c.steal(c.a,c.t,'测试');else c.rewriteStageValues(c.t,{atk:-2},'reverse');}},()=>turn(a));assert.equal(!!a.fighters[1].ailments['害怕'],op!=='reverse');if(op!=='reverse')assert.equal(a.fighters[1].ailments['害怕'],3);}
+});
+test('4850/1975真实100%闪避，必中过闪避后限定二选一及免疫不补抽，已命中零红仍反制',()=>{
+ const dodge=make(row(1975));delete dodge.fighters[1].effects['攻击必中'];turn(dodge,29221,10127);assert.equal(sum(dodge,'attack',1),0);assert.equal(dodge.fighters[1].ailments['流血'],undefined);assert.equal(dodge.fighters[1].ailments['害怕'],undefined);
+ const seen=new Set();for(let seed=1;seed<=30;seed++){const a=make({...row(1975),seed:Math.imul(seed,0x9e3779b1)>>>0});timer(a,0,'攻击伤害免疫');turn(a,29221,10127);assert.equal(sum(a,'attack',1),0);const selected=['流血','害怕'].filter(k=>a.fighters[1].ailments[k]);assert.equal(selected.length,1);seen.add(selected[0]);const b=make({...row(1975),seed:Math.imul(seed,0x9e3779b1)>>>0});timer(b,0,'攻击伤害免疫');b.fighters[1].counts.immune=1;turn(b,29221,10127);assert.equal(b.fighters[1].counts.immune,0);assert.equal(['流血','害怕'].filter(k=>b.fighters[1].ailments[k]).length,0);}assert.equal(seen.size,2);
+});
+test('4850/797清回合成功才技能禁疗，失败不授；1249按净回血附等量粉伤',()=>{
+ const a=make(row(797));turn(a);assert.ok(a.fighters[1].effects['技能禁疗']);const b=make(row(797));b.fighters[1].effects={};turn(b);assert.equal(b.fighters[1].effects['技能禁疗'],undefined);const c=make(row(797));timer(c,1,'protect');turn(c);assert.equal(c.fighters[1].effects['技能禁疗'],undefined);
+ for(const hp of[1000,8990,9000]){const d=make({...row(1249),hp});d.fighters[1].ailments['流血']=4;turn(d);const want=Math.min(9000-hp,Math.floor(sum(d)*.5));assert.equal(d.fighters[0].hp,hp+want);assert.equal(sum(d,'percent'),want);}const e=make({...row(1249),hp:1000});e.fighters[1].ailments['流血']=4;timer(e,0,'技能禁疗');turn(e);assert.equal(e.fighters[0].hp,1000);assert.equal(sum(e,'percent'),0);
+});
+test('4850/881弱化先制3，623清弱成功次回合暴击，843与486明确下回合生效',()=>{
+ const a=make(row(881));a.fighters[0].stages.def=-1;turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,3);const b=make(row(623));b.fighters[0].stages.def=-1;turn(b);assert.equal(b.fighters[0].stages.def,0);assert.ok(Object.values(b.fighters[0].effects).some(e=>e.start===2&&e.end===2));for(const id of[843,486]){const s=make(row(id));turn(s);assert.ok(Object.values(s.fighters[0].effects).some(e=>e.start===2&&e.end===3));}
+});
+test('4850/31两实例2或3段真实逐段伤害，30后手倍威，15真实概率害怕及免异',()=>{
+ for(const r of[row(31),row(31,1)]){const seen=new Set();for(let seed=1;seed<18;seed++){const a=make({...r,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);const events=a.damageEvents.filter(e=>e.sourceSide===0&&e.type==='attack');assert.ok(events.every(e=>e.settledDamage>0));seen.add(events.length);}assert.deepEqual([...seen].sort(),[2,3]);}
+ const a=make({...row(30),aStats:{spe:1}}),b=make({move:10144,index:-1,aStats:{spe:1}});turn(a);turn(b);assert.ok(Math.abs(sum(a)-sum(b)*2)<=2);const seen=new Set();for(let seed=1;seed<=32;seed++){const c=make({...row(15),seed:Math.imul(seed,0x9e3779b1)>>>0});turn(c);seen.add(!!c.fighters[1].ailments['害怕']);const d=make({...row(15),seed:Math.imul(seed,0x9e3779b1)>>>0});d.fighters[1].counts.immune=1;turn(d);assert.equal(d.fighters[1].ailments['害怕'],undefined);}assert.equal(seen.size,2);
+});
+test('4850/2205异常时取实际正反克制最大值，无异常不改，非红无加成',()=>{
+ for(const id of[4766,4763,4808]){const enemy=require('../research/BATCH-4676-NEXT50/'+id+'/snapshot.json'),load=id===4766?[20117,10127,10716,20309,37911]:id===4763?[20167,10389,10390,20168,37933]:[20030,20118,20631,26329,38055];for(const abnormal of[false,true]){const a=make({...row(2205),enemySource:enemy,enemyLoadout:load}),b=make({move:38196,index:-1,enemySource:enemy,enemyLoadout:load});if(abnormal){a.fighters[0].ailments['流血']=3;b.fighters[0].ailments['流血']=3;}let ratio;observe((event,c)=>{if(event==='beforeDamage'&&c.a.side===0)ratio=abnormal?Math.max(c.typeAffinity(c.a.type,c.t.type),c.typeAffinity(c.t.type,c.a.type))/c.typeAffinity(c.a.type,c.t.type):1;},()=>turn(a,38196,load[0]));turn(b,38196,load[0]);assert.ok(Math.abs(sum(a)-sum(b)*ratio)<=3);}}
+});

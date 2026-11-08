@@ -1,0 +1,185 @@
+{
+  "4816:soul:2008": {
+    "sourceDigest": "8324035239fb9704f41fd52f633acff015bd07a3bedf38f39dc0cf3b1f52f5bc",
+    "scope": "mixed",
+    "reviewedBy": "Codex source scope review; partial implementation, not acceptance",
+    "reviewedAt": "2026-11-02T06:01:49.032Z",
+    "status": "partial-awaiting-confirmation",
+    "rationale": "配置/首次开启、当前在场沸涌、第五关闭、当前双方技能无效、过载和回合初先制属于自身分支；零PP恢复量及其连带结算待Q-4816-001；仅下场与再次登场流程延期。",
+    "singleBehavior": "战斗开始配置并首次开启共振器；当前双方用第五关闭、开启时双方技能无效；回合开始效果先制+1，自身沸涌2回合或已有时+2，超过3回合于战斗阶段结束受300真伤。零PP恢复及其连带结算仍待Q-4816-001，绝不视为已完成。",
+    "implementation": [
+      "dist/range-souls.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008共振器开启阻断双方技能仍扣PP，第五实际使用关闭后恢复攻击",
+          "assertion": " const s=make({move:10234,soul:true});assert.equal(s.fighters[0].soulState.cyber2008.open,true);turn(s,10234,10127);assert.equal(damage(s),0);assert.equal(damage(s,'attack',1),0);assert.equal(s.fighters[0].pp[key(10234)],source.moves.find(x=>x.id===10234).pp-1);assert.ok(s.fighters[0].ailments['沸涌']);turn(s,38085,10127);assert.equal(s.fighters[0].soulState.cyber2008.open,false);assert.ok(s.fighters[1].ailments['沸涌']);turn(s,10234,10127);assert.ok(damage(s)>0);\n const t=make({move:10234,soul:true,slow:true});turn(t,10234,37911);assert.equal(t.fighters[0].soulState.cyber2008.open,false);assert.ok(damage(t)>0);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008沸涌2回合与逐次加2，超过3回合的过载记录300真实自伤",
+          "assertion": " const s=make({move:10234,soul:true});turn(s);assert.equal(s.fighters[0].ailments['沸涌'],2);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],4);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],6);assert.equal(s.fighters[0].hp,8700);const e=s.damageEvents.find(e=>e.round===3&&e.sourceSide===0&&e.targetSide===0);assert.equal(e.type,'true');assert.equal(e.settledDamage,300);assert.equal(e.hpLoss,300);"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008免异阻止初始沸涌，关闭后不续期，零PP明确拒绝未确认分支",
+          "assertion": " const s=make({move:10234,soul:true});s.fighters[0].counts.immune=1;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);assert.equal(s.fighters[0].counts.immune,0);s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);\n const t=make({move:10234,soul:true});t.fighters[0].pp[key(10234)]=1;assert.throws(()=>turn(t),/Q-4816-001/);assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('单精灵分支未完成')));"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008沸涌2回合与逐次加2，超过3回合的过载记录300真实自伤",
+          "assertion": " const s=make({move:10234,soul:true});turn(s);assert.equal(s.fighters[0].ailments['沸涌'],2);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],4);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],6);assert.equal(s.fighters[0].hp,8700);const e=s.damageEvents.find(e=>e.round===3&&e.sourceSide===0&&e.targetSide===0);assert.equal(e.type,'true');assert.equal(e.settledDamage,300);assert.equal(e.hpLoss,300);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008免异阻止初始沸涌，关闭后不续期，零PP明确拒绝未确认分支",
+          "assertion": " const s=make({move:10234,soul:true});s.fighters[0].counts.immune=1;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);assert.equal(s.fighters[0].counts.immune,0);s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);\n const t=make({move:10234,soul:true});t.fighters[0].pp[key(10234)]=1;assert.throws(()=>turn(t),/Q-4816-001/);assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('单精灵分支未完成')));"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008共振器开启阻断双方技能仍扣PP，第五实际使用关闭后恢复攻击",
+          "assertion": " const s=make({move:10234,soul:true});assert.equal(s.fighters[0].soulState.cyber2008.open,true);turn(s,10234,10127);assert.equal(damage(s),0);assert.equal(damage(s,'attack',1),0);assert.equal(s.fighters[0].pp[key(10234)],source.moves.find(x=>x.id===10234).pp-1);assert.ok(s.fighters[0].ailments['沸涌']);turn(s,38085,10127);assert.equal(s.fighters[0].soulState.cyber2008.open,false);assert.ok(s.fighters[1].ailments['沸涌']);turn(s,10234,10127);assert.ok(damage(s)>0);\n const t=make({move:10234,soul:true,slow:true});turn(t,10234,37911);assert.equal(t.fighters[0].soulState.cyber2008.open,false);assert.ok(damage(t)>0);"
+        },
+        {
+          "file": "tests/remaining-4816-known.test.cjs",
+          "name": "4816真实2008在B方时回合初先制1先于A方普通回合初，沸涌状态已实际生效",
+          "assertion": " const order=[],old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='roundStart'){order.push(c.a.side);if(c.a.side===0)assert.equal(c.t.ailments['沸涌'],2);}}};try{Object.assign(s,E.resolveTurn(s,['wiki:20117','wiki:38083']));}finally{E.SOULS=old;}assert.deepEqual(order,[1,0]);assert.equal(s.fighters[1].ailments['沸涌'],2);"
+        }
+      ]
+    },
+    "deferredBehavior": "仅自身下场时关闭共振器、随后再次登场时开启，以及换宠流程中的己方装置状态延续；当前在场双方所有自身分支未因队伍措辞而整体延期。",
+    "trigger": "自身下场及随后重新登场",
+    "futureMechanisms": [
+      "换宠事件",
+      "重新登场事件",
+      "队伍装置状态与生命周期"
+    ],
+    "dependencyEvidence": [
+      {
+        "kind": "switch",
+        "quote": "自身每次登场时开启赛博共振器",
+        "source": {
+          "file": "research/BATCH-4816-REMAINING/4816/snapshot.json",
+          "url": "https://api.seerapi.com/v1/soulmark/2008",
+          "revision": "ea98a00b"
+        }
+      }
+    ],
+    "pendingQuestions": [
+      "Q-4816-001"
+    ],
+    "metadataCorrection": {
+      "at": "2026-11-04T06:05:03.100Z",
+      "scope": "schema-and-literal-source-evidence-only",
+      "notFormalAcceptance": true
+    }
+  },
+  "4816:move:10234": null,
+  "4816:move:20065": null,
+  "4816:skill:20065:0": null,
+  "4816:move:10047": null,
+  "4816:move:10429": null,
+  "4816:move:20528": null,
+  "4816:skill:20528:0": null,
+  "4816:move:38083": null,
+  "4816:skill:38083:0": null,
+  "4816:skill:38083:1": null,
+  "4816:skill:38083:2": null,
+  "4816:skill:38083:3": null,
+  "4816:move:12046": null,
+  "4816:skill:12046:0": null,
+  "4816:move:20194": null,
+  "4816:skill:20194:0": null,
+  "4816:skill:20194:1": null,
+  "4816:move:11680": {
+    "sourceDigest": "5dc5ce66f9b0a9e8144d706ee7a23c62087a8b3dd31c5ead7a40d30ed98de966",
+    "scope": "single",
+    "reviewedBy": "Codex exact source range classification",
+    "reviewedAt": "2026-11-04T11:47:52.914Z",
+    "rationale": "原始atk_num为3，仅多目标范围；来源没有独立效果实例。用户Q-A60-4004-008已统一忽略多目标范围，当前目标一次普通攻击，不得改成多段或继续标作多宠待实现。",
+    "singleBehavior": "保留原始种类、威力、PP、命中、暴击及atk_num3，当前唯一对手执行一次普通攻击；零PP拒绝，不创建额外目标。",
+    "implementation": [
+      "dist/wiki-support.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/remaining-fixed52-classifications.test.cjs",
+          "name": "本批11680、14404、11141真实多目标字段保留，当前仅一包普通攻击和HP损失，零PP拒绝",
+          "assertion": "真实源快照创建战斗，当前对手只有一条攻击事件，实际HP等于原HP减完整伤害，本招PP减1；保留atk_num3并命中用户排除记录；零PP拒绝。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/remaining-fixed52-classifications.test.cjs",
+          "name": "本批11680、14404、11141真实多目标字段保留，当前仅一包普通攻击和HP损失，零PP拒绝",
+          "assertion": "真实源快照创建战斗，当前对手只有一条攻击事件，实际HP等于原HP减完整伤害，本招PP减1；保留atk_num3并命中用户排除记录；零PP拒绝。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/remaining-fixed52-classifications.test.cjs",
+          "name": "本批11680、14404、11141真实多目标字段保留，当前仅一包普通攻击和HP损失，零PP拒绝",
+          "assertion": "真实源快照创建战斗，当前对手只有一条攻击事件，实际HP等于原HP减完整伤害，本招PP减1；保留atk_num3并命中用户排除记录；零PP拒绝。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/remaining-fixed52-classifications.test.cjs",
+          "name": "本批11680、14404、11141真实多目标字段保留，当前仅一包普通攻击和HP损失，零PP拒绝",
+          "assertion": "真实源快照创建战斗，当前对手只有一条攻击事件，实际HP等于原HP减完整伤害，本招PP减1；保留atk_num3并命中用户排除记录；零PP拒绝。"
+        }
+      ]
+    },
+    "ignoredSourceFeatures": [
+      {
+        "field": "atk_num",
+        "value": 3,
+        "sourceHash": "71f52076",
+        "confirmation": "research/MULTI-TARGET-USER-SCOPE.json"
+      }
+    ],
+    "userConfirmation": "research/MULTI-TARGET-USER-SCOPE.json"
+  },
+  "4816:move:13306": null,
+  "4816:skill:13306:0": null,
+  "4816:move:21743": null,
+  "4816:skill:21743:0": null,
+  "4816:move:13304": null,
+  "4816:skill:13304:0": null,
+  "4816:move:29147": null,
+  "4816:skill:29147:0": null,
+  "4816:skill:29147:1": null,
+  "4816:skill:29147:2": null,
+  "4816:skill:29147:3": null,
+  "4816:move:13307": null,
+  "4816:skill:13307:0": null,
+  "4816:move:29148": null,
+  "4816:skill:29148:0": null,
+  "4816:skill:29148:1": null,
+  "4816:skill:29148:2": null,
+  "4816:skill:29148:3": null,
+  "4816:move:38084": null,
+  "4816:skill:38084:0": null,
+  "4816:skill:38084:1": null,
+  "4816:skill:38084:2": null,
+  "4816:skill:38084:3": null,
+  "4816:skill:38084:4": null,
+  "4816:move:38085": null,
+  "4816:skill:38085:0": null,
+  "4816:skill:38085:1": null,
+  "4816:skill:38085:2": null,
+  "4816:skill:38085:3": null,
+  "4816:skill:38085:4": null,
+  "4816:skill:38085:5": null
+}

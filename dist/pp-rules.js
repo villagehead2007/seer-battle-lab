@@ -26,6 +26,7 @@
     const result=absorb({...receiver,moves:receiverKey?[receiverKey]:[]},{...donor,moves:[donorKey]},amount,definitions,options);
     result.selectedSlotIndex=index;for(const slot of result.slots)slot.index=index;return result;
   }
+  function setDirect(f,id,value,definitions){if(!f.moves.includes(id)||!Number.isInteger(value)||value<0||value>definitions[id]?.pp)throw Error('直接设置PP须为实际技能槽内的合法整数');consuming.add(f);try{f.pp[id]=value;}finally{consuming.delete(f);}return f.pp[id];}
   function consume(f,id,amount,ignorePP=false){if(!Number.isInteger(amount)||amount<0)throw new RangeError('PP消耗必须为非负整数');if(!usable(f,id,ignorePP))return false;consuming.add(f);try{f.pp[id]=Math.max(0,f.pp[id]-amount);}finally{consuming.delete(f);}return true;}
 
   // Sourced PP marks are distinct from PVP ailments. The original acquisition
@@ -36,5 +37,8 @@
   function removeState(f,name){const old=f.soulState?.ppStates?.[name];if(old)delete f.soulState.ppStates[name];return old??null;}
   function expireStates(f,round){const removed=[];for(const name of stateNames){const e=f.soulState?.ppStates?.[name];if(e&&e.end<=round){removed.push(e);removeState(f,name);}}return removed;}
   function applyStates(f,definitions,round,{restoreState,reductionBlocked=false}={}){const events=[];for(const name of stateNames){const e=state(f,name,round);if(!e)continue;const before={...f.pp};let blocked=false;if(e.family==='recover'){if(typeof restoreState!=='function')throw Error('PP回复标记缺少来源恢复接口');restoreState(f,e.amount,e.source);}else{blocked=!!reductionBlocked;if(!blocked)for(const k of f.moves)f.pp[k]=Math.max(0,f.pp[k]-e.amount);}events.push({name,source:e.source,blocked,slots:f.moves.map(id=>({id,before:before[id],after:f.pp[id],change:f.pp[id]-before[id]}))});}return events;}
-  return Object.freeze({restore,absorb,absorbSelected,usable,consume,protectReduction,stateNames,state,grantState,removeState,expireStates,applyStates,stateSourceType:'seerapi',sourceType:'user_confirmed'});
+  
+  // Explicit PP clearing is separate from ordinary cost, subtraction and absorption.
+  function clear2125(f,id,round=1,{blocked=false}={}){if(id==='struggle'&&!f.moves.includes(id))return {before:0,after:0,cleared:false,goldProtected:false,noPPSlot:true};if(!f.moves.includes(id))throw Error('清PP目标不在实际技能槽');const before=f.pp[id],mark=f.soulState?.fiveMarks2125?.金,active=!!(mark&&mark.start<=round&&mark.end>=round);if(blocked)return {before,after:before,cleared:false,goldProtected:false,blocked:true};f.pp[id]=0;const afterOther=f.pp[id];if(active&&afterOther<Math.min(before,5)){consuming.add(f);try{f.pp[id]=Math.min(before,5);}finally{consuming.delete(f);}}if(active&&before>afterOther&&f.soulId===2125)mark.end=round+4;const cleared=before>0&&f.pp[id]===0;if(cleared){f.soulState??={};(f.soulState.ppClearHistory??=[]).push({round,key:id,before,after:0});if(!active&&f.soulId===2125)(f.soulState.fiveMarks2125??={}).金={start:round,end:round+4,sourceSoul:2125,sourceHash:'4c65a1e0'};}return {before,after:f.pp[id],cleared,goldProtected:active&&before>afterOther};}
+  return Object.freeze({setDirect,clear2125,restore,absorb,absorbSelected,usable,consume,protectReduction,stateNames,state,grantState,removeState,expireStates,applyStates,stateSourceType:'seerapi',sourceType:'user_confirmed'});
 });

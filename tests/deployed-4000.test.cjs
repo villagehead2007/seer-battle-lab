@@ -1,0 +1,11 @@
+'use strict';
+require('./answered-4000-source.test.cjs');
+require('./answered-4000.test.cjs');
+require('./remaining-4000-base.test.cjs');
+require('./remaining-4000-confirmed125.test.cjs');
+require('./remaining-4000-core.test.cjs');
+require('./remaining-4000-extra.test.cjs');
+require('./remaining-4000-interactions.test.cjs');
+require('./remaining-4000-limits.test.cjs');
+require('./remaining-4000-native.test.cjs');
+require('./remaining-4000-public.test.cjs');

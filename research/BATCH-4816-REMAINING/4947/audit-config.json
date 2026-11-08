@@ -1,0 +1,109 @@
+{
+  "id": 4947,
+  "proofs": [
+    "freeze-current-v1"
+  ],
+  "files": [
+    "tests/remaining-4947-boundaries.test.cjs",
+    "tests/remaining-4947-interactions.test.cjs",
+    "tests/remaining-4947-native.test.cjs",
+    "tests/remaining-4947-public.test.cjs",
+    "tests/remaining-4947-skills.test.cjs",
+    "tests/remaining-4947-soul.test.cjs",
+    "tests/remaining-4947-source-conflict.test.cjs"
+  ],
+  "questions": [
+    "Q-4947-001",
+    "Q-4947-002"
+  ],
+  "pendingByKey": {
+    "4947:soul:2147": [
+      "Q-4947-002"
+    ],
+    "4947:skill:38540:2": [
+      "Q-4947-002"
+    ],
+    "4947:skill:38541:4": [
+      "Q-4947-001"
+    ]
+  },
+  "reviews": {
+    "4947:soul:2147": {
+      "scope": "mixed",
+      "rationale": "自身在场的无视正级、先制、回血减伤、胜之道和攻击记录均为自身行为；仅真实场下支援监听与队伍不武授予延期。",
+      "singleBehavior": "实际攻击忽略对手正级，使用时无强授下轮攻击先制；异常分支两回合50%减攻，无异常两回合末30%魂印回复；场上武道开启胜之道并减对手1分不武；实际抵挡后衍化关闭；当前双方完整红伤记录、次轮50%粉伤与严格小于200翻倍。既有不武当前载荷独立验证，点数多分、留存等未决保留显式错误。",
+      "deferredBehavior": "存活场下时监听对方不高于10%的抗性触发和通用特性执行，给实际对方队伍添加不武。",
+      "trigger": "自身真实存活场下、对方触发相应低概率抗性或执行通用特性",
+      "futureMechanisms": [
+        "场下存活支援者",
+        "低概率抗性及通用特性实际触发广播",
+        "对方队伍不武状态归属"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "自身存活于场下时，对方每次触发概率不高于10%的抗性或执行概率不高于10%的通用特性时，对方获得1分不武",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4947/snapshot.json",
+            "url": "https://api.seerapi.com/v1/soulmark/2147",
+            "revision": "9d48c770"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    },
+    "4947:skill:38541:3": {
+      "scope": "multiplayer",
+      "rationale": "来源限制场下来源对当前在场双方的选取资格，当前对手的正常效果不受限制。",
+      "singleBehavior": "",
+      "deferredBehavior": "实际场下精灵效果选择双方在场精灵时拒绝目标。",
+      "trigger": "技能命中后3回合",
+      "futureMechanisms": [
+        "场下效果来源",
+        "目标选择资格"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "off-field",
+          "quote": "双方的在场精灵无法成为场下精灵的效果目标",
+          "source": {
+            "file": "research/BATCH-4816-REMAINING/4947/snapshot.json",
+            "url": "https://api.seerapi.com/v1/skill/38541",
+            "revision": "seerapi:e5337815"
+          }
+        }
+      ],
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js"
+      ],
+      "verificationNote": "按真实参数记录双方3回合目标约束，普通当前双方技能继续结算。",
+      "metadataCorrection": {
+        "at": "2026-11-04T06:05:03.100Z",
+        "scope": "schema-and-literal-source-evidence-only",
+        "notFormalAcceptance": true
+      }
+    }
+  },
+  "implementation": [
+    "dist/range-effects.js",
+    "dist/range-souls.js",
+    "dist/souls.js"
+  ],
+  "summary": "21招来源与当前在场魂印分支实现，真实状态验证覆盖攻击记录、下一回合先制/附伤、胜之道、禁行动、状态转移与反馈；1156实例参数冲突及不武点数未决，保留部分实现与未部署状态。",
+  "limitations": [
+    "对未确认的不武留存策略仅在专项中隔离，未把测试策略视为已确认事实。",
+    "第五技能KO时仍明确抛Q-4947-001且回滚，原生逐招采用真实未击败当前对手分支。",
+    "固定52最终新完整npm尚未运行，不宣称正式单精灵阶段完成。"
+  ]
+}

@@ -1,0 +1,4 @@
+'use strict';const fs=require('fs'),p='dist/souls.js';let t=fs.readFileSync(p,'utf8');
+const from="function damageClassification(receiver,source,amount,type,m=null){const c={...context(source,receiver,m),amount,type,lethal:amount>0&&amount>=receiver.hp};E.SOULS.run('classifyDamage',c);return !!c.lethal;}";
+const to="function damageClassification(receiver,source,amount,type,m=null){const naturalLethal=amount>0&&amount>=receiver.hp,c={...context(source,receiver,m),amount,type,lethal:naturalLethal};E.SOULS.run('classifyDamage',c);if(source.soulId===2162||receiver.soulId===2162||receiver.soulState.divineJourney?.enabled){(s.lethalDamageEvents??=[]).push({round:r,sourceSide:source.side,targetSide:receiver.side,type,amount,naturalLethal,deemedLethal:deemedLethal(source,receiver,amount,type),lethal:!!c.lethal});}return !!c.lethal;}";
+if(t.split(from).length!==2)throw Error('classification event match');fs.writeFileSync(p,t.replace(from,to));

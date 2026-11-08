@@ -1,0 +1,10 @@
+'use strict';
+require('./remaining-4947-soul.test.cjs');
+require('./remaining-4947-skills.test.cjs');
+require('./remaining-4947-public.test.cjs');
+require('./remaining-4947-interactions.test.cjs');
+require('./remaining-4947-boundaries.test.cjs');
+require('./remaining-4947-source-conflict.test.cjs');
+require('./remaining-4947-native.test.cjs');
+require('./answered-4947.test.cjs');
+require('./redundant-source-params.test.cjs');

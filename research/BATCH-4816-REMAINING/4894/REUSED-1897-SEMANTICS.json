@@ -1,0 +1,82 @@
+{
+  "source": "historical-deployed-4509",
+  "historicalMetadata": {
+    "id": 1897,
+    "argsNum": 4,
+    "template": "消除对手能力提升状态，消除成功则{0}回合内对手造成的攻击伤害不超过{1}点，若对手不处于能力提升状态则{2}回合内对手所有体力恢复效果减少{3}%",
+    "revision": "seerapi:d285ae0b"
+  },
+  "currentMetadata": {
+    "id": 1897,
+    "argsNum": 4,
+    "template": "消除对手能力提升状态，消除成功则{0}回合内对手造成的攻击伤害不超过{1}点，若对手不处于能力提升状态则{2}回合内对手所有体力恢复效果减少{3}%",
+    "revision": "seerapi:d285ae0b"
+  },
+  "sameVersion": true,
+  "review": {
+    "key": "4509:skill:36605:0",
+    "sourceDigest": "f4f71ca8da506a07a7dc416b1a21a605e374ecb8e6a0f32e6d04f3e279f67b7d",
+    "scope": "single",
+    "reviewedBy": "Codex",
+    "reviewedAt": "2026-10-26T18:42:19.374Z",
+    "reviewStatus": "single-stage-accepted",
+    "rationale": "原始SeerAPI参数、描述和hash保持；Q-N50-4509-002原回答“整回合”明确累计范围，红伤语义依当前用户全局确认。",
+    "singleBehavior": "依原文清强；成功后3回合内对手整回合完整红伤总输出不超过300，各段及当回合攻击共享预算，每回合重置；清强受保护失败不授予，无正强化则1回合回复减少100%。",
+    "implementation": [
+      "dist/range-effects.js",
+      "dist/souls.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/deployed-4509.test.cjs",
+          "name": "4509用户确认1897：真实清强后多段共享整回合300完整红伤预算，每回合重新计算并到期",
+          "assertion": "真实清强为0；本次两段完整红伤合计300、次段0。"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/deployed-4509.test.cjs",
+          "name": "4509用户确认1897：强化保护失败不授上限，无强化执行原禁疗分支",
+          "assertion": "强化保护保留+2、无攻击上限；无强化时本次治疗实际0，HP只减本体红伤。"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/deployed-4509.test.cjs",
+          "name": "4509用户确认1897：真实清强后多段共享整回合300完整红伤预算，每回合重新计算并到期",
+          "assertion": "三回合各自预算300，第三回合结束移除，第四回合红伤超过300。"
+        },
+        {
+          "file": "tests/deployed-4509.test.cjs",
+          "name": "4509用户确认1897：保1时按完整结算伤害扣预算，附加固定伤害不占红伤预算",
+          "assertion": "200HP保1时完整红伤300、实际损失199，次段完整伤害0。"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/deployed-4509.test.cjs",
+          "name": "4509用户确认1897：保1时按完整结算伤害扣预算，附加固定伤害不占红伤预算",
+          "assertion": "附加固伤仍逐条100，不消耗红伤预算；保1后仍以完整伤害耗预算。"
+        }
+      ]
+    },
+    "questions": [],
+    "pendingSingleBehavior": "多段/同回合多攻击的300累计范围待确认；单次上限、清强及禁疗分支已验证",
+    "previousResearchSourceDigest": "1db85fc396d22959531469f927aadce0d4fb135c83a19b11a3a40fd253f71dd3",
+    "deploymentDigestReboundAt": "2026-10-26T18:42:19.374Z",
+    "userConfirmation": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4509-user-confirmations.json",
+    "answeredQuestions": [
+      "Q-N50-4509-002"
+    ],
+    "singleStageAcceptance": {
+      "at": "2026-10-27T04:37:02.276Z",
+      "certificate": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4509-ACCEPTED.json",
+      "validatorResult": "research/4509-formal-validator-v2-result.json"
+    },
+    "acceptance": "research/next50-answer-takeover-2026-10-26T17-09-55-144Z/4509-ACCEPTED.json",
+    "batchAcceptance": "research/next50-batch1-formal-2026-10-27T14-33-20-720Z-result.json",
+    "acceptedAt": "2026-10-27T15:15:41.139Z"
+  },
+  "decision": "同一SeerAPI模板版本d285ae0b沿用已核实整回合累计红输出上限；不伪称上游更改或新增全局用户确认。"
+}

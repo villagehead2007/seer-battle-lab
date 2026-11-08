@@ -1,0 +1,77 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),source=require('../research/BATCH-4816-REMAINING/4834/snapshot.json'),H=require('./helpers/remaining-battle.cjs')(source),{E,key,keys,make,turn,timer,sum}=H;
+const row=id=>source.moves.flatMap(m=>m.effectInstances.map((e,index)=>({move:m.id,index,id:e.id}))).find(x=>x.id===id);
+function observe(fn,run){const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);fn(e,c);}};try{return run();}finally{E.SOULS=old;}}
+test('4834全部22招原生完整2024初始化与有序实例PP，64种子基础命中先制暴击，零PP拒绝及整招封锁',()=>{
+ for(const m of source.moves){const s=make({move:m.id,soul:true,hp:1000}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2024);assert.deepEqual(s.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.id===38150?m.pp:m.pp-1);const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero),/有 PP/);const blocked=make({move:m.id});timer(blocked,0,'skillBlock');turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(sum(blocked,'percent'),0);}
+ let checked=0;for(const move of source.moves){checked+=require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[move]}}).length;console.log('# 4834 base verified '+move.id);}assert.equal(checked,22);
+});
+test('4834真实2024回初攻命1后按结果有正级当回合强制暴击，正常暴击吸取三分一及红免零伤仍正常吸取不倍补',()=>{
+ for(const zero of[false,true]){const s=make({move:10181,index:-1,soul:true,hp:1000});if(zero)timer(s,1,'攻击伤害免疫');let crit;observe((e,c)=>{if(e==='afterAttack'&&c.a.side===0)crit=c.crit;},()=>turn(s));assert.equal(s.fighters[0].stages.atk,1);assert.equal(s.fighters[0].stages.acc,1);assert.equal(crit,true);assert.equal(sum(s,'percent'),3000);assert.equal(s.fighters[0].hp,4000);assert.equal(s.fighters[1].counts.nextAttackInvalid??0,0);if(zero)assert.equal(sum(s),0);}
+});
+test('4834真实2024回初负1归0无强化仅固粉减70%、真伤不减，减伤快照不因当回合强化改变；全部回末后回血',()=>{
+ const s=make({move:20088,index:-1,soul:true});s.fighters[0].stages.atk=-1;s.fighters[0].stages.acc=-1;const values=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,1,['def']);for(const type of['fixed','percent','true'])values.push(c.hurt(c.t,100,'魂印三通道减伤',type));}},()=>turn(s));assert.deepEqual(values,[30,30,100]);assert.equal(s.fighters[0].hp,9000);
+ const a=make({move:10181,index:-1,soul:true});timer(a,0,'禁强化');observe((e,c)=>{if(e==='roundStart'&&c.a.side===0){assert.equal(c.a.soulState.armored2024.positive,false);assert.equal(c.a.stages.atk,0);}},()=>turn(a));
+});
+test('4834真实2024攻击无效按已答保留暴击前提，未实际使用及属性不误触，无暴击正常命中不吸取',()=>{
+ for(const mode of['miss','whole']){const a=make({move:10181,index:-1,soul:true});if(mode==='miss'){delete a.fighters[0].effects['攻击必中'];timer(a,0,'攻击必失');}else timer(a,0,'skillBlock');turn(a);assert.equal(sum(a,'percent'),6000);assert.equal(a.fighters[1].counts.nextAttackInvalid,1);}
+ const status=make({move:20088,index:-1,soul:true});turn(status);assert.equal(sum(status,'percent'),0);const unused=make({move:10181,index:-1,soul:true});unused.fighters[0].ailments['害怕']=99;turn(unused);assert.equal(sum(unused,'percent'),0);
+});
+test('4834/2363无强化则断回合及免断失败，有强化只清强、强化保护失败不伪断回合',()=>{
+ const a=make(row(2363));turn(a);assert.equal(a.fighters[1].effects['攻击必中'],undefined);const b=make(row(2363));timer(b,1,'protect');turn(b);assert.ok(b.fighters[1].effects['攻击必中']);const c=make(row(2363));c.fighters[1].stages.atk=2;turn(c);assert.equal(c.fighters[1].stages.atk,1);assert.ok(c.fighters[1].effects['攻击必中']);const d=make(row(2363));d.fighters[1].stages.atk=2;timer(d,1,'幽蝶强化保护');turn(d);assert.equal(d.fighters[1].stages.atk,3);assert.ok(d.fighters[1].effects['攻击必中']);
+});
+test('4834/1930真实当前先制每级加1连击最高7，1930与2116先手削回复、1357后手倍红互不混淆',()=>{
+ for(const [boost,want]of[[0,4],[2,6],[8,7],[-10,1]]){const a=make(row(1930));if(boost)timer(a,0,'id984',{amount:boost});turn(a);const hits=a.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===0);assert.equal(hits.length,want);assert.ok(hits.every(e=>e.hpLoss>0));}
+ const a=make(row(2116));turn(a);assert.equal(a.fighters[1].effects['回复效果削减'].fraction,.5);const b=make({...row(1357),aStats:{spe:1}});b.moveDefinitions[key(38149)].priority=-1;turn(b,38149,10127);const base=make({...row(1357),index:-1,aStats:{spe:1}});base.moveDefinitions[key(38149)].priority=-1;turn(base,38149,10127);assert.ok(Math.abs(sum(b)-2*sum(base))<=2);
+});
+test('4834/1879双防严格较高护罩400否则200，含战阶比较，同源刷新异源独立不触消失',()=>{
+ for(const [stage,want]of[[-1,200],[0,200],[1,400]]){const a=make(row(1879));a.fighters[0].stages.def=stage;turn(a);assert.equal(a.fighters[0].suitState.barrier,want);turn(a,29189);assert.equal(a.fighters[0].suitState.barrier,want);assert.equal(a.fighters[0].soulState.barrierAilmentTriggers.filter(x=>!x.done).length,1);assert.equal(a.fighters[1].ailments['瘫痪'],undefined);}
+});
+test('4834/1879来源护罩消失50%瘫痪共享随机成功失败，不因其他护罩仍在而漏触发，免异失败不重试',()=>{
+ const seen=new Set();for(let seed=1;seed<30&&seen.size<2;seed++){const a=make({...row(1879),seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0)c.refreshBarrier(c.a,300,'independent-test-barrier');if(e==='beforeUse'&&c.a.side===1){c.a.counts.immune=5;c.hurt(c.t,200,'耗尽1879新授源','fixed');assert.equal(c.t.suitState.barrier,300);const after=c.a.counts.immune;seen.add(after===4);c.hurt(c.t,100,'其他来源继续受伤','fixed');assert.equal(c.a.counts.immune,after);assert.equal(c.t.soulState.barrierAilmentTriggers[0].done,true);}},()=>turn(a,29189));}assert.equal(seen.size,2);
+});
+test('4834/2364实际封属性才授下次免攻、无行动不授，同源刷新1异源保留；属性不消费攻免',()=>{
+ const a=make(row(2364));turn(a);assert.equal(a.fighters[1].pp[key(20117)],a.moveDefinitions[key(20117)].pp-1);assert.equal(a.fighters[1].stages.atk,0);assert.equal(a.fighters[0].counts.attackNullify,1);a.moveDefinitions[key(38151)].operations=[];turn(a,38151);assert.equal(a.fighters[0].counts.attackNullify,1);turn(a,38151,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].counts.attackNullify,0);
+ const b=make(row(2364));b.fighters[1].ailments['害怕']=99;turn(b);assert.equal(b.fighters[0].counts.attackNullify??0,0);assert.equal(b.fighters[1].pp[key(20117)],b.moveDefinitions[key(20117)].pp);
+ const c=make(row(2364));c.fighters[0].counts.attackNullify=2;turn(c);assert.equal(c.fighters[0].counts.attackNullify,3);turn(c,38150);assert.equal(c.fighters[0].counts.attackNullify,3);
+});
+test('4834/463每回合只减完整红伤总额度300，不减固粉真；多次红伤用尽后不再减且下回合重置',()=>{
+ const a=make(row(463));turn(a);const out=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)for(const t of['attack','attack','attack','fixed','percent','true'])out.push(c.hurt(c.t,200,'伤害通道与回合额度',t));},()=>turn(a,38151));assert.deepEqual(out,[0,100,200,200,200,200]);assert.equal(a.fighters[0].soulState.whale408Round.spent,300);
+});
+test('4834/2366完整红伤严格高1000才当回合回复削减100%，零伤和低伤不授，保1仍用完整伤害',()=>{
+ for(const atk of[1,9999]){const a=make({...row(2366),aStats:{atk},targetHp:1});timer(a,1,'致命保留',{hp:1});let reduction;observe((e,c)=>{if(e==='afterUse'&&c.a.side===0){reduction=c.t.effects['回复效果削减']&&{...c.t.effects['回复效果削减']};c.heal(c.t,1000,'当回合魂印回复验证','soul');}},()=>turn(a));assert.equal(a.fighters[1].hp,atk===9999?1:1001);assert.equal(!!reduction,atk===9999);assert.equal(sum(a)>1000,atk===9999);if(atk===9999){assert.equal(reduction.fraction,1);assert.equal(reduction.end,1);}assert.equal(a.fighters[1].effects['回复效果削减'],undefined);}
+});
+test('4834/962无强全强2有强1、615当次回血400低半回满及禁疗，1390烧伤失败才授2回合必闪',()=>{
+ const a=make(row(962));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],2);const b=make(row(962));b.fighters[0].stages.atk=1;turn(b);assert.equal(b.fighters[0].stages.atk,2);assert.equal(b.fighters[0].stages.def,1);
+ for(const [hp,want]of[[1000,9000],[4500,4900],[8900,9000]]){const c=make({...row(615),hp});turn(c);assert.equal(c.fighters[0].hp,want);}const d=make({...row(615),hp:1000});timer(d,0,'技能禁疗');turn(d);assert.equal(d.fighters[0].hp,1000);
+ const f=make(row(1390));f.fighters[1].counts.immune=1;delete f.fighters[1].effects['攻击必中'];turn(f,29190,10127);assert.ok(f.fighters[0].effects['概率闪避']);assert.equal(sum(f,'attack',1),0);const g=make(row(1390));turn(g);assert.ok(g.fighters[1].ailments['烧伤']);assert.equal(g.fighters[0].effects['概率闪避'],undefined);
+});
+test('4834/191反弹不耗次数，1558下两回合暴击红增100%非暴击不增，843下两回合先制2',()=>{
+ const a=make(row(191));turn(a);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.t.counts.immune=2;assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,2);assert.ok(c.a.ailments['中毒']);}},()=>turn(a,38151));
+ const b=make(row(1558));turn(b);b.moveDefinitions[key(38151)].operations=[];timer(b,0,'必定暴击');const base=make({move:38151,index:-1});timer(base,0,'必定暴击');b.rng=base.rng;turn(b,38151);turn(base);assert.ok(Math.abs(sum(b)-2*sum(base))<=2);const c=make(row(843));turn(c);c.moveDefinitions[key(38151)].operations=[];turn(c,38151);assert.equal(c.fighters[0].soulState.resolvedPriority.value,2);turn(c,38151);turn(c,38151);assert.equal(c.fighters[0].soulState.resolvedPriority.value,0);
+});
+test('4834/959断回合成功全强与1177真实正级翻倍截断6，1041低于60封下一攻，1821未击败全PP2',()=>{
+ const a=make(row(959));turn(a);for(const k of keys)assert.equal(a.fighters[0].stages[k],1);const b=make(row(1177));b.fighters[0].stages.atk=4;b.fighters[0].stages.def=-2;turn(b);assert.equal(b.fighters[0].stages.atk,6);assert.equal(b.fighters[0].stages.def,-2);const c=make({...row(1041),aStats:{atk:1}});turn(c);assert.equal(c.fighters[1].counts.nextAttackInvalid,1);
+ const d=make(row(1821));for(const k of d.fighters[0].moves)d.fighters[0].pp[k]=1;turn(d);assert.equal(d.fighters[0].pp[key(38150)],2);for(const k of d.fighters[0].moves)if(k!==key(38150))assert.equal(d.fighters[0].pp[k],3);
+});
+test('4834真实4重复实例各自执行、5指定弱化成功失败与免弱截断，43最大HP四分一和禁疗',()=>{
+ const a=make({move:20091});turn(a);assert.equal(a.fighters[0].stages.atk,1);assert.equal(a.fighters[0].stages.def,1);assert.equal(a.fighters[0].stages.acc,1);assert.equal(a.fighters[0].stages.spe,0);const b=make({move:20072});turn(b);assert.equal(b.fighters[1].stages.spe,-2);const c=make({move:20072});timer(c,1,'免弱');turn(c);assert.equal(c.fighters[1].stages.spe,0);const d=make({move:20090,hp:1000});turn(d);assert.equal(d.fighters[0].hp,3250);const e=make({move:20090,hp:1000});timer(e,0,'技能禁疗');turn(e);assert.equal(e.fighters[0].hp,1000);
+});
+test('4834/30后手2倍与2目标低半倍威力严格阈值，35敌正级越高惩罚红伤越高，31随机2到3段',()=>{
+ const a=make({move:10128,aStats:{spe:1}});turn(a,10128,10127);const base=make({move:10128,index:-1,aStats:{spe:1}});turn(base,10128,10127);assert.ok(Math.abs(sum(a)-2*sum(base))<=2);
+ const low=make({move:10136,targetHp:4499}),half=make({move:10136,targetHp:4500});turn(low);turn(half);assert.ok(Math.abs(sum(low)-2*sum(half))<=2);const p=make({move:10179}),q=make({move:10179});q.fighters[1].stages.atk=5;turn(p);turn(q);assert.ok(sum(q)>sum(p));const seen=new Set();for(let seed=1;seed<20&&seen.size<2;seed++){const s=make({move:10178,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const n=s.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===0).length;assert.ok([2,3].includes(n));seen.add(n);}assert.equal(seen.size,2);
+});
+test('4834/32真实要害概率加1/16五回合，20自疲惫指定1回合，随机4防御20与5双防15均成功失败',()=>{
+ const a=make({move:20089,loadout:[20089,10181,10178,10136,38151],criticals:true});turn(a);let chance;observe((e,c)=>{if(e==='beforeCrit'&&c.a.side===0)chance=c.chance;},()=>turn(a,10181));assert.equal(chance,1/8);const b=make({move:10138});turn(b);assert.equal(b.fighters[0].ailments['疲惫'],2);const pp=b.fighters[0].pp[key(10138)];turn(b,10138);assert.equal(b.fighters[0].pp[key(10138)],pp);assert.equal(b.fighters[0].ailments['疲惫'],undefined);
+ for(const [move,side,k]of[[10132,0,'def'],[10183,1,'spd'],[10180,1,'def']]){const seen=new Set();for(let seed=1;seed<40&&seen.size<2;seed++){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);seen.add(s.fighters[side].stages[k]!==0);}assert.equal(seen.size,2,move);}
+});
+test('4834/33真实消强成功、强化保护失败与无强化边界，2364命中效果封锁不授属性无效或免攻',()=>{
+ const a=make({move:10177});a.fighters[1].stages.def=3;turn(a);assert.equal(a.fighters[1].stages.def,0);const b=make({move:10177});b.fighters[1].stages.def=3;timer(b,1,'幽蝶强化保护');turn(b);assert.equal(b.fighters[1].stages.def,3);const c=make(row(2364));timer(c,0,'攻击技能命中效果失效');turn(c);assert.equal(c.fighters[1].effects.statusBlock,undefined);assert.equal(c.fighters[0].counts.attackNullify??0,0);assert.equal(c.fighters[1].stages.atk,1);
+});
+test('4834/1879护罩消失真实施瘫痪成功后敌下一次不行动且不扣PP，只有已耗尽源反应一次',()=>{
+ let applied=false;for(let seed=1;seed<25&&!applied;seed++){const a=make({...row(1879),seed:Math.imul(seed,0x9e3779b1)>>>0});turn(a);a.moveDefinitions[key(38151)].operations=[];observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.consumeBarrier(c.t);},()=>turn(a,38151));if(!a.fighters[1].ailments['瘫痪'])continue;applied=true;const pp=a.fighters[1].pp[key(20117)];turn(a,38151);assert.equal(a.fighters[1].pp[key(20117)],pp);assert.equal(a.fighters[0].soulState.barrierAilmentTriggers[0].done,true);}assert.equal(applied,true);
+});
+test('4834/463回合额度重置且三回合后到期，2116先手回血减半产生实际HP差',()=>{
+ const a=make(row(463));turn(a);a.moveDefinitions[key(38151)].operations=[];for(let r=2;r<=4;r++){let n;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)n=c.hurt(c.t,200,'跨回合减伤额度','attack');},()=>turn(a,38151));assert.equal(n,r<=3?0:200);}
+ const b=make({...row(2116),targetHp:1000});let increase;observe((e,c)=>{if(e==='afterUse'&&c.a.side===0){const hp=c.t.hp;c.heal(c.t,1000,'削减回复状态验证','soul');increase=c.t.hp-hp;}},()=>turn(b));assert.equal(increase,500);
+});

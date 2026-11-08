@@ -1,0 +1,9 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),source=require('../research/BATCH-4816-REMAINING/4887/snapshot.json'),factory=require('./helpers/remaining-battle.cjs'),H=factory(source),{E,key,turn,timer,sum}=H;
+function observe(fn,run){const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);fn(e,c);}};try{return run();}finally{E.SOULS=old;}}
+test('4887已答两魂印负先制：取绝对值参与承伤上限、最低红比例和伤后回复，正负同值的实际HP变化与附固定伤相同',()=>{
+ for(const id of[2074,2103])for(const n of[1,3]){const h=factory({...source,selectedSoulId:id}),pair=[];for(const sign of[-1,1]){const s=h.make({soul:true,move:source.moves.find(m=>!m.fifth&&m.kind==='physical').id,index:-1,hp:8000,aStats:{def:1},bStats:{atk:9999}});s.moveDefinitions[key(10127)].priority=sign*n;turn(s,s.auditMoveId,10127);const st=s.fighters[0].soulState.torus4887;assert.equal(st.effectiveOpponentPriority,n);assert.equal(st.capFraction,Math.max(0,((id===2074?100:80)-15*n)/100));assert.equal(st.floorFraction,(40+5*n)/100);pair.push({hp:s.fighters.map(f=>f.hp),red:sum(s),received:sum(s,'attack',1),fixed:sum(s,'fixed')});}assert.deepEqual(pair[0],pair[1]);}
+});
+test('4887已答高先制：承伤比例最低0而非负伤或免疫绕过，零红不触伤后回复；最低红比例继续公式且过量保完整伤害',()=>{
+ for(const [id,p]of[[2074,7],[2103,6],[2074,20]]){const h=factory({...source,selectedSoulId:id}),m=source.moves.find(m=>!m.fifth&&m.kind==='physical').id,s=h.make({soul:true,move:m,index:-1,hp:1000,bStats:{atk:9999}});s.moveDefinitions[key(10127)].priority=p;turn(s,m,10127);assert.equal(s.fighters[0].soulState.torus4887.capFraction,0);assert.equal(sum(s,'attack',1),0);assert.equal(s.fighters[0].hp,1000);const floor=Math.floor(s.fighters[1].stats.maxHp*(40+5*p)/100);assert.ok(sum(s)>=floor);if(p===20){assert.equal(s.fighters[1].hp,0);const hit=s.damageEvents.find(e=>e.type==='attack'&&e.sourceSide===0);assert.ok(hit.settledDamage>hit.hpLoss);}}
+});

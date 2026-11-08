@@ -1,0 +1,62 @@
+{
+  "id": 4875,
+  "semanticsReviewed": true,
+  "confirmations": [
+    "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/CONFIRMATION-4875.json"
+  ],
+  "requiredProofs": [
+    "research/BATCH-4816-REMAINING/4875/answered-current-v1-result.json"
+  ],
+  "testFiles": [
+    "tests/remaining-4875-soul.test.cjs",
+    "tests/remaining-4875-skills.test.cjs",
+    "tests/remaining-4875-interactions.test.cjs",
+    "tests/answered-4875.test.cjs",
+    "tests/virtual-burn-refresh.test.cjs"
+  ],
+  "testRenames": {
+    "4875 Q001非烧伤比例、Q002免弱视烧伤、Q003末回合或刷新烧伤时点、Q004PP保护全部明确待答不提交": "4875已答四项：比例清除、免弱动态视烧伤、末回合收益及先手刷新时序、PP保护穿透均提交真实状态",
+    "4875/2419双方仅烧伤按剩余回合总和清除并授神惧，上限8、已有加等量；非烧伤Q001不提交": "4875/2419双方仅烧伤按剩余回合总和清除并授神惧，上限8、已有加等量；非烧伤按已答比例限制回复"
+  },
+  "singleRationale": "21招和2062当前双方全部真实分支逐条验证；原3目标技能当前敌按实际单次攻击保留，其他目标与真实场下存活来源延期，未将当前自身强化延期。",
+  "items": {
+    "4875:soul:2062": {
+      "rationale": "四项已答补齐当前敌免弱动态视烧伤、真实烧伤标准威力和扣血、神惧技能前扣与末回合收益、直接PP调整穿透保护；仅当前来源真实在场以外的背包光环覆盖需队伍。",
+      "singleBehavior": "保留敌用攻烧伤/失败清回合、下一次准入异常转2烧伤、战阶回血粉伤/授盾；敌免弱期间动态视烧伤并减威力、扣血且无真实时长，真实并存只一份；神惧先手技能前扣1并延长真实敌烧伤，当前回合收益快照与额外用招不重复扣，PP对应已损调整直接设置且不受保护。",
+      "deferredBehavior": "本人真实场下存活于出战背包时，跨精灵使另一只当前己方精灵的对手在免弱期间视为烧伤；已确认语义复用于未来真实队伍光环来源。",
+      "futureMechanisms": [
+        "真实队伍存活与场下光环来源"
+      ],
+      "implementation": [
+        "dist/range-souls.js",
+        "dist/souls.js",
+        "dist/status-rules.js",
+        "dist/pp-rules.js"
+      ],
+      "additionalTests": [
+        "4875已答免弱视烧伤：真实2059免弱期间持续生效，不附真实回合且不延长，普通烧伤减威力与扣血只执行一次，条件消失即时失效",
+        "4875已答神惧先手：技能前扣时长并先延长真实烧伤，末1回合本次仍翻红，重复额外用招事件不再次扣；第五统计延长后的真实时长",
+        "4875已答PP调整：对应已损更多才直接设定，不受PP保护或实际保留访问器阻挡，封顶归0且只动对应当前技能槽",
+        "虚拟与真实烧伤共存时真实时长独立按公共2/3回建立，复制仍一次且实际DOT只扣一次，不读虚拟不存在的剩余时长"
+      ],
+      "confirmations": [
+        "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/CONFIRMATION-4875.json"
+      ]
+    },
+    "4875:skill:38284:1": {
+      "scope": "single",
+      "rationale": "Q001以实际解除前双方异常种类集合计算非烧伤占比；真实烧伤剩余时长合计单独授神惧。",
+      "singleBehavior": "解除双方真实异常成功后，含烧伤时按(x-1)/x降低敌2回合回复，否则非烧伤异常使回复降100%；同名种类去重，真实烧伤时长仍双方合计，神惧封顶8，精确分子分母避免三分之一回复少1。",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/souls.js"
+      ],
+      "additionalTests": [
+        "4875已答2419：按不同异常种类集合算非烧伤占比，同名双方不重复计，实际清除后两回合减回复，真实烧伤时长合计授神惧"
+      ],
+      "confirmations": [
+        "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/CONFIRMATION-4875.json"
+      ]
+    }
+  }
+}

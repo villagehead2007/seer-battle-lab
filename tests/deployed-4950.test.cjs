@@ -1,0 +1,10 @@
+'use strict';
+require('./remaining-4950-group.test.cjs');
+require('./remaining-4950-skills.test.cjs');
+require('./remaining-4950-public.test.cjs');
+require('./remaining-4950-interactions.test.cjs');
+require('./remaining-4950-boundaries.test.cjs');
+require('./remaining-4950-stars.test.cjs');
+require('./remaining-4950-role-boost.test.cjs');
+require('./remaining-4950-native.test.cjs');
+require('./answered-4950.test.cjs');

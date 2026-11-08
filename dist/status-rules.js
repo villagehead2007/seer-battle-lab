@@ -9,10 +9,12 @@
   const auxiliary=Object.freeze(["狂暴","星赐","星哲","超频","砥砺","星赎","雷解","渐冻"]);
   const weakening=Object.freeze(["中毒","烧伤","寄生","冻伤","混乱","衰弱","易燃","流血","失明","烈焰诅咒","致命诅咒","虚弱诅咒","束缚","失神","沉默","臣服","凝滞","沸涌","魇昧"]);
   const controls=Object.freeze(['麻痹','害怕','疲惫','睡眠','石化','冰封','空定','瘫痪','焚烬','诅咒','感染','神游']);
-  const active=(f,k,r)=>Number.isFinite(f.ailments?.[k])&&f.ailments[k]>=r;
+  const virtualBurnResolvers2062=new WeakMap();
+  const bindVirtualBurn2062=(f,probe)=>{if(f.soulState)virtualBurnResolvers2062.set(f.soulState,probe);};
+  const active=(f,k,r)=>Number.isFinite(f.ailments?.[k])&&f.ailments[k]>=r||k==='烧伤'&&!!virtualBurnResolvers2062.get(f.soulState)?.(r);
   // Q-A60-4004-007: only aggregate abnormal-condition checks are masked.
   // Attachment, action blocking, damage, timers, removal and conversion use real ailments.
-  function conditionPresent(f,r){return !(f.soulState?.holyVerdict>0)&&Object.values(f.ailments??{}).some(end=>end>=r);}
+  function conditionPresent(f,r){return !(f.soulState?.holyVerdict>0)&&(Object.values(f.ailments??{}).some(end=>end>=r)||active(f,'烧伤',r));}
   // Q-A60-4125-022: disappearance removes the entire HP maximum. Ordinary death is distinct.
   function vanish(state,f,round){
     f.soulState??={};if(f.soulState.vanished)return false;
@@ -25,7 +27,7 @@
   // Shared admission pipeline. Soul/skill-specific gates remain caller policies.
   // Q001/Q002 user-confirmed defaults are separate from retained Wiki unknowns.
   function attempt(f,k,r,{duration=null,bypass=false,gate=()=>true,resistanceChance=()=>0,random,
-    durationFallback=null,randomSelection=false,merge='max-remaining',source=null,notify=()=>{},admissionTransform=null,resistancePriority=false,afterResistanceGate=()=>true}={}){
+    durationFallback=null,randomSelection=false,merge='max-remaining',source=null,notify=()=>{},admissionTransform=null,resistancePriority=false,afterResistanceGate=()=>true,adjustResistanceChance=(f,k,n)=>n,durationBonus=0}={}){
     const result=(reason,extra={})=>({applied:reason==='applied',reason,duration:null,durationOrigin:null,...extra});
     if(duration!==null)validateDuration(duration);
     if(!['replace','max-remaining'].includes(merge))throw new RangeError('未知异常持续时间合并规则');
@@ -37,8 +39,8 @@
     if(!bypass&&!gate({fullResistance:priorityChance>=1,resistanceWindow:f.resistUntil>=r}))return result('blocked-by-policy');
     if(!bypass&&f.counts?.immune>0&&!(resistancePriority&&(priorityChance>=1||f.resistUntil>=r))){f.counts.immune--;const out=result('count-immunity');notify(out);return out;}
     if(!bypass&&f.resistUntil>=r){const out=result('resistance-window');notify(out);return out;}
-    const chance=priorityChance??resistanceChance(f,k),resisted=!bypass&&chance>0&&random()<chance;
-    const n=k==='衰弱'&&!randomSelection?3:(duration??durationFallback.resolve(random));validateDuration(n);
+    const chance=adjustResistanceChance(f,k,priorityChance??resistanceChance(f,k)),resisted=!bypass&&chance>0&&random()<chance;
+    if(!Number.isInteger(durationBonus)||durationBonus<0)throw Error('异常时长附加值无效');const n=(k==='衰弱'&&!randomSelection?3:(duration??durationFallback.resolve(random)))+durationBonus;validateDuration(n);
     const details={duration:n,durationOrigin:duration===null?durationFallback.origin:'explicit',chance};
     if(resisted){f.resistUntil=Math.max(f.resistUntil??0,r+n-1);const out=result('resisted',details);notify(out);return out;}
     if(!bypass&&chance>0)notify(result('resistance-failed',details));
@@ -46,8 +48,8 @@
     const conversion=typeof admissionTransform==='function'?admissionTransform(f,k,n,r):null;
     if(conversion&&(!conversion.kind||!Number.isInteger(conversion.duration)||conversion.duration<1))throw Error('异常准入后转换载荷无效');
     const appliedKind=conversion?.kind??k,requested=conversion?.duration??n;
-    const remaining=active(f,appliedKind,r)?f.ailments[appliedKind]-r+1:0;
-    const appliedDuration=appliedKind==='衰弱'&&!randomSelection?3:merge==='max-remaining'?Math.max(remaining,requested):requested;
+    const remaining=Number.isFinite(f.ailments?.[appliedKind])&&f.ailments[appliedKind]>=r?f.ailments[appliedKind]-r+1:0;
+    const appliedDuration=appliedKind==='衰弱'&&!randomSelection?3+durationBonus:merge==='max-remaining'?Math.max(remaining,requested):requested;
     if(conversion&&k!==appliedKind)clear(f,k);
     apply(f,appliedKind,r,appliedDuration);
     f.statusState??={};f.statusState.sources??={};if(Number.isInteger(source?.side))f.statusState.sources[appliedKind]=source.side;
@@ -77,7 +79,7 @@
   // Snapshot iteration preserves the existing end-of-round contract: conversions
   // created by an expiry callback are not ticked again during this same pass.
   function expire(f,r,onExpire=()=>{}){const removed=[];for(const [k,end]of Object.entries(f.ailments))if(end<=r&&f.ailments[k]<=r){const sourceSide=f.statusState?.sources?.[k];clear(f,k);removed.push(k);onExpire(k,sourceSide);}return removed;}
-  function blocksAction(f,r,opponent=null){return controls.some(k=>active(f,k,r))||active(f,'狂信',r)&&Number.isInteger(opponent?.side)&&f.statusState?.faithSourceSide===opponent.side;}
+  function blocksAction(f,r,opponent=null){return (active(f,'沉默',r)&&opponent?.effects?.['云雷沉默禁行动2529']?.start<=r&&opponent.effects['云雷沉默禁行动2529'].end>=r)||(active(f,'臣服',r)&&opponent?.effects?.['帝皇臣服禁行动']?.start<=r&&opponent.effects['帝皇臣服禁行动'].end>=r)||controls.some(k=>active(f,k,r))||active(f,'狂信',r)&&Number.isInteger(opponent?.side)&&f.statusState?.faithSourceSide===opponent.side;}
   function powerMultiplier(f,r){return active(f,'烧伤',r)?.5:1;}
   function accuracyMultiplier(f,kind,r){return kind==='status'?1:(active(f,'混乱',r)?.2:1)*(active(f,'易燃',r)?.7:1);}
   function attackHit(t,r){return active(t,'睡眠',r)&&clear(t,'睡眠');}
@@ -131,5 +133,5 @@
   const timedPresent=(e,r)=>!!e&&(e.untilSwitch===true||e.end>=r);
   const timedActive=(e,r)=>!!e&&e.start<=r&&timedPresent(e,r);
   const timedExpired=(e,r)=>!!e&&e.untilSwitch!==true&&e.end<=r;
-  return Object.freeze({isAuxiliary:name=>auxiliary.includes(name),isWeakening:name=>weakening.includes(name),timedPresent,timedActive,timedExpired,isControl:name=>controls.includes(name),ids,sourceRevision:388558,conditionPresent,vanish,active,apply,attempt,effect2074,randomAilments,behaviorCoverage,behaviorGaps,durationPolicy,clear,clearAll,expire,blocksAction,powerMultiplier,accuracyMultiplier,attackHit,damageOverTime,confusionDamage,iceExpired,priority,skillInvalid,actionStart,preventsDamage,attackMultiplier,incomingMultiplier,healingMultiplier,minimumAttackDamage,attackDealt,removed,convert,convertExisting,fireHit,roundEnd,markExecution,trueDamageTaken,view});
+  return Object.freeze({bindVirtualBurn2062,isAuxiliary:name=>auxiliary.includes(name),isWeakening:name=>weakening.includes(name),timedPresent,timedActive,timedExpired,isControl:name=>controls.includes(name),ids,sourceRevision:388558,conditionPresent,vanish,active,apply,attempt,effect2074,randomAilments,behaviorCoverage,behaviorGaps,durationPolicy,clear,clearAll,expire,blocksAction,powerMultiplier,accuracyMultiplier,attackHit,damageOverTime,confusionDamage,iceExpired,priority,skillInvalid,actionStart,preventsDamage,attackMultiplier,incomingMultiplier,healingMultiplier,minimumAttackDamage,attackDealt,removed,convert,convertExisting,fireHit,roundEnd,markExecution,trueDamageTaken,view});
 });

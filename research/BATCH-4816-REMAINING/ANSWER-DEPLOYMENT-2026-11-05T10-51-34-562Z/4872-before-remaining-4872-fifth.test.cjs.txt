@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/remaining-4872.cjs'),{source,key,make,turn,timer,sum}=H;
+const row=id=>source.moves.flatMap(m=>m.effectInstances.map((e,index)=>({move:m.id,index,id:e.id}))).find(e=>e.id===id);
+test('4872/2269第五已知无效补偿真实清回合并免次攻，命中零红不执行补偿，控制中断不冒充整招无效',()=>{for(const mode of['invalid','zero','control']){const s=make(row(2269));if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='zero')timer(s,1,'攻击伤害免疫');if(mode==='control')s.fighters[0].ailments['害怕']=2;turn(s,s.auditMoveId,10127);assert.equal(s.fighters[1].effects['攻击必中']===undefined,mode==='invalid');if(mode==='invalid')assert.equal(sum(s,'attack',1),0);if(mode==='zero')assert.equal(sum(s),0);}});
+test('4872/1962第五未KO清对手回合类，保护及KO不清；1963仍保留原参数明确待答，不能据其他同ID无参擅自执行',()=>{for(const mode of['alive','protect','ko']){const s=make({...row(1962),targetHp:mode==='ko'?1:9000});if(mode==='protect')timer(s,1,'protect');turn(s);assert.equal(s.fighters[1].effects['攻击必中']===undefined,mode==='alive');}const s=make(row(1963));assert.deepEqual(s.moveDefinitions[key(38275)].operations[0].params,[1]);assert.throws(()=>turn(s),/Q-4872-002/);assert.equal(s.fighters[0].pp[key(38275)],9);});
+test('4872/1027未强化用技能附固三回合，强化后不附且计时到期；2414阈值回复不因攻击免疫误判无效补偿',()=>{const s=make(row(1027));for(let r=1;r<=4;r++){turn(s,r===1?29269:38274);assert.equal(sum(s,'fixed'),r<=3?300:0);}const p=make({...row(2414),hp:1000});timer(p,1,'攻击伤害免疫');turn(p);assert.equal(p.fighters[0].hp,9000);assert.ok(p.fighters[1].effects['攻击必中']);});
+
+test('4872/1484体力严格低于一半时先制加1，恰好一半和高于一半不加',()=>{for(const hp of[4499,4500,4501]){const s=make({...row(1484),hp});turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,hp<4500?1:0);}});
+
+test('4872/843下两回合所有技能先制加2，源当回合不加、第三回合后到期',()=>{const s=make(row(843));turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,0);for(let r=2;r<=4;r++){turn(s,r===2?29268:38274);assert.equal(s.fighters[0].soulState.resolvedPriority.value,r<=3?2:0);}});

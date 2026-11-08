@@ -1,0 +1,7 @@
+'use strict';const fs=require('fs');
+function replace(file,a,b){let t=fs.readFileSync(file,'utf8');if(t.split(a).length!==2)throw Error(file+' match '+a);fs.writeFileSync(file,t.replace(a,b));}
+replace('dist/wiki-support.js',"key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:'')","key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:'')+(s.trainingCompatibility?':version:'+(s.selectedSkillVersion??'trained'):'')");
+replace('dist/wiki-support.js',"if(snapshots[0].id===snapshots[1].id&&JSON.stringify(snapshots[0].base)!==JSON.stringify(snapshots[1].base))","if(snapshots[0].id===snapshots[1].id&&JSON.stringify(snapshots[0].base)!==JSON.stringify(snapshots[1].base)&&!snapshots.every(x=>x.trainingCompatibility&&trainingVersionIssues(x).length===0))");
+replace('dist/wiki-ui.js',"${s.additionalFifths?`<label>第五技能", "${s.trainingCompatibility?`<label>精灵版本<select data-fifth-side=\"${i}\">${s.skillVersions.map(g=>`<option value=\"${g.id}\" ${(s.selectedSkillVersion??'trained')===g.id?'selected':''}>${g.id==='trained'?'能力强化（800）':'原版（726）'}</option>`).join('')}</select></label>`:''}${s.additionalFifths?`<label>第五技能");
+replace('dist/wiki-ui.js',"sides[i].data.selectedSkillVersion=fifthSelect.value;", "sides[i].data.selectedSkillVersion=fifthSelect.value;if(sides[i].data.trainingCompatibility)sides[i].data=E.WIKI.versionSnapshots(sides[i].data).find(g=>g.selectedSkillVersion===fifthSelect.value);");
+console.log('version selection integration written');

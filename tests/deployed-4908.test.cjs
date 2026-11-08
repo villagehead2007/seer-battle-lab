@@ -1,0 +1,9 @@
+'use strict';
+require('./remaining-4908-soul.test.cjs');
+require('./remaining-4908-skills.test.cjs');
+require('./remaining-4908-public.test.cjs');
+require('./remaining-4908-native.test.cjs');
+require('./remaining-4908-interactions.test.cjs');
+require('./answered-4908.test.cjs');
+
+require('./confirmed-1767-speed.test.cjs');

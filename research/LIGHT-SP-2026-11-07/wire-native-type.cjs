@@ -1,0 +1,1 @@
+'use strict';const fs=require('fs'),p='dist/souls.js';let t=fs.readFileSync(p,'utf8');const a='f.soulId=E.SPECIES[f.species].soulId??E.SOULS.id(f);f.soulHash=',b='f.soulId=E.SPECIES[f.species].soulId??E.SOULS.id(f);f.nativeType=E.SPECIES[f.species].type;f.soulHash=';if(t.split(a).length!==2)throw Error('native type match');fs.writeFileSync(p,t.replace(a,b));

@@ -1,0 +1,224 @@
+{
+  "at": "2026-11-02T23:10:25.851Z",
+  "historicalSource": {
+    "id": 37667,
+    "name": "始源灭碎波",
+    "type": "草",
+    "kind": "special",
+    "power": 160,
+    "pp": 5,
+    "priority": 0,
+    "accuracy": 95,
+    "alwaysHit": true,
+    "critical": "1/16",
+    "effectIds": [
+      797,
+      1084,
+      2165,
+      1663
+    ],
+    "effectInstances": [
+      {
+        "id": 797,
+        "args": [
+          3
+        ],
+        "description": "消除对手回合类效果，消除成功3回合内对手无法通过自身技能恢复体力"
+      },
+      {
+        "id": 1084,
+        "args": [
+          300
+        ],
+        "description": "附加300点固定伤害，对手处于异常状态时固定伤害翻倍"
+      },
+      {
+        "id": 2165,
+        "args": [
+          300
+        ],
+        "description": "将对手所处的异常状态转移给自身，每转移一项吸取对手300点体力"
+      },
+      {
+        "id": 1663,
+        "args": [
+          2
+        ],
+        "description": "当回合击败对手则令对手下只登场精灵随机2个技能PP值归零"
+      }
+    ],
+    "description": "消除对手回合类效果，消除成功3回合内对手无法通过自身技能恢复体力；附加300点固定伤害，对手处于异常状态时固定伤害翻倍；将对手所处的异常状态转移给自身，每转移一项吸取对手300点体力；当回合击败对手则令对手下只登场精灵随机2个技能PP值归零",
+    "revision": "seerapi:5c2a6233",
+    "hash": "5c2a6233",
+    "level": 76,
+    "fifth": true,
+    "sourceFlags": {
+      "is_fifth": true,
+      "is_special": false,
+      "skill_activation_item": null,
+      "classification": "fifth"
+    },
+    "provider": "seerapi",
+    "sourceTargetCount": 1,
+    "deferredEffects": [],
+    "limitations": [],
+    "advanced": false
+  },
+  "historicalMeta": {
+    "id": 2165,
+    "argsNum": 1,
+    "template": "将对手所处的异常状态转移给自身，每转移一项吸取对手{0}点体力",
+    "revision": "seerapi:33993522"
+  },
+  "historicalReview": {
+    "sourceDigest": "5ffe44d10482d32c609240ab180e67051f078f255ccba00c957c661172e01a9a",
+    "scope": "single",
+    "reviewedBy": "Codex explicit answer and source review",
+    "reviewedAt": "2026-10-31T06:17:24.956Z",
+    "rationale": "用户28至31题免攻永久清本次次数、同源刷新与异源LIFO只耗一份，减伤逐乘0.67，异常固定顺序且全失败仅增100，条件不满足无补偿，转移遵守免疫且同名算成功。专项原22项中21过，四异常夹具含控制导致无攻击，改用非控制并保留原断言复测通过；新增3项通过。待最终50只整库。",
+    "singleBehavior": "将对手所处的异常状态转移给自身，每转移一项吸取对手300点体力",
+    "implementation": [
+      "dist/souls.js",
+      "dist/range-souls.js",
+      "dist/range-effects.js",
+      "dist/effect-registry.js"
+    ],
+    "tests": {
+      "success": [
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复",
+          "assertion": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复；实际状态断言：assert.equal(clear.fighters[1].effects['技能禁疗'].end,3)；assert.equal(sum(s,'fixed'),status?600:300)；assert.equal(s.fighters[1].ailments['疲惫'],undefined)；assert.equal(s.fighters[0].ailments['疲惫'],3)；assert.equal(sum(s,'fixed'),immune?0:300)；assert.equal(s.fighters[0].hp,1300)"
+        },
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过",
+          "assertion": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过；实际状态断言：assert.equal(s.fighters[0].hp,1000)；assert.equal(s.fighters[0].ailments['疲惫'],undefined)；assert.ok(s.fighters[1].ailments['疲惫'])"
+        },
+        {
+          "file": "tests/next50-4693-answers.test.cjs",
+          "name": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常",
+          "assertion": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常；实际状态断言：assert.equal(s.fighters[0].ailments['烧伤'],6)；assert.equal(s.fighters[1].ailments['烧伤'],undefined)；assert.equal(s.fighters[0].hp-base.fighters[0].hp,300)；assert.equal(sum(s,'fixed'),300)"
+        }
+      ],
+      "failure": [
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复",
+          "assertion": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复；实际状态断言：assert.equal(clear.fighters[1].effects['技能禁疗'].end,3)；assert.equal(sum(s,'fixed'),status?600:300)；assert.equal(s.fighters[1].ailments['疲惫'],undefined)；assert.equal(s.fighters[0].ailments['疲惫'],3)；assert.equal(sum(s,'fixed'),immune?0:300)；assert.equal(s.fighters[0].hp,1300)"
+        },
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过",
+          "assertion": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过；实际状态断言：assert.equal(s.fighters[0].hp,1000)；assert.equal(s.fighters[0].ailments['疲惫'],undefined)；assert.ok(s.fighters[1].ailments['疲惫'])"
+        },
+        {
+          "file": "tests/next50-4693-answers.test.cjs",
+          "name": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常",
+          "assertion": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常；实际状态断言：assert.equal(s.fighters[0].ailments['烧伤'],6)；assert.equal(s.fighters[1].ailments['烧伤'],undefined)；assert.equal(s.fighters[0].hp-base.fighters[0].hp,300)；assert.equal(sum(s,'fixed'),300)"
+        }
+      ],
+      "boundary": [
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复",
+          "assertion": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复；实际状态断言：assert.equal(clear.fighters[1].effects['技能禁疗'].end,3)；assert.equal(sum(s,'fixed'),status?600:300)；assert.equal(s.fighters[1].ailments['疲惫'],undefined)；assert.equal(s.fighters[0].ailments['疲惫'],3)；assert.equal(sum(s,'fixed'),immune?0:300)；assert.equal(s.fighters[0].hp,1300)"
+        },
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过",
+          "assertion": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过；实际状态断言：assert.equal(s.fighters[0].hp,1000)；assert.equal(s.fighters[0].ailments['疲惫'],undefined)；assert.ok(s.fighters[1].ailments['疲惫'])"
+        },
+        {
+          "file": "tests/next50-4693-answers.test.cjs",
+          "name": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常",
+          "assertion": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常；实际状态断言：assert.equal(s.fighters[0].ailments['烧伤'],6)；assert.equal(s.fighters[1].ailments['烧伤'],undefined)；assert.equal(s.fighters[0].hp-base.fighters[0].hp,300)；assert.equal(sum(s,'fixed'),300)"
+        }
+      ],
+      "interaction": [
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复",
+          "assertion": "4693/797清回合禁技能恢复、1084异常双倍固伤，2165实际转移每项固定吸取300理论回复；实际状态断言：assert.equal(clear.fighters[1].effects['技能禁疗'].end,3)；assert.equal(sum(s,'fixed'),status?600:300)；assert.equal(s.fighters[1].ailments['疲惫'],undefined)；assert.equal(s.fighters[0].ailments['疲惫'],3)；assert.equal(sum(s,'fixed'),immune?0:300)；assert.equal(s.fighters[0].hp,1300)"
+        },
+        {
+          "file": "tests/next50-4693.test.cjs",
+          "name": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过",
+          "assertion": "4693/2165自身免异阻止接收，原异常保留且不计吸取，旧候选不能绕过；实际状态断言：assert.equal(s.fighters[0].hp,1000)；assert.equal(s.fighters[0].ailments['疲惫'],undefined)；assert.ok(s.fighters[1].ailments['疲惫'])"
+        },
+        {
+          "file": "tests/next50-4693-answers.test.cjs",
+          "name": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常",
+          "assertion": "4693转移同名不延长仍算成功并吸取300，接收失败则保留原异常；实际状态断言：assert.equal(s.fighters[0].ailments['烧伤'],6)；assert.equal(s.fighters[1].ailments['烧伤'],undefined)；assert.equal(s.fighters[0].hp-base.fighters[0].hp,300)；assert.equal(sum(s,'fixed'),300)"
+        }
+      ]
+    },
+    "userConfirmation": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/USER-CONFIRMATIONS.json",
+    "formalAcceptance": "pending-final50-full-regression",
+    "reviewStatus": "single-stage-accepted",
+    "acceptance": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/4693-ACCEPTED.json",
+    "batchAcceptance": "research/BATCH-4676-NEXT50/ANSWER-IMPLEMENTATION-2026-10-31T04-30-49-890Z/FINAL50-GATE-2026-11-01T20-11-17-709Z/result.json",
+    "acceptedAt": "2026-11-02T01:27:47.127Z"
+  },
+  "currentSource": {
+    "id": 38373,
+    "name": "接纳",
+    "type": "机械地面",
+    "kind": "physical",
+    "power": 85,
+    "pp": 20,
+    "priority": 3,
+    "accuracy": 97,
+    "alwaysHit": false,
+    "critical": "1/16",
+    "effectIds": [
+      2474,
+      2165,
+      948
+    ],
+    "effectInstances": [
+      {
+        "id": 2474,
+        "args": [],
+        "description": "使用时，若对方精灵均拥有信仰对象，则本次技能视为命中并强制执行命中效果"
+      },
+      {
+        "id": 2165,
+        "args": [
+          404
+        ],
+        "description": "将对手所处的异常状态转移给自身，每转移一项吸取对手404点体力"
+      },
+      {
+        "id": 948,
+        "args": [
+          41
+        ],
+        "description": "吸取对手能力提升状态，吸取成功则对手狂信"
+      }
+    ],
+    "description": "使用时，若对方精灵均拥有信仰对象，则本次技能视为命中并强制执行命中效果；将对手所处的异常状态转移给自身，每转移一项吸取对手404点体力；吸取对手能力提升状态，吸取成功则对手狂信",
+    "revision": "seerapi:fa4ccae7",
+    "hash": "fa4ccae7",
+    "level": 21,
+    "fifth": false,
+    "sourceFlags": {
+      "is_fifth": false,
+      "is_special": false,
+      "skill_activation_item": null,
+      "classification": "regular"
+    },
+    "provider": "seerapi",
+    "sourceTargetCount": 1,
+    "deferredEffects": [],
+    "limitations": [],
+    "advanced": false
+  },
+  "currentMeta": {
+    "id": 2165,
+    "argsNum": 1,
+    "template": "将对手所处的异常状态转移给自身，每转移一项吸取对手{0}点体力",
+    "revision": "seerapi:33993522"
+  },
+  "decision": "同版33993522转移协议复用历史已确认正常免疫、同名成功、仅成功移除；当前每项404取实际参数，不读取当前待答文档"
+}

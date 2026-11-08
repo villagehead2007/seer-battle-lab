@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('fs'),dir=__dirname,s=JSON.parse(fs.readFileSync(dir+'/snapshot.json')),questions=JSON.parse(fs.readFileSync(dir+'/questions.json'));
+const config={id:4000,proofs:['freeze-current-v1'],files:fs.readdirSync('tests').filter(f=>/^remaining-4000-.*\.test\.cjs$/.test(f)).map(f=>'tests/'+f),questions:[...questions.questions,...questions.reusedQuestions].map(q=>q.id).filter(id=>id!=='Q-4854-002'),pendingByKey:{'4000:skill:29371:2':['Q-4000-001'],'4000:skill:38422:4':['Q-4000-002','Q-4000-005','Q-4946-001'],'4000:skill:38421:4':['Q-4000-003','Q-4000-004'],'4000:skill:38420:3':['Q-4940-001'],'4000:skill:38422:2':['Q-4903-009']},testNameBindings:{'4000:soul:2098':['4000/2098']},reviews:{},implementation:['dist/range-effects.js','dist/range-souls.js','dist/souls.js'],summary:'17招真实来源、基础伤害及PP、2098当前自身首末与黄金万象、神灵投影、属性附伤、盾罩免异及已知效果逐实例状态验证；未确认语义显式阻断，真正队伍依赖逐项延期。',limitations:['2493模板5参与实例7参不猜；已知部分通过隔离未知参数执行入口测试，原生完整招仍阻断。','上次登场历史的当前学习免异行为已验证，真实队伍隔位授予与再次出场流程延期。','真实HTTP确认未部署，不冒充配招与正式接入通过。']};
+for(const m of s.moves)config.testNameBindings['4000:move:'+m.id]=['4000全部17招基础组件','4000原始17招'];
+const mixed=(key,single,deferred,trigger,kind,quote)=>config.reviews[key]={scope:'mixed',rationale:single+'；仅原文明示的队伍或真实换宠依赖延期。',singleBehavior:single,deferredBehavior:deferred,trigger,futureMechanisms:[deferred],dependencyEvidence:[{kind,quote}],implementation:config.implementation};
+mixed('4000:soul:2098','当前单成员同时为首末，失血按整1%增攻、对手实际用技能后全PP回1；首末自身死亡免固粉记录；已持黄金万象入场清回合清强并按成功授免异','场下来源指定在场的约束、真实存活队友黄金万象授予、真实相邻隔位存亡判断及回血溢出伤害、隔位登场免异与全队首末血量条件、胜负结算存活规则','真实队伍存在相邻隔位成员、场下效果来源、死亡授予其他存活成员或胜负结算','team-members','自身相邻的精灵存活时');
+mixed('4000:skill:38420:3','消除当前双方盾罩，非零等额时真实封属并保留禁主动换宠请求；零额相等明确待答','真实主动换宠流程执行2回合禁换','非零盾罩实际消除且总盾等于总罩后尝试主动切换','switch','对手2回合内无法主动切换精灵');
+mixed('4000:skill:29371:4','当前自净；与保存的上次登场免异历史匹配时授当前自身本场特定免异，之后失去魂印不移除','向己方其他真实成员传播永久特定异常免疫','解除的异常匹配上次登场实际免疫记录','team-state','本场战斗己方免疫此异常状态');
+mixed('4000:skill:38423:4','未KO当前全弱1，失败保存真实主动切换限制请求','真实主动切换流程执行2回合禁换','未击败且未成功造成能力下降后尝试主动切换','switch','对手2回合内无法主动切换精灵');
+fs.writeFileSync(dir+'/audit-config.json',JSON.stringify(config,null,2)+'\n');
+const old=fs.readFileSync('research/BATCH-4816-REMAINING/4995/check-http.cjs','utf8');
+fs.writeFileSync(dir+'/check-http.cjs',old.replaceAll('4995','4000').replace('2157/2592/2012与药剂语义待答','2493/2494/2501等来源或语义待答'));
+console.log({id:4000,files:config.files.length,questions:config.questions.length,reviews:Object.keys(config.reviews)});

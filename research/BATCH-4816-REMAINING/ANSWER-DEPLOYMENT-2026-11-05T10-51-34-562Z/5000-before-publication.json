@@ -1,0 +1,2539 @@
+{
+  "at": "2026-11-05T19:23:21.733Z",
+  "reviews": {
+    "5000:soul:753": {
+      "scope": "mixed",
+      "rationale": "七重效果当前自身真实行为属于单精灵；元素的真正再登场触发需要真实换宠，不把数据矛盾归入延期。",
+      "singleBehavior": "元素首次清回合成功才封下次技能，圣洁当前免异常弱化，能量先按损失HP50%附粉再生命回血25%与随机两项未满PP各1；永恒严格高HP时当前技能必先；轮回保存选择操作后的HP/PP/等级，在对手行动首次致命时整回合保1，并在所有回合结算结束后返回真实快照，完整伤害不截断；虚无只实现双方字段一致的下次攻击伤害范围，其余伤害明确Q001回滚。",
+      "deferredBehavior": "后续真正再次登场时重新触发元素清对手回合及成功后的下次技能无效。",
+      "trigger": "持有者真正换宠后再登场，当前对手存在回合效果并被成功清除",
+      "futureMechanisms": [
+        "真实下场与再次登场事件",
+        "登场时刻当前对手与回合效果保护"
+      ],
+      "dependencyEvidence": [
+        {
+          "kind": "switch",
+          "quote": "登场时，消除对手回合类效果"
+        }
+      ],
+      "sourceDigest": "456f5c2a9846c3a3d40dee51ba0b6b82a036825b9e97c582ac67c653a521c725",
+      "reviewedBy": "Codex sourced current-state verification",
+      "reviewedAt": "2026-11-04T06:58:30.322Z",
+      "implementation": [
+        "dist/range-effects.js",
+        "dist/range-souls.js",
+        "dist/souls.js",
+        "dist/effect-registry.js"
+      ],
+      "tests": {
+        "success": [
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级",
+            "assertion": "test('5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级',()=>{const s=make({move:25679,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;const before={hp:100,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}},old=E.SOULS;let actualStages;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)actualStages={...c.a.stages};}};try{turn(s,25679,10127);}finally{E.SOULS=old;}assert.ok(actualStages.atk>0);assert.ok(s.fighters[0].soulState.pony753.lifePP[0].chosen.some(x=>x.before!==x.after));assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回",
+            "assertion": "test('5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回',()=>{const s=make({move:20606,index:-1,soul:true,hp:1,aStats:{spe:1},bStats:{spe:500},enemySource:source,enemySoul:true,enemyLoadout:[10994,10993,10996,20607,31143]});s.fighters[1].soulId=null;turn(s,20606,10994);const incoming=s.damageEvents.filter(e=>e.targetSide===0);assert.ok(incoming.some(e=>e.type==='attack'&&e.settledDamage>0&&e.hpLoss===0));assert.ok(incoming.some(e=>e.type==='fixed'&&e.settledDamage===30&&e.hpLoss===0));assert.equal(s.fighters[0].hp,1);assert.ok(s.fighters[0].soulState.pony753.voidCharge);const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),x=make({move:20606,index:-1,soul:true,hp:1000,loadout:[20606,10993,10996,20607,31143],enemySource:enemy,enemyLoadout:[29463,20276,20565,11141,38550]});x.moveDefinitions[key(29463)].operations=x.moveDefinitions[key(29463)].operations.filter(o=>o.effectId===816);turn(x,20606,29463);x.fighters[0].hp=1;turn(x,10993,20276);assert.equal(x.fighters[0].hp,0);assert.equal(x.fighters[0].soulState.pony753.reincarnationUsed,false);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复",
+            "assertion": "test('5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复',()=>{const enemy=require('../data/species/4355.json').snapshot,s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[27925,10250,20065,10628,35797]});s.moveDefinitions[key(27925)].operations=s.moveDefinitions[key(27925)].operations.filter(o=>o.effectId===1792);turn(s,20606,27925);assert.ok(s.damageEvents.some(e=>e.redCategory==='attribute'&&e.hpLoss>0));assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);const x=make({move:20606,index:-1,soul:true,hp:1000});timer(x,0,'技能禁疗',{});timer(x,1,'固定百分比免疫',{});turn(x,20606,20309);assert.equal(x.fighters[0].hp,3250);assert.equal(x.fighters[1].hp,9000);assert.equal((x.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='percent').reduce((n,e)=>n+e.settledDamage,0),0);});\r"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化",
+            "assertion": "test('5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化',()=>{for(const active of[false,true]){const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0&&active)c.t.effects['免弱']={start:1,end:3};old.run(e,c);}};let s;try{s=make({move:20606,index:-1,soul:true});}finally{E.SOULS=old;}assert.equal(s.fighters[1].counts.nextSkillInvalid??0,active?1:0);assert.equal(s.fighters[1].effects['免弱'],undefined);turn(s,20606,10127);if(active)assert.equal(red(s),0);}const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json');for(const move of[20565,38549]){const s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[20565,38549,20276,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(x=>x.effectId===1447);turn(s,20606,move);assert.equal(s.fighters[0].stages.atk,0);assert.equal(s.fighters[0].stages.spa,0);assert.deepEqual(s.fighters[0].ailments,{});}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽",
+            "assertion": "test('5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});s.fighters[0].pp[key(25679)]=0;turn(s,20606,20309);assert.equal(sum(s,'percent'),4000);assert.equal(s.fighters[0].hp,3250);const picked=s.fighters[0].soulState.pony753.lifePP[0].chosen;assert.equal(picked.length,2);assert.equal(new Set(picked.map(x=>x.key)).size,2);assert.ok(picked.every(x=>x.after-x.before===1));const one=make({move:20606,index:-1,soul:true});turn(one,20606,20309);assert.equal(one.fighters[0].soulState.pony753.lifePP[0].chosen.length,1);assert.equal(one.fighters[0].pp[key(20606)],source.moves.find(m=>m.id===20606).pp);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写",
+            "assertion": "test('5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写',()=>{for(const hp of[8999,9000,9001]){const s=make({move:20606,index:-1,soul:true,hp,aStats:{maxHp:9999,spe:1},bStats:{spe:500}});turn(s,20606,10127);assert.equal(s.turns[0].first,hp>9000?0:1);assert.equal(s.moveDefinitions[key(20606)].priority,0);}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚",
+            "assertion": "test('5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});turn(s,20606,10127);assert.ok(red(s)>0);assert.ok(s.fighters[0].soulState.pony753.voidCharge);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);turn(s,20606,10127);assert.ok(red(s)>0);const x=make({move:20606,index:-1,soul:true,hp:1000,enemySource:source,enemySoul:true,enemyLoadout:[11261,10993,10996,20607,31143]});x.fighters[1].soulId=null;turn(x,20606,10993);const before=x.fighters[0].hp;assert.throws(()=>turn(x,20606,11261),/Q-5000-001/);assert.equal(x.round,2);assert.equal(x.fighters[0].hp,before);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发",
+            "assertion": "test('5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发',()=>{const s=make({move:20606,index:-1,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}}),before={hp:s.fighters[0].hp,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}};turn(s,20606,10127);const e=events(s).find(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(e.settledDamage>100);assert.equal(e.hpLoss,99);assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);assert.equal(s.fighters[0].soulState.pony753.reincarnationUsed,true);assert.equal(s.turns[0].remainingHp[0],100);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.savedRound,1);s.fighters[0].hp=100;turn(s,20606,10127);assert.equal(s.fighters[0].hp,0);assert.equal(s.finished,true);});\r"
+          }
+        ],
+        "failure": [
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级",
+            "assertion": "test('5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级',()=>{const s=make({move:25679,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;const before={hp:100,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}},old=E.SOULS;let actualStages;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)actualStages={...c.a.stages};}};try{turn(s,25679,10127);}finally{E.SOULS=old;}assert.ok(actualStages.atk>0);assert.ok(s.fighters[0].soulState.pony753.lifePP[0].chosen.some(x=>x.before!==x.after));assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回",
+            "assertion": "test('5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回',()=>{const s=make({move:20606,index:-1,soul:true,hp:1,aStats:{spe:1},bStats:{spe:500},enemySource:source,enemySoul:true,enemyLoadout:[10994,10993,10996,20607,31143]});s.fighters[1].soulId=null;turn(s,20606,10994);const incoming=s.damageEvents.filter(e=>e.targetSide===0);assert.ok(incoming.some(e=>e.type==='attack'&&e.settledDamage>0&&e.hpLoss===0));assert.ok(incoming.some(e=>e.type==='fixed'&&e.settledDamage===30&&e.hpLoss===0));assert.equal(s.fighters[0].hp,1);assert.ok(s.fighters[0].soulState.pony753.voidCharge);const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),x=make({move:20606,index:-1,soul:true,hp:1000,loadout:[20606,10993,10996,20607,31143],enemySource:enemy,enemyLoadout:[29463,20276,20565,11141,38550]});x.moveDefinitions[key(29463)].operations=x.moveDefinitions[key(29463)].operations.filter(o=>o.effectId===816);turn(x,20606,29463);x.fighters[0].hp=1;turn(x,10993,20276);assert.equal(x.fighters[0].hp,0);assert.equal(x.fighters[0].soulState.pony753.reincarnationUsed,false);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复",
+            "assertion": "test('5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复',()=>{const enemy=require('../data/species/4355.json').snapshot,s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[27925,10250,20065,10628,35797]});s.moveDefinitions[key(27925)].operations=s.moveDefinitions[key(27925)].operations.filter(o=>o.effectId===1792);turn(s,20606,27925);assert.ok(s.damageEvents.some(e=>e.redCategory==='attribute'&&e.hpLoss>0));assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);const x=make({move:20606,index:-1,soul:true,hp:1000});timer(x,0,'技能禁疗',{});timer(x,1,'固定百分比免疫',{});turn(x,20606,20309);assert.equal(x.fighters[0].hp,3250);assert.equal(x.fighters[1].hp,9000);assert.equal((x.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='percent').reduce((n,e)=>n+e.settledDamage,0),0);});\r"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化",
+            "assertion": "test('5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化',()=>{for(const active of[false,true]){const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0&&active)c.t.effects['免弱']={start:1,end:3};old.run(e,c);}};let s;try{s=make({move:20606,index:-1,soul:true});}finally{E.SOULS=old;}assert.equal(s.fighters[1].counts.nextSkillInvalid??0,active?1:0);assert.equal(s.fighters[1].effects['免弱'],undefined);turn(s,20606,10127);if(active)assert.equal(red(s),0);}const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json');for(const move of[20565,38549]){const s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[20565,38549,20276,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(x=>x.effectId===1447);turn(s,20606,move);assert.equal(s.fighters[0].stages.atk,0);assert.equal(s.fighters[0].stages.spa,0);assert.deepEqual(s.fighters[0].ailments,{});}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽",
+            "assertion": "test('5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});s.fighters[0].pp[key(25679)]=0;turn(s,20606,20309);assert.equal(sum(s,'percent'),4000);assert.equal(s.fighters[0].hp,3250);const picked=s.fighters[0].soulState.pony753.lifePP[0].chosen;assert.equal(picked.length,2);assert.equal(new Set(picked.map(x=>x.key)).size,2);assert.ok(picked.every(x=>x.after-x.before===1));const one=make({move:20606,index:-1,soul:true});turn(one,20606,20309);assert.equal(one.fighters[0].soulState.pony753.lifePP[0].chosen.length,1);assert.equal(one.fighters[0].pp[key(20606)],source.moves.find(m=>m.id===20606).pp);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写",
+            "assertion": "test('5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写',()=>{for(const hp of[8999,9000,9001]){const s=make({move:20606,index:-1,soul:true,hp,aStats:{maxHp:9999,spe:1},bStats:{spe:500}});turn(s,20606,10127);assert.equal(s.turns[0].first,hp>9000?0:1);assert.equal(s.moveDefinitions[key(20606)].priority,0);}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚",
+            "assertion": "test('5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});turn(s,20606,10127);assert.ok(red(s)>0);assert.ok(s.fighters[0].soulState.pony753.voidCharge);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);turn(s,20606,10127);assert.ok(red(s)>0);const x=make({move:20606,index:-1,soul:true,hp:1000,enemySource:source,enemySoul:true,enemyLoadout:[11261,10993,10996,20607,31143]});x.fighters[1].soulId=null;turn(x,20606,10993);const before=x.fighters[0].hp;assert.throws(()=>turn(x,20606,11261),/Q-5000-001/);assert.equal(x.round,2);assert.equal(x.fighters[0].hp,before);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发",
+            "assertion": "test('5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发',()=>{const s=make({move:20606,index:-1,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}}),before={hp:s.fighters[0].hp,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}};turn(s,20606,10127);const e=events(s).find(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(e.settledDamage>100);assert.equal(e.hpLoss,99);assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);assert.equal(s.fighters[0].soulState.pony753.reincarnationUsed,true);assert.equal(s.turns[0].remainingHp[0],100);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.savedRound,1);s.fighters[0].hp=100;turn(s,20606,10127);assert.equal(s.fighters[0].hp,0);assert.equal(s.finished,true);});\r"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级",
+            "assertion": "test('5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级',()=>{const s=make({move:25679,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;const before={hp:100,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}},old=E.SOULS;let actualStages;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)actualStages={...c.a.stages};}};try{turn(s,25679,10127);}finally{E.SOULS=old;}assert.ok(actualStages.atk>0);assert.ok(s.fighters[0].soulState.pony753.lifePP[0].chosen.some(x=>x.before!==x.after));assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回",
+            "assertion": "test('5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回',()=>{const s=make({move:20606,index:-1,soul:true,hp:1,aStats:{spe:1},bStats:{spe:500},enemySource:source,enemySoul:true,enemyLoadout:[10994,10993,10996,20607,31143]});s.fighters[1].soulId=null;turn(s,20606,10994);const incoming=s.damageEvents.filter(e=>e.targetSide===0);assert.ok(incoming.some(e=>e.type==='attack'&&e.settledDamage>0&&e.hpLoss===0));assert.ok(incoming.some(e=>e.type==='fixed'&&e.settledDamage===30&&e.hpLoss===0));assert.equal(s.fighters[0].hp,1);assert.ok(s.fighters[0].soulState.pony753.voidCharge);const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),x=make({move:20606,index:-1,soul:true,hp:1000,loadout:[20606,10993,10996,20607,31143],enemySource:enemy,enemyLoadout:[29463,20276,20565,11141,38550]});x.moveDefinitions[key(29463)].operations=x.moveDefinitions[key(29463)].operations.filter(o=>o.effectId===816);turn(x,20606,29463);x.fighters[0].hp=1;turn(x,10993,20276);assert.equal(x.fighters[0].hp,0);assert.equal(x.fighters[0].soulState.pony753.reincarnationUsed,false);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复",
+            "assertion": "test('5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复',()=>{const enemy=require('../data/species/4355.json').snapshot,s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[27925,10250,20065,10628,35797]});s.moveDefinitions[key(27925)].operations=s.moveDefinitions[key(27925)].operations.filter(o=>o.effectId===1792);turn(s,20606,27925);assert.ok(s.damageEvents.some(e=>e.redCategory==='attribute'&&e.hpLoss>0));assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);const x=make({move:20606,index:-1,soul:true,hp:1000});timer(x,0,'技能禁疗',{});timer(x,1,'固定百分比免疫',{});turn(x,20606,20309);assert.equal(x.fighters[0].hp,3250);assert.equal(x.fighters[1].hp,9000);assert.equal((x.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='percent').reduce((n,e)=>n+e.settledDamage,0),0);});\r"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化",
+            "assertion": "test('5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化',()=>{for(const active of[false,true]){const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0&&active)c.t.effects['免弱']={start:1,end:3};old.run(e,c);}};let s;try{s=make({move:20606,index:-1,soul:true});}finally{E.SOULS=old;}assert.equal(s.fighters[1].counts.nextSkillInvalid??0,active?1:0);assert.equal(s.fighters[1].effects['免弱'],undefined);turn(s,20606,10127);if(active)assert.equal(red(s),0);}const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json');for(const move of[20565,38549]){const s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[20565,38549,20276,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(x=>x.effectId===1447);turn(s,20606,move);assert.equal(s.fighters[0].stages.atk,0);assert.equal(s.fighters[0].stages.spa,0);assert.deepEqual(s.fighters[0].ailments,{});}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽",
+            "assertion": "test('5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});s.fighters[0].pp[key(25679)]=0;turn(s,20606,20309);assert.equal(sum(s,'percent'),4000);assert.equal(s.fighters[0].hp,3250);const picked=s.fighters[0].soulState.pony753.lifePP[0].chosen;assert.equal(picked.length,2);assert.equal(new Set(picked.map(x=>x.key)).size,2);assert.ok(picked.every(x=>x.after-x.before===1));const one=make({move:20606,index:-1,soul:true});turn(one,20606,20309);assert.equal(one.fighters[0].soulState.pony753.lifePP[0].chosen.length,1);assert.equal(one.fighters[0].pp[key(20606)],source.moves.find(m=>m.id===20606).pp);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写",
+            "assertion": "test('5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写',()=>{for(const hp of[8999,9000,9001]){const s=make({move:20606,index:-1,soul:true,hp,aStats:{maxHp:9999,spe:1},bStats:{spe:500}});turn(s,20606,10127);assert.equal(s.turns[0].first,hp>9000?0:1);assert.equal(s.moveDefinitions[key(20606)].priority,0);}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚",
+            "assertion": "test('5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});turn(s,20606,10127);assert.ok(red(s)>0);assert.ok(s.fighters[0].soulState.pony753.voidCharge);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);turn(s,20606,10127);assert.ok(red(s)>0);const x=make({move:20606,index:-1,soul:true,hp:1000,enemySource:source,enemySoul:true,enemyLoadout:[11261,10993,10996,20607,31143]});x.fighters[1].soulId=null;turn(x,20606,10993);const before=x.fighters[0].hp;assert.throws(()=>turn(x,20606,11261),/Q-5000-001/);assert.equal(x.round,2);assert.equal(x.fighters[0].hp,before);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发",
+            "assertion": "test('5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发',()=>{const s=make({move:20606,index:-1,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}}),before={hp:s.fighters[0].hp,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}};turn(s,20606,10127);const e=events(s).find(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(e.settledDamage>100);assert.equal(e.hpLoss,99);assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);assert.equal(s.fighters[0].soulState.pony753.reincarnationUsed,true);assert.equal(s.turns[0].remainingHp[0],100);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.savedRound,1);s.fighters[0].hp=100;turn(s,20606,10127);assert.equal(s.fighters[0].hp,0);assert.equal(s.finished,true);});\r"
+          }
+        ],
+        "interaction": [
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级",
+            "assertion": "test('5000/753轮回真实发生过强化、消耗和PP回复后回末还原选择快照，免弱不阻返回原等级',()=>{const s=make({move:25679,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;const before={hp:100,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}},old=E.SOULS;let actualStages;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)actualStages={...c.a.stages};}};try{turn(s,25679,10127);}finally{E.SOULS=old;}assert.ok(actualStages.atk>0);assert.ok(s.fighters[0].soulState.pony753.lifePP[0].chosen.some(x=>x.before!==x.after));assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回",
+            "assertion": "test('5000/753轮回已1HP受正结算攻击与附固均保1而实际HP损失0，正伤害仍获虚无；自身出手受到真实816反伤不触发轮回',()=>{const s=make({move:20606,index:-1,soul:true,hp:1,aStats:{spe:1},bStats:{spe:500},enemySource:source,enemySoul:true,enemyLoadout:[10994,10993,10996,20607,31143]});s.fighters[1].soulId=null;turn(s,20606,10994);const incoming=s.damageEvents.filter(e=>e.targetSide===0);assert.ok(incoming.some(e=>e.type==='attack'&&e.settledDamage>0&&e.hpLoss===0));assert.ok(incoming.some(e=>e.type==='fixed'&&e.settledDamage===30&&e.hpLoss===0));assert.equal(s.fighters[0].hp,1);assert.ok(s.fighters[0].soulState.pony753.voidCharge);const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),x=make({move:20606,index:-1,soul:true,hp:1000,loadout:[20606,10993,10996,20607,31143],enemySource:enemy,enemyLoadout:[29463,20276,20565,11141,38550]});x.moveDefinitions[key(29463)].operations=x.moveDefinitions[key(29463)].operations.filter(o=>o.effectId===816);turn(x,20606,29463);x.fighters[0].hp=1;turn(x,10993,20276);assert.equal(x.fighters[0].hp,0);assert.equal(x.fighters[0].soulState.pony753.reincarnationUsed,false);});"
+          },
+          {
+            "file": "tests/remaining-5000-boundaries.test.cjs",
+            "name": "5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复",
+            "assertion": "test('5000/753属性直伤不当作攻击触发虚无，生命魂印回复不受技能禁疗限制且粉伤免疫不妨碍生命回复',()=>{const enemy=require('../data/species/4355.json').snapshot,s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[27925,10250,20065,10628,35797]});s.moveDefinitions[key(27925)].operations=s.moveDefinitions[key(27925)].operations.filter(o=>o.effectId===1792);turn(s,20606,27925);assert.ok(s.damageEvents.some(e=>e.redCategory==='attribute'&&e.hpLoss>0));assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);const x=make({move:20606,index:-1,soul:true,hp:1000});timer(x,0,'技能禁疗',{});timer(x,1,'固定百分比免疫',{});turn(x,20606,20309);assert.equal(x.fighters[0].hp,3250);assert.equal(x.fighters[1].hp,9000);assert.equal((x.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='percent').reduce((n,e)=>n+e.settledDamage,0),0);});\r"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化",
+            "assertion": "test('5000/753元素真实入场清回合成功才封下次整招，失败不授，圣洁免异常与弱化',()=>{for(const active of[false,true]){const old=E.SOULS;E.SOULS={...old,run(e,c){if(e==='battleStart'&&c.a.side===0&&active)c.t.effects['免弱']={start:1,end:3};old.run(e,c);}};let s;try{s=make({move:20606,index:-1,soul:true});}finally{E.SOULS=old;}assert.equal(s.fighters[1].counts.nextSkillInvalid??0,active?1:0);assert.equal(s.fighters[1].effects['免弱'],undefined);turn(s,20606,10127);if(active)assert.equal(red(s),0);}const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json');for(const move of[20565,38549]){const s=make({move:20606,index:-1,soul:true,enemySource:enemy,enemyLoadout:[20565,38549,20276,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(x=>x.effectId===1447);turn(s,20606,move);assert.equal(s.fighters[0].stages.atk,0);assert.equal(s.fighters[0].stages.spa,0);assert.deepEqual(s.fighters[0].ailments,{});}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽",
+            "assertion": "test('5000/753能量先按损失HP一半附粉，生命再回复四分之一且随机两个未满PP无放回，只有一个候选不补抽',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});s.fighters[0].pp[key(25679)]=0;turn(s,20606,20309);assert.equal(sum(s,'percent'),4000);assert.equal(s.fighters[0].hp,3250);const picked=s.fighters[0].soulState.pony753.lifePP[0].chosen;assert.equal(picked.length,2);assert.equal(new Set(picked.map(x=>x.key)).size,2);assert.ok(picked.every(x=>x.after-x.before===1));const one=make({move:20606,index:-1,soul:true});turn(one,20606,20309);assert.equal(one.fighters[0].soulState.pony753.lifePP[0].chosen.length,1);assert.equal(one.fighters[0].pp[key(20606)],source.moves.find(m=>m.id===20606).pp);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写",
+            "assertion": "test('5000/753永恒严格HP高于对手必先手，等于与低于时仍按真实先制速度，技能先制不改写',()=>{for(const hp of[8999,9000,9001]){const s=make({move:20606,index:-1,soul:true,hp,aStats:{maxHp:9999,spe:1},bStats:{spe:500}});turn(s,20606,10127);assert.equal(s.turns[0].first,hp>9000?0:1);assert.equal(s.moveDefinitions[key(20606)].priority,0);}});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚",
+            "assertion": "test('5000/753虚无实际正攻击红伤后下次整招攻击免疫，零伤不再授予，第三招恢复受伤；属性与固粉真范围冲突回滚',()=>{const s=make({move:20606,index:-1,soul:true,hp:1000});turn(s,20606,10127);assert.ok(red(s)>0);assert.ok(s.fighters[0].soulState.pony753.voidCharge);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.voidCharge,undefined);turn(s,20606,10127);assert.ok(red(s)>0);const x=make({move:20606,index:-1,soul:true,hp:1000,enemySource:source,enemySoul:true,enemyLoadout:[11261,10993,10996,20607,31143]});x.fighters[1].soulId=null;turn(x,20606,10993);const before=x.fighters[0].hp;assert.throws(()=>turn(x,20606,11261),/Q-5000-001/);assert.equal(x.round,2);assert.equal(x.fighters[0].hp,before);});"
+          },
+          {
+            "file": "tests/remaining-5000-soul.test.cjs",
+            "name": "5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发",
+            "assertion": "test('5000/753轮回首次敌方行动致命整回保1，完整伤害与HP损失独立，回末精确返回选择后HP/PP/等级，次轮虚无阻挡，耗尽后轮回不再触发',()=>{const s=make({move:20606,index:-1,soul:true,hp:100,aStats:{spe:1},bStats:{atk:9999,spe:500}}),before={hp:s.fighters[0].hp,pp:{...s.fighters[0].pp},stages:{...s.fighters[0].stages}};turn(s,20606,10127);const e=events(s).find(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(e.settledDamage>100);assert.equal(e.hpLoss,99);assert.equal(s.fighters[0].hp,before.hp);assert.deepEqual(s.fighters[0].pp,before.pp);assert.deepEqual(s.fighters[0].stages,before.stages);assert.equal(s.fighters[0].soulState.pony753.reincarnationUsed,true);assert.equal(s.turns[0].remainingHp[0],100);turn(s,20606,10127);assert.equal(red(s),0);assert.equal(s.fighters[0].soulState.pony753.savedRound,1);s.fighters[0].hp=100;turn(s,20606,10127);assert.equal(s.fighters[0].hp,0);assert.equal(s.finished,true);});\r"
+          }
+        ]
+      }
+    },
+    "5000:move:10993": null,
+    "5000:move:20498": null,
+    "5000:skill:20498:0": null,
+    "5000:move:10996": null,
+    "5000:move:11261": null,
+    "5000:skill:11261:0": null,
+    "5000:move:11274": null,
+    "5000:skill:11274:0": null,
+    "5000:move:10997": null,
+    "5000:skill:10997:0": null,
+    "5000:move:20606": null,
+    "5000:skill:20606:0": null,
+    "5000:move:10994": null,
+    "5000:skill:10994:0": null,
+    "5000:move:20607": null,
+    "5000:skill:20607:0": null,
+    "5000:move:20499": null,
+    "5000:skill:20499:0": null,
+    "5000:move:10998": null,
+    "5000:skill:10998:0": null,
+    "5000:move:20608": null,
+    "5000:skill:20608:0": null,
+    "5000:move:20605": null,
+    "5000:skill:20605:0": null,
+    "5000:move:10995": null,
+    "5000:skill:10995:0": null,
+    "5000:move:10999": null,
+    "5000:skill:10999:0": null,
+    "5000:move:20500": null,
+    "5000:skill:20500:0": null,
+    "5000:move:11000": null,
+    "5000:skill:11000:0": null,
+    "5000:move:24319": null,
+    "5000:skill:24319:0": null,
+    "5000:skill:24319:1": null,
+    "5000:skill:24319:2": null,
+    "5000:skill:24319:3": null,
+    "5000:skill:24319:4": null,
+    "5000:move:17912": null,
+    "5000:skill:17912:0": null,
+    "5000:skill:17912:1": null,
+    "5000:move:18006": null,
+    "5000:skill:18006:0": null,
+    "5000:skill:18006:1": null,
+    "5000:move:31140": null,
+    "5000:skill:31140:0": null,
+    "5000:skill:31140:1": null,
+    "5000:move:25678": null,
+    "5000:skill:25678:0": null,
+    "5000:skill:25678:1": null,
+    "5000:skill:25678:2": null,
+    "5000:move:31141": null,
+    "5000:skill:31141:0": null,
+    "5000:skill:31141:1": null,
+    "5000:move:25679": null,
+    "5000:skill:25679:0": null,
+    "5000:skill:25679:1": null,
+    "5000:skill:25679:2": null,
+    "5000:skill:25679:3": null,
+    "5000:move:31142": null,
+    "5000:skill:31142:0": null,
+    "5000:skill:31142:1": null,
+    "5000:move:31143": null,
+    "5000:skill:31143:0": null,
+    "5000:skill:31143:1": null,
+    "5000:skill:31143:2": null
+  },
+  "pending": {
+    "schema": 1,
+    "status": "partial-awaiting-confirmation",
+    "notDeployed": true,
+    "snapshot": {
+      "id": 5000,
+      "name": "圣灵谱尼",
+      "base": {
+        "maxHp": 180,
+        "atk": 110,
+        "def": 120,
+        "spa": 150,
+        "spd": 120,
+        "spe": 140
+      },
+      "missingEffects": [],
+      "deployment": {
+        "scope": "single"
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/5000",
+        "revision": "f27c4c1a",
+        "loadedAt": "2026-11-03T16:54:04.470Z"
+      },
+      "gender": {
+        "id": 0,
+        "url": "https://api.seerapi.com/v1/pet_gender/0",
+        "source": {
+          "url": "https://api.seerapi.com/v1/pet/5000",
+          "revision": "f27c4c1a"
+        }
+      },
+      "typeChart": {
+        "rows": {
+          "草": {
+            "草": 0.5,
+            "水": 2,
+            "火": 0.5,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "水": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 2,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "火": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "飞行": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "电": {
+            "草": 0.5,
+            "水": 2,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 0,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 2
+          },
+          "机械": {
+            "草": 1,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "地面": {
+            "草": 0.5,
+            "水": 1,
+            "火": 2,
+            "飞行": 0,
+            "电": 2,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 0.5,
+            "王": 2,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "普通": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "冰": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 2,
+            "虫": 2,
+            "虚空": 1
+          },
+          "超能": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 0,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "战斗": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 0.5,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "光": {
+            "草": 0,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 0.5
+          },
+          "暗影": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 0.5,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 0.5,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "神秘": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 0.5,
+            "普通": 1,
+            "冰": 1,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 2,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 2,
+            "轮回": 2,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "龙": {
+            "草": 0.5,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 0.5,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 2,
+            "圣灵": 2,
+            "次元": 1,
+            "远古": 0.5,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "圣灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 0.5,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "次元": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 2,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 2,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 0,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0.5,
+            "轮回": 0.5,
+            "虫": 2,
+            "虚空": 2
+          },
+          "远古": {
+            "草": 2,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 1,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 2,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 0.5,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 2
+          },
+          "邪灵": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 0.5,
+            "混沌": 0.5,
+            "神灵": 0,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 1
+          },
+          "自然": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 2,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 2,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 0.5,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 0.5,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 0.5,
+            "自然": 1,
+            "王": 2,
+            "混沌": 0.5,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "王": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 0.5,
+            "战斗": 2,
+            "光": 1,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 0.5,
+            "虚空": 1
+          },
+          "混沌": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 2,
+            "电": 0.5,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 2,
+            "轮回": 0.5,
+            "虫": 1,
+            "虚空": 0
+          },
+          "神灵": {
+            "草": 2,
+            "水": 2,
+            "火": 2,
+            "飞行": 1,
+            "电": 2,
+            "机械": 0.5,
+            "地面": 1,
+            "普通": 1,
+            "冰": 2,
+            "超能": 1,
+            "战斗": 0.5,
+            "光": 1,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 0.5,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 2,
+            "邪灵": 2,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 1
+          },
+          "轮回": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 0.5,
+            "战斗": 1,
+            "光": 2,
+            "暗影": 2,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 2,
+            "次元": 2,
+            "远古": 1,
+            "邪灵": 2,
+            "自然": 0.5,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 1,
+            "虚空": 0.5
+          },
+          "虫": {
+            "草": 2,
+            "水": 0.5,
+            "火": 0.5,
+            "飞行": 1,
+            "电": 1,
+            "机械": 1,
+            "地面": 2,
+            "普通": 1,
+            "冰": 0.5,
+            "超能": 1,
+            "战斗": 2,
+            "光": 0.5,
+            "暗影": 1,
+            "神秘": 1,
+            "龙": 1,
+            "圣灵": 1,
+            "次元": 1,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 1,
+            "王": 1,
+            "混沌": 2,
+            "神灵": 1,
+            "轮回": 1,
+            "虫": 2,
+            "虚空": 1
+          },
+          "虚空": {
+            "草": 1,
+            "水": 1,
+            "火": 1,
+            "飞行": 0.5,
+            "电": 1,
+            "机械": 1,
+            "地面": 1,
+            "普通": 1,
+            "冰": 1,
+            "超能": 2,
+            "战斗": 2,
+            "光": 2,
+            "暗影": 0.5,
+            "神秘": 2,
+            "龙": 1,
+            "圣灵": 0.5,
+            "次元": 0.5,
+            "远古": 1,
+            "邪灵": 1,
+            "自然": 2,
+            "王": 1,
+            "混沌": 1,
+            "神灵": 1,
+            "轮回": 2,
+            "虫": 1,
+            "虚空": 1
+          }
+        },
+        "aliases": {
+          "草": [
+            "草"
+          ],
+          "水": [
+            "水"
+          ],
+          "火": [
+            "火"
+          ],
+          "飞行": [
+            "飞行"
+          ],
+          "电": [
+            "电"
+          ],
+          "机械": [
+            "机械"
+          ],
+          "地面": [
+            "地面"
+          ],
+          "普通": [
+            "普通"
+          ],
+          "冰": [
+            "冰"
+          ],
+          "超能": [
+            "超能"
+          ],
+          "战斗": [
+            "战斗"
+          ],
+          "光": [
+            "光"
+          ],
+          "暗影": [
+            "暗影"
+          ],
+          "神秘": [
+            "神秘"
+          ],
+          "龙": [
+            "龙"
+          ],
+          "圣灵": [
+            "圣灵"
+          ],
+          "次元": [
+            "次元"
+          ],
+          "远古": [
+            "远古"
+          ],
+          "邪灵": [
+            "邪灵"
+          ],
+          "自然": [
+            "自然"
+          ],
+          "王": [
+            "王"
+          ],
+          "混沌": [
+            "混沌"
+          ],
+          "神灵": [
+            "神灵"
+          ],
+          "轮回": [
+            "轮回"
+          ],
+          "虫": [
+            "虫"
+          ],
+          "虚空": [
+            "虚空"
+          ]
+        },
+        "revision": "seerapi:c9d6b67f",
+        "provider": "seerapi"
+      },
+      "type": "神灵",
+      "moves": [
+        {
+          "id": 10993,
+          "name": "极光",
+          "type": "普通",
+          "kind": "physical",
+          "power": 60,
+          "pp": 40,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "2/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:2cbba693",
+          "hash": "2cbba693",
+          "level": 1,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20498,
+          "name": "虚无",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 1,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            52
+          ],
+          "effectInstances": [
+            {
+              "id": 52,
+              "args": [
+                2
+              ],
+              "description": "2回合若本方先手攻击，使得对方的技能失效"
+            }
+          ],
+          "description": "2回合若本方先手攻击，使得对方的技能失效",
+          "revision": "seerapi:e2d8f796",
+          "hash": "e2d8f796",
+          "level": 5,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10996,
+          "name": "神圣之光",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 70,
+          "pp": 40,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [],
+          "effectInstances": [],
+          "description": "",
+          "revision": "seerapi:ab8317f4",
+          "hash": "ab8317f4",
+          "level": 9,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11261,
+          "name": "元素",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 5,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            29
+          ],
+          "effectInstances": [
+            {
+              "id": 29,
+              "args": [
+                200
+              ],
+              "description": "额外附加200点固定伤害"
+            }
+          ],
+          "description": "额外附加200点固定伤害",
+          "revision": "seerapi:a9e5688e",
+          "hash": "a9e5688e",
+          "level": 13,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11274,
+          "name": "能量",
+          "type": "圣灵",
+          "kind": "physical",
+          "power": 0,
+          "pp": 5,
+          "priority": -6,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            34
+          ],
+          "effectInstances": [
+            {
+              "id": 34,
+              "args": [
+                2
+              ],
+              "description": "将所受的伤害2倍反馈给对手"
+            }
+          ],
+          "description": "将所受的伤害2倍反馈给对手",
+          "revision": "seerapi:4954f007",
+          "hash": "4954f007",
+          "level": 17,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10997,
+          "name": "灵光之怒",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 80,
+          "pp": 30,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            35
+          ],
+          "effectInstances": [
+            {
+              "id": 35,
+              "args": [],
+              "description": "惩罚，对方能力等级越高，此技能威力越大"
+            }
+          ],
+          "description": "惩罚，对方能力等级越高，此技能威力越大",
+          "revision": "seerapi:5b536b41",
+          "hash": "5b536b41",
+          "level": 21,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20606,
+          "name": "生命",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            77
+          ],
+          "effectInstances": [
+            {
+              "id": 77,
+              "args": [
+                5,
+                100
+              ],
+              "description": "5回合内若使用技能则恢复100点体力值"
+            }
+          ],
+          "description": "5回合内若使用技能则恢复100点体力值",
+          "revision": "seerapi:7e40b6d8",
+          "hash": "7e40b6d8",
+          "level": 25,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10994,
+          "name": "断空破",
+          "type": "普通",
+          "kind": "physical",
+          "power": 90,
+          "pp": 20,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            29
+          ],
+          "effectInstances": [
+            {
+              "id": 29,
+              "args": [
+                30
+              ],
+              "description": "额外附加30点固定伤害"
+            }
+          ],
+          "description": "额外附加30点固定伤害",
+          "revision": "seerapi:e256a937",
+          "hash": "e256a937",
+          "level": 29,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20607,
+          "name": "轮回",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 1,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            43
+          ],
+          "effectInstances": [
+            {
+              "id": 43,
+              "args": [
+                1
+              ],
+              "description": "恢复自身最大体力的1/1"
+            }
+          ],
+          "description": "恢复自身最大体力的1/1",
+          "revision": "seerapi:9c2fe04d",
+          "hash": "9c2fe04d",
+          "level": 33,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20499,
+          "name": "灵魂干涉",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 20,
+          "priority": 0,
+          "accuracy": 70,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            22
+          ],
+          "effectInstances": [
+            {
+              "id": 22,
+              "args": [
+                100,
+                2
+              ],
+              "description": "100%令对手疲惫3回合"
+            }
+          ],
+          "description": "100%令对手疲惫3回合",
+          "revision": "seerapi:d2171568",
+          "hash": "d2171568",
+          "level": 37,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10998,
+          "name": "圣堂之门",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 100,
+          "pp": 15,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            33
+          ],
+          "effectInstances": [
+            {
+              "id": 33,
+              "args": [],
+              "description": "消除对手能力提升状态"
+            }
+          ],
+          "description": "消除对手能力提升状态",
+          "revision": "seerapi:b6892ece",
+          "hash": "b6892ece",
+          "level": 41,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20608,
+          "name": "永恒",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            87
+          ],
+          "effectInstances": [
+            {
+              "id": 87,
+              "args": [],
+              "description": "恢复自身所有PP值"
+            }
+          ],
+          "description": "恢复自身所有PP值",
+          "revision": "seerapi:bf23e659",
+          "hash": "bf23e659",
+          "level": 45,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20605,
+          "name": "圣洁",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            86
+          ],
+          "effectInstances": [
+            {
+              "id": 86,
+              "args": [
+                5
+              ],
+              "description": "5回合内属性攻击对自身必定miss"
+            }
+          ],
+          "description": "5回合内属性攻击对自身必定miss",
+          "revision": "seerapi:c9d628e",
+          "hash": "c9d628e",
+          "level": 49,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10995,
+          "name": "旋灭裂空阵",
+          "type": "圣灵",
+          "kind": "physical",
+          "power": 135,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            60
+          ],
+          "effectInstances": [
+            {
+              "id": 60,
+              "args": [
+                5,
+                30
+              ],
+              "description": "5回合内每回合都能附加30点固定伤害"
+            }
+          ],
+          "description": "5回合内每回合都能附加30点固定伤害",
+          "revision": "seerapi:2d9969e1",
+          "hash": "2d9969e1",
+          "level": 53,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 10999,
+          "name": "千烈虚光闪",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 140,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            3
+          ],
+          "effectInstances": [
+            {
+              "id": 3,
+              "args": [],
+              "description": "解除自身的能力下降状态"
+            }
+          ],
+          "description": "解除自身的能力下降状态",
+          "revision": "seerapi:e1b594f9",
+          "hash": "e1b594f9",
+          "level": 57,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 20500,
+          "name": "圣光气",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 10,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            58
+          ],
+          "effectInstances": [
+            {
+              "id": 58,
+              "args": [
+                2
+              ],
+              "description": "下2回合自身攻击技能必定打出致命一击"
+            }
+          ],
+          "description": "下2回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:314aeab",
+          "hash": "314aeab",
+          "level": 61,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 11000,
+          "name": "圣灵魔闪光",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 160,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            28
+          ],
+          "effectInstances": [
+            {
+              "id": 28,
+              "args": [
+                8
+              ],
+              "description": "降低对方1/8的hp"
+            }
+          ],
+          "description": "降低对方1/8的hp",
+          "revision": "seerapi:d010014e",
+          "hash": "d010014e",
+          "level": 71,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 24319,
+          "name": "璨灵圣光",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            525,
+            57,
+            610,
+            694,
+            776
+          ],
+          "effectInstances": [
+            {
+              "id": 525,
+              "args": [
+                2,
+                100
+              ],
+              "description": "2回合内有100%概率免疫对手的攻击伤害"
+            },
+            {
+              "id": 57,
+              "args": [
+                5,
+                3
+              ],
+              "description": "5回合内每回合使用技能恢复自身最大体力的1/3"
+            },
+            {
+              "id": 610,
+              "args": [
+                1
+              ],
+              "description": "遇到天敌时先制+1"
+            },
+            {
+              "id": 694,
+              "args": [
+                2
+              ],
+              "description": "下2回合攻击必定先出手"
+            },
+            {
+              "id": 776,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合自身造成的攻击伤害翻倍"
+            }
+          ],
+          "description": "2回合内有100%概率免疫对手的攻击伤害；5回合内每回合使用技能恢复自身最大体力的1/3；遇到天敌时先制+1；下2回合攻击必定先出手；下2回合自身造成的攻击伤害翻倍",
+          "revision": "seerapi:60bdff32",
+          "hash": "60bdff32",
+          "level": 72,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 17912,
+          "name": "落芳天华",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 80,
+          "pp": 10,
+          "priority": 3,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            85,
+            497
+          ],
+          "effectInstances": [
+            {
+              "id": 85,
+              "args": [],
+              "description": "使对手的能力提升效果转化到自己身上"
+            },
+            {
+              "id": 497,
+              "args": [
+                100,
+                100,
+                400
+              ],
+              "description": "附加100点固定伤害，每次使用额外附加100点，最高400点，遇到天敌时效果翻倍"
+            }
+          ],
+          "description": "使对手的能力提升效果转化到自己身上；附加100点固定伤害，每次使用额外附加100点，最高400点，遇到天敌时效果翻倍",
+          "revision": "seerapi:509c8416",
+          "hash": "509c8416",
+          "level": 73,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 18006,
+          "name": "圣灵悲魂曲",
+          "type": "圣灵",
+          "kind": "special",
+          "power": 150,
+          "pp": 5,
+          "priority": 1,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            695,
+            700
+          ],
+          "effectInstances": [
+            {
+              "id": 695,
+              "args": [
+                3,
+                50
+              ],
+              "description": "3回合内50%令对手使用的属性技能无效"
+            },
+            {
+              "id": 700,
+              "args": [
+                1
+              ],
+              "description": "先出手时降低对手所有PP1点"
+            }
+          ],
+          "description": "3回合内50%令对手使用的属性技能无效；先出手时降低对手所有PP1点",
+          "revision": "seerapi:3199de42",
+          "hash": "3199de42",
+          "level": 74,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 31140,
+          "name": "神灵之触",
+          "type": "神灵",
+          "kind": "special",
+          "power": 90,
+          "pp": 10,
+          "priority": 3,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1217,
+            906
+          ],
+          "effectInstances": [
+            {
+              "id": 1217,
+              "args": [
+                1
+              ],
+              "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效"
+            },
+            {
+              "id": 906,
+              "args": [
+                15,
+                10,
+                45
+              ],
+              "description": "附加对手最大体力值15%的百分比伤害，每次使用增加10%，最高45%"
+            }
+          ],
+          "description": "消除对手能力提升状态，消除成功则对手下1次攻击技能无效；附加对手最大体力值15%的百分比伤害，每次使用增加10%，最高45%",
+          "revision": "seerapi:cee290c6",
+          "hash": "cee290c6",
+          "level": 75,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 25678,
+          "name": "圣光吟诵",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            936,
+            1236,
+            693
+          ],
+          "effectInstances": [
+            {
+              "id": 936,
+              "args": [
+                100,
+                7,
+                2
+              ],
+              "description": "100%令对手疲惫，未触发则令对手2回合内使用的属性技能无效"
+            },
+            {
+              "id": 1236,
+              "args": [
+                4,
+                3
+              ],
+              "description": "4回合内若对手使用攻击技能则造成伤害前附加对手最大体力1/3的百分比伤害"
+            },
+            {
+              "id": 693,
+              "args": [
+                2,
+                150
+              ],
+              "description": "下2回合造成的攻击伤害额外提升150%"
+            }
+          ],
+          "description": "100%令对手疲惫，未触发则令对手2回合内使用的属性技能无效；4回合内若对手使用攻击技能则造成伤害前附加对手最大体力1/3的百分比伤害；下2回合造成的攻击伤害额外提升150%",
+          "revision": "seerapi:6a134d87",
+          "hash": "6a134d87",
+          "level": 76,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 31141,
+          "name": "神圣复苏",
+          "type": "神灵",
+          "kind": "physical",
+          "power": 0,
+          "pp": 1,
+          "priority": 2,
+          "accuracy": 100,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1237,
+            1005
+          ],
+          "effectInstances": [
+            {
+              "id": 1237,
+              "args": [],
+              "description": "使双方精灵所有技能PP值归零；消除双方能力提升、下降状态以及回合类效果"
+            },
+            {
+              "id": 1005,
+              "args": [
+                1
+              ],
+              "description": "恢复自身最大体力的1/1并造成等量百分比伤害"
+            }
+          ],
+          "description": "使双方精灵所有技能PP值归零；消除双方能力提升、下降状态以及回合类效果；恢复自身最大体力的1/1并造成等量百分比伤害",
+          "revision": "seerapi:de262b32",
+          "hash": "de262b32",
+          "level": 77,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 25679,
+          "name": "光荣之梦",
+          "type": "普通",
+          "kind": "status",
+          "power": 0,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 100,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            1238,
+            677,
+            1239,
+            843
+          ],
+          "effectInstances": [
+            {
+              "id": 1238,
+              "args": [
+                1,
+                222
+              ],
+              "description": "全属性+1，对手不为混沌系时强化效果翻倍"
+            },
+            {
+              "id": 677,
+              "args": [
+                3
+              ],
+              "description": "3回合内每回合使用技能吸取对手能力提升状态"
+            },
+            {
+              "id": 1239,
+              "args": [
+                2,
+                2
+              ],
+              "description": "恢复自身最大体力的1/2，自身体力低于1/2时造成等量百分比伤害"
+            },
+            {
+              "id": 843,
+              "args": [
+                2,
+                2
+              ],
+              "description": "下2回合令自身所有技能先制+2"
+            }
+          ],
+          "description": "全属性+1，对手不为混沌系时强化效果翻倍；3回合内每回合使用技能吸取对手能力提升状态；恢复自身最大体力的1/2，自身体力低于1/2时造成等量百分比伤害；下2回合令自身所有技能先制+2",
+          "revision": "seerapi:5d761636",
+          "hash": "5d761636",
+          "level": 78,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 31142,
+          "name": "神圣启示歌",
+          "type": "神灵",
+          "kind": "special",
+          "power": 150,
+          "pp": 5,
+          "priority": 1,
+          "accuracy": 95,
+          "alwaysHit": false,
+          "critical": "1/16",
+          "effectIds": [
+            1222,
+            499
+          ],
+          "effectInstances": [
+            {
+              "id": 1222,
+              "args": [
+                2
+              ],
+              "description": "先出手时使对手随机2个技能PP值归零"
+            },
+            {
+              "id": 499,
+              "args": [
+                3
+              ],
+              "description": "后出手时下回合所有技能先制+3"
+            }
+          ],
+          "description": "先出手时使对手随机2个技能PP值归零；后出手时下回合所有技能先制+3",
+          "revision": "seerapi:e5bec18d",
+          "hash": "e5bec18d",
+          "level": 79,
+          "fifth": false,
+          "sourceFlags": {
+            "is_fifth": false,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "regular"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        },
+        {
+          "id": 31143,
+          "name": "神灵救世光",
+          "type": "神灵",
+          "kind": "special",
+          "power": 160,
+          "pp": 5,
+          "priority": 0,
+          "accuracy": 95,
+          "alwaysHit": true,
+          "critical": "1/16",
+          "effectIds": [
+            797,
+            1240,
+            1241
+          ],
+          "effectInstances": [
+            {
+              "id": 797,
+              "args": [
+                3
+              ],
+              "description": "消除对手回合类效果，消除成功3回合内对手无法通过自身技能恢复体力"
+            },
+            {
+              "id": 1240,
+              "args": [
+                1,
+                3
+              ],
+              "description": "当回合未击败对手则下1次自身技能附加自身最大体力1/3的百分比伤害"
+            },
+            {
+              "id": 1241,
+              "args": [
+                200,
+                2
+              ],
+              "description": "吸取对手200点固定体力，自身体力低于1/2时吸取效果翻倍"
+            }
+          ],
+          "description": "消除对手回合类效果，消除成功3回合内对手无法通过自身技能恢复体力；当回合未击败对手则下1次自身技能附加自身最大体力1/3的百分比伤害；吸取对手200点固定体力，自身体力低于1/2时吸取效果翻倍",
+          "revision": "seerapi:2dc4e594",
+          "hash": "2dc4e594",
+          "level": 81,
+          "fifth": true,
+          "sourceFlags": {
+            "is_fifth": true,
+            "is_special": false,
+            "skill_activation_item": null,
+            "classification": "fifth"
+          },
+          "provider": "seerapi",
+          "sourceTargetCount": 1,
+          "deferredEffects": [],
+          "limitations": [],
+          "advanced": false
+        }
+      ],
+      "effects": [
+        {
+          "id": 52,
+          "argsNum": 1,
+          "template": "{0}回合若本方先手攻击，使得对方的技能失效",
+          "revision": "seerapi:1fafaca3"
+        },
+        {
+          "id": 29,
+          "argsNum": 1,
+          "template": "额外附加{0}点固定伤害",
+          "revision": "seerapi:415f01ba"
+        },
+        {
+          "id": 34,
+          "argsNum": 1,
+          "template": "将所受的伤害{0}倍反馈给对手",
+          "revision": "seerapi:783909e6"
+        },
+        {
+          "id": 35,
+          "argsNum": 0,
+          "template": "惩罚，对方能力等级越高，此技能威力越大",
+          "revision": "seerapi:94f7d2fb"
+        },
+        {
+          "id": 77,
+          "argsNum": 2,
+          "template": "{0}回合内若使用技能则恢复{1}点体力值",
+          "revision": "seerapi:c1d2aad"
+        },
+        {
+          "id": 43,
+          "argsNum": 1,
+          "template": "恢复自身最大体力的1/{0}",
+          "revision": "seerapi:b33246e"
+        },
+        {
+          "id": 22,
+          "argsNum": 2,
+          "template": "{0}%令对手疲惫{1}回合",
+          "revision": "seerapi:89dd53f9"
+        },
+        {
+          "id": 33,
+          "argsNum": 0,
+          "template": "消除对手能力提升状态",
+          "revision": "seerapi:2fdd3e71"
+        },
+        {
+          "id": 87,
+          "argsNum": 0,
+          "template": "恢复自身所有PP值",
+          "revision": "seerapi:27d12f87"
+        },
+        {
+          "id": 86,
+          "argsNum": 1,
+          "template": "{0}回合内属性攻击对自身必定miss",
+          "revision": "seerapi:16f27e32"
+        },
+        {
+          "id": 60,
+          "argsNum": 2,
+          "template": "{0}回合内每回合都能附加{1}点固定伤害",
+          "revision": "seerapi:f8b24f80"
+        },
+        {
+          "id": 3,
+          "argsNum": 0,
+          "template": "解除自身的能力下降状态",
+          "revision": "seerapi:de96e2f9"
+        },
+        {
+          "id": 58,
+          "argsNum": 1,
+          "template": "下{0}回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:a88e6bf3"
+        },
+        {
+          "id": 28,
+          "argsNum": 1,
+          "template": "降低对方1/{0}的hp",
+          "revision": "seerapi:94bf9f1"
+        },
+        {
+          "id": 525,
+          "argsNum": 2,
+          "template": "{0}回合内有{1}%概率免疫对手的攻击伤害",
+          "revision": "seerapi:1d754d1e"
+        },
+        {
+          "id": 57,
+          "argsNum": 2,
+          "template": "{0}回合内每回合使用技能恢复自身最大体力的1/{1}",
+          "revision": "seerapi:91cca606"
+        },
+        {
+          "id": 610,
+          "argsNum": 1,
+          "template": "遇到天敌时先制+{0}",
+          "revision": "seerapi:ea42408b"
+        },
+        {
+          "id": 694,
+          "argsNum": 1,
+          "template": "下{0}回合攻击必定先出手",
+          "revision": "seerapi:233e905c"
+        },
+        {
+          "id": 776,
+          "argsNum": 1,
+          "template": "下{0}回合自身造成的攻击伤害翻倍",
+          "revision": "seerapi:e9884fa3"
+        },
+        {
+          "id": 85,
+          "argsNum": 0,
+          "template": "使对手的能力提升效果转化到自己身上",
+          "revision": "seerapi:9946a70f"
+        },
+        {
+          "id": 497,
+          "argsNum": 3,
+          "template": "附加{0}点固定伤害，每次使用额外附加{1}点，最高{2}点，遇到天敌时效果翻倍",
+          "revision": "seerapi:cfcc8861"
+        },
+        {
+          "id": 695,
+          "argsNum": 2,
+          "template": "{0}回合内{1}%令对手使用的属性技能无效",
+          "revision": "seerapi:76dc3c09"
+        },
+        {
+          "id": 700,
+          "argsNum": 1,
+          "template": "先出手时降低对手所有PP{0}点",
+          "revision": "seerapi:10b63263"
+        },
+        {
+          "id": 1217,
+          "argsNum": 1,
+          "template": "消除对手能力提升状态，消除成功则对手下{0}次攻击技能无效",
+          "revision": "seerapi:e15e591"
+        },
+        {
+          "id": 906,
+          "argsNum": 3,
+          "template": "附加对手最大体力值{0}%的百分比伤害，每次使用增加{1}%，最高{2}%",
+          "revision": "seerapi:a6860e7d"
+        },
+        {
+          "id": 936,
+          "argsNum": 3,
+          "template": "{0}%令对手{1}，未触发则令对手{2}回合内使用的属性技能无效",
+          "revision": "seerapi:645bbce2"
+        },
+        {
+          "id": 1236,
+          "argsNum": 2,
+          "template": "{0}回合内若对手使用攻击技能则造成伤害前附加对手最大体力1/{1}的百分比伤害",
+          "revision": "seerapi:53452e09"
+        },
+        {
+          "id": 693,
+          "argsNum": 2,
+          "template": "下{0}回合造成的攻击伤害额外提升{1}%",
+          "revision": "seerapi:aca364fa"
+        },
+        {
+          "id": 1237,
+          "argsNum": 0,
+          "template": "使双方精灵所有技能PP值归零；消除双方能力提升、下降状态以及回合类效果",
+          "revision": "seerapi:a44a06ae"
+        },
+        {
+          "id": 1005,
+          "argsNum": 1,
+          "template": "恢复自身最大体力的1/{0}并造成等量百分比伤害",
+          "revision": "seerapi:5fea96f6"
+        },
+        {
+          "id": 1238,
+          "argsNum": 2,
+          "template": "全属性+{0}，对手不为{1}系时强化效果翻倍",
+          "revision": "seerapi:457ca083"
+        },
+        {
+          "id": 677,
+          "argsNum": 1,
+          "template": "{0}回合内每回合使用技能吸取对手能力提升状态",
+          "revision": "seerapi:71a948e6"
+        },
+        {
+          "id": 1239,
+          "argsNum": 2,
+          "template": "恢复自身最大体力的1/{0}，自身体力低于1/{1}时造成等量百分比伤害",
+          "revision": "seerapi:cbd3b52"
+        },
+        {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        },
+        {
+          "id": 1222,
+          "argsNum": 1,
+          "template": "先出手时使对手随机{0}个技能PP值归零",
+          "revision": "seerapi:ddc080ab"
+        },
+        {
+          "id": 499,
+          "argsNum": 1,
+          "template": "后出手时下回合所有技能先制+{0}",
+          "revision": "seerapi:902595b0"
+        },
+        {
+          "id": 797,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功{0}回合内对手无法通过自身技能恢复体力",
+          "revision": "seerapi:54a49081"
+        },
+        {
+          "id": 1240,
+          "argsNum": 2,
+          "template": "当回合未击败对手则下{0}次自身技能附加自身最大体力1/{1}的百分比伤害",
+          "revision": "seerapi:19f04525"
+        },
+        {
+          "id": 1241,
+          "argsNum": 2,
+          "template": "吸取对手{0}点固定体力，自身体力低于1/{1}时吸取效果翻倍",
+          "revision": "seerapi:851e070f"
+        }
+      ],
+      "souls": [
+        {
+          "id": 753,
+          "description": "虚无：自身受到攻击伤害后，免疫下1次受到的技能伤害|元素：登场时，消除对手回合类效果，消除成功则令对手下1次技能无效|能量：战斗阶段结束时，附加自身已损失体力50%的百分比伤害（boss有效）|生命：战斗阶段结束时，恢复自身最大体力的1/4和随机2个PP值不为满的技能1点PP值（boss有效）|轮回：自身首次于对手出手回合受到致死伤害时当回合保留，同时回合结束后自身体力、PP值、能力等级返回当回合选择操作之后的状态|永恒：回合开始时，若自身体力高于对手则当回合自身技能必定先手|圣洁：免疫受到的异常状态和能力下降状态（boss有效）|（标注部分boss有效，其余无效）",
+          "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>虚无：\r\n<indent=16><sprite=3><indent=32>受到攻击伤害时，<color=#64F9FA>抵挡</color>下1次受到的<b>攻击</b>\r\n\r\n<indent=0><sprite=0><indent=16>元素：\r\n<indent=16><sprite=3><indent=32>登场时<color=#64F9FA>消除</color>对手<b>回合类效果</b>\r\n<indent=32><sprite=4><indent=48>消除成功则使对手下1次<b>所有技能</b><color=#64F9FA>无效</color>\r\n\r\n<indent=0><sprite=0><indent=16>能量（boss有效）：\r\n<indent=16><sprite=3><indent=32>战斗阶段结束时<color=#64F9FA>附加</color>自身已损失体力50%的<b>百分比伤害</b>\r\n\r\n<indent=0><sprite=0><indent=16>生命（boss有效）：\r\n<indent=16><sprite=3><indent=32>战斗阶段结束时<color=#64F9FA>恢复</color>自身最大体力的1/4和随机2个PP值未满的技能1点<b>PP值</b>\r\n\r\n<indent=0><sprite=0><indent=16>轮回（每场战斗限1次）：\r\n<indent=16><sprite=3><indent=32>对手出手回合若自身受到致命伤害则：\r\n<indent=32><sprite=4><indent=48><color=#64F9FA>保留</color>1点<b>体力</b>\r\n<indent=32><sprite=4><indent=48>当回合结束后自身<b>体力</b>、<b>PP值</b>、<b>能力等级</b>返回当回合选择操作之后的状态\r\n\r\n<indent=0><sprite=0><indent=16>永恒：\r\n<indent=16><sprite=3><indent=32>回合开始时若自身体力高于对手则当回合自身<color=#64F9FA>必定先手</color>\r\n\r\n<indent=0><sprite=0><indent=16>圣洁（boss有效）：\r\n<indent=16><sprite=3><indent=32>天生<color=#64F9FA>免疫</color>所有<b>异常状态</b>和<b>能力下降状态</b></color></b>",
+          "analyze_desc": "[sprite name=dot4]虚无：自身受到攻击伤害后，[color=#57c975]免疫[/color]下1次受到的技能伤害|[sprite name=dot4]元素：[color=#57c975]登场时[/color]，消除[color=#52a5f2]对手[/color][color=#52a5f2]回合类效果[/color]，消除成功则令[color=#52a5f2]对手[/color]下1次[color=#52a5f2]技能无效[/color]|[sprite name=dot1]能量：[color=#57c975]战斗阶段结束时[/color]，附加自身[color=#52a5f2]已损失体力[/color]50%的[color=#52a5f2]百分比伤害[/color]|[sprite name=dot1]生命：[color=#57c975]战斗阶段结束时[/color]，恢复自身最大体力的1/4和随机2个PP值不为满的技能1点PP值|[sprite name=dot4]轮回：自身[color=#52a5f2]首次[/color]于[color=#52a5f2]对手[/color]出手回合受到[color=#52a5f2]致死伤害[/color]时[color=#52a5f2]当回合[/color][color=#52a5f2]保留[/color]，同时[color=#57c975]回合结束后[/color]自身体力、PP值、能力等级返回[color=#52a5f2]当回合[/color]选择操作[color=#52a5f2]之后[/color]的状态|[sprite name=dot4]永恒：[color=#57c975]回合开始时[/color]，若自身体力高于[color=#52a5f2]对手[/color]则[color=#52a5f2]当回合[/color]自身技能必定先手|[sprite name=dot1]圣洁：[color=#57c975]免疫[/color]受到的[color=#52a5f2]异常状态[/color]和[color=#52a5f2]能力下降状态[/color]",
+          "hash": "2b305c24",
+          "eid": 1038,
+          "args": [
+            1,
+            1,
+            4,
+            50,
+            1,
+            1,
+            50,
+            1
+          ],
+          "isAdvanced": false,
+          "source": {
+            "url": "https://api.seerapi.com/v1/soulmark/753",
+            "revision": "2b305c24",
+            "loadedAt": "2026-11-03T16:54:10.751Z"
+          },
+          "from": null,
+          "intensifiedTo": null
+        }
+      ]
+    }
+  }
+}

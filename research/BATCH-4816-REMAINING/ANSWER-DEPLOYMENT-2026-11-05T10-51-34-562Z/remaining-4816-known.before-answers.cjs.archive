@@ -1,0 +1,103 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js');
+const source=require('../research/BATCH-4816-REMAINING/4816/snapshot.json'),neutral=require('../research/BATCH-4676-NEXT50/4766/snapshot.json'),key=n=>'wiki:'+n;
+function make({move=38083,soul=false,hp=9000,slow=false,enemyFifth=false,loadout=null,index=null,hit=true,criticals=false}={}){
+ const a=structuredClone(source),b=structuredClone(neutral);a.souls=[];b.souls=[];
+ const ids=loadout??(source.moves.find(x=>x.id===move).fifth?[38083,29147,29148,38084,move]:[move,...[38083,29147,29148,38084].filter(x=>x!==move).slice(0,3),38085]),enemy=[20117,10127,10716,20309,37911];
+ const s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[ids,enemy],criticals,builds:[{suit:'none',overrides:{maxHp:9000,atk:180,spa:180,def:300,spd:300,spe:slow?10:500}},{suit:'none',overrides:{maxHp:9000,atk:180,spa:180,def:300,spd:300,spe:100}}]});
+ if(index===-1)s.moveDefinitions[key(move)].operations=[];
+ s.fighters[0].hp=hp;s.rng=0x9e3779b9;if(hit)for(const f of s.fighters){f.effects['攻击必中']={start:1,end:99};f.effects['属性必中']={start:1,end:99};}
+ // The unresolved soul is intentionally rejected by native admission. Exercise its real hooks separately.
+ if(soul){s.fighters[0].soulId=2008;E.SOULS.run('battleStart',{a:s.fighters[0],t:s.fighters[1]});}
+ s.auditMove=move;s.enemyFifth=enemyFifth;return s;
+}
+function turn(s,a=s.auditMove,b=s.enemyFifth?37911:20117){return Object.assign(s,E.resolveTurn(s,[key(a),key(b)]));}
+function damage(s,type='attack',side=0){return(s.damageEvents??[]).filter(e=>e.round===s.round-1&&e.type===type&&e.sourceSide===side&&e.targetSide===1-side).reduce((n,e)=>n+e.settledDamage,0);}
+function isolate(s,...ids){s.moveDefinitions[key(s.auditMove)].operations=s.moveDefinitions[key(s.auditMove)].operations.filter(op=>ids.includes(op.effectId));return s;}
+test('4816全部17真实技能逐招加载配招初始化与PP，原实例编译顺序保持',()=>{
+ for(const m of source.moves){const s=make({move:m.id,hp:4000}),actual=s.moveDefinitions[key(m.id)],compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1,m.name);assert.ok(Number.isFinite(s.fighters[0].hp));if(m.kind!=='status'&&m.power>0)assert.ok(damage(s)>0,m.name);if(m.id===38085)assert.equal(damage(s),0,'来源威力0，未受红伤且对手选属性技能时三倍基数为0');}
+});
+test('4816/2204实际攻击威力：对手无异常减半、有沸涌增半',()=>{
+ const values=[];for(const abnormal of [false,true]){const s=make({move:38084});if(abnormal)s.fighters[1].ailments['沸涌']=3;turn(s);values.push(damage(s));}assert.ok(values[1]>values[0]*2.5);
+});
+test('4816/2339真实非第五降先制与完整所受红伤三倍，第五分支回血且授双方必暴',()=>{
+ const s=make({move:38085,hp:2000});turn(s,38085,10127);assert.equal(s.turns[0].first,1);assert.ok(damage(s)>=damage(s,'attack',1)*3);assert.ok(s.fighters[1].effects['必定暴击']);assert.ok(s.fighters[0].effects['必定暴击']);
+ const t=make({move:38085,hp:2000,enemyFifth:true});turn(t);assert.equal(t.fighters[0].soulState.resolvedPriority.value,0);assert.ok(t.fighters[0].hp>2000);assert.equal(t.fighters[1].effects['必定暴击'].start,1);assert.equal(t.fighters[1].effects['必定暴击'].end,3);assert.equal(t.fighters[0].effects['非必中暴击无效'].end,4);
+});
+test('4816真实2008共振器开启阻断双方技能仍扣PP，第五实际使用关闭后恢复攻击',()=>{
+ const s=make({move:10234,soul:true});assert.equal(s.fighters[0].soulState.cyber2008.open,true);turn(s,10234,10127);assert.equal(damage(s),0);assert.equal(damage(s,'attack',1),0);assert.equal(s.fighters[0].pp[key(10234)],source.moves.find(x=>x.id===10234).pp-1);assert.ok(s.fighters[0].ailments['沸涌']);turn(s,38085,10127);assert.equal(s.fighters[0].soulState.cyber2008.open,false);assert.ok(s.fighters[1].ailments['沸涌']);turn(s,10234,10127);assert.ok(damage(s)>0);
+ const t=make({move:10234,soul:true,slow:true});turn(t,10234,37911);assert.equal(t.fighters[0].soulState.cyber2008.open,false);assert.ok(damage(t)>0);
+});
+test('4816真实2008沸涌2回合与逐次加2，超过3回合的过载记录300真实自伤',()=>{
+ const s=make({move:10234,soul:true});turn(s);assert.equal(s.fighters[0].ailments['沸涌'],2);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],4);assert.equal(s.fighters[0].hp,9000);turn(s);assert.equal(s.fighters[0].ailments['沸涌'],6);assert.equal(s.fighters[0].hp,8700);const e=s.damageEvents.find(e=>e.round===3&&e.sourceSide===0&&e.targetSide===0);assert.equal(e.type,'true');assert.equal(e.settledDamage,300);assert.equal(e.hpLoss,300);
+});
+test('4816真实2008免异阻止初始沸涌，关闭后不续期，零PP明确拒绝未确认分支',()=>{
+ const s=make({move:10234,soul:true});s.fighters[0].counts.immune=1;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);assert.equal(s.fighters[0].counts.immune,0);s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].ailments['沸涌'],undefined);
+ const t=make({move:10234,soul:true});t.fighters[0].pp[key(10234)]=1;assert.throws(()=>turn(t),/Q-4816-001/);assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('单精灵分支未完成')));
+});
+test('4816/2341未击败后重开已有共振器，没有配置不能凭技能创造装置',()=>{
+ const s=make({move:38084,soul:true});s.fighters[0].soulState.cyber2008.open=false;turn(s);assert.equal(s.fighters[0].soulState.cyber2008.open,true);const t=make({move:38084});turn(t);assert.equal(t.fighters[0].soulState.cyber2008,undefined);
+});
+test('4816真实4与5强化弱化边界、33清正不清负、40先手增威',()=>{
+ for(const [move,axis,start,end]of [[20065,'acc',0,1],[20528,'atk',5,6]]){const s=make({move});s.fighters[0].stages[axis]=start;turn(s);assert.equal(s.fighters[0].stages[axis],end);}
+ const a=make({move:20194});a.fighters[1].stages.atk=-6;turn(a,20194,10127);assert.equal(a.fighters[1].stages.atk,-6);assert.equal(a.fighters[1].stages.spa,-1);
+ const b=make({move:13306});b.fighters[1].stages.atk=2;b.fighters[1].stages.def=-2;turn(b,13306,10127);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[1].stages.def,-2);
+ const c=make({move:12046}),d=make({move:12046,slow:true});turn(c);turn(d);assert.ok(damage(c)>damage(d)*1.8);
+});
+test('4816/988清强成功封下回合整招、无强化失败不封，2228固定百分输出八成减伤',()=>{
+ for(const boosted of [false,true]){const s=isolate(make({move:38083}),988);if(boosted)s.fighters[1].stages.def=2;turn(s);assert.equal(s.fighters[1].stages.def,0);assert.equal(!!s.fighters[1].effects.skillBlock,boosted);}
+ const s=isolate(make({move:38083}),2228);turn(s);assert.equal(s.fighters[1].effects['固定百分比减伤输出'].fraction,.8);const old=E.SOULS;let observed;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===1){const before=c.t.hp;c.hurt(c.t,100,'实际输出粉伤','percent');c.hurt(c.t,100,'实际输出固伤','fixed');observed=before-c.t.hp;}}};try{turn(s);}finally{E.SOULS=old;}assert.equal(observed,40);
+});
+test('4816/1793下一次实际红伤超过300回满，未过阈值也消费一次且不回血',()=>{
+ for(const high of [false,true]){const s=isolate(make({move:38083,hp:1000}),1793);s.fighters[1].stats.atk=high?3500:100;turn(s,38083,10127);assert.equal(s.fighters[0].counts.nextAttackHighHeal,0);if(high){assert.ok(damage(s,'attack',1)>300);assert.equal(s.fighters[0].hp,9000);}else{assert.ok(damage(s,'attack',1)<=300);assert.ok(s.fighters[0].hp<1000);}}
+});
+test('4816/2097非满封属性与满体失败，2095满体50%真实睡眠及未触发降先制',()=>{
+ for(const hp of [4000,9000]){const s=isolate(make({move:29147,hp}),2097);turn(s);assert.equal(!!s.fighters[1].effects.statusBlock,hp===4000);}
+ const results=new Set;for(let seed=1;seed<=32;seed++){const s=isolate(make({move:29147}),2095);s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);const sleeping=!!s.fighters[1].ailments['睡眠'];results.add(sleeping);assert.equal(!!s.fighters[1].effects.id984,!sleeping);if(!sleeping)assert.equal(s.fighters[1].effects.id984.amount,-1);}assert.deepEqual(results,new Set([true,false]));const t=isolate(make({move:29147,hp:8999}),2095);turn(t);assert.equal(t.fighters[1].ailments['睡眠'],undefined);assert.equal(t.fighters[1].effects.id984,undefined);
+});
+test('4816/1344先后手强化1或2、717每用招理论吸取与低体双回复、843下轮先制2',()=>{
+ for(const slow of [false,true]){const s=isolate(make({move:29148,slow}),1344);turn(s);assert.equal(s.fighters[0].stages.atk,slow?2:1);assert.equal(s.fighters[0].stages.def,slow?2:1);}
+ const s=isolate(make({move:29148,hp:1000}),717);turn(s);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,7000);turn(s,38085);assert.equal(damage(s,'percent'),3000);assert.equal(s.fighters[0].hp,9000);const a=isolate(make({move:29148}),843);turn(a);turn(a,38085);assert.equal(a.fighters[0].soulState.resolvedPriority.value,-1);
+});
+test('4816/93与13304弱防概率均覆盖成功失败，防御最低负6不越界',()=>{
+ const fixed=new Set,weak=new Set;for(let seed=1;seed<=64;seed++){for(const [move,set]of [[13307,fixed],[13304,weak]]){const s=make({move});s.rng=Math.imul(seed,0x9e3779b1)>>>0;turn(s);set.add(move===13307?damage(s,'fixed')===50:s.fighters[1].stages.def===-1);}}assert.deepEqual(fixed,new Set([false,true]));assert.deepEqual(weak,new Set([false,true]));const s=make({move:13304});s.fighters[1].stages.def=-6;turn(s);assert.equal(s.fighters[1].stages.def,-6);
+});
+test('4816/692真实暴击免攻直接扣对手等量HP，非暴击仍受伤',()=>{
+ for(const critical of [false,true]){const s=isolate(make({move:29147,hp:5000}),692);turn(s);if(critical)s.fighters[1].effects['必定暴击']={start:s.round,end:99};const before=s.fighters.map(f=>f.hp);turn(s,29147,10127);if(critical){assert.equal(s.fighters[0].hp,before[0]);assert.ok(s.fighters[1].hp<before[1]);assert.equal(damage(s,'attack',1),0);}else{assert.ok(s.fighters[0].hp<before[0]);assert.equal(s.fighters[1].hp,before[1]);}}
+});
+test('4816/675真实非必中暴击失效、真实必中第五仍命中及回合参数3未丢失',()=>{
+ for(const hit of [false,true]){const s=isolate(make({move:38085}),675);turn(s);assert.equal(s.fighters[0].effects['非必中暴击无效'].end,4);s.fighters[1].effects['必定暴击']={start:s.round,end:99};delete s.fighters[1].effects['攻击必中'];turn(s,38085,hit?37911:10127);assert.equal(damage(s,'attack',1)>0,hit);}
+ const m=structuredClone(source.moves.find(m=>m.id===38085));m.effectInstances[4].args=[0];assert.notEqual(E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m).issue,'');
+ const expiry=isolate(make({move:38085,loadout:[38085,10234,29148,29147,21743]}),675);turn(expiry);expiry.fighters[1].effects['必定暴击']={start:2,end:99};delete expiry.fighters[1].effects['攻击必中'];turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.equal(damage(expiry,'attack',1),0);turn(expiry,10234,10127);assert.ok(damage(expiry,'attack',1)>0);assert.equal(expiry.fighters[0].effects['非必中暴击无效'],undefined);
+});
+test('4816/1558下轮真实暴击攻击增伤50%，非暴击不增；58下两回合必暴与到期',()=>{
+ const loadout=[29148,10234,21743,29147,38085];for(const critical of [false,true]){const results=[];for(const enabled of [false,true]){const s=isolate(make({move:29148,loadout}),...(enabled?[1558]:[]));turn(s);if(critical)s.fighters[0].effects['必定暴击']={start:s.round,end:99};turn(s,10234);results.push(damage(s));}if(critical)assert.ok(results[1]>results[0]*1.45);else assert.equal(results[1],results[0]);}
+ const a=isolate(make({move:21743,loadout}),58);turn(a);assert.equal(a.fighters[0].effects['必定暴击'].start,2);assert.equal(a.fighters[0].effects['必定暴击'].end,3);turn(a,10234);assert.ok(a.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));turn(a,10234);turn(a,10234);assert.equal(a.fighters[0].effects['必定暴击'],undefined);
+});
+test('4816/1395先手必暴与881负级先制3，2340转移异常保留时长并解除自身',()=>{
+ const s=isolate(make({move:38084}),1395,881);s.fighters[0].stages.def=-1;turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,3);assert.ok(s.turns.at(-1).events.some(e=>e.text?.includes('致命一击')));
+ const late=isolate(make({move:38084,slow:true}),1395);turn(late);assert.equal(late.turns.at(-1).first,1);assert.equal(late.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.text.includes('致命一击')),false);
+ for(const immune of [false,true]){const a=isolate(make({move:38085}),2340);a.fighters[0].ailments['中毒']=3;if(immune)a.fighters[1].counts.immune=1;turn(a);assert.equal(a.fighters[0].ailments['中毒'],undefined);assert.equal(a.fighters[1].ailments['中毒'],immune?undefined:3);if(immune)assert.equal(a.fighters[1].counts.immune,0);}
+});
+test('4816/2054真实下一轮暴击授一次免异，重复暴击同源刷新不叠加',()=>{
+ const s=isolate(make({move:38085}),2054);turn(s);assert.equal(s.fighters[0].counts.immune??0,0);turn(s,38084);assert.equal(s.fighters[0].counts.immune,1);turn(s,38084);assert.equal(s.fighters[0].counts.immune,1);
+});
+test('4816全部17真实技能基础64种子命中MISS负命中等级先制顺序PP与强制暴击状态',()=>{
+ assert.equal(require('./helpers/next50-base-probe.cjs').verify({E,source,key,make,turn}).length,17);
+});
+test('4816/2339按完整红伤而非保1的199HP损失取三倍，零红伤命中仍授必暴',()=>{
+ const s=make({move:38085,hp:200});s.fighters[0].effects['致命保留']={start:1,end:99,hp:1};s.fighters[1].stats.atk=5000;turn(s,38085,10127);const red=damage(s,'attack',1);assert.ok(red>200);assert.equal(s.damageEvents.find(e=>e.sourceSide===1&&e.type==='attack').hpLoss,199);assert.ok(damage(s)>=red*3);
+ const t=make({move:38085});t.fighters[1].effects['攻击伤害免疫']={start:1,end:99};turn(t,38085,10127);assert.equal(damage(t),0);assert.ok(t.fighters[1].effects['必定暴击']);
+});
+test('4816真实2008在B方时回合初先制1先于A方普通回合初，沸涌状态已实际生效',()=>{
+ const a=structuredClone(neutral),b=structuredClone(source);a.souls=[];b.souls=[];
+ const s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[[20117,10127,10716,20309,37911],[38083,29147,29148,38084,38085]],criticals:false,builds:[{suit:'none'},{suit:'none'}]});s.fighters[1].soulId=2008;E.SOULS.run('battleStart',{a:s.fighters[1],t:s.fighters[0]});
+ const order=[],old=E.SOULS;E.SOULS={...old,run(event,c){old.run(event,c);if(event==='roundStart'){order.push(c.a.side);if(c.a.side===0)assert.equal(c.t.ailments['沸涌'],2);}}};try{Object.assign(s,E.resolveTurn(s,['wiki:20117','wiki:38083']));}finally{E.SOULS=old;}assert.deepEqual(order,[1,0]);assert.equal(s.fighters[1].ailments['沸涌'],2);
+});
+test('4816全部17真实技能零PP拒绝与整招封锁不伤害目标但正常扣PP',()=>{
+ for(const m of source.moves){const zero=make({move:m.id});zero.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(zero));const blocked=make({move:m.id});blocked.fighters[0].effects.skillBlock={start:1,end:99};turn(blocked);assert.equal(blocked.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(blocked.fighters[1].hp,9000);assert.equal(damage(blocked,'fixed'),0);assert.equal(damage(blocked,'percent'),0);}
+});
+test('4816完整原生2008版本全部17招真实初始化与用招PP，局部待答不冒充正式部署',()=>{
+ const native=require('./helpers/remaining-battle.cjs')(source);for(const m of source.moves){const s=native.make({move:m.id,soul:true});assert.equal(s.fighters[0].soulId,2008);assert.equal(s.fighters[0].soulState.cyber2008.open,true);assert.equal(s.moveDefinitions[key(m.id)].wikiId,m.id);assert.equal(s.fighters[0].pp[key(m.id)],m.pp);native.turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.cyber2008.open,!m.fifth);}
+ assert.ok(require('../local-species.cjs').issues(source).some(x=>x.includes('单精灵分支未完成')));
+});

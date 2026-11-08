@@ -1,0 +1,41 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const source=require('../research/BATCH-4816-REMAINING/4816/snapshot.json');
+const {make,turn,key,timer,sum}=require('./helpers/remaining-battle.cjs')(source);
+test('4816已答共振器：仅零PP槽补满，多槽按实际恢复总量反转正等级并固定吸取授盾罩',()=>{
+ const s=make({move:10234,soul:true,hp:1000}),a=s.fighters[0],b=s.fighters[1],slots=a.moves.slice(0,2);
+ a.pp[slots[0]]=1;a.pp[slots[1]]=0;const other=a.moves[2];a.pp[other]=2;b.stages.atk=3;b.stages.def=-2;
+ const total=slots.reduce((n,k)=>n+s.moveDefinitions[k].pp,0);turn(s);
+ for(const k of slots)assert.equal(s.fighters[0].pp[k],s.moveDefinitions[k].pp);
+ assert.equal(s.fighters[0].pp[other],2);assert.equal(s.fighters[1].stages.atk,-3);assert.equal(s.fighters[1].stages.def,-2);
+ assert.equal(sum(s,'fixed'),total*50);assert.equal(s.fighters[0].hp,1000+total*50);
+ assert.equal(s.fighters[0].suitState.shield,total*50);assert.equal(s.fighters[0].suitState.barrier,total*50);
+ assert.equal(s.fighters[0].soulState.cyber2008.recoveries[0].restored,total);
+});
+test('4816已答共振器：非零PP不补、第五关闭不补、死亡不补且不反转授盾',()=>{
+ for(const mode of ['nonzero','closed','dead']){const s=make({move:10234,soul:true}),a=s.fighters[0];a.pp[key(10234)]=mode==='nonzero'?2:1;s.fighters[1].stages.atk=2;
+ if(mode==='closed')a.soulState.cyber2008.open=false;if(mode==='dead')a.hp=1;
+ if(mode==='dead'){a.ailments['沸涌']=9;}turn(s);
+ assert.equal(s.fighters[0].pp[key(10234)],mode==='nonzero'?1:0);assert.equal(s.fighters[0].soulState.cyber2008.recoveries,undefined);
+ assert.equal(s.fighters[1].stages.atk,2);assert.equal(sum(s,'fixed'),0);assert.equal(s.fighters[0].suitState.shield,0);
+ }
+ const q=make({move:38085,soul:true});q.fighters[0].pp[key(10234)]=0;turn(q);assert.equal(q.fighters[0].pp[key(10234)],0);
+});
+test('4816已答共振器：固定免疫及残血仍按理论吸取回复，技能禁疗不封魂印，完全禁疗仅阻回复',()=>{
+ for(const mode of ['immune','low','skill-heal-block','heal-block']){const s=make({move:10234,soul:true,hp:1000}),a=s.fighters[0];a.pp[key(10234)]=1;
+ if(mode==='immune')timer(s,1,'固定伤害免疫');if(mode==='low')s.fighters[1].hp=10;
+ if(mode==='skill-heal-block')timer(s,0,'技能禁疗');if(mode==='heal-block')timer(s,0,'healBlock');
+ turn(s);const amount=s.moveDefinitions[key(10234)].pp*50;
+ assert.equal(s.fighters[0].pp[key(10234)],s.moveDefinitions[key(10234)].pp);
+ assert.equal(s.fighters[0].suitState.shield,amount);assert.equal(s.fighters[0].suitState.barrier,amount);
+ assert.equal(s.fighters[0].hp,mode==='heal-block'?1000:1000+amount,mode);
+ if(mode==='immune')assert.equal(sum(s,'fixed'),0);if(mode==='low')assert.equal(s.fighters[1].hp,0);
+ }
+});
+test('4816已答共振器：同源盾罩刷新、异源保留，每轮仅恢复当前零槽',()=>{
+ const s=make({move:10234,soul:true,hp:1000});s.fighters[0].pp[key(10234)]=1;turn(s);const first=s.moveDefinitions[key(10234)].pp*50;
+ const shield=require('../dist/shield-rules.js');shield.add(s.fighters[0],77,'other');shield.addBarrier(s.fighters[0],88,'other');
+ s.fighters[0].pp[key(10234)]=1;turn(s);assert.equal(s.fighters[0].suitState.shield,first+77);assert.equal(s.fighters[0].suitState.barrier,first+88);
+ assert.equal(s.fighters[0].soulState.cyber2008.recoveries.length,2);
+ turn(s);assert.equal(s.fighters[0].soulState.cyber2008.recoveries.length,2);
+});

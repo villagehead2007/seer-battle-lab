@@ -1,0 +1,94 @@
+{
+  "at": "2026-11-02T13:56:21.196Z",
+  "passed": true,
+  "scope": "当前引擎已有异常附加概率执行分支；不将随机状态种类或时长选择当成低概率附加。新增方法也传递首次登场上下文，已有登场路径沿同一上下文观察。",
+  "automatedObservers": 114,
+  "manualDecisions": {
+    "at": "2026-11-02T13:40:04.879Z",
+    "changes": [
+      {
+        "file": "dist/souls.js",
+        "old": "(removedReaction.chance>=100||rng(s)<removedReaction.chance/100)",
+        "replacement": "(removedReaction.chance>=100||probabilityObserver4853(s,f,removedReaction.chance,rng(s))<removedReaction.chance/100)"
+      },
+      {
+        "file": "dist/souls.js",
+        "old": "(e.chance>=100||rng(s)<e.chance/100)&&(()=>{const applied=ailment(a,e.ailment,t",
+        "replacement": "(e.chance>=100||probabilityObserver4853(s,t,e.chance,rng(s))<e.chance/100)&&(()=>{const applied=ailment(a,e.ailment,t"
+      },
+      {
+        "file": "dist/range-souls.js",
+        "old": "if(c.random()<.5){const pool=['麻痹'",
+        "replacement": "if(probabilityObserver4853(c,50,c.random())<.5){const pool=['麻痹'"
+      },
+      {
+        "file": "dist/range-souls.js",
+        "old": "if(c.random()<.5){const pool=['烧伤'",
+        "replacement": "if(probabilityObserver4853(c,50,c.random())<.5){const pool=['烧伤'"
+      },
+      {
+        "file": "dist/range-souls.js",
+        "old": "if(c.random()<.4){if(c.ailment(",
+        "replacement": "if(probabilityObserver4853(c,40,c.random())<.4){if(c.ailment("
+      },
+      {
+        "file": "dist/range-souls.js",
+        "old": "if(c.random()<.5){if(c.ailment(",
+        "replacement": "if(probabilityObserver4853(c,50,c.random())<.5){if(c.ailment("
+      },
+      {
+        "file": "dist/range-souls.js",
+        "old": "&&c.random()<.5)c.ailment(",
+        "replacement": "&&probabilityObserver4853(c,50,c.random())<.5)c.ailment("
+      },
+      {
+        "file": "dist/characteristics.js",
+        "old": "const p=chance(f,e,c.round);return p>=100||p>0&&c.random()*100<p;",
+        "replacement": "const p=chance(f,e,c.round),passed=p>=100||p>0&&c.random()*100<p;if(['incomingStatus','attackStatus'].includes(e.kind))c.ailmentRoll4853?.(p,passed);return passed;"
+      }
+    ],
+    "exclusions": [
+      "随机候选种类抽样不是附加效果概率",
+      "异常独立2/3持续时间抽样不是附加效果概率",
+      "随机PP清空、强化种类与伤害数值抽样不是异常附加概率",
+      "Scar魂印固定70%起递增，严格高于50%；保留原路径",
+      "已经调用statusProbability的路径沿公共执行观察，不重复改概率"
+    ]
+  },
+  "realStateTests": [
+    {
+      "file": "tests/remaining-4853-probability.test.cjs",
+      "name": "4853真实3012原生384的50%烧伤与30%麻痹，失败也曝且随机状态、伤害及PP与无观察方一致",
+      "assertion": " const seen=new Set(),o={id:3012,ids:[24685,19187,24686,19188,19189],move:19187};for(let seed=1;seed<=32;seed++){const a=battle({...o,seed}),b=battle({...o,seed,observer:false});go(a,o.move);go(b,o.move);assert.ok(a.fighters[1].soulState.exposure4853);assert.equal(b.fighters[1].soulState.exposure4853,undefined);assert.ok(a.ailmentExecutions4853.some(e=>e.actorSide===1&&e.chance===50));assert.ok(a.ailmentExecutions4853.some(e=>e.actorSide===1&&e.chance===30));seen.add(!!a.fighters[0].ailments['烧伤']);assert.equal(a.rng,b.rng);assert.deepEqual(a.damageEvents,b.damageEvents);for(let i=0;i<2;i++){assert.deepEqual(a.fighters[i].pp,b.fighters[i].pp);assert.deepEqual(a.fighters[i].ailments,b.fighters[i].ailments);}}assert.equal(seen.size,2);"
+    },
+    {
+      "file": "tests/remaining-4853-probability.test.cjs",
+      "name": "4853真实3066智取荆州164受击监听50%，成功失败均曝，命中前未授监听不观察",
+      "assertion": " const o={id:3066,ids:[16076,19415,24805,19416,19417],move:16076,native:false},seen=new Set();for(let seed=1;seed<=32;seed++){const a=battle({...o,seed,fast:true});go(a,o.move);assert.ok(a.fighters[1].soulState.exposure4853);assert.ok(a.ailmentExecutions4853.some(e=>e.actorSide===1&&e.chance===50));seen.add(!!a.fighters[0].ailments['烧伤']);const notYet=battle({...o,seed,fast:false});go(notYet,o.move);assert.equal(notYet.fighters[1].soulState.exposure4853,undefined);}assert.equal(seen.size,2);"
+    },
+    {
+      "file": "tests/remaining-4853-probability.test.cjs",
+      "name": "4853真实3025原生389动态攻击20%应曝、属性80%不曝，真实技能类型控制资格",
+      "assertion": " const ids=[24712,19239,24713,19240,19241];for(const [move,expected]of[[19239,true],[24712,false]])for(let seed=1;seed<=20;seed++){const a=battle({id:3025,ids,move,seed});go(a,move);assert.equal(!!a.fighters[1].soulState.exposure4853,expected);if(expected)assert.ok(a.ailmentExecutions4853.some(e=>e.chance===20));}"
+    },
+    {
+      "file": "tests/remaining-4853-probability.test.cjs",
+      "name": "4853真实3737原生1015回初50%对敌或自身附烧伤都属对方执行，候选选择与时长随机不冒充低概率",
+      "assertion": " const o={id:3737,ids:[26421,32654,26422,32655,32656],move:26421},seen=new Set();for(let seed=1;seed<=24;seed++){const a=battle({...o,seed});go(a,o.move);assert.ok(a.fighters[1].soulState.exposure4853);assert.equal(a.ailmentExecutions4853.filter(e=>e.actorSide===1&&e.chance===50).length,2);seen.add(!!a.fighters[1].ailments['烧伤']);}assert.equal(seen.size,2);"
+    },
+    {
+      "file": "tests/remaining-4853-probability.test.cjs",
+      "name": "4853真实五星表内高热与火热特性8%异常执行失败也曝，非异常特性不因低概率附曝",
+      "assertion": " const C=E.CHARACTERISTICS,o={id:3066,ids:[16076,19415,24805,19416,19417],move:16076,native:false};for(const group of[24,45]){const seen=new Set();for(let seed=1;seed<=64;seed++){const a=battle({...o,seed});a.moveDefinitions[key(16076)].operations=[];a.moveDefinitions[key(38213)].operations=[];a.fighters[1].build.characteristic=C.normalize({groupId:group,star:5});go(a,16076,38213);assert.ok(a.fighters[1].soulState.exposure4853);assert.ok(a.ailmentExecutions4853.some(e=>e.actorSide===1&&e.chance===8));seen.add(!!a.fighters[0].ailments['烧伤']);}assert.equal(seen.size,2);}\n const b=battle(o);b.moveDefinitions[key(16076)].operations=[];b.fighters[1].build.characteristic=C.normalize({groupId:C.groups.find(g=>g.name==='会心').id,star:5});go(b,16076);assert.equal(b.fighters[1].soulState.exposure4853,undefined);"
+    }
+  ],
+  "assertions": [
+    "真实魂印384的50%烧伤/30%麻痹成功失败均附曝，随机流/HP/伤害/PP与不带2038对照相同",
+    "真实164的50%受击定时反应，仅已授且受到攻击时触发，失败仍附曝",
+    "真实389由技能类别决定20%或80%，20%附曝、80%不附曝",
+    "真实1015对自身附烧伤的50%执行也会附曝，不限定异常目标",
+    "真实五星高热/火热8%异常特性成功失败均附曝；非异常特性不附曝"
+  ],
+  "originalSourcesUnchanged": true,
+  "formalAccepted": false
+}

@@ -2,16 +2,17 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const store=require('../local-species.cjs'),E=require('../dist/engine.js');
 
 for(const id of [3289,3291,3301,3308,3311,3315,3318,3322,3328])test(`${id}：本地魂印及全部技能可开局结算`,()=>{
-  const source=store.species(id);
+  for(const source of E.WIKI.versionSnapshots(store.species(id))){
   assert.deepEqual(store.issues(source),[]);
   assert.equal(source.source.storage,'local');
-  for(const move of source.moves){
+  for(const move of E.WIKI.availableMoves(source)){
     const selected=E.WIKI.defaultMoves(source);
     if(!selected.includes(move.id))selected[selected.findIndex(x=>!source.moves.find(m=>m.id===x).fifth)]=move.id;
     const s=E.createBattle({wikiSnapshots:[source,source],wikiLoadouts:[selected,E.WIKI.defaultMoves(source)],criticals:false,builds:[{overrides:{maxHp:9999}},{overrides:{maxHp:9999}}]});
     const t=E.resolveTurn(s,['wiki:'+move.id,'potion:hp']);
     assert.equal(t.round,2,move.name);
     assert.ok(t.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp),move.name);
+  }
   }
 });
 

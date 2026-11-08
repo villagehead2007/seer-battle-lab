@@ -1,0 +1,272 @@
+[
+  {
+    "file": "answered-4946-drain.test.cjs",
+    "title": "4946七成吸取汲取按敌最大HP理论回复，Q-LIGHT-009转真后穿全免且禁疗倍率独立",
+    "directTrueLiteral": true,
+    "block": "test('4946七成吸取汲取按敌最大HP理论回复，Q-LIGHT-009转真后穿全免且禁疗倍率独立',()=>{for(const mode of ['normal','percent-immune','all-immune','skill-ban','half-heal','zero-heal']){const s=make({move:38536,index:-1,soul:true,hp:4500,bStats:{maxHp:3000},targetHp:1000});s.fighters[1].stages.atk=1;s.fighters[1].counts.immune=1;if(mode==='percent-immune'||mode==='all-immune')timer(s,1,'固定百分比免疫');if(mode==='all-immune')timer(s,1,'当回合免伤');if(mode==='skill-ban')timer(s,0,'技能禁疗');if(mode==='half-heal'||mode==='zero-heal')timer(s,0,'回复效果削减',{fraction:mode==='half-heal'?.5:1});turn(s,38536,20309);const f=s.fighters[0],result=f.soulState.thunder2146.lastDrain;assert.equal(result.requested,2100);assert.equal(result.basis,'maxHp');assert.equal(result.type,['percent-immune','all-immune'].includes(mode)?'true':'percent');assert.equal(f.hp,mode==='zero-heal'?4500:mode==='half-heal'?5550:6600);assert.equal(result.settledDamage,2100);assert.ok(result.hpLoss<2100);assert.equal(s.fighters[1].hp,0);if(mode==='all-immune')assert.equal(sum(s,'true'),2100);}});\r\n"
+  },
+  {
+    "file": "damage-settlement.test.cjs",
+    "title": "完整结算：固定伤害先经过减免护罩再记录，免疫不扣血",
+    "directTrueLiteral": false,
+    "block": "test('完整结算：固定伤害先经过减免护罩再记录，免疫不扣血',()=>{for(const immune of [false,true]){let s=game(snap(99653,null,[[29,[800]]]),snap(99654),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:2000},resistance:{fixed:50}}]);s.fighters[1].hp=100;s.fighters[1].suitState.barrier=100;if(immune)s.fighters[1].effects['当回合免伤']={start:1,end:1};s=E.resolveTurn(s,[key(99653,1),key(99654,1)]);if(immune){assert.equal(s.fighters[1].hp,100);assert.equal((s.damageEvents??[]).length,0);}else{assert.equal(s.damageEvents[0].settledDamage,300);assert.equal(s.damageEvents[0].hpLoss,100);assert.equal(s.fighters[1].suitState.barrier,0);}}});\n"
+  },
+  {
+    "file": "damage-settlement.test.cjs",
+    "title": "Q-DAMAGE-001：免疫和完全抵挡不触发正伤害事件，明确限伤保留其数值",
+    "directTrueLiteral": false,
+    "block": "test('Q-DAMAGE-001：免疫和完全抵挡不触发正伤害事件，明确限伤保留其数值',()=>{for(const mode of ['immune','barrier','shield','cap']){let s=game(snap(99674,null,[[29,[800]]]),snap(99675,611),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:1000}}]);s.fighters[1].hp=1;s.fighters[1].effects['大伤回满']={start:1,end:1,threshold:300};if(mode==='immune')s.fighters[1].effects['当回合免伤']={start:1,end:1};if(mode==='shield')s.fighters[1].suitState.shield=800;if(mode==='barrier')s.fighters[1].suitState.barrier=800;if(mode==='cap')s.fighters[1].effects['伤害上限']={start:1,end:1,amount:100};s=E.resolveTurn(s,[key(99674,1),key(99675,2)]);assert.equal(s.fighters[1].hp,mode==='shield'?1000:1);assert.equal(s.damageEvents?.[0]?.settledDamage??0,mode==='cap'?100:mode==='shield'?800:0);assert.equal(s.damageEvents?.[0]?.hpLoss??0,0);assert.equal(s.turns[0].events.some(x=>x.text.includes('大伤回满：')),mode==='shield');if(mode==='shield')assert.equal(s.fighters[1].suitState.shield,800);}});\n"
+  },
+  {
+    "file": "deployed-3964.test.cjs",
+    "title": "3964魂印高体攻击命中即害怕，MISS不施加，免伤零伤命中仍施加",
+    "directTrueLiteral": false,
+    "block": "test('3964魂印高体攻击命中即害怕，MISS不施加，免伤零伤命中仍施加',()=>{for(const mode of ['normal','immune','miss']){let s=make({moveId:10001,index:null},{soul:1229,hp:8000,targetHp:6000});if(mode==='immune')timer(s,0,'当回合免伤');if(mode==='miss'){s.moveDefinitions[key(900040)].alwaysHit=false;s.moveDefinitions[key(900040)].accuracy=0;}const o=turn(s,900031,900040);assert.equal(!!o.fighters[1].ailments['害怕'],mode!=='miss');}});\n"
+  },
+  {
+    "file": "deployed-3983-partial.test.cjs",
+    "title": "3983确认2368多段仅消费一次且免伤仍消费，替换机会到零后结束",
+    "directTrueLiteral": false,
+    "block": "test('3983确认2368多段仅消费一次且免伤仍消费，替换机会到零后结束',()=>{let o=turn(make(pick(2368)[0]));const r=E.WIKI.effectsEngine.registry[31],x=E.WIKI.effectsEngine.compileInstances([{id:31,args:[2,2],description:r.template}],[{id:31,argsNum:r.argsNum,template:r.template}],{id:900030,name:'双段替换',kind:'special',power:100});o.moveDefinitions[key(900030)].operations=x.operations;o=turn(o,900030);assert.equal(o.fighters[0].counts.chenDefenseReplace,1);assert.equal(o.turns.at(-1).events.filter(e=>e.kind==='damage'&&e.damage?.type==='attack').length,2);timer(o,1,'当回合免伤');o=turn(o,900030);assert.equal(o.fighters[0].counts.chenDefenseReplace,0);assert.equal(o.fighters[0].lastSettledAttackDamage,0);assert.ok(o.fighters[1].ailments['石化']);});\n"
+  },
+  {
+    "file": "deployed-3986-partial.test.cjs",
+    "title": "3986 Q-LIGHT-009覆盖旧1533真伤免疫确认，350真伤穿全免且MISS不触发",
+    "directTrueLiteral": true,
+    "block": "test('3986 Q-LIGHT-009覆盖旧1533真伤免疫确认，350真伤穿全免且MISS不触发',()=>{let s=make(pick(1533)[0],{hit:false});delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;s.moveDefinitions[key(s.auditMoveId)].accuracy=0;assert.equal((turn(s).damageEvents??[]).filter(e=>e.type==='true').length,0);s=make(pick(1533)[0]);s.moveDefinitions[key(s.auditMoveId)].power=0;timer(s,1,'当回合免伤');const o=turn(s);assert.equal(o.fighters[1].hp,8650);assert.equal(o.damageEvents.find(e=>e.type==='true').settledDamage,350);});\n"
+  },
+  {
+    "file": "deployed-4163-answers.test.cjs",
+    "title": "4163 1389固定附伤被真实反弹致死后停止石化及失败全强",
+    "directTrueLiteral": false,
+    "block": "test('4163 1389固定附伤被真实反弹致死后停止石化及失败全强',()=>{\n for(let seed=0;seed<12;seed++){\n  const s=make({moveId:10223,index:null},{soul:1389,omit:true,hp:1,seed});s.fighters[0].suitState.shield=10;s.fighters[0].stages.atk=1;timer(s,1,'低伤免疫返还',{threshold:1000});const o=turn(s);\n  assert.equal(o.fighters[0].hp,0);assert.equal(o.fighters[1].ailments['石化'],undefined);assert.equal(o.fighters[0].stages.atk,1);assert.ok(o.damageEvents.some(e=>e.type==='fixed'&&e.targetSide===0&&e.hpLoss===1));\n }\n});\n"
+  },
+  {
+    "file": "deployed-4186-partial.test.cjs",
+    "title": "4186 原魂印完整零伤不反制、重复受击整回合只反制一次",
+    "directTrueLiteral": false,
+    "block": "test('4186 原魂印完整零伤不反制、重复受击整回合只反制一次',()=>{\n const zero=make({moveId:10004,index:null},{soul:1409});timer(zero,0,'当回合免伤');const z=turn(zero,920031,920040);assert.equal(z.fighters[0].soulState.dragonReactionRound,0);\n const multiple=make({moveId:10004,index:null},{soul:1409});shields.consume(multiple.fighters[0]);H.op(multiple,31,[2,2],920040);const m=turn(multiple,920031,920040);assert.equal(m.fighters[0].soulState.dragonReactionRound,1);assert.ok((m.damageEvents??[]).filter(e=>e.type==='fixed'&&e.sourceSide===0).length<=1);\n});\n"
+  },
+  {
+    "file": "deployed-4186-partial.test.cjs",
+    "title": "4186 1672出手未满血固定吸取200按理论回复、满体不吸及百分比免疫不混同",
+    "directTrueLiteral": false,
+    "block": "test('4186 1672出手未满血固定吸取200按理论回复、满体不吸及百分比免疫不混同',()=>{\n const e=pick(1672)[0],s=turn(make(e,{hp:1000})),b=turn(make(e,{hp:1000,omit:true}));assert.equal(s.fighters[0].hp,1200);assert.equal(b.fighters[1].hp-s.fighters[1].hp,200);const full=turn(make(e));assert.equal(full.fighters[0].hp,9000);assert.equal(full.fighters[1].hp,turn(make(e,{omit:true})).fighters[1].hp);\n const immune=make(e,{hp:1000});timer(immune,1,'当回合免伤');const a=turn(immune);assert.equal(a.fighters[0].hp,1200);assert.equal(a.fighters[1].hp,9000);\n const blocked=make(e,{hp:1000});timer(blocked,0,'技能禁疗');assert.equal(turn(blocked).fighters[0].hp,1000);\n});\n"
+  },
+  {
+    "file": "deployed-4189-partial.test.cjs",
+    "title": "4189 寒晶1HP正结算实际零损失仍触发，敌301HP不保护，完全免疫不触发",
+    "directTrueLiteral": false,
+    "block": "test('4189 寒晶1HP正结算实际零损失仍触发，敌301HP不保护，完全免疫不触发',()=>{\n const s=make({moveId:10004,index:null},{soul:1411,hp:1,targetHp:300});s.fighters[0].stages.def=-1;H.op(s,29,[800],920042);const o=turn(s,920031,920042);assert.equal(o.damageEvents.at(-1).settledDamage,800);assert.equal(o.damageEvents.at(-1).hpLoss,0);assert.equal(o.fighters[0].hp,301);assert.equal(o.fighters[0].stages.def,0);\n const z=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:301});H.op(z,29,[800],920042);assert.equal(turn(z,920031,920042).fighters[0].hp,0);\n const immune=make({moveId:10004,index:null},{soul:1411,hp:200,targetHp:300});timer(immune,0,'当回合免伤');immune.fighters[0].stages.def=-1;H.op(immune,29,[800],920042);const a=turn(immune,920031,920042);assert.equal(a.fighters[0].hp,200);assert.equal(a.fighters[0].stages.def,-1);\n});\n"
+  },
+  {
+    "file": "deployed-4222.test.cjs",
+    "title": "4222 1693条件免疫1018和群星逆转均触发额外真伤，百分比全减免/臣服/保留1HP实际零损失不冒充免疫",
+    "directTrueLiteral": true,
+    "block": "test('4222 1693条件免疫1018和群星逆转均触发额外真伤，百分比全减免/臣服/保留1HP实际零损失不冒充免疫',()=>{const s=make(pick(1693)[0]);timer(s,1,'低伤免疫返还',{threshold:3001});const o=turn(s);assert.equal(o.fighters[0].hp,5700);assert.equal(o.fighters[1].hp,9000);assert.deepEqual(o.damageEvents.filter(e=>e.type==='fixed'&&e.targetSide===0).map(e=>e.settledDamage),[3000,300]);const v=require('../local-species.cjs').species(4048);for(const soul of v.souls){const z=make(pick(1693)[0],{enemySoul:soul,targetHp:2000}),p=turn(z);assert.equal(p.fighters[1].hp,6200);assert.equal(p.damageEvents.find(e=>e.type==='true'&&e.targetSide===1).settledDamage,300);assert.equal(p.fighters[1].soulState.illusionReverseUsed,true);}const reduce=make(pick(1693)[0]);timer(reduce,1,'固定百分比减伤',{fraction:1});const r=turn(reduce);assert.equal(r.fighters[1].hp,9000);assert.equal(r.damageEvents?.some(e=>e.type==='true')??false,false);const floor=make(pick(1693)[0],{targetHp:1});timer(floor,1,'致命保留',{hp:1});const f=turn(floor);assert.equal(f.fighters[1].hp,1);assert.equal(f.damageEvents.find(e=>e.type==='percent').settledDamage,3000);assert.equal(f.damageEvents.find(e=>e.type==='percent').hpLoss,0);assert.equal(f.damageEvents.some(e=>e.type==='true'),false);const subdued=make(pick(1693)[0]);subdued.fighters[0].ailments['臣服']=3;const n=turn(subdued);assert.equal(n.fighters[1].hp,9000);assert.equal(n.damageEvents?.some(e=>e.type==='true')??false,false);});\n\n{const test=require('node:test'),assert=require('node:assert/strict');\n"
+  },
+  {
+    "file": "deployed-4239-partial.test.cjs",
+    "title": "4239 2282静态免粉独立补25%真伤含零回复，实际条件免疫补真，盾挡/全减免不补且每招仅一次",
+    "directTrueLiteral": true,
+    "block": "test('4239 2282静态免粉独立补25%真伤含零回复，实际条件免疫补真，盾挡/全减免不补且每招仅一次',()=>{for(const mode of ['immune','full-immune','ban-immune','shield','reduction','conditional']){const s=make(pick(2282)[0],{hp:mode==='full-immune'?9000:1000});if(mode.includes('immune'))timer(s,1,'固定百分比免疫');if(mode==='ban-immune')timer(s,0,'技能禁疗');if(mode==='shield')s.fighters[1].suitState.barrier=4000;if(mode==='reduction')timer(s,1,'固定百分比减伤',{fraction:1});if(mode==='conditional')timer(s,1,'低伤免疫返还',{threshold:3001});const o=turn(s);if(mode.includes('immune'))assert.equal(sum(o,'true'),2250);else if(mode==='conditional')assert.deepEqual(ev(o,'fixed',0).map(e=>e.settledDamage),[3000,2250]);else assert.equal(sum(o,'true'),0);}let s=turn(make(pick(2282)[0],{hp:1000}));s.fighters[0].hp=1000;const m=s.moveDefinitions[key(920030)],r=E.WIKI.effectsEngine.registry[31],c=E.WIKI.effectsEngine.compileInstances([{id:31,args:[3,3],description:r.template}],[{id:31,argsNum:2,template:r.template}],m);m.operations=c.operations;const o=turn(s,920030);assert.equal(ev(o,'attack').length,3);assert.equal(ev(o,'percent').filter(e=>e.round===o.round-1).reduce((n,e)=>n+e.settledDamage,0),3000);});\n"
+  },
+  {
+    "file": "deployed-4264-partial.test.cjs",
+    "title": "4264 1720按残存护盾50%真伤，护罩不算盾，无盾无追加，Q-LIGHT-009全免不挡真伤",
+    "directTrueLiteral": true,
+    "block": "test('4264 1720按残存护盾50%真伤，护罩不算盾，无盾无追加，Q-LIGHT-009全免不挡真伤',()=>{for(const mode of ['shield','barrier','none','immune']){const s=make(pick(1720)[0]);if(mode==='shield'||mode==='immune')s.fighters[1].suitState.shield=1000;if(mode==='barrier')s.fighters[1].suitState.barrier=1000;if(mode==='immune')timer(s,1,'当回合免伤');const baseline=structuredClone(s);baseline.moveDefinitions[key(s.auditMoveId)].operations=[];const z=turn(baseline),o=turn(s),remaining=z.fighters[1].suitState.shield;assert.equal(sum(o,'true'),['shield','immune'].includes(mode)?Math.floor(remaining*.5):0);if(mode==='barrier')assert.equal(o.fighters[1].hp,z.fighters[1].hp);}});\n"
+  },
+  {
+    "file": "deployed-4327-answers.test.cjs",
+    "title": "4327 Q092粉免优先且每次只消费一份，Q-LIGHT-009真正免粉后的2250补真穿全免",
+    "directTrueLiteral": true,
+    "block": "test('4327 Q092粉免优先且每次只消费一份，Q-LIGHT-009真正免粉后的2250补真穿全免',()=>{for(const mode of ['immune','reduction','reflect']){const s=make(pick(1770)[0]);let o=turn(s,s.auditMoveId,920040);if(mode==='immune')timer(o,0,'固定百分比免疫');if(mode==='reduction'){o.fighters[0].counts.nextPinkReduction=1;o.fighters[0].soulState.nextPinkReductionFraction=1;}if(mode==='reflect')timer(o,0,'当回合免伤');H.op(o,1697,[25]);const z=turn(o,920031,920042);assert.equal(z.fighters[0].soulState.war1770Pink,0);assert.equal(sum(z,'percent',0),0);if(mode==='reduction')assert.equal(z.fighters[0].counts.nextPinkReduction,1);assert.equal(sum(z,'true',0),2250);}});\n\n"
+  },
+  {
+    "file": "deployed-4354.test.cjs",
+    "title": "4354真实2354理论250回复及完整真伤，Q-LIGHT-009穿全免而护盾禁疗上限独立",
+    "directTrueLiteral": true,
+    "block": "test('4354真实2354理论250回复及完整真伤，Q-LIGHT-009穿全免而护盾禁疗上限独立',()=>{for(const hp of [1,200,250]){const s=make(pick(2354)[0],{hp:1000,targetHp:hp});s.moveDefinitions[key(s.auditMoveId)].power=0;const o=turn(s);assert.equal(sum(o,'true',1),250);assert.equal(ev(o,'true',1)[0].hpLoss,hp);assert.equal(o.fighters[0].hp,1250);}for(const mode of ['shield','blocked','cap','multiplier','wholeImmune']){const s=make(pick(2354)[0],{hp:mode==='cap'?8900:1000});s.moveDefinitions[key(s.auditMoveId)].power=0;if(mode==='shield')s.fighters[1].suitState.shield=500;if(mode==='blocked')timer(s,0,'技能禁疗');if(mode==='multiplier')timer(s,0,'回复效果削减',{fraction:.5});if(mode==='wholeImmune')timer(s,1,'当回合免伤');const o=turn(s);assert.equal(o.fighters[0].hp,mode==='blocked'?1000:mode==='cap'?9000:mode==='multiplier'?1125:1250);if(mode==='shield'){assert.equal(o.fighters[1].suitState.shield,500);assert.equal(o.fighters[1].hp,8750);}if(mode==='wholeImmune')assert.equal(sum(o,'true',1),250);}});\n"
+  },
+  {
+    "file": "deployed-4408-independent.test.cjs",
+    "title": "4408 479自身损失穿普通盾/伤免且不受禁疗伪成回复，500原量固定受免疫但自损不免",
+    "directTrueLiteral": false,
+    "block": "test('4408 479自身损失穿普通盾/伤免且不受禁疗伪成回复，500原量固定受免疫但自损不免',()=>{const s=make(pick(479)[0],{hp:700});s.fighters[0].suitState.shield=1000;s.fighters[0].suitState.barrier=1000;timer(s,0,'当回合免伤');timer(s,0,'技能禁疗');timer(s,1,'固定百分比免疫');const o=turn(s);assert.equal(o.fighters[0].hp,200);assert.equal(o.fighters[0].suitState.shield,1000);assert.equal(o.fighters[0].suitState.barrier,1000);assert.equal(sum(o,'fixed'),0);assert.equal(o.healthLossEvents.find(x=>x.targetSide===0).hpLoss,500);});\n"
+  },
+  {
+    "file": "deployed-4432-independent.test.cjs",
+    "title": "4432 1187诅咒失败清回合和免疫，1276消耗是直接HP损失非伤害、追加实际消耗一半粉伤并允许同归",
+    "directTrueLiteral": false,
+    "block": "test('4432 1187诅咒失败清回合和免疫，1276消耗是直接HP损失非伤害、追加实际消耗一半粉伤并允许同归',()=>{for(const immune of [false,true]){const s=make(pick(1187)[0]);if(immune)timer(s,1,'免异常');timer(s,1,'测试回合');const o=turn(s);assert.equal(!!o.fighters[1].ailments['诅咒'],!immune);assert.equal(!!o.fighters[1].effects['测试回合'],!immune);}const s=make(pick(1276)[0],{hp:1000,targetHp:400});s.fighters[0].suitState.shield=1000;timer(s,0,'当回合免伤');const o=turn(s);assert.equal(o.fighters[0].hp,0);assert.equal(o.fighters[1].hp,0);assert.equal(sum(o,'percent'),500);assert.equal((o.damageEvents??[]).filter(e=>e.targetSide===0).length,0);assert.equal(o.healthLossEvents[0].hpLoss,1000);assert.equal(o.fighters[0].suitState.shield,1000);});\n"
+  },
+  {
+    "file": "deployed-4432-independent.test.cjs",
+    "title": "4432 1418直接HP损失200穿盾不作伤害事件，1750负级视图不改原值，1115解弱成功才下次攻无效，572毒才诅咒",
+    "directTrueLiteral": true,
+    "block": "test('4432 1418直接HP损失200穿盾不作伤害事件，1750负级视图不改原值，1115解弱成功才下次攻无效，572毒才诅咒',()=>{const s=make(pick(1418)[0],{hp:1000});s.fighters[0].suitState.shield=1000;timer(s,0,'当回合免伤');const o=turn(s);assert.equal(o.fighters[0].hp,800);assert.equal(o.fighters[0].suitState.shield,1000);assert.equal(o.healthLossEvents[0].hpLoss,200);assert.equal(ev(o,'true',0).length,0);const a=make(pick(1750)[0]);a.fighters[0].stages.spa=-2;const b=make(pick(1750)[0],{omit:true});assert.equal(sum(turn(a)),sum(turn(b)));assert.equal(turn(a).fighters[0].stages.spa,-2);for(const neg of [false,true]){const q=make(pick(1115)[0]);if(neg)q.fighters[0].stages.atk=-1;assert.equal(turn(q).fighters[1].counts.nextAttackInvalid??0,neg?1:0);}for(const poison of [false,true]){const q=make(pick(572)[0]);if(poison)q.fighters[1].ailments['中毒']=3;assert.equal(!!turn(q).fighters[1].ailments['诅咒'],poison);}});\n"
+  },
+  {
+    "file": "deployed-4444.test.cjs",
+    "title": "4444 reductions ignored independently; Q-LIGHT-009 true bypasses immunity while fixed/percent immunity and barriers remain",
+    "directTrueLiteral": true,
+    "block": "test('4444 reductions ignored independently; Q-LIGHT-009 true bypasses immunity while fixed/percent immunity and barriers remain',()=>{\n for(const[type,id,args]of [['fixed',29,[100]],['percent',192,[10]],['true',1528,[100]]])for(const mode of ['ratio','flat','immune','shield','barrier']){const s=make(base,{soul:2085,omit:true}),b=structuredClone(s);s.fighters[1].ailments['诅咒']=4;H.entry(s);H.op(s,id,args,920031);H.op(b,id,args,920031);if(mode==='ratio'){timer(s,1,'固定百分比减伤',{fraction:.5});timer(s,1,'全伤害减半');}if(mode==='flat')timer(s,1,'伤害定额减免',{amount:20});if(mode==='immune')timer(s,1,type==='true'?'当回合免伤':'固定百分比免疫');if(mode==='shield')rules.add(s.fighters[1],10000,'remain-shield');if(mode==='barrier')rules.addBarrier(s.fighters[1],10000,'remain-barrier');const o=turn(s,920031);assert.equal(sum(o,type),(mode==='immune'||mode==='barrier')&&type!=='true'?0:sum(turn(b,920031),type),type+mode);if(mode==='shield')assert.equal(o.fighters[1].suitState.shield,10000);}\n});\n"
+  },
+  {
+    "file": "deployed-4450-independent.test.cjs",
+    "title": "4450再现的已知属性后PP分支独立真实其他技能回1受禁回PP，攻击再现50%独立乘数；未解析真伤被免仍按已答理论300回复",
+    "directTrueLiteral": false,
+    "block": "test('4450再现的已知属性后PP分支独立真实其他技能回1受禁回PP，攻击再现50%独立乘数；未解析真伤被免仍按已答理论300回复',()=>{for(const ban of [false,true]){const s=make(pick(1894)[0]);s.fighters[0].soulState.futureParsedMove={id:key(920041)};s.moveDefinitions[key(36303)].operations=s.moveDefinitions[key(36303)].operations.filter(o=>o.phase==='afterUse');s.fighters[0].pp[key(920031)]=90;if(ban){s.fighters[1].soulState.bedPartnerPP=true;timer(s,1,'机械领域',{fraction:.4});}const o=turn(s);assert.equal(o.fighters[0].pp[key(920031)],ban?90:91);assert.equal(o.fighters[0].pp[key(36303)],0);}const s=make(pick(1894)[0],{hp:1000});timer(s,1,'当回合免伤');const o=turn(s);assert.equal(o.fighters[0].soulState.pendingReplayFallbackHeal,undefined);assert.equal(o.fighters[0].hp,1300);const a=make(pick(1894)[0]),b=structuredClone(a);for(const x of [a,b])x.moveDefinitions[key(36303)].operations=x.moveDefinitions[key(36303)].operations.filter(o=>o.phase==='beforeDamage');a.moveDefinitions[key(36303)].reproducedParsedAttack=true;assert.ok(Math.abs(sum(turn(a))-sum(turn(b))*1.5)<3);});\n\n"
+  },
+  {
+    "file": "deployed-4450.test.cjs",
+    "title": "4450 1894理论300回复及残血保1禁疗倍率封顶，Q-LIGHT-009全免不挡真伤而减伤独立",
+    "directTrueLiteral": true,
+    "block": "test('4450 1894理论300回复及残血保1禁疗倍率封顶，Q-LIGHT-009全免不挡真伤而减伤独立',()=>{for(const mode of ['ordinary','low','floor','immune','halfDamage','ban','halfHeal','cap'])for(const same of [false,true]){const s=make(pick(1894)[0],{hp:mode==='cap'?8900:1000,targetHp:['low','floor'].includes(mode)?1:9000});if(same)s.fighters[0].soulState.futureParsedMove={id:key(36303),name:s.moveDefinitions[key(36303)].name};if(mode==='floor')timer(s,1,'致命保留',{hp:1});if(mode==='immune')timer(s,1,'当回合免伤');if(mode==='halfDamage')timer(s,1,'全伤害减半');if(mode==='ban')timer(s,0,'技能禁疗');if(mode==='halfHeal')timer(s,0,'回复效果削减',{fraction:.5});const o=turn(s);assert.equal(o.fighters[0].hp,mode==='ban'?1000:mode==='halfHeal'?1150:mode==='cap'?9000:1300);assert.equal(fixed(o),mode==='halfDamage'?150:300);assert.equal(o.fighters[0].soulState.pendingReplayFallbackHeal,undefined);assert.equal(o.fighters[0].pp[key(36303)],0);if(mode==='floor'){const e=o.damageEvents.find(e=>e.type==='true');assert.equal(e.hpLoss,0);assert.equal(e.settledDamage,300);}}});\n"
+  },
+  {
+    "file": "deployed-4450.test.cjs",
+    "title": "4450 1889命中封锁不触发补偿，正常命中不虚加400且错误来源/index/参数拒绝",
+    "directTrueLiteral": false,
+    "block": "test('4450 1889命中封锁不触发补偿，正常命中不虚加400且错误来源/index/参数拒绝',()=>{const s=make(pick(1889)[0]);const normal=turn(s);assert.equal(fixed(normal),0);assert.ok(normal.fighters[1].ailments['疲惫']);const immune=make(pick(1889)[0]);timer(immune,0,'技能命中效果失效');timer(immune,1,'当回合免伤');assert.equal(fixed(turn(immune)),0);const r=E.WIKI.effectsEngine.registry[1889],m=H.source.moves.find(m=>m.id===28166);for(const [move,index,params]of [[{...m,hash:'bad'},1,[100,7,200]],[m,0,[100,7,200]],[m,1,[100,7,201]]])assert.throws(()=>r.validate(params,move,index),/精确来源/);});\r\n\nfunction realParsed(s,id){const raw=H.source.moves.find(m=>m.id===id);s.moveDefinitions[key(id)]={...s.moveDefinitions[key(920040)],id:key(id),wikiId:id,name:raw.name,kind:raw.kind,type:raw.kind==='status'?'属性':raw.type,power:raw.power,accuracy:raw.accuracy,alwaysHit:raw.alwaysHit,priority:raw.priority,pp:raw.pp,revision:raw.revision,fifth:raw.fifth,operations:H.independentOperations(raw)};s.fighters[0].soulState.futureParsedMove={id:key(id)};return s.moveDefinitions[key(id)];}\n"
+  },
+  {
+    "file": "deployed-4450.test.cjs",
+    "title": "4450实际一次再现攻击的上次伤害记录合计复制多段及自身段，完整红伤与HP损失独立",
+    "directTrueLiteral": false,
+    "block": "test('4450实际一次再现攻击的上次伤害记录合计复制多段及自身段，完整红伤与HP损失独立',()=>{for(const mode of ['plain','floor','shield','immune']){const s=make(pick(1894)[0],{targetHp:mode==='floor'?1:9000});realParsed(s,36298);s.fighters[1].ailments['疲惫']=99;if(mode==='floor')timer(s,1,'致命保留',{hp:1});if(mode==='shield')s.fighters[1].suitState.shield=9000;if(mode==='immune')timer(s,1,'当回合免伤');const o=turn(s),events=o.damageEvents.filter(e=>e.sourceSide===0&&e.targetSide===1&&e.type==='attack');assert.ok(events.length>=3);assert.equal(o.fighters[0].lastSettledAttackDamage,events.reduce((n,e)=>n+e.settledDamage,0),mode);assert.equal(o.fighters[0].lastAttackDamage,events.reduce((n,e)=>n+e.hpLoss,0),mode);if(mode==='floor'){assert.ok(o.fighters[0].lastSettledAttackDamage>0);assert.equal(o.fighters[0].lastAttackDamage,0);}}});\n"
+  },
+  {
+    "file": "deployed-4450.test.cjs",
+    "title": "4450真实解析36298连击2至4段都先于自身段，复制攻击1.5经完整公共免疫护盾保1结算",
+    "directTrueLiteral": false,
+    "block": "test('4450真实解析36298连击2至4段都先于自身段，复制攻击1.5经完整公共免疫护盾保1结算',()=>{for(const mode of ['plain','immune','floor','shield']){const s=make(pick(1894)[0],{targetHp:mode==='floor'?1:9000});realParsed(s,36298);if(mode==='immune')timer(s,1,'当回合免伤');if(mode==='floor')timer(s,1,'致命保留',{hp:1});if(mode==='shield')s.fighters[1].suitState.shield=9000;const before=structuredClone(s),o=turn(s),events=(o.damageEvents??[]).filter(e=>e.sourceSide===0&&e.targetSide===1&&e.type==='attack');assert.ok(events.length>=3&&events.length<=5);assert.equal(o.fighters[0].soulState.skillUses[key(36303)],1);assert.equal(o.fighters[0].soulState.skillUses[key(36298)],undefined);assert.deepEqual(s,before);if(mode==='floor'){assert.equal(o.fighters[1].hp,1);assert.ok(events.every(e=>e.hpLoss===0&&e.settledDamage>0));}if(mode==='immune')assert.ok(events.every(e=>e.settledDamage===0));}});\n"
+  },
+  {
+    "file": "deployed-4482.test.cjs",
+    "title": "4482 587 true500 keeps complete damage and HP floor1; Q-LIGHT-009 bypasses all immunity and shield behavior stays unchanged",
+    "directTrueLiteral": true,
+    "block": "test('4482 587 true500 keeps complete damage and HP floor1; Q-LIGHT-009 bypasses all immunity and shield behavior stays unchanged',()=>{for(const mode of ['normal','low','one','shield','immune','suppressed']){let s=turn(make(pick(587)[0],{hp:100}));const target=s.fighters[1];if(mode==='low')target.hp=200;if(mode==='one')target.hp=1;if(mode==='shield')shields.add(target,1000,'587-true-shield');if(mode==='immune')timer(s,1,'当回合免伤');if(mode==='suppressed')s.fighters[0].soulState.defeatEffectsSuppressed=true;const before=target.hp;timer(s,1,'攻击最低伤害',{amount:500});const o=turn(s,920031,920040),e=events(o,'true',1);assert.equal(o.fighters[0].hp,0);if(mode==='suppressed'){assert.equal(e.length,0);assert.equal(o.fighters[1].hp,before);if(mode==='immune')assert.equal(o.fighters[0].effects['击败反击保留1'],undefined);}else{assert.equal(e.length,1);assert.equal(e[0].settledDamage,500);assert.equal(e[0].hpLoss,Math.min(before-1,500));assert.equal(o.fighters[1].hp,Math.max(1,before-500));assert.equal(o.fighters[0].effects['击败反击保留1'],undefined);}if(mode==='shield')assert.equal(o.fighters[1].suitState.shield,1000);}});\n"
+  },
+  {
+    "file": "deployed-4482.test.cjs",
+    "title": "4482 62 binds both sides;clear either cancels immediately,clear protection retains binding;execution only responds to death prevention",
+    "directTrueLiteral": false,
+    "block": "test('4482 62 binds both sides;clear either cancels immediately,clear protection retains binding;execution only responds to death prevention',()=>{for(const mode of ['none','selfClear','targetClear','protected','floor','shieldImmune']){let s=turn(make(pick(62)[0]));const initialTargetHp=s.fighters[1].hp,token=s.fighters[0].effects['延迟决胜'].delayedExecutionToken;assert.equal(s.fighters[1].effects['延迟决胜绑定'].delayedExecutionToken,token);if(['selfClear','protected'].includes(mode)){if(mode==='protected')timer(s,0,'protect');H.op(s,1254,[],920042);s.moveDefinitions[key(920042)].priority=4;s=turn(s,920031,920042);}if(mode==='targetClear'){H.op(s,1254,[],920031);s=turn(s,920031,920041);}if(['selfClear','targetClear'].includes(mode))for(const f of s.fighters)assert.ok(!Object.values(f.effects).some(e=>e.delayedExecutionToken===token));if(mode==='floor')timer(s,1,'致命保留',{hp:1});if(mode==='shieldImmune'){shields.add(s.fighters[1],10000,'62-execution');timer(s,1,'当回合免伤');}while(s.round<=6&&!s.finished)s=turn(s,920032,920041);assert.equal(s.fighters[1].hp,mode==='floor'?1:['selfClear','targetClear'].includes(mode)?initialTargetHp:0,mode);const deaths=(s.healthLossEvents??[]).filter(x=>x.type==='execution'&&x.targetSide===1);assert.equal(deaths.length,['selfClear','targetClear'].includes(mode)?0:1);assert.equal((s.damageEvents??[]).filter(x=>x.type!=='attack').length,0);}});\n"
+  },
+  {
+    "file": "deployed-4515-soul.test.cjs",
+    "title": "1727狂刃用攻附已保存777真伤，属性不附加，Q-LIGHT-009全免不挡真伤",
+    "directTrueLiteral": true,
+    "block": "test('1727狂刃用攻附已保存777真伤，属性不附加，Q-LIGHT-009全免不挡真伤',()=>{assert.equal(sum(turn(make({frenzy:true})),'true'),777);assert.equal(sum(turn(make({frenzy:true}),attr),'true'),0);const s=make({frenzy:true});timer(s,'当回合免伤');assert.equal(sum(turn(s),'true'),777);});\n"
+  },
+  {
+    "file": "deployed-4535-skills.test.cjs",
+    "title": "4535 1011护盾免伤与已有免攻先后，未命中不抽样",
+    "directTrueLiteral": false,
+    "block": "test('4535 1011护盾免伤与已有免攻先后，未命中不抽样',()=>{for(const mode of ['shield','nullify','immune']){const s=make(pick(1011)[1]);if(mode==='shield')shields.add(s.fighters[0],100,'test');if(mode==='nullify')s.fighters[0].counts.attackNullify=1;if(mode==='immune')timer(s,0,'当回合免伤');const o=turn(s,s.auditMoveId,920040);assert.equal(o.fighters[0].hp,9000);if(mode==='shield'||mode==='immune')assert.equal(o.fighters[1].hp,9000);if(mode==='nullify'){assert.equal(o.fighters[0].counts.attackNullify,1);assert.ok(o.fighters[1].hp<9000);}}const s=make(e(1011));s.fighters[1].ailments['失明']=3;const o=turn(s,s.auditMoveId,920040);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].soulState.youmei1011Use,undefined);});\n"
+  },
+  {
+    "file": "next50-4554-soul.test.cjs",
+    "title": "1764湮灭禁药剂及回复，Q-LIGHT-009全免不挡238真伤且状态效果独立",
+    "directTrueLiteral": true,
+    "block": "test('1764湮灭禁药剂及回复，Q-LIGHT-009全免不挡238真伤且状态效果独立',()=>{const s=make();const o=turn(s,c=>{c.soulAbility(1764,'grantMark','holy');c.soulAbility(1764,'grantMark','evil');c.soulAbility(1764,'qualifiedAnnihilate');c.clear(c.t);c.heal(c.t,999,'清回合后仍禁回复');},status,'potion:hp');assert.equal(o.fighters[1].hp,8762);assert.equal(o.fighters[1].soulState.oracleAnnihilation1764.round,1);const q=make();timer(q,1,'当回合免伤');const pp=q.fighters[1].pp[key(status)],z=turn(q,c=>{c.soulAbility(1764,'grantMark','holy');c.soulAbility(1764,'grantMark','evil');c.soulAbility(1764,'qualifiedAnnihilate');});assert.equal(z.fighters[1].hp,8762);assert.equal(damage(z,'true'),238);assert.equal(z.fighters[1].pp[key(status)],pp);assert.equal(z.fighters[1].soulState.oracleAnnihilation1764.ended,true);});\n"
+  },
+  {
+    "file": "next50-4586-soul.test.cjs",
+    "title": "1791非致死/完全免伤不会先解锁，真实攻击结算高于剩HP仍保1且完整伤害不截断",
+    "directTrueLiteral": true,
+    "block": "test('1791非致死/完全免伤不会先解锁，真实攻击结算高于剩HP仍保1且完整伤害不截断',()=>{const s=make({hp:1000});const o=turn(s,c=>{c.hurt(c.a,999,'非致死','true');assert.equal(c.a.soulState.emptyProfane1791,undefined);});assert.equal(o.fighters[0].stats.maxHp,9000);const q=make({hp:1});timer(q,0,'当回合免伤');const z=turn(q,c=>c.hurt(c.a,9000,'完全免伤','true'));assert.equal(z.fighters[0].soulState.emptyProfane1791,undefined);const a=make({hp:1});const b=turn(a,null,second,first),event=b.damageEvents.find(e=>e.type==='attack'&&e.targetSide===0);assert.ok(event.settledDamage>1);assert.equal(event.hpLoss,0);assert.equal(b.fighters[0].hp,1);assert.equal(b.fighters[0].soulState.emptyProfane1791,true);});\n"
+  },
+  {
+    "file": "next50-4612-soul.test.cjs",
+    "title": "1820普通固粉免疫仍为零，Q-LIGHT-009全免不挡100真实伤害且不反弹不消费次数",
+    "directTrueLiteral": true,
+    "block": "test('1820普通固粉免疫仍为零，Q-LIGHT-009全免不挡100真实伤害且不反弹不消费次数',()=>{const s=positive(make());s.fighters[0].suitState.shield=600;const o=turn(s,c=>{c.timed(c.t,'固定百分比免疫',1,{});for(const type of['fixed','percent'])assert.equal(c.hurt(c.t,100,'普通完全免疫',type),0);c.timed(c.t,'当回合免伤',1,{});assert.equal(c.hurt(c.t,100,'普通全免真伤','true'),100);},status,status,{event:'beforeUse'});assert.equal(o.fighters[1].hp,8900);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].soulState.chordPending1820,undefined);});\n"
+  },
+  {
+    "file": "next50-4695.test.cjs",
+    "title": "4695/48与2172真实麻痹命中零红仍执行，满体不触发、免异阻挡",
+    "directTrueLiteral": false,
+    "block": "test('4695/48与2172真实麻痹命中零红仍执行，满体不触发、免异阻挡',()=>{let yes=0,no=0;for(let seed=0;seed<24;seed++){const s=make({...row(2172),hp:4000,seed});timer(s,1,'当回合免伤');turn(s);assert.equal(sum(s),0);if(s.fighters[1].ailments['麻痹'])yes++;else no++;}assert.ok(yes&&no);const full=make(row(2172));turn(full);assert.equal(full.fighters[1].ailments['麻痹'],undefined);const block=make({...row(2172),hp:4000});timer(block,1,'免异常');turn(block);assert.equal(block.fighters[1].ailments['麻痹'],undefined);const own=make(row(48));turn(own);probe(own,c=>c.ailment(c.t,'中毒',c.a));assert.equal(own.fighters[0].ailments['中毒'],undefined);});\n"
+  },
+  {
+    "file": "next50-4696.test.cjs",
+    "title": "4696/108受到物攻区别MISS与零红命中，663用攻含MISS而控制未用不触发",
+    "directTrueLiteral": false,
+    "block": "test('4696/108受到物攻区别MISS与零红命中，663用攻含MISS而控制未用不触发',()=>{for(const id of[108,663])for(const mode of['miss','zero','sleep']){const s=make({...row(id),enemyMove:14102});if(mode==='miss'){delete s.fighters[1].effects['攻击必中'];timer(s,1,'攻击必失');}if(mode==='zero')timer(s,0,'当回合免伤');if(mode==='sleep')s.fighters[1].ailments['睡眠']=20;go(s,s.auditMoveId,14102);assert.equal(sum(s,'attack',1),0);assert.equal(!!s.fighters[1].ailments['烧伤'],mode==='zero'||id===663&&mode==='miss');}});\n"
+  },
+  {
+    "file": "next50-4696.test.cjs",
+    "title": "4696魂印双方烧伤真假条件、实际使用含MISS零伤、物品控制不触发交换",
+    "directTrueLiteral": false,
+    "block": "test('4696魂印双方烧伤真假条件、实际使用含MISS零伤、物品控制不触发交换',()=>{const no=make({soul:true,index:-1,hp:1000});go(no,28905);assert.equal(no.fighters[0].soulState.exchanges1897,undefined);const item=burn(make({soul:true,index:-1,hp:1800}));item.fighters[0].soulState.exchange1897='percent';go(item,28905,null);assert.equal(item.fighters[0].soulState.exchanges1897,undefined);const control=burn(make({soul:true,index:-1,hp:1800}));control.fighters[0].soulState.exchange1897='percent';control.fighters[1].ailments['睡眠']=20;go(control,28905);assert.equal(control.fighters[0].soulState.exchanges1897,undefined);for(const miss of[true,false]){const s=burn(make({soul:true,index:-1,hp:1800,enemyMove:14102}));s.fighters[0].soulState.exchange1897='percent';if(miss){delete s.fighters[1].effects['攻击必中'];timer(s,1,'攻击必失');}else timer(s,0,'当回合免伤');go(s,28905,14102);assert.equal(sum(s,'attack',1),0);assert.equal(s.fighters[0].soulState.exchanges1897.length,1);}});\n"
+  },
+  {
+    "file": "next50-4696.test.cjs",
+    "title": "4696/1148固定随机吸取150至250含端点，伤害免疫不减理论回复且禁疗阻回复",
+    "directTrueLiteral": false,
+    "block": "test('4696/1148固定随机吸取150至250含端点，伤害免疫不减理论回复且禁疗阻回复',()=>{const values=new Set;for(let seed=0;seed<400;seed++){const s=make({...row(1148),hp:1000,seed});timer(s,1,'当回合免伤');go(s);const n=s.fighters[0].hp-1000;assert.ok(n>=150&&n<=250);values.add(n);assert.equal(s.fighters[1].hp,9000);}assert.ok(values.has(150)&&values.has(250));const block=make({...row(1148),hp:1000});timer(block,0,'技能禁疗');go(block);assert.equal(block.fighters[0].hp,1000);assert.ok(sum(block,'fixed')>=150);});\n"
+  },
+  {
+    "file": "next50-4697.test.cjs",
+    "title": "4697魂印无原异常攻击失明属性失神，命中零红照常，免异无补抽与MISS不触",
+    "directTrueLiteral": false,
+    "block": "test('4697魂印无原异常攻击失明属性失神，命中零红照常，免异无补抽与MISS不触',()=>{for(const id of[37683,28907]){const s=soul({move:id});if(id===37683)timer(s,1,'当回合免伤');go(s);assert.ok(s.fighters[1].ailments[id===28907?'失神':'失明']);}const immune=soul();timer(immune,1,'免异常');go(immune);assert.deepEqual(immune.fighters[1].ailments,{});const miss=soul({hit:false});timer(miss,0,'攻击必失');go(miss);assert.deepEqual(miss.fighters[1].ailments,{});});\n"
+  },
+  {
+    "file": "next50-4706.test.cjs",
+    "title": "4706魂印自援MISS最低红伤抵抗减伤，真正零红命中仍不触支援且命中效果执行",
+    "directTrueLiteral": false,
+    "block": "test('4706魂印自援MISS最低红伤抵抗减伤，真正零红命中仍不触支援且命中效果执行',()=>{const s=options(make({soul:true,soulId:1901,move:37671,index:0,hit:false}));timer(s,0,'攻击必失');timer(s,1,'全伤害减半');let missed;const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)missed=c.t.effects['回复效果削减'];}};try{activated(s);}finally{E.SOULS=old;}assert.equal(sum(s),300);assert.equal(missed,undefined);const zero=options(make({soul:true,soulId:1901,move:37671,index:0}));timer(zero,1,'当回合免伤');let landed;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='afterUse'&&c.a.side===0)landed=c.t.effects['回复效果削减'];}};try{activated(zero);}finally{E.SOULS=old;}assert.equal(sum(zero),0);assert.equal(landed.fraction,.5);assert.equal(zero.fighters[0].soulState.ophelia4706.stars,0);});\n"
+  },
+  {
+    "file": "next50-4706.test.cjs",
+    "title": "4706/646命中后比较当前体力，严格高于才降攻击特攻速度，零红命中仍执行",
+    "directTrueLiteral": false,
+    "block": "test('4706/646命中后比较当前体力，严格高于才降攻击特攻速度，零红命中仍执行',()=>{for(const hp of[8999,9000]){const s=make({...row(646),hp});timer(s,1,'当回合免伤');go(s);for(const k of H.keys)assert.equal(s.fighters[1].stages[k],0);}const s=make({...row(646),hp:9000});s.fighters[1].hp=8999;timer(s,1,'当回合免伤');go(s);assert.deepEqual(s.fighters[1].stages,{atk:-2,def:0,spa:-2,spd:0,spe:-2,acc:0});});\n"
+  },
+  {
+    "file": "next50-4750.test.cjs",
+    "title": "4750琼花行动初六分一真伤，Q-LIGHT-009穿全免，护罩保1完整伤害及三轮到期独立",
+    "directTrueLiteral": true,
+    "block": "test('4750琼花行动初六分一真伤，Q-LIGHT-009穿全免，护罩保1完整伤害及三轮到期独立',()=>{for(const mode of['normal','barrier','immune','floor']){const s=flower();if(mode==='barrier')s.fighters[1].suitState.barrier=200;if(mode==='immune')timer(s,1,'当回合免伤');if(mode==='floor'){s.fighters[1].hp=1;timer(s,1,'致命保留',{hp:1});}go(s,20147);assert.equal(sum(s,'true'),1500);if(mode==='barrier')assert.equal(s.fighters[1].suitState.barrier,200);if(mode==='floor'){assert.equal(s.fighters[1].hp,1);assert.ok(s.damageEvents.some(e=>e.round===2&&e.type==='true'&&e.hpLoss===0&&e.settledDamage===1500));}}const e=flower();go(e,20147);go(e,20147);assert.equal(e.fighters[1].soulState.specialStates?.['琼花仙荼'],undefined);go(e,20147);assert.equal(sum(e,'true'),0);});\n"
+  },
+  {
+    "file": "next50-4755.test.cjs",
+    "title": "4755/1018严格低于1000免红返固定、满1000照常受伤，红0仍执行对手完整第五959与1659非红",
+    "directTrueLiteral": false,
+    "block": "test('4755/1018严格低于1000免红返固定、满1000照常受伤，红0仍执行对手完整第五959与1659非红',()=>{for(const n of[999,1000,1001]){const s=make({...row(1018),enemyLoadout:[10157,20125,20008,20126,37899],bStats:{atk:9999}});timer(s,0,'攻击伤害上限',{amount:n});const m=source.moves.find(m=>m.id===37899),compiled=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(compiled.issue,'');s.moveDefinitions[key(m.id)].operations=compiled.operations;go(s,s.auditMoveId,37899);assert.equal(sum(s,'attack',1),n<1000?0:n);assert.equal(sum(s,'fixed'),n<1000?n:0);assert.ok(Object.values(s.fighters[1].stages).every(v=>v===1));assert.equal(s.fighters[0].effects['低伤免疫返还'],undefined);const extra=sum(s,'fixed',1);assert.ok(extra>=200&&extra<=400);assert.equal(s.fighters[0].hp,9000-(n<1000?0:n)-extra);}});\n"
+  },
+  {
+    "file": "remaining-4000-interactions.test.cjs",
+    "title": "4000/2493负先制按零档且残血按理论汲取回复，Q-LIGHT-009真伤穿全免而禁疗独立",
+    "directTrueLiteral": true,
+    "block": "test('4000/2493负先制按零档且残血按理论汲取回复，Q-LIGHT-009真伤穿全免而禁疗独立',()=>{for(const priority of [-3,-1,0,1,2,4]){const s=make({move:38422,index:4,hp:1000,targetHp:1000});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;known2493(s,priority);const n=340*2**Math.max(0,priority);assert.equal(es(s,'true')[0].settledDamage,n);assert.equal(s.fighters[0].hp,1000+n);assert.ok(s.fighters[1].hp>=0);if(priority===4)assert.ok(es(s,'true')[0].hpLoss<n);}for(const mode of ['ban','immune']){const s=make({move:38422,index:4,hp:1000});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;if(mode==='ban')timer(s,0,'技能禁疗');else timer(s,1,'当回合免伤');known2493(s);assert.equal(s.fighters[0].hp,mode==='ban'?1000:1340);assert.equal(es(s,'true').reduce((n,e)=>n+e.settledDamage,0),340);assert.equal(s.fighters[0].pp[key(38422)],4);}});\n\n"
+  },
+  {
+    "file": "remaining-4946-drain-boundaries.test.cjs",
+    "title": "4946/2146整招无效仍吸取，Q-LIGHT-009免粉转真6300穿全免且理论回复不回退",
+    "directTrueLiteral": true,
+    "block": "test('4946/2146整招无效仍吸取，Q-LIGHT-009免粉转真6300穿全免且理论回复不回退',()=>{const s=make({move:38536,index:-1,soul:true,hp:4500});timer(s,0,'skillBlock');s.fighters[1].counts.immune=1;turn(s,38536,20309);assert.equal(sum(s),0);assert.equal(sum(s,'percent'),6300);assert.equal(s.fighters[0].hp,9000);const x=make({move:38536,index:-1,soul:true,hp:4500});timer(x,1,'固定百分比免疫');timer(x,1,'当回合免伤');x.fighters[1].counts.immune=1;turn(x,38536,20309);assert.equal(x.fighters[0].soulState.thunder2146.lastDrain.type,'true');assert.equal(x.fighters[0].soulState.thunder2146.lastDrain.settledDamage,6300);assert.equal(sum(x,'percent'),0);assert.equal(sum(x,'true'),6300);assert.equal(x.fighters[0].hp,9000);});\n"
+  },
+  {
+    "file": "status-expansion.test.cjs",
+    "title": "沉默通过真实第五标记封招且每回合扣八分之一，普通攻击可用",
+    "directTrueLiteral": false,
+    "block": "test('沉默通过真实第五标记封招且每回合扣八分之一，普通攻击可用',()=>{\n const s=game();assert.equal(s.moveDefinitions[key(0,4)].fifth,true);apply(s,0,'沉默',2);let o=turn(s,4);assert.equal(o.fighters[1].hp,1600);assert.equal(o.fighters[0].hp,1400);assert.equal(o.fighters[0].pp[key(0,4)],29);o=turn(o,3);assert.ok(o.fighters[1].hp<1600);assert.equal(o.fighters[0].hp,1200);assert.equal(o.fighters[0].ailments['沉默'],undefined);const next=turn(o,4);assert.ok(next.fighters[1].hp<o.fighters[1].hp);assert.equal(next.fighters[0].hp,1200);\n const im=game();apply(im,0,'沉默',1);timer(im,0,'当回合免伤');assert.equal(turn(im).fighters[0].hp,1600);\n});\n"
+  },
+  {
+    "file": "status-expansion.test.cjs",
+    "title": "沸涌非暴击30%与暴击50%伤害下限，最终下限覆盖完全免伤",
+    "directTrueLiteral": false,
+    "block": "test('沸涌非暴击30%与暴击50%伤害下限，最终下限覆盖完全免伤',()=>{\n for(const crit of [false,true]){const s=game();apply(s,1,'沸涌');if(crit)timer(s,0,'必定暴击');const o=turn(s,0);assert.equal(o.fighters[0].lastAttackDamage,crit?800:480);const im=structuredClone(s);timer(im,1,'当回合免伤');assert.equal(turn(im,0).fighters[1].hp,crit?800:1120);apply(s,0,'臣服');assert.equal(turn(s,0).fighters[1].hp,crit?800:1120);}\n const zero=game();zero.moveDefinitions[key(0,0)].power=0;apply(zero,1,'沸涌');assert.equal(turn(zero,0).fighters[1].hp,1600);\n});\n"
+  },
+  {
+    "file": "status-expansion.test.cjs",
+    "title": "雷解仅按实际红伤附加60%真实伤害，未命中或零伤不触发",
+    "directTrueLiteral": false,
+    "block": "test('雷解仅按实际红伤附加60%真实伤害，未命中或零伤不触发',()=>{\n const s=game();apply(s,0,'雷解');const o=turn(s,0),d=o.fighters[0].lastAttackDamage;assert.equal(1600-o.fighters[1].hp,d+Math.floor(d*.6));assert.equal(turn(s).fighters[1].hp,1600);\n const im=structuredClone(s);timer(im,1,'当回合免伤');assert.equal(turn(im,0).fighters[1].hp,1600);const miss=structuredClone(s);miss.moveDefinitions[key(0,0)].alwaysHit=false;timer(miss,0,'攻击必失');assert.equal(turn(miss,0).fighters[1].hp,1600);apply(s,0,'臣服');assert.equal(turn(s,0).fighters[1].hp,1600);\n});\n"
+  }
+]

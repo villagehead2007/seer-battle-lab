@@ -1,0 +1,2636 @@
+{
+  "at": "2026-11-02T06:24:19.220Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "accepted": false,
+  "items": [
+    {
+      "key": "4822:soul:2013",
+      "kind": "soul",
+      "raw": {
+        "id": 2013,
+        "description": "登场时为对手附加3回合易燃；自身攻击技能命中对手时附加300点固定伤害，若对手不处于异常状态额外恢复300点体力；战斗阶段结束时，若对手处于烧伤状态则消除对手能力提升，若对手处于易燃状态则2回合内受到的攻击伤害减少30%|（boss无效）",
+        "desc_formatting_adjustment": "<indent=0><sprite=0><indent=16>登场效果：\r\n<indent=16><sprite=3><indent=32>每次登场时为对手<color=#64F9FA>附加</color>3回合易燃状态\r\n\r\n<indent=0><sprite=0><indent=16>攻击技能额外效果：\r\n<indent=16><sprite=3><indent=32>自身攻击技能命中对手时<color=#64F9FA>附加</color>300点<b>固定伤害</b>\r\n<indent=32><sprite=4><indent=48>若对手不处于异常状态额外<color=#64F9FA>恢复</color>300点<b>体力</b>\r\n\r\n<indent=0><sprite=0><indent=16>战阶结束效果：\r\n<indent=16><sprite=3><indent=32>战斗阶段结束时：\r\n<indent=32><sprite=4><indent=48>若对手处于烧伤状态则<color=#64F9FA>消除</color>对手<b>能力提升状态</b>\r\n<indent=32><sprite=4><indent=48>若对手处于易燃状态则2回合内受到的<b>攻击伤害</b><color=#64F9FA>减少</color>30%",
+        "analyze_desc": "",
+        "hash": "40e20acf",
+        "eid": 2438,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2013",
+          "revision": "40e20acf",
+          "loadedAt": "2026-11-02T05:48:08.698Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "7591a233a55c26aaee57926046b5012660c6268e36906fbfe700f4bc13c9b438",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实2013首次登场易燃3回合、免异失败不补抽，魂印攻击命中附300及无异常回复300不受技能禁疗",
+          "assertion": " const a=make({move:10008,soul:true});assert.equal(a.fighters[1].ailments['易燃'],3);turn(a);assert.equal(sum(a,'fixed'),300);\n const b=make({move:10008,soul:true,entryImmune:1,hp:1000});assert.equal(b.fighters[1].ailments['易燃'],undefined);assert.equal(b.fighters[1].counts.immune,0);timer(b,0,'技能禁疗');turn(b);assert.equal(sum(b,'fixed'),300);assert.equal(b.fighters[0].hp,1300);\n const c=make({move:20035,soul:true,entryImmune:1,hp:1000});turn(c);assert.equal(sum(c,'fixed'),0);assert.equal(c.fighters[0].hp,1000);"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实2013命中零红仍附固、整招无效没有附固或回血，战阶烧伤消正级受保护失败",
+          "assertion": " const a=make({move:10008,soul:true});timer(a,1,'攻击伤害免疫');turn(a);assert.equal(sum(a),0);assert.equal(sum(a,'fixed'),300);\n const b=make({move:10008,soul:true,entryImmune:1,hp:1000});timer(b,0,'skillBlock');turn(b);assert.equal(sum(b,'fixed'),0);assert.equal(b.fighters[0].hp,1000);\n for(const protectedBoost of [false,true]){const s=make({move:10008,soul:true});s.fighters[1].ailments['烧伤']=3;s.fighters[1].stages.def=2;if(protectedBoost)timer(s,1,'幽蝶强化保护');turn(s);assert.equal(s.fighters[1].stages.def,protectedBoost?2:0);assert.equal(s.fighters[1].stages.atk,protectedBoost?1:0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实2013易燃战阶末授2回合攻击减伤30%，移除易燃不刷新且到期恢复正常红伤",
+          "assertion": " const a=make({move:10008,soul:true}),b=make({move:10008});turn(a,10008,10127);turn(b,10008,10127);assert.equal(a.fighters[0].effects['额外攻击减伤'].end,2);delete a.fighters[1].ailments['易燃'];turn(a,10008,10127);turn(b,10008,10127);assert.ok(Math.abs(sum(a,'attack',1)-sum(b,'attack',1)*.7)<=1);turn(a,10008,10127);turn(b,10008,10127);assert.equal(sum(a,'attack',1),sum(b,'attack',1));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实2013固伤免疫为0仍按无异常回复300，满体上限与普通禁疗不影响魂印来源规则",
+          "assertion": " for(const hp of[8999,9000]){const s=make({move:10008,soul:true,entryImmune:1,hp});timer(s,1,'固定百分比免疫');timer(s,0,'技能禁疗');turn(s);assert.equal(sum(s,'fixed'),0);assert.equal(s.fighters[0].hp,9000);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "首次登场易燃、实际攻击命中附固及无异常回血、烧伤消强、易燃授攻击减伤为当前自身分支；仅换宠再次登场的重施异常属于第二阶段。"
+    },
+    {
+      "key": "4822:move:10008",
+      "kind": "move",
+      "raw": {
+        "id": 10008,
+        "name": "电光火石",
+        "type": "普通",
+        "kind": "physical",
+        "power": 40,
+        "pp": 30,
+        "priority": 1,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:ca1f800",
+        "hash": "ca1f800",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "e498b28b193671115ed606857f612e4c5ad510c814fa0f2ab2fea460d952a93a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10007",
+      "kind": "move",
+      "raw": {
+        "id": 10007,
+        "name": "火花",
+        "type": "火",
+        "kind": "special",
+        "power": 40,
+        "pp": 25,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          12
+        ],
+        "effectInstances": [
+          {
+            "id": 12,
+            "args": [
+              10
+            ],
+            "description": "命中后10%令对方烧伤"
+          }
+        ],
+        "description": "命中后10%令对方烧伤",
+        "revision": "seerapi:96047187",
+        "hash": "96047187",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "3600b5c21411dc064341f83599b8402ca9d05062d185579f28826dc06d4f87b9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:10007:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 12,
+          "args": [
+            10
+          ],
+          "description": "命中后10%令对方烧伤"
+        },
+        "index": 0,
+        "description": "命中后10%令对方烧伤",
+        "metadata": {
+          "id": 12,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方烧伤",
+          "revision": "seerapi:67631527"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:96047187"
+      },
+      "sourceDigest": "e613ed02c9579d84925139752caabfd492c29f0d7d4dc88e3b5277d8a2bf6f54",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:20035",
+      "kind": "move",
+      "raw": {
+        "id": 20035,
+        "name": "摇尾巴",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 30,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              1,
+              100,
+              -1
+            ],
+            "description": "技能使用成功时，100%改变对手防御等级-1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手防御等级-1",
+        "revision": "seerapi:27e53ab2",
+        "hash": "27e53ab2",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "cfcdc907d5aedca5abbd66711ba6eb2bfffccb4b7727c0de904c3beca57e491b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:20035:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            1,
+            100,
+            -1
+          ],
+          "description": "技能使用成功时，100%改变对手防御等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手防御等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:27e53ab2"
+      },
+      "sourceDigest": "5eb7d851bfa8780ad70d8f5ffe6f8d024a247a797fb5b4f057f62f083d2522d7",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:20048",
+      "kind": "move",
+      "raw": {
+        "id": 20048,
+        "name": "鬼火",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 15,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          12
+        ],
+        "effectInstances": [
+          {
+            "id": 12,
+            "args": [
+              100
+            ],
+            "description": "命中后100%令对方烧伤"
+          }
+        ],
+        "description": "命中后100%令对方烧伤",
+        "revision": "seerapi:8245c56f",
+        "hash": "8245c56f",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "85281caae598bd15a6aa39c2fcb1da654350548f7b189f6fde9ce22263cf3f8f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:20048:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 12,
+          "args": [
+            100
+          ],
+          "description": "命中后100%令对方烧伤"
+        },
+        "index": 0,
+        "description": "命中后100%令对方烧伤",
+        "metadata": {
+          "id": 12,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方烧伤",
+          "revision": "seerapi:67631527"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:8245c56f"
+      },
+      "sourceDigest": "5e4763e51e5640824cd16732f99fa16d64069cfa3497abb9af1a796c2504b126",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10083",
+      "kind": "move",
+      "raw": {
+        "id": 10083,
+        "name": "火焰喷射",
+        "type": "火",
+        "kind": "special",
+        "power": 95,
+        "pp": 15,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          12
+        ],
+        "effectInstances": [
+          {
+            "id": 12,
+            "args": [
+              10
+            ],
+            "description": "命中后10%令对方烧伤"
+          }
+        ],
+        "description": "命中后10%令对方烧伤",
+        "revision": "seerapi:eca724f3",
+        "hash": "eca724f3",
+        "level": 17,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "6a3b5b8278cd9cf02afce95f085c03244c5447fb0b66dfb77696d9e74906f947",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:10083:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 12,
+          "args": [
+            10
+          ],
+          "description": "命中后10%令对方烧伤"
+        },
+        "index": 0,
+        "description": "命中后10%令对方烧伤",
+        "metadata": {
+          "id": 12,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方烧伤",
+          "revision": "seerapi:67631527"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:eca724f3"
+      },
+      "sourceDigest": "6038f379fba899b434189d27ab3b31b0afa575504ebeebc39fcb39a0dbc32cf7",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:38109",
+      "kind": "move",
+      "raw": {
+        "id": 38109,
+        "name": "赤炎燎原",
+        "type": "火",
+        "kind": "special",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1928,
+          1589,
+          1424
+        ],
+        "effectInstances": [
+          {
+            "id": 1928,
+            "args": [
+              3
+            ],
+            "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3"
+          },
+          {
+            "id": 1589,
+            "args": [
+              1
+            ],
+            "description": "若对手处于异常状态则令对手随机1项技能PP值归零"
+          },
+          {
+            "id": 1424,
+            "args": [
+              50,
+              22
+            ],
+            "description": "50%令对手焚烬，自身处于能力提升状态时概率翻倍"
+          }
+        ],
+        "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3；若对手处于异常状态则令对手随机1项技能PP值归零；50%令对手焚烬，自身处于能力提升状态时概率翻倍",
+        "revision": "seerapi:f825c004",
+        "hash": "f825c004",
+        "level": 21,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "807135f56530ea514aa1ae78a81d8371d4c43645ed15b7384b5fe3f1e5492249",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38109:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1928,
+          "args": [
+            3
+          ],
+          "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3"
+        },
+        "index": 0,
+        "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3；若对手处于异常状态则令对手随机1项技能PP值归零；50%令对手焚烬，自身处于能力提升状态时概率翻倍",
+        "metadata": {
+          "id": 1928,
+          "argsNum": 1,
+          "template": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/{0}",
+          "revision": "seerapi:37f952ca"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:f825c004"
+      },
+      "sourceDigest": "c8181252c0f675ae17f3663798376e234c07ebc895a57e63f477535fe825f2f2",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1928吸正与无正时理论吸取，正级保护失败不误触发无正补偿；1589异常随机1槽PP清零",
+          "assertion": " for(const boost of [false,true]){const s=make({...row(1928),hp:1000});if(boost)s.fighters[1].stages.def=2;turn(s);assert.equal(s.fighters[0].stages.def,boost?2:0);assert.equal(sum(s,'percent'),boost?0:3000);assert.equal(s.fighters[0].hp,boost?1000:4000);}\n const protectedBoost=make({...row(1928),hp:1000});protectedBoost.fighters[1].stages.def=2;timer(protectedBoost,1,'幽蝶强化保护');turn(protectedBoost);assert.equal(protectedBoost.fighters[1].stages.def,2);assert.equal(sum(protectedBoost,'percent'),0);\n const slots=new Set;for(let seed=1;seed<=32;seed++){const s=make({...row(1589),seed:Math.imul(seed,0x9e3779b1)>>>0});s.fighters[1].ailments['烧伤']=3;turn(s);const zero=s.fighters[1].moves.filter(k=>s.fighters[1].pp[k]===0);assert.equal(zero.length,1);slots.add(zero[0]);}assert.equal(slots.size,5);const no=make(row(1589));turn(no);assert.equal(no.fighters[1].moves.some(k=>no.fighters[1].pp[k]===0),false);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38109:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1589,
+          "args": [
+            1
+          ],
+          "description": "若对手处于异常状态则令对手随机1项技能PP值归零"
+        },
+        "index": 1,
+        "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3；若对手处于异常状态则令对手随机1项技能PP值归零；50%令对手焚烬，自身处于能力提升状态时概率翻倍",
+        "metadata": {
+          "id": 1589,
+          "argsNum": 1,
+          "template": "若对手处于异常状态则令对手随机{0}项技能PP值归零",
+          "revision": "seerapi:76d9764f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:f825c004"
+      },
+      "sourceDigest": "e966b06966642b22da08ef7f4d738ab49302b3492c16ef2009e2f42717213314",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1928吸正与无正时理论吸取，正级保护失败不误触发无正补偿；1589异常随机1槽PP清零",
+          "assertion": " for(const boost of [false,true]){const s=make({...row(1928),hp:1000});if(boost)s.fighters[1].stages.def=2;turn(s);assert.equal(s.fighters[0].stages.def,boost?2:0);assert.equal(sum(s,'percent'),boost?0:3000);assert.equal(s.fighters[0].hp,boost?1000:4000);}\n const protectedBoost=make({...row(1928),hp:1000});protectedBoost.fighters[1].stages.def=2;timer(protectedBoost,1,'幽蝶强化保护');turn(protectedBoost);assert.equal(protectedBoost.fighters[1].stages.def,2);assert.equal(sum(protectedBoost,'percent'),0);\n const slots=new Set;for(let seed=1;seed<=32;seed++){const s=make({...row(1589),seed:Math.imul(seed,0x9e3779b1)>>>0});s.fighters[1].ailments['烧伤']=3;turn(s);const zero=s.fighters[1].moves.filter(k=>s.fighters[1].pp[k]===0);assert.equal(zero.length,1);slots.add(zero[0]);}assert.equal(slots.size,5);const no=make(row(1589));turn(no);assert.equal(no.fighters[1].moves.some(k=>no.fighters[1].pp[k]===0),false);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38109:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1424,
+          "args": [
+            50,
+            22
+          ],
+          "description": "50%令对手焚烬，自身处于能力提升状态时概率翻倍"
+        },
+        "index": 2,
+        "description": "吸取对手能力提升状态，若对手不处于能力提升状态则吸取对手最大体力的1/3；若对手处于异常状态则令对手随机1项技能PP值归零；50%令对手焚烬，自身处于能力提升状态时概率翻倍",
+        "metadata": {
+          "id": 1424,
+          "argsNum": 2,
+          "template": "{0}%令对手{1}，自身处于能力提升状态时概率翻倍",
+          "revision": "seerapi:df01a455"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:f825c004"
+      },
+      "sourceDigest": "b5241ae8a55221841b347e22f25b420e68321ecb083374ac96cbada5cd876096",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1424真实50%焚烬有正级翻倍至100%，1058烧伤免疫失败封攻，65只翻火系威力",
+          "assertion": " const chance=new Set;for(let seed=1;seed<=32;seed++)for(const boost of [false,true]){const s=make({...row(1424),seed:Math.imul(seed,0x9e3779b1)>>>0});if(boost)s.fighters[0].stages.def=1;turn(s);const applied=!!s.fighters[1].ailments['焚烬'];if(boost)assert.equal(applied,true);else chance.add(applied);}assert.deepEqual(chance,new Set([true,false]));\n const a=make(row(1058));timer(a,1,'免异常');turn(a,29163,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].ailments['烧伤'],undefined);const b=make(row(1058));turn(b,29163,10127);assert.ok(b.fighters[1].ailments['烧伤']);assert.ok(sum(b,'attack',1)>0);assert.equal(b.fighters[1].effects.attackBlock,undefined);\n const loadout=[29164,10008,10007,20035,38111],out=[];for(const enabled of[false,true]){const s=make({move:29164,index:enabled?2:-1,loadout});turn(s);turn(s,10007);out.push(sum(s));}assert.ok(out[1]>out[0]*1.8);const c=make({move:29164,index:2,loadout}),d=make({move:29164,index:-1,loadout});turn(c);turn(d);turn(c,10008);turn(d,10008);assert.equal(sum(c),sum(d));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1424强化翻倍的实际概率100不被50%威慑误挡，未强化50仍被挡",
+          "assertion": " for(const boosted of[false,true]){const s=make(row(1424));s.fighters[0].soulState.bright2009=99;if(boosted)s.fighters[0].stages.def=1;turn(s);assert.equal(!!s.fighters[1].ailments['焚烬'],boosted);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10097",
+      "kind": "move",
+      "raw": {
+        "id": 10097,
+        "name": "螺旋火焰",
+        "type": "火",
+        "kind": "special",
+        "power": 80,
+        "pp": 30,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:51e82a86",
+        "hash": "51e82a86",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "955974c9477f84baa64ade0a008c0871b146067b06dc154fede0a76b73cac562",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:20050",
+      "kind": "move",
+      "raw": {
+        "id": 20050,
+        "name": "神秘守护",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 25,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          48
+        ],
+        "effectInstances": [
+          {
+            "id": 48,
+            "args": [
+              5
+            ],
+            "description": "5回合内免疫所有受到的异常状态"
+          }
+        ],
+        "description": "5回合内免疫所有受到的异常状态",
+        "revision": "seerapi:c251aa6",
+        "hash": "c251aa6",
+        "level": 29,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "8e41d84cb1767f905b6f784c3cc4c73af9e6b27155a2a131921770b9b916208f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:20050:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 48,
+          "args": [
+            5
+          ],
+          "description": "5回合内免疫所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "5回合内免疫所有受到的异常状态",
+        "metadata": {
+          "id": 48,
+          "argsNum": 1,
+          "template": "{0}回合内免疫所有受到的异常状态",
+          "revision": "seerapi:edaf5826"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:c251aa6"
+      },
+      "sourceDigest": "01d3ce65ee51af9236d08c5b1b39f9a63884f28b5da031afda75197c89c2d122",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10096",
+      "kind": "move",
+      "raw": {
+        "id": 10096,
+        "name": "报复",
+        "type": "普通",
+        "kind": "physical",
+        "power": 50,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          15
+        ],
+        "effectInstances": [
+          {
+            "id": 15,
+            "args": [
+              5
+            ],
+            "description": "命中后5%令对方害怕"
+          }
+        ],
+        "description": "命中后5%令对方害怕",
+        "revision": "seerapi:c85c1c07",
+        "hash": "c85c1c07",
+        "level": 33,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "d40f838a1ed1d48e7f13152a12537e7efcfeb1ee5d452682479417d5d3fad185",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:10096:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 15,
+          "args": [
+            5
+          ],
+          "description": "命中后5%令对方害怕"
+        },
+        "index": 0,
+        "description": "命中后5%令对方害怕",
+        "metadata": {
+          "id": 15,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方害怕",
+          "revision": "seerapi:798c777"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:c85c1c07"
+      },
+      "sourceDigest": "632e999f11e1072f5ae63050f9756d6a18888617a873768d750d4fb7b9c6c316",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:20051",
+      "kind": "move",
+      "raw": {
+        "id": 20051,
+        "name": "引诱",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 20,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              2,
+              100,
+              -2
+            ],
+            "description": "技能使用成功时，100%改变对手特攻等级-2"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手特攻等级-2",
+        "revision": "seerapi:a449232e",
+        "hash": "a449232e",
+        "level": 37,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "e49892799283efb65ce14deee5b0adcd187a83f95566352aeb17f902515a5de4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:20051:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            2,
+            100,
+            -2
+          ],
+          "description": "技能使用成功时，100%改变对手特攻等级-2"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手特攻等级-2",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:a449232e"
+      },
+      "sourceDigest": "dc6d02f1d35afd169cf03c235db7d27fa2624056faa998c84858281229bbc59d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10098",
+      "kind": "move",
+      "raw": {
+        "id": 10098,
+        "name": "密集火网",
+        "type": "火",
+        "kind": "special",
+        "power": 120,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 85,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          12
+        ],
+        "effectInstances": [
+          {
+            "id": 12,
+            "args": [
+              10
+            ],
+            "description": "命中后10%令对方烧伤"
+          }
+        ],
+        "description": "命中后10%令对方烧伤",
+        "revision": "seerapi:ea063c22",
+        "hash": "ea063c22",
+        "level": 41,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "29d59164ae229551e0525cf1ec378a8d63f303027519bdefd328b6cc0c5fa99f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:10098:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 12,
+          "args": [
+            10
+          ],
+          "description": "命中后10%令对方烧伤"
+        },
+        "index": 0,
+        "description": "命中后10%令对方烧伤",
+        "metadata": {
+          "id": 12,
+          "argsNum": 1,
+          "template": "命中后{0}%令对方烧伤",
+          "revision": "seerapi:67631527"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:ea063c22"
+      },
+      "sourceDigest": "77c755ebbd084c31f7ec816100f98731bed5f039f1ff0c53d982009739dc5e5a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10099",
+      "kind": "move",
+      "raw": {
+        "id": 10099,
+        "name": "回击",
+        "type": "普通",
+        "kind": "physical",
+        "power": 100,
+        "pp": 30,
+        "priority": -1,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:bf2e8b2e",
+        "hash": "bf2e8b2e",
+        "level": 45,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "89dce460ae4a6d9ec1708dd029bf5a84a750986bdc431b5add16fab98f866179",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:29163",
+      "kind": "move",
+      "raw": {
+        "id": 29163,
+        "name": "圣焰灼目",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          48,
+          1058,
+          1833,
+          2271
+        ],
+        "effectInstances": [
+          {
+            "id": 48,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫所有受到的异常状态"
+          },
+          {
+            "id": 1058,
+            "args": [
+              100,
+              2,
+              1
+            ],
+            "description": "命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效"
+          },
+          {
+            "id": 1833,
+            "args": [
+              3,
+              1
+            ],
+            "description": "3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效"
+          },
+          {
+            "id": 2271,
+            "args": [
+              3,
+              100,
+              13,
+              1
+            ],
+            "description": "3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击"
+          }
+        ],
+        "description": "4回合内免疫所有受到的异常状态；命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效；3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效；3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击",
+        "revision": "seerapi:77a61ac7",
+        "hash": "77a61ac7",
+        "level": 49,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "7f323fb94253e6ff22d3aea71249e39c44c0d2fa27ef2fef628b51821830b55d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29163:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 48,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫所有受到的异常状态；命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效；3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效；3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击",
+        "metadata": {
+          "id": 48,
+          "argsNum": 1,
+          "template": "{0}回合内免疫所有受到的异常状态",
+          "revision": "seerapi:edaf5826"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:77a61ac7"
+      },
+      "sourceDigest": "5c1f961cf4e19b9e01c145815af43244e1f8e73871b1470cbe8f7716d5a006e6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29163:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1058,
+          "args": [
+            100,
+            2,
+            1
+          ],
+          "description": "命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效"
+        },
+        "index": 1,
+        "description": "4回合内免疫所有受到的异常状态；命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效；3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效；3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击",
+        "metadata": {
+          "id": 1058,
+          "argsNum": 3,
+          "template": "命中则{0}%概率使对手{1}，未触发则对手{2}回合内攻击技能无效",
+          "revision": "seerapi:6e5a443"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:77a61ac7"
+      },
+      "sourceDigest": "caa133575ef35dfc60b2ed09973970e59ee69fce140a00b9fceedc92faae21c2",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1424真实50%焚烬有正级翻倍至100%，1058烧伤免疫失败封攻，65只翻火系威力",
+          "assertion": " const chance=new Set;for(let seed=1;seed<=32;seed++)for(const boost of [false,true]){const s=make({...row(1424),seed:Math.imul(seed,0x9e3779b1)>>>0});if(boost)s.fighters[0].stages.def=1;turn(s);const applied=!!s.fighters[1].ailments['焚烬'];if(boost)assert.equal(applied,true);else chance.add(applied);}assert.deepEqual(chance,new Set([true,false]));\n const a=make(row(1058));timer(a,1,'免异常');turn(a,29163,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].ailments['烧伤'],undefined);const b=make(row(1058));turn(b,29163,10127);assert.ok(b.fighters[1].ailments['烧伤']);assert.ok(sum(b,'attack',1)>0);assert.equal(b.fighters[1].effects.attackBlock,undefined);\n const loadout=[29164,10008,10007,20035,38111],out=[];for(const enabled of[false,true]){const s=make({move:29164,index:enabled?2:-1,loadout});turn(s);turn(s,10007);out.push(sum(s));}assert.ok(out[1]>out[0]*1.8);const c=make({move:29164,index:2,loadout}),d=make({move:29164,index:-1,loadout});turn(c);turn(d);turn(c,10008);turn(d,10008);assert.equal(sum(c),sum(d));"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29163:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1833,
+          "args": [
+            3,
+            1
+          ],
+          "description": "3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效"
+        },
+        "index": 2,
+        "description": "4回合内免疫所有受到的异常状态；命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效；3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效；3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击",
+        "metadata": {
+          "id": 1833,
+          "argsNum": 2,
+          "template": "{0}回合内若对手使用攻击技能，则使用攻击技能后的下{1}回合攻击技能无法造成伤害且命中效果失效",
+          "revision": "seerapi:15ece91b"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:77a61ac7"
+      },
+      "sourceDigest": "e265d9f3074490b61d5801b6cf155ca5d82ab9a1a9be8498214ebc2d727d06d4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1833对手实际用攻后下轮红伤0且命中效果封锁，属性技能仍执行并停止续期",
+          "assertion": " const s=make({...row(1833),enemySource:source,enemyLoadout:[10007,20035,20048,29164,38111]});turn(s,29163,10007);assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[1].effects['无法造成攻击伤害'].start,2);turn(s,29163,38111);assert.equal(sum(s,'attack',1),0);assert.ok(s.fighters[0].effects['对手攻击触发封攻']);turn(s,29163,20035);assert.equal(s.fighters[0].stages.def,-1);turn(s,29163,38111);assert.ok(sum(s,'attack',1)>0);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29163:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2271,
+          "args": [
+            3,
+            100,
+            13,
+            1
+          ],
+          "description": "3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击"
+        },
+        "index": 3,
+        "description": "4回合内免疫所有受到的异常状态；命中则100%概率使对手烧伤，未触发则对手1回合内攻击技能无效；3回合内若对手使用攻击技能，则使用攻击技能后的下1回合攻击技能无法造成伤害且命中效果失效；3回合内若自身能力提升状态被消除或吸取则100%令对手易燃，未触发则自身下1次攻击必定致命一击",
+        "metadata": {
+          "id": 2271,
+          "argsNum": 4,
+          "template": "{0}回合内若自身能力提升状态被消除或吸取则{1}%令对手{2}，未触发则自身下{3}次攻击必定致命一击",
+          "revision": "seerapi:2e704601"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:77a61ac7"
+      },
+      "sourceDigest": "76219a749defb1eb8abfb0788cf2e3c2576b7b2b00e47d36791677c74da44d0b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/2271被消强后按真实13易燃，免异失败授下次必暴，未消强不触发",
+          "assertion": " const opts={...row(2271),enemySource:source,enemyLoadout:[38109,20048,20050,29164,38111]};for(const immune of[false,true]){const s=make(opts);timer(s,0,'免异常');turn(s,29163,20048);s.fighters[0].stages.def=2;if(immune)timer(s,1,'免异常');turn(s,29163,38109);assert.equal(s.fighters[0].stages.def,0);assert.equal(!!s.fighters[1].ailments['易燃'],!immune);assert.equal((s.fighters[0].soulState.opheliaCritSources2271??[]).reduce((n,e)=>n+e.count,0),immune?1:0);if(immune){s.fighters[0].ailments={};turn(s,38110,20048);assert.ok(s.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.text.includes('致命一击')));assert.equal((s.fighters[0].soulState.opheliaCritSources2271??[]).reduce((n,e)=>n+e.count,0),0);}}const a=make(opts);timer(a,0,'免异常');turn(a,29163,20048);turn(a,29163,38109);assert.equal(a.fighters[1].ailments['易燃'],undefined);assert.equal(a.fighters[0].counts.nextCrit??0,0);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:10101",
+      "kind": "move",
+      "raw": {
+        "id": 10101,
+        "name": "火十字",
+        "type": "火",
+        "kind": "special",
+        "power": 90,
+        "pp": 20,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:4efc99e",
+        "hash": "4efc99e",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "a6fa1e77fbfc013c1d6246c3f56c4bb66518f5266fecc6671a1660a45d37c2de",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:29164",
+      "kind": "move",
+      "raw": {
+        "id": 29164,
+        "name": "真炎血脉",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1020,
+          717,
+          65,
+          58,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 1020,
+            "args": [
+              1
+            ],
+            "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍"
+          },
+          {
+            "id": 717,
+            "args": [
+              4,
+              3,
+              2
+            ],
+            "description": "4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+          },
+          {
+            "id": 65,
+            "args": [
+              2,
+              3,
+              2
+            ],
+            "description": "2回合内火系技能威力为2倍"
+          },
+          {
+            "id": 58,
+            "args": [
+              2
+            ],
+            "description": "下2回合自身攻击技能必定打出致命一击"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:167e0b91",
+        "hash": "167e0b91",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "ed45f8d80eea603b8309c6fd3fb27e1458b83e3bbd87f780e0992da00549ae03",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29164:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1020,
+          "args": [
+            1
+          ],
+          "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 1020,
+          "argsNum": 1,
+          "template": "全属性+{0}，对手不处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:a811ed2f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:167e0b91"
+      },
+      "sourceDigest": "cce22e94ae3c0d0378cd73d63acc1f48a64350761c4437c940b27a26056df220",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1020无敌正级强化2有正级强化1、717低体理论吸取当前即触发、58与843明确下轮起",
+          "assertion": " for(const boosted of[false,true]){const s=make(row(1020));if(boosted)s.fighters[1].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,boosted?1:2);assert.equal(s.fighters[0].stages.spd,boosted?1:2);}const a=make({...row(717),hp:1000});turn(a);assert.equal(sum(a,'percent'),3000);assert.equal(a.fighters[0].hp,7000);for(const id of[58,843]){const s=make(row(id));turn(s);const e=s.fighters[0].effects[id===58?'必定暴击':'id984'];assert.equal(e.start,2);assert.equal(e.end,3);if(id===843)assert.equal(e.amount,2);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29164:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 717,
+          "args": [
+            4,
+            3,
+            2
+          ],
+          "description": "4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"
+        },
+        "index": 1,
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 717,
+          "argsNum": 3,
+          "template": "{0}回合内每回合使用技能吸取对手最大体力的1/{1}，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果翻倍",
+          "revision": "seerapi:44c7542e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:167e0b91"
+      },
+      "sourceDigest": "3e9829ad2a49111ea01c2065a88019336d75e8a673db5e5d433cbe49172879d5",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1020无敌正级强化2有正级强化1、717低体理论吸取当前即触发、58与843明确下轮起",
+          "assertion": " for(const boosted of[false,true]){const s=make(row(1020));if(boosted)s.fighters[1].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,boosted?1:2);assert.equal(s.fighters[0].stages.spd,boosted?1:2);}const a=make({...row(717),hp:1000});turn(a);assert.equal(sum(a,'percent'),3000);assert.equal(a.fighters[0].hp,7000);for(const id of[58,843]){const s=make(row(id));turn(s);const e=s.fighters[0].effects[id===58?'必定暴击':'id984'];assert.equal(e.start,2);assert.equal(e.end,3);if(id===843)assert.equal(e.amount,2);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29164:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 65,
+          "args": [
+            2,
+            3,
+            2
+          ],
+          "description": "2回合内火系技能威力为2倍"
+        },
+        "index": 2,
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 65,
+          "argsNum": 3,
+          "template": "{0}回合内{1}系技能威力为{2}倍",
+          "revision": "seerapi:edf64763"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:167e0b91"
+      },
+      "sourceDigest": "c37341a75471ff527ff57c9581c46f2e4a20c95d094e6cda29ed5d1d7c23ba9d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1424真实50%焚烬有正级翻倍至100%，1058烧伤免疫失败封攻，65只翻火系威力",
+          "assertion": " const chance=new Set;for(let seed=1;seed<=32;seed++)for(const boost of [false,true]){const s=make({...row(1424),seed:Math.imul(seed,0x9e3779b1)>>>0});if(boost)s.fighters[0].stages.def=1;turn(s);const applied=!!s.fighters[1].ailments['焚烬'];if(boost)assert.equal(applied,true);else chance.add(applied);}assert.deepEqual(chance,new Set([true,false]));\n const a=make(row(1058));timer(a,1,'免异常');turn(a,29163,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].ailments['烧伤'],undefined);const b=make(row(1058));turn(b,29163,10127);assert.ok(b.fighters[1].ailments['烧伤']);assert.ok(sum(b,'attack',1)>0);assert.equal(b.fighters[1].effects.attackBlock,undefined);\n const loadout=[29164,10008,10007,20035,38111],out=[];for(const enabled of[false,true]){const s=make({move:29164,index:enabled?2:-1,loadout});turn(s);turn(s,10007);out.push(sum(s));}assert.ok(out[1]>out[0]*1.8);const c=make({move:29164,index:2,loadout}),d=make({move:29164,index:-1,loadout});turn(c);turn(d);turn(c,10008);turn(d,10008);assert.equal(sum(c),sum(d));"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29164:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 58,
+          "args": [
+            2
+          ],
+          "description": "下2回合自身攻击技能必定打出致命一击"
+        },
+        "index": 3,
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 58,
+          "argsNum": 1,
+          "template": "下{0}回合自身攻击技能必定打出致命一击",
+          "revision": "seerapi:a88e6bf3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:167e0b91"
+      },
+      "sourceDigest": "b83578c066b5f03ea340708ec04d5c4a0b86eca8a4691a1b04424f1c54d02ff5",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1020无敌正级强化2有正级强化1、717低体理论吸取当前即触发、58与843明确下轮起",
+          "assertion": " for(const boosted of[false,true]){const s=make(row(1020));if(boosted)s.fighters[1].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,boosted?1:2);assert.equal(s.fighters[0].stages.spd,boosted?1:2);}const a=make({...row(717),hp:1000});turn(a);assert.equal(sum(a,'percent'),3000);assert.equal(a.fighters[0].hp,7000);for(const id of[58,843]){const s=make(row(id));turn(s);const e=s.fighters[0].effects[id===58?'必定暴击':'id984'];assert.equal(e.start,2);assert.equal(e.end,3);if(id===843)assert.equal(e.amount,2);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:29164:4",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 4,
+        "description": "全属性+1，对手不处于能力提升状态时强化效果翻倍；4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍；2回合内火系技能威力为2倍；下2回合自身攻击技能必定打出致命一击；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:167e0b91"
+      },
+      "sourceDigest": "d6b62aa6b50cd9c643da1cc0e59c362e69b19f95955efa72a15583ba8b414eea",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1020无敌正级强化2有正级强化1、717低体理论吸取当前即触发、58与843明确下轮起",
+          "assertion": " for(const boosted of[false,true]){const s=make(row(1020));if(boosted)s.fighters[1].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,boosted?1:2);assert.equal(s.fighters[0].stages.spd,boosted?1:2);}const a=make({...row(717),hp:1000});turn(a);assert.equal(sum(a,'percent'),3000);assert.equal(a.fighters[0].hp,7000);for(const id of[58,843]){const s=make(row(id));turn(s);const e=s.fighters[0].effects[id===58?'必定暴击':'id984'];assert.equal(e.start,2);assert.equal(e.end,3);if(id===843)assert.equal(e.amount,2);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:38110",
+      "kind": "move",
+      "raw": {
+        "id": 38110,
+        "name": "净罪璃火",
+        "type": "火",
+        "kind": "special",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          881,
+          1700,
+          686,
+          2033
+        ],
+        "effectInstances": [
+          {
+            "id": 881,
+            "args": [],
+            "description": "若自身处于能力下降状态则技能先制+3"
+          },
+          {
+            "id": 1700,
+            "args": [
+              1
+            ],
+            "description": "解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态"
+          },
+          {
+            "id": 686,
+            "args": [
+              2,
+              2
+            ],
+            "description": "若对手烧伤则使对手下2回合攻击必定MISS"
+          },
+          {
+            "id": 2033,
+            "args": [
+              2
+            ],
+            "description": "未击败对手则降低对手所有技能2点PP值"
+          }
+        ],
+        "description": "若自身处于能力下降状态则技能先制+3；解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态；若对手烧伤则使对手下2回合攻击必定MISS；未击败对手则降低对手所有技能2点PP值",
+        "revision": "seerapi:bf008e6",
+        "hash": "bf008e6",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "be65e39c00869d383cf3876a8d49c4c7d2c79206236083312efbd6a525998b38",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38110:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 881,
+          "args": [],
+          "description": "若自身处于能力下降状态则技能先制+3"
+        },
+        "index": 0,
+        "description": "若自身处于能力下降状态则技能先制+3；解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态；若对手烧伤则使对手下2回合攻击必定MISS；未击败对手则降低对手所有技能2点PP值",
+        "metadata": {
+          "id": 881,
+          "argsNum": 0,
+          "template": "若自身处于能力下降状态则技能先制+3",
+          "revision": "seerapi:897c0169"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:bf008e6"
+      },
+      "sourceDigest": "c92908d7db66458178bc34f671e074fdf33cea5f5bb58dec80dbe7339db1312c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822真实5弱化负6边界、48免异时限和12与15概率成功失败，881负级排序先制3",
+          "assertion": " const a=make({move:20035});a.fighters[1].stages.def=-6;turn(a);assert.equal(a.fighters[1].stages.def,-6);const b=make({move:20051});turn(b);assert.equal(b.fighters[1].stages.spa,-2);const im=make({move:20050});turn(im);assert.equal(im.fighters[0].effects['免异常'].end,5);const outcomes=new Map([[12,new Set],[15,new Set]]);for(let seed=1;seed<=64;seed++)for(const [move,id,name]of [[10007,12,'烧伤'],[10096,15,'害怕']]){const s=make({move,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);outcomes.get(id).add(!!s.fighters[1].ailments[name]);}assert.deepEqual(outcomes.get(12),new Set([false,true]));assert.deepEqual(outcomes.get(15),new Set([false,true]));const p=make(row(881));p.fighters[0].stages.def=-1;turn(p);assert.equal(p.fighters[0].soulState.resolvedPriority.value,3);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38110:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1700,
+          "args": [
+            1
+          ],
+          "description": "解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态"
+        },
+        "index": 1,
+        "description": "若自身处于能力下降状态则技能先制+3；解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态；若对手烧伤则使对手下2回合攻击必定MISS；未击败对手则降低对手所有技能2点PP值",
+        "metadata": {
+          "id": 1700,
+          "argsNum": 1,
+          "template": "解除自身能力下降状态，解除成功则自身免疫下{0}次受到的异常状态",
+          "revision": "seerapi:3f0d5727"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:bf008e6"
+      },
+      "sourceDigest": "481d9e704737ebf86460f222a2ef7717707038cebd8a568ce97febf6e9bf0d54",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1700清弱成功授1次免异同源刷新、异源保留，零负级与不可解除失败不授予",
+          "assertion": " const s=make(row(1700));s.fighters[0].counts.immune=2;s.fighters[0].stages.def=-2;turn(s);assert.equal(s.fighters[0].stages.def,0);assert.equal(s.fighters[0].counts.immune,3);s.fighters[0].stages.def=-1;turn(s);assert.equal(s.fighters[0].counts.immune,3);assert.equal(s.fighters[0].stages.def,0);\n const a=make(row(1700));turn(a);assert.equal(a.fighters[0].counts.immune??0,0);const b=make(row(1700));b.fighters[0].stages.def=-2;timer(b,0,'弱化不可解除反转');turn(b);assert.equal(b.fighters[0].stages.def,-2);assert.equal(b.fighters[0].counts.immune??0,0);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38110:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 686,
+          "args": [
+            2,
+            2
+          ],
+          "description": "若对手烧伤则使对手下2回合攻击必定MISS"
+        },
+        "index": 2,
+        "description": "若自身处于能力下降状态则技能先制+3；解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态；若对手烧伤则使对手下2回合攻击必定MISS；未击败对手则降低对手所有技能2点PP值",
+        "metadata": {
+          "id": 686,
+          "argsNum": 2,
+          "template": "若对手{0}则使对手下{1}回合攻击必定MISS",
+          "revision": "seerapi:61b73c2f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:bf008e6"
+      },
+      "sourceDigest": "fbaf35e8564e60a93a41289a82256bad97b2fa45e84c9749964a626b575cb612",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/686烧伤前提下授下2回合必失，非烧伤失败，必中和回合到期按公共命中规则",
+          "assertion": " for(const burned of [false,true]){const s=make(row(686));if(burned)s.fighters[1].ailments['烧伤']=3;turn(s);assert.equal(!!s.fighters[1].effects['攻击必失'],burned);if(burned){assert.equal(s.fighters[1].effects['攻击必失'].start,2);assert.equal(s.fighters[1].effects['攻击必失'].end,3);delete s.fighters[1].effects['攻击必中'];turn(s,38110,10127);assert.equal(sum(s,'attack',1),0);}}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/686真实必中第五不受必失、第三回合结束后普通攻击恢复命中",
+          "assertion": " const loadout=[38110,10008,29164,29163,38111],a=make({...row(686),loadout});a.fighters[1].ailments['烧伤']=3;turn(a);turn(a,10008,37911);assert.ok(sum(a,'attack',1)>0);\n const s=make({...row(686),loadout});s.fighters[1].ailments['烧伤']=3;turn(s);delete s.fighters[1].effects['攻击必中'];turn(s,10008,10127);assert.equal(sum(s,'attack',1),0);turn(s,10008,10127);assert.equal(sum(s,'attack',1),0);turn(s,10008,10127);assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[1].effects['攻击必失'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38110:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2033,
+          "args": [
+            2
+          ],
+          "description": "未击败对手则降低对手所有技能2点PP值"
+        },
+        "index": 3,
+        "description": "若自身处于能力下降状态则技能先制+3；解除自身能力下降状态，解除成功则自身免疫下1次受到的异常状态；若对手烧伤则使对手下2回合攻击必定MISS；未击败对手则降低对手所有技能2点PP值",
+        "metadata": {
+          "id": 2033,
+          "argsNum": 1,
+          "template": "未击败对手则降低对手所有技能{0}点PP值",
+          "revision": "seerapi:97948916"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:bf008e6"
+      },
+      "sourceDigest": "d835b369827a4dfaa3bb82a582e77194a1fd9b1e24c33c9ec911956d9674d833",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/2033未击败减全部PP2与PP保护失败，1021无敌正级红伤翻倍，889消回合成功焚烬",
+          "assertion": " for(const protectedPP of[false,true]){const s=make(row(2033));if(protectedPP)timer(s,1,'PP保护');const before={...s.fighters[1].pp};turn(s);for(const k of s.fighters[1].moves)assert.equal(s.fighters[1].pp[k],before[k]-(protectedPP?0:2)-(k===key(20117)?1:0));}\n const values=[];for(const boosted of[false,true]){const s=make(row(1021));if(boosted)s.fighters[1].stages.atk=1;turn(s);values.push(sum(s));}assert.ok(values[0]>values[1]*1.8);\n const a=make(row(889));turn(a);assert.ok(a.fighters[1].ailments['焚烬']);assert.equal(a.fighters[1].effects['攻击必中'],undefined);const b=make(row(889));b.fighters[1].effects={};turn(b);assert.equal(b.fighters[1].ailments['焚烬'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:move:38111",
+      "kind": "move",
+      "raw": {
+        "id": 38111,
+        "name": "万焱归一决",
+        "type": "火",
+        "kind": "special",
+        "power": 160,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1021,
+          889,
+          1323,
+          698
+        ],
+        "effectInstances": [
+          {
+            "id": 1021,
+            "args": [
+              100
+            ],
+            "description": "对手不处于能力提升状态时造成的伤害提高100%"
+          },
+          {
+            "id": 889,
+            "args": [
+              22
+            ],
+            "description": "消除对手回合类效果，消除成功则令对手焚烬"
+          },
+          {
+            "id": 1323,
+            "args": [
+              50
+            ],
+            "description": "造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害"
+          },
+          {
+            "id": 698,
+            "args": [
+              100,
+              13
+            ],
+            "description": "当回合击败对手时，对方下只精灵出战时100%易燃"
+          }
+        ],
+        "description": "对手不处于能力提升状态时造成的伤害提高100%；消除对手回合类效果，消除成功则令对手焚烬；造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害；当回合击败对手时，对方下只精灵出战时100%易燃",
+        "revision": "seerapi:27c465cc",
+        "hash": "27c465cc",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4822",
+        "revision": "ca85caf5",
+        "loadedAt": "2026-11-02T05:48:01.578Z"
+      },
+      "sourceDigest": "bf0909aa7334a300ad5e92b9e6ba4fb0b44aee76add5271c665ccb909c5f6297",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17真实技能含魂印逐招加载配招初始化PP与完整原生实例顺序",
+          "assertion": " for(const m of source.moves){const s=make({move:m.id,soul:true,hp:4000}),actual=s.moveDefinitions[key(m.id)],c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.equal(s.fighters[0].soulId,2013);assert.equal(actual.wikiId,m.id);assert.equal(actual.name,m.name);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),c.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(sum(s)>0);}"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击",
+          "assertion": "test('4822全部17技能基础64种子负命中等级MISS、先制行动PP与强制暴击',()=>assert.equal(require('./helpers/next50-base-probe.cjs').verify(H).length,17));"
+        },
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822全部17技能零PP拒绝、整招失效扣PP且没有魂印附固或技能附伤",
+          "assertion": " for(const m of source.moves){const z=make({move:m.id,soul:true});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z));const s=make({move:m.id,soul:true});timer(s,0,'skillBlock');turn(s);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[1].hp,9000);assert.equal(sum(s,'fixed'),0);assert.equal(sum(s,'percent'),0);}"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38111:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1021,
+          "args": [
+            100
+          ],
+          "description": "对手不处于能力提升状态时造成的伤害提高100%"
+        },
+        "index": 0,
+        "description": "对手不处于能力提升状态时造成的伤害提高100%；消除对手回合类效果，消除成功则令对手焚烬；造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害；当回合击败对手时，对方下只精灵出战时100%易燃",
+        "metadata": {
+          "id": 1021,
+          "argsNum": 1,
+          "template": "对手不处于能力提升状态时造成的伤害提高{0}%",
+          "revision": "seerapi:ca412da9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:27c465cc"
+      },
+      "sourceDigest": "dfbdb584d63cd51b3a129f66a82556ce98829cf3c945e1127347fac64662905c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/2033未击败减全部PP2与PP保护失败，1021无敌正级红伤翻倍，889消回合成功焚烬",
+          "assertion": " for(const protectedPP of[false,true]){const s=make(row(2033));if(protectedPP)timer(s,1,'PP保护');const before={...s.fighters[1].pp};turn(s);for(const k of s.fighters[1].moves)assert.equal(s.fighters[1].pp[k],before[k]-(protectedPP?0:2)-(k===key(20117)?1:0));}\n const values=[];for(const boosted of[false,true]){const s=make(row(1021));if(boosted)s.fighters[1].stages.atk=1;turn(s);values.push(sum(s));}assert.ok(values[0]>values[1]*1.8);\n const a=make(row(889));turn(a);assert.ok(a.fighters[1].ailments['焚烬']);assert.equal(a.fighters[1].effects['攻击必中'],undefined);const b=make(row(889));b.fighters[1].effects={};turn(b);assert.equal(b.fighters[1].ailments['焚烬'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38111:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 889,
+          "args": [
+            22
+          ],
+          "description": "消除对手回合类效果，消除成功则令对手焚烬"
+        },
+        "index": 1,
+        "description": "对手不处于能力提升状态时造成的伤害提高100%；消除对手回合类效果，消除成功则令对手焚烬；造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害；当回合击败对手时，对方下只精灵出战时100%易燃",
+        "metadata": {
+          "id": 889,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则令对手{0}",
+          "revision": "seerapi:3ec4f57"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:27c465cc"
+      },
+      "sourceDigest": "b586662cbeda68932ea26a11fea466d5b8eb903c843dba67d870987047402124",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/2033未击败减全部PP2与PP保护失败，1021无敌正级红伤翻倍，889消回合成功焚烬",
+          "assertion": " for(const protectedPP of[false,true]){const s=make(row(2033));if(protectedPP)timer(s,1,'PP保护');const before={...s.fighters[1].pp};turn(s);for(const k of s.fighters[1].moves)assert.equal(s.fighters[1].pp[k],before[k]-(protectedPP?0:2)-(k===key(20117)?1:0));}\n const values=[];for(const boosted of[false,true]){const s=make(row(1021));if(boosted)s.fighters[1].stages.atk=1;turn(s);values.push(sum(s));}assert.ok(values[0]>values[1]*1.8);\n const a=make(row(889));turn(a);assert.ok(a.fighters[1].ailments['焚烬']);assert.equal(a.fighters[1].effects['攻击必中'],undefined);const b=make(row(889));b.fighters[1].effects={};turn(b);assert.equal(b.fighters[1].ailments['焚烬'],undefined);"
+        }
+      ],
+      "pendingQuestions": [],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38111:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1323,
+          "args": [
+            50
+          ],
+          "description": "造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害"
+        },
+        "index": 2,
+        "description": "对手不处于能力提升状态时造成的伤害提高100%；消除对手回合类效果，消除成功则令对手焚烬；造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害；当回合击败对手时，对方下只精灵出战时100%易燃",
+        "metadata": {
+          "id": 1323,
+          "argsNum": 1,
+          "template": "造成伤害的{0}%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害",
+          "revision": "seerapi:e9360ed4"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:27c465cc"
+      },
+      "sourceDigest": "387a400e9f12bc8b248a1ca30153509769dd3de989f09116733afe8f0345e486",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4822.test.cjs",
+          "name": "4822/1323已知红伤等于HP损失时回复50%，暴击粉伤按实际回血；技能禁疗为0，过量待答明确拒绝",
+          "assertion": " for(const critical of[false,true]){const s=make({...row(1323),hp:1000});if(critical)timer(s,0,'必定暴击');turn(s);const healed=Math.floor(sum(s)*.5);assert.equal(s.fighters[0].hp,1000+healed);assert.equal(sum(s,'percent'),critical?healed:0);}\n const s=make({...row(1323),hp:1000});timer(s,0,'技能禁疗');timer(s,0,'必定暴击');turn(s);assert.equal(s.fighters[0].hp,1000);assert.equal(sum(s,'percent'),0);\n const pending=make({...row(1323),hp:1000,targetHp:200,aStats:{spa:2000}});timer(pending,1,'致命保留',{hp:1});assert.throws(()=>turn(pending),/Q-4822-001/);"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4822-001"
+      ],
+      "rationale": "真实原始参数及实例顺序保持，当前在场分支映射真实状态测试；1323不同完整红伤/HP减少量的分支明确待答。"
+    },
+    {
+      "key": "4822:skill:38111:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 698,
+          "args": [
+            100,
+            13
+          ],
+          "description": "当回合击败对手时，对方下只精灵出战时100%易燃"
+        },
+        "index": 3,
+        "description": "对手不处于能力提升状态时造成的伤害提高100%；消除对手回合类效果，消除成功则令对手焚烬；造成伤害的50%恢复自身体力，若打出致命一击则附加恢复体力值等量的百分比伤害；当回合击败对手时，对方下只精灵出战时100%易燃",
+        "metadata": {
+          "id": 698,
+          "argsNum": 2,
+          "template": "当回合击败对手时，对方下只精灵出战时{0}%{1}",
+          "revision": "seerapi:f80cc2ad"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4822",
+          "revision": "ca85caf5",
+          "loadedAt": "2026-11-02T05:48:01.578Z"
+        },
+        "skillRevision": "seerapi:27c465cc"
+      },
+      "sourceDigest": "080d3d2f4ad6777040aee413bab0748f3eeb738c38101c11240adc35eaa841ec",
+      "scope": "multiplayer",
+      "reviewedAt": "2026-11-02T06:24:19.220Z",
+      "status": "reviewed-deferred",
+      "tests": [],
+      "pendingQuestions": [],
+      "rationale": "原文明示“对方下只精灵出战时”，只依赖后继精灵登场；当前击败本身不附加当前对手异常。"
+    }
+  ],
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4822-001：新1323完整红伤或HP损失不同时的回复基数",
+    "答复实现后完整技能的正式存储/HTTP与正式验收"
+  ],
+  "pendingBatchWork": [
+    "全范围最终同版专项与接入、新完整npm及必要旧目标重验"
+  ]
+}

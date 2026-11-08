@@ -1,0 +1,2950 @@
+{
+  "at": "2026-11-02T16:13:15.292Z",
+  "status": "known-branches-tested-partial-awaiting-confirmation",
+  "accepted": false,
+  "items": [
+    {
+      "key": "4865:soul:2050",
+      "kind": "soul",
+      "raw": {
+        "id": 2050,
+        "description": "自身使用攻击技能时触发时空加速|自身受到攻击后若攻击伤害高于对方阵亡精灵体力上限之和的60%则触发时空乱流|战斗阶段结束时触发时空折跃|回合结束时若对手体力大于0且本回合未受到时空加速的伤害则触发时空交错|（boss无效）",
+        "desc_formatting_adjustment": null,
+        "analyze_desc": "[sprite name=dot4]自身使用攻击技能时触发[color=#f35555]时空加速[/color]|[sprite name=dot4]自身受到攻击后若攻击伤害高于对方阵亡精灵体力上限之和的60%则触发[color=#f35555]时空乱流[/color]|[sprite name=dot4][color=#57c975]战斗阶段结束时[/color]触发[color=#f35555]时空折跃[/color]|[sprite name=dot4][color=#57c975]回合结束时[/color]若对手体力大于0且本回合未受到[color=#f35555]时空加速[/color]的伤害则触发[color=#f35555]时空交错[/color]",
+        "hash": "d8494469",
+        "eid": 2471,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2050",
+          "revision": "d8494469",
+          "loadedAt": "2026-11-02T14:01:01.811Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "e264055c58c0c1f191271df860ca1b2fa62d5706e8decffa394ad405e7a924e8",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865真实2050时空加速实际用攻即触发，面板速度60%附粉不计能力等级，MISS/整招无效仍执行，控制属性药剂不执行",
+          "assertion": "test('4865真实2050时空加速实际用攻即触发，面板速度60%附粉不计能力等级，MISS/整招无效仍执行，控制属性药剂不执行',()=>{for(const level of[-6,0,6]){const s=make({move:10361,soul:true,aStats:{spe:500}});s.fighters[0].stages.spe=level;turn(s);assert.equal(sum(s,'percent'),300);assert.equal(s.fighters[0].soulState.spacetime2050.windows.length,1);}for(const mode of['miss','invalid','control','status','potion']){const s=make({move:10361,soul:true,hit:mode!=='miss'});if(mode==='miss')timer(s,0,'攻击必失');if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='control')s.fighters[0].ailments['害怕']=2;turn(s,mode==='status'?29251:mode==='potion'?null:10361);const n=mode==='miss'||mode==='invalid'?300:0;assert.equal(sum(s,'percent'),n);assert.equal(s.fighters[0].soulState.spacetime2050?.windows.length??0,n?1:0);}});"
+        },
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865真实2050加速下两回合全技能先制独立累计与到期，百分比免疫零伤不算受到加速伤害而触交错待答",
+          "assertion": "test('4865真实2050加速下两回合全技能先制独立累计与到期，百分比免疫零伤不算受到加速伤害而触交错待答',()=>{const s=make({move:10361,soul:true});for(const n of[0,1,2]){turn(s);assert.equal(s.fighters[0].soulState.resolvedPriority.value,n);}turn(s,null);assert.equal(s.fighters[0].soulState.spacetime2050.windows.length,3);s.moveDefinitions[key(29251)].operations=[];turn(s,29251);assert.equal(s.fighters[0].soulState.resolvedPriority.value,1);turn(s,29251);assert.equal(s.fighters[0].soulState.resolvedPriority.value,0);const immune=make({move:10361,soul:true});timer(immune,1,'固定百分比免疫');assert.throws(()=>turn(immune),/Q-4865-001/);assert.equal(immune.fighters[1].hp,9000);});"
+        },
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865真实2050时空折跃按实际已损60%魂印回血与净回复等量粉，200边界神游清异常，技能禁疗不阻魂印且回复倍率归零触发未回复分支",
+          "assertion": "test('4865真实2050时空折跃按实际已损60%魂印回血与净回复等量粉，200边界神游清异常，技能禁疗不阻魂印且回复倍率归零触发未回复分支',()=>{for(const [hp,restored]of[[1000,4800],[8500,300],[8665,201],[8666,200],[9000,0]]){const s=make({move:10361,index:-1,soul:true,hp});s.fighters[0].ailments['烧伤']=3;timer(s,0,'技能禁疗');let before,after;observe((e,c)=>{if(e==='combatEnd'&&c.a.side===0){after=c.a.hp;assert.equal(c.a.hp,hp+restored);assert.equal(!!c.t.ailments['神游'],restored<=200);assert.equal(!!c.a.ailments['烧伤'],restored>200);}},()=>turn(s));assert.equal(after,hp+restored);assert.equal(sum(s,'percent'),300+restored);}const no=make({move:10361,index:-1,soul:true,hp:1000});timer(no,0,'回复效果削减',{fraction:1});turn(no);assert.equal(no.fighters[0].hp,1000);assert.equal(sum(no,'percent'),300);assert.ok(no.fighters[1].ailments['神游']);});"
+        },
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865真实2050时空交错无减免无过量两段各1000固定伤害与对等回复，净HP状态真实；减免和HP不足明确待答且回合不提交",
+          "assertion": "test('4865真实2050时空交错无减免无过量两段各1000固定伤害与对等回复，净HP状态真实；减免和HP不足明确待答且回合不提交',()=>{const s=make({move:29251,index:-1,soul:true});turn(s);assert.equal(sum(s,'fixed'),1000);const self=(s.damageEvents??[]).filter(e=>e.round===1&&e.sourceSide===0&&e.targetSide===0&&e.type==='fixed');assert.equal(self[0].settledDamage,1000);assert.equal(self[0].hpLoss,1000);assert.equal(s.fighters[0].hp,8000);assert.equal(s.fighters[1].hp,9000);for(const mode of['immune','reduced','overkill','self-immune']){const a=make({move:29251,index:-1,soul:true,targetHp:mode==='overkill'?200:9000});if(mode==='immune')timer(a,1,'固定百分比免疫');if(mode==='reduced')timer(a,1,'固定百分比减伤',{fraction:.5});if(mode==='self-immune')timer(a,0,'固定百分比免疫');assert.throws(()=>turn(a),/Q-4865-001/);assert.equal(a.fighters[1].hp,mode==='overkill'?200:9000);}});"
+        },
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865真实2050乱流当前对手已阵亡仍执行消逝，活对手不消逝；只把真实其他阵亡队列留第二阶段",
+          "assertion": "test('4865真实2050乱流当前对手已阵亡仍执行消逝，活对手不消逝；只把真实其他阵亡队列留第二阶段',()=>{const s=make({move:10361,index:-1,soul:true,bStats:{maxHp:1000,atk:9999}});observe((e,c)=>{if(e==='receivedAttack'&&c.a.side===0&&c.t.hp>0)c.hurt(c.t,5000,'当前受击时反击的已结算输入','fixed');},()=>turn(s,10361,10127));assert.equal(s.fighters[1].hp,0);assert.equal(s.fighters[1].soulState.vanished,true);assert.equal(s.fighters[1].stats.maxHp,0);assert.ok(s.vanishEvents.some(e=>e.side===1));const alive=make({move:10361,index:-1,soul:true});turn(alive,10361,10127);assert.equal(alive.fighters[1].soulState.vanished,undefined);});"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4865-001"
+      ]
+    },
+    {
+      "key": "4865:move:10361",
+      "kind": "move",
+      "raw": {
+        "id": 10361,
+        "name": "突斩",
+        "type": "普通",
+        "kind": "physical",
+        "power": 50,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:bea3e03c",
+        "hash": "bea3e03c",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "478c72d633d7d31aa376bb6325386bfd08c61bacec10adbe32b4e177f3ebd6d4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:20156",
+      "kind": "move",
+      "raw": {
+        "id": 20156,
+        "name": "力量",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          4
+        ],
+        "effectInstances": [
+          {
+            "id": 4,
+            "args": [
+              0,
+              100,
+              1
+            ],
+            "description": "技能使用成功时，100%改变自身攻击等级+1"
+          }
+        ],
+        "description": "技能使用成功时，100%改变自身攻击等级+1",
+        "revision": "seerapi:d46ac18a",
+        "hash": "d46ac18a",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "99b0708afa286f438e14ec80f49fbdbba61a41e709d75597a25926bc1bf295f1",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:20156:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            0,
+            100,
+            1
+          ],
+          "description": "技能使用成功时，100%改变自身攻击等级+1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变自身攻击等级+1",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:d46ac18a"
+      },
+      "sourceDigest": "d73787dd57d305e57fd7c8e16db498dae7599507283284db83742bd511d2fac7",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:10363",
+      "kind": "move",
+      "raw": {
+        "id": 10363,
+        "name": "刃气",
+        "type": "战斗",
+        "kind": "special",
+        "power": 55,
+        "pp": 40,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:70f1c782",
+        "hash": "70f1c782",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "e8a8eed38326e0ac9173a8f31e4fe6f8b9a170228f0520f463b4b379450b98a9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:10362",
+      "kind": "move",
+      "raw": {
+        "id": 10362,
+        "name": "弧月闪",
+        "type": "普通",
+        "kind": "physical",
+        "power": 65,
+        "pp": 35,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "2/16",
+        "effectIds": [],
+        "effectInstances": [],
+        "description": "",
+        "revision": "seerapi:ed535c9b",
+        "hash": "ed535c9b",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "c3b258686623015f88b816c0d6d8c2c14a1ec5807fef5078620b4502f54e35d1",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:30840",
+      "kind": "move",
+      "raw": {
+        "id": 30840,
+        "name": "时空枪击",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          928,
+          996
+        ],
+        "effectInstances": [
+          {
+            "id": 928,
+            "args": [
+              1
+            ],
+            "description": "消除对手回合类效果，消除成功则己方免疫下1次受到的异常状态"
+          },
+          {
+            "id": 996,
+            "args": [
+              2,
+              30
+            ],
+            "description": "自身体力高于1/2时，附加自身当前体力30%的百分比伤害"
+          }
+        ],
+        "description": "消除对手回合类效果，消除成功则己方免疫下1次受到的异常状态；自身体力高于1/2时，附加自身当前体力30%的百分比伤害",
+        "revision": "seerapi:8ea4ca8f",
+        "hash": "8ea4ca8f",
+        "level": 17,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "96abd1b93fe6519a1dc50b00e7f273bbb15fee1224517317fffebd0aae85b99d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30840:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 928,
+          "args": [
+            1
+          ],
+          "description": "消除对手回合类效果，消除成功则己方免疫下1次受到的异常状态"
+        },
+        "index": 0,
+        "description": "消除对手回合类效果，消除成功则己方免疫下1次受到的异常状态；自身体力高于1/2时，附加自身当前体力30%的百分比伤害",
+        "metadata": {
+          "id": 928,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则己方免疫下{0}次受到的异常状态",
+          "revision": "seerapi:13497f99"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8ea4ca8f"
+      },
+      "sourceDigest": "a59fab4bad878a4d9a1e8bad6d48740056582f80e50546ef57bca72616c8c619",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉",
+          "assertion": "test('4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉',()=>{const s=make(row(928));timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,0);}},()=>turn(s));const a=make(row(950));timer(a,1,'priority');turn(a,38244,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].effects['攻击必失'].end,2);const p=make(row(950));timer(p,1,'priority');timer(p,1,'protect');turn(p);assert.equal(p.fighters[1].effects['攻击必失'],undefined);for(const hp of[4500,4501]){const b=make({...row(996),hp});turn(b);assert.equal(sum(b,'percent'),hp>4500?Math.floor(hp*.3):0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30840:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 996,
+          "args": [
+            2,
+            30
+          ],
+          "description": "自身体力高于1/2时，附加自身当前体力30%的百分比伤害"
+        },
+        "index": 1,
+        "description": "消除对手回合类效果，消除成功则己方免疫下1次受到的异常状态；自身体力高于1/2时，附加自身当前体力30%的百分比伤害",
+        "metadata": {
+          "id": 996,
+          "argsNum": 2,
+          "template": "自身体力高于1/{0}时，附加自身当前体力{1}%的百分比伤害",
+          "revision": "seerapi:394e1173"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8ea4ca8f"
+      },
+      "sourceDigest": "ece68bb6b2333dcc6ffae74e9f936aafe604f4e73b00942e4a98dbdfc6149704",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉",
+          "assertion": "test('4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉',()=>{const s=make(row(928));timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,0);}},()=>turn(s));const a=make(row(950));timer(a,1,'priority');turn(a,38244,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].effects['攻击必失'].end,2);const p=make(row(950));timer(p,1,'priority');timer(p,1,'protect');turn(p);assert.equal(p.fighters[1].effects['攻击必失'],undefined);for(const hp of[4500,4501]){const b=make({...row(996),hp});turn(b);assert.equal(sum(b,'percent'),hp>4500?Math.floor(hp*.3):0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:10366",
+      "kind": "move",
+      "raw": {
+        "id": 10366,
+        "name": "双刃刀光",
+        "type": "战斗",
+        "kind": "special",
+        "power": 75,
+        "pp": 35,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              3,
+              15,
+              -1
+            ],
+            "description": "技能使用成功时，15%改变对手特防等级-1"
+          }
+        ],
+        "description": "技能使用成功时，15%改变对手特防等级-1",
+        "revision": "seerapi:38d23d64",
+        "hash": "38d23d64",
+        "level": 21,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "a90453c7ccba4d26c124158894356877b8709883c1cf7d5b5b8d07749c175557",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:10366:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            3,
+            15,
+            -1
+          ],
+          "description": "技能使用成功时，15%改变对手特防等级-1"
+        },
+        "index": 0,
+        "description": "技能使用成功时，15%改变对手特防等级-1",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:38d23d64"
+      },
+      "sourceDigest": "63865bf43e13280e4db6e6dbc869d3decd554b573e66d7ca18feffb25579e5d5",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:30841",
+      "kind": "move",
+      "raw": {
+        "id": 30841,
+        "name": "未来之星",
+        "type": "次元战斗",
+        "kind": "physical",
+        "power": 120,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          5,
+          5
+        ],
+        "effectInstances": [
+          {
+            "id": 5,
+            "args": [
+              0,
+              100,
+              -2
+            ],
+            "description": "技能使用成功时，100%改变对手攻击等级-2"
+          },
+          {
+            "id": 5,
+            "args": [
+              4,
+              100,
+              -2
+            ],
+            "description": "技能使用成功时，100%改变对手速度等级-2"
+          }
+        ],
+        "description": "技能使用成功时，100%改变对手攻击等级-2；技能使用成功时，100%改变对手速度等级-2",
+        "revision": "seerapi:e66f6f1d",
+        "hash": "e66f6f1d",
+        "level": 25,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "7ecd0e41d212ce11e58d09be46cf7ed0065c1855f893816453c2ab9cd64426c6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30841:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            0,
+            100,
+            -2
+          ],
+          "description": "技能使用成功时，100%改变对手攻击等级-2"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变对手攻击等级-2；技能使用成功时，100%改变对手速度等级-2",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e66f6f1d"
+      },
+      "sourceDigest": "1c7d3bbf31e2243dc58c4a7f5e2b7fc0edd0eb1d634b22ed3f6c8c056be00236",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30841:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 5,
+          "args": [
+            4,
+            100,
+            -2
+          ],
+          "description": "技能使用成功时，100%改变对手速度等级-2"
+        },
+        "index": 1,
+        "description": "技能使用成功时，100%改变对手攻击等级-2；技能使用成功时，100%改变对手速度等级-2",
+        "metadata": {
+          "id": 5,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变对手{0}等级{2}",
+          "revision": "seerapi:6392cf41"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e66f6f1d"
+      },
+      "sourceDigest": "a39ab009878a5027ff213033446732c3282e43f1f2710f7211e1e0b6e0c6a001",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:25527",
+      "kind": "move",
+      "raw": {
+        "id": 25527,
+        "name": "空间加速",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          4,
+          4
+        ],
+        "effectInstances": [
+          {
+            "id": 4,
+            "args": [
+              2,
+              100,
+              2
+            ],
+            "description": "技能使用成功时，100%改变自身特攻等级+2"
+          },
+          {
+            "id": 4,
+            "args": [
+              4,
+              100,
+              2
+            ],
+            "description": "技能使用成功时，100%改变自身速度等级+2"
+          }
+        ],
+        "description": "技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身速度等级+2",
+        "revision": "seerapi:4a51dbfb",
+        "hash": "4a51dbfb",
+        "level": 29,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "eac37140a5d8ff57f8850c199d8066ff9d7aed2c95f3578beecbf7d53ea6e597",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25527:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            2,
+            100,
+            2
+          ],
+          "description": "技能使用成功时，100%改变自身特攻等级+2"
+        },
+        "index": 0,
+        "description": "技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身速度等级+2",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:4a51dbfb"
+      },
+      "sourceDigest": "0235a1d24277fd4678d1f51fdd39500103bfb9d9244ddd88ef43f30f31e745ad",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25527:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 4,
+          "args": [
+            4,
+            100,
+            2
+          ],
+          "description": "技能使用成功时，100%改变自身速度等级+2"
+        },
+        "index": 1,
+        "description": "技能使用成功时，100%改变自身特攻等级+2；技能使用成功时，100%改变自身速度等级+2",
+        "metadata": {
+          "id": 4,
+          "argsNum": 3,
+          "template": "技能使用成功时，{1}%改变自身{0}等级{2}",
+          "revision": "seerapi:cda7be9a"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:4a51dbfb"
+      },
+      "sourceDigest": "3c9d75789cee4be7b4cff30b3ec7f41980aa215f2abaa38862b38c926d09a5c0",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:30842",
+      "kind": "move",
+      "raw": {
+        "id": 30842,
+        "name": "伽马射线",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 130,
+        "pp": 10,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          198
+        ],
+        "effectInstances": [
+          {
+            "id": 198,
+            "args": [
+              2,
+              2
+            ],
+            "description": "随机使对手2种能力等级-2"
+          }
+        ],
+        "description": "随机使对手2种能力等级-2",
+        "revision": "seerapi:439b2786",
+        "hash": "439b2786",
+        "level": 33,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "2962477ea1cba0d992e91f442ffd9e106054a0764857925ec5fa2d45d564d057",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30842:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 198,
+          "args": [
+            2,
+            2
+          ],
+          "description": "随机使对手2种能力等级-2"
+        },
+        "index": 0,
+        "description": "随机使对手2种能力等级-2",
+        "metadata": {
+          "id": 198,
+          "argsNum": 2,
+          "template": "随机使对手{0}种能力等级-{1}",
+          "revision": "seerapi:b708519f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:439b2786"
+      },
+      "sourceDigest": "c21ced87370f8a983d0b27d6d61e5811a8748b1129b9bafa215df3ef9b6caf0a",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制",
+          "assertion": "test('4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制',()=>{const s=make(row(198));turn(s);assert.equal(keys.filter(k=>s.fighters[1].stages[k]<0).length,2);for(const v of Object.values(s.fighters[1].stages))assert.ok([-2,-1,0,1].includes(v));for(const protectedCase of[false,true]){const a=make(row(521));a.fighters[0].stages.def=-2;if(protectedCase)timer(a,0,'弱化不可解除反转');turn(a);assert.equal(a.fighters[0].stages.def,protectedCase?-2:2);}for(const n of[0,1,2]){const a=make(row(768));if(n)a.fighters[1].ailments['麻痹']=3;if(n===2)a.fighters[1].ailments['害怕']=3;turn(a);assert.equal(sum(a,'fixed'),300*n);}for(const [id,hp,want]of[[836,8999,0],[836,9000,0],[954,8999,1],[954,9000,0]]){const a=make({...row(id),hp});turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,want);}const high=make({...row(836),targetHp:8999});turn(high);assert.equal(high.fighters[0].soulState.resolvedPriority.value,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:25528",
+      "kind": "move",
+      "raw": {
+        "id": 25528,
+        "name": "时空折跃",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          47,
+          478,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 47,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫能力下降状态"
+          },
+          {
+            "id": 478,
+            "args": [
+              2
+            ],
+            "description": "2回合内令对手使用的属性技能无效"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "4回合内免疫能力下降状态；2回合内令对手使用的属性技能无效；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:1498e05c",
+        "hash": "1498e05c",
+        "level": 37,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "1d5627fa140b619d6c7106aa3b18c41039b4c6dbc7af2557b0da8c2a81a77dac",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25528:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 47,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫能力下降状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫能力下降状态；2回合内令对手使用的属性技能无效；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 47,
+          "argsNum": 1,
+          "template": "{0}回合内免疫能力下降状态",
+          "revision": "seerapi:2a09848d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:1498e05c"
+      },
+      "sourceDigest": "283f845eb607a6db63038778ac0904d4e014415f7fd86af674065cf3680d7ae6",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25528:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 478,
+          "args": [
+            2
+          ],
+          "description": "2回合内令对手使用的属性技能无效"
+        },
+        "index": 1,
+        "description": "4回合内免疫能力下降状态；2回合内令对手使用的属性技能无效；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 478,
+          "argsNum": 1,
+          "template": "{0}回合内令对手使用的属性技能无效",
+          "revision": "seerapi:aa169d7d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:1498e05c"
+      },
+      "sourceDigest": "dea5b49d431bfb3ad00e150a359b77cbdbc5de4dd8bf288ef32daabf2107f639",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25528:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 2,
+        "description": "4回合内免疫能力下降状态；2回合内令对手使用的属性技能无效；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:1498e05c"
+      },
+      "sourceDigest": "0f2cdcd19b1ac8a07ced551ce87f86e91d5387f4ce9f7555f3fcff16a69b2db5",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:30843",
+      "kind": "move",
+      "raw": {
+        "id": 30843,
+        "name": "幻光影拳",
+        "type": "次元战斗",
+        "kind": "physical",
+        "power": 140,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          521
+        ],
+        "effectInstances": [
+          {
+            "id": 521,
+            "args": [],
+            "description": "反转自身能力下降状态"
+          }
+        ],
+        "description": "反转自身能力下降状态",
+        "revision": "seerapi:906f3f70",
+        "hash": "906f3f70",
+        "level": 41,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "de6e5e6a6d6b693420b854670ac2f5a3ce8db54292828a0ef8001a2ed95819ee",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30843:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 521,
+          "args": [],
+          "description": "反转自身能力下降状态"
+        },
+        "index": 0,
+        "description": "反转自身能力下降状态",
+        "metadata": {
+          "id": 521,
+          "argsNum": 0,
+          "template": "反转自身能力下降状态",
+          "revision": "seerapi:dcd7a23e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:906f3f70"
+      },
+      "sourceDigest": "4092911419d145fbfeab922a6f3c6facddd5616ce67c1ea2c3265448e21b426b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制",
+          "assertion": "test('4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制',()=>{const s=make(row(198));turn(s);assert.equal(keys.filter(k=>s.fighters[1].stages[k]<0).length,2);for(const v of Object.values(s.fighters[1].stages))assert.ok([-2,-1,0,1].includes(v));for(const protectedCase of[false,true]){const a=make(row(521));a.fighters[0].stages.def=-2;if(protectedCase)timer(a,0,'弱化不可解除反转');turn(a);assert.equal(a.fighters[0].stages.def,protectedCase?-2:2);}for(const n of[0,1,2]){const a=make(row(768));if(n)a.fighters[1].ailments['麻痹']=3;if(n===2)a.fighters[1].ailments['害怕']=3;turn(a);assert.equal(sum(a,'fixed'),300*n);}for(const [id,hp,want]of[[836,8999,0],[836,9000,0],[954,8999,1],[954,9000,0]]){const a=make({...row(id),hp});turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,want);}const high=make({...row(836),targetHp:8999});turn(high);assert.equal(high.fighters[0].soulState.resolvedPriority.value,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:25529",
+      "kind": "move",
+      "raw": {
+        "id": 25529,
+        "name": "一念万里",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 100,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          962,
+          1005,
+          191
+        ],
+        "effectInstances": [
+          {
+            "id": 962,
+            "args": [
+              1
+            ],
+            "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+          },
+          {
+            "id": 1005,
+            "args": [
+              3
+            ],
+            "description": "恢复自身最大体力的1/3并造成等量百分比伤害"
+          },
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          }
+        ],
+        "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍；恢复自身最大体力的1/3并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态",
+        "revision": "seerapi:a1a4cc6e",
+        "hash": "a1a4cc6e",
+        "level": 45,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "26261b819c3f682468ad26e5f1a5c2690e208a3bf20b61898d5acb94dfdc3e28",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25529:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 962,
+          "args": [
+            1
+          ],
+          "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍；恢复自身最大体力的1/3并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态",
+        "metadata": {
+          "id": 962,
+          "argsNum": 1,
+          "template": "全属性+{0}，自身不处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:40fccdb9"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a1a4cc6e"
+      },
+      "sourceDigest": "33f9af3a8c7eb3d4e3105bb1cef9492630d310cd6eba958eb1512b4d8c259d62",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强",
+          "assertion": "test('4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强',()=>{for(const r of[row(1005),row(1005,1)]){const d=source.moves.find(m=>m.id===r.move).effectInstances[r.index].args[0];for(const hp of[1000,8990,9000]){const s=make({...r,hp});turn(s);const n=Math.min(9000-hp,9000/d);assert.equal(s.fighters[0].hp,hp+n);assert.equal(sum(s,'percent'),n);}const ban=make({...r,hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);}for(const [id,hp,positive,want]of[[1397,4499,false,2],[1397,4500,false,1],[962,9000,false,2],[962,9000,true,1]]){const s=make({...row(id),hp});if(positive)s.fighters[0].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,want);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25529:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1005,
+          "args": [
+            3
+          ],
+          "description": "恢复自身最大体力的1/3并造成等量百分比伤害"
+        },
+        "index": 1,
+        "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍；恢复自身最大体力的1/3并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态",
+        "metadata": {
+          "id": 1005,
+          "argsNum": 1,
+          "template": "恢复自身最大体力的1/{0}并造成等量百分比伤害",
+          "revision": "seerapi:5fea96f6"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a1a4cc6e"
+      },
+      "sourceDigest": "091e8e79f965143655ee5a0fe2560ce061cfd2fd76035f9033abd64023f2f6ab",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强",
+          "assertion": "test('4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强',()=>{for(const r of[row(1005),row(1005,1)]){const d=source.moves.find(m=>m.id===r.move).effectInstances[r.index].args[0];for(const hp of[1000,8990,9000]){const s=make({...r,hp});turn(s);const n=Math.min(9000-hp,9000/d);assert.equal(s.fighters[0].hp,hp+n);assert.equal(sum(s,'percent'),n);}const ban=make({...r,hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);}for(const [id,hp,positive,want]of[[1397,4499,false,2],[1397,4500,false,1],[962,9000,false,2],[962,9000,true,1]]){const s=make({...row(id),hp});if(positive)s.fighters[0].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,want);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:25529:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 2,
+        "description": "全属性+1，自身不处于能力提升状态时强化效果翻倍；恢复自身最大体力的1/3并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a1a4cc6e"
+      },
+      "sourceDigest": "0641b73947fb5bbb6393e93c099d002b420607772cbf35357006f03519f3561f",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:30844",
+      "kind": "move",
+      "raw": {
+        "id": 30844,
+        "name": "相位共振击",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          836,
+          986
+        ],
+        "effectInstances": [
+          {
+            "id": 836,
+            "args": [
+              1
+            ],
+            "description": "自身体力高于对手时先制+1"
+          },
+          {
+            "id": 986,
+            "args": [
+              50
+            ],
+            "description": "先出手时造成的攻击伤害额外提升50%"
+          }
+        ],
+        "description": "自身体力高于对手时先制+1；先出手时造成的攻击伤害额外提升50%",
+        "revision": "seerapi:7f8dcb18",
+        "hash": "7f8dcb18",
+        "level": 49,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "e887806d1c2c67c5c74d4fdf3ac69a53c03480c15ba5bd734fcb15d6387dbed4",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30844:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 836,
+          "args": [
+            1
+          ],
+          "description": "自身体力高于对手时先制+1"
+        },
+        "index": 0,
+        "description": "自身体力高于对手时先制+1；先出手时造成的攻击伤害额外提升50%",
+        "metadata": {
+          "id": 836,
+          "argsNum": 1,
+          "template": "自身体力高于对手时先制+{0}",
+          "revision": "seerapi:d948898"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7f8dcb18"
+      },
+      "sourceDigest": "745c2310a671e953215710a5dc7558659c1a2e0b593670a30cb98f0677287846",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制",
+          "assertion": "test('4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制',()=>{const s=make(row(198));turn(s);assert.equal(keys.filter(k=>s.fighters[1].stages[k]<0).length,2);for(const v of Object.values(s.fighters[1].stages))assert.ok([-2,-1,0,1].includes(v));for(const protectedCase of[false,true]){const a=make(row(521));a.fighters[0].stages.def=-2;if(protectedCase)timer(a,0,'弱化不可解除反转');turn(a);assert.equal(a.fighters[0].stages.def,protectedCase?-2:2);}for(const n of[0,1,2]){const a=make(row(768));if(n)a.fighters[1].ailments['麻痹']=3;if(n===2)a.fighters[1].ailments['害怕']=3;turn(a);assert.equal(sum(a,'fixed'),300*n);}for(const [id,hp,want]of[[836,8999,0],[836,9000,0],[954,8999,1],[954,9000,0]]){const a=make({...row(id),hp});turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,want);}const high=make({...row(836),targetHp:8999});turn(high);assert.equal(high.fighters[0].soulState.resolvedPriority.value,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:30844:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 986,
+          "args": [
+            50
+          ],
+          "description": "先出手时造成的攻击伤害额外提升50%"
+        },
+        "index": 1,
+        "description": "自身体力高于对手时先制+1；先出手时造成的攻击伤害额外提升50%",
+        "metadata": {
+          "id": 986,
+          "argsNum": 1,
+          "template": "先出手时造成的攻击伤害额外提升{0}%",
+          "revision": "seerapi:c2655613"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7f8dcb18"
+      },
+      "sourceDigest": "1f01e72d41c820a6f35e139d044c88177cb0a31e697f7bcdd78f1bbaa007bbea",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化",
+          "assertion": "test('4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化',()=>{const a=make(row(693)),base=make({move:29251,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38245)].operations=[];turn(s);s.fighters[1].effects={};}for(const ratio of[2,2,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38245);}assert.ok(Math.abs(sum(a)-sum(base)*ratio)<=1);}for(const late of[false,true]){const s=make({...row(986),aStats:{spe:late?1:500}});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(s));assert.equal(c.modifier,late?1:1.5);}});\r"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:38244",
+      "kind": "move",
+      "raw": {
+        "id": 38244,
+        "name": "光锥逸走",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 100,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          950,
+          2327,
+          579,
+          54
+        ],
+        "effectInstances": [
+          {
+            "id": 950,
+            "args": [
+              2
+            ],
+            "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS"
+          },
+          {
+            "id": 2327,
+            "args": [
+              3,
+              39
+            ],
+            "description": "无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游"
+          },
+          {
+            "id": 579,
+            "args": [
+              3
+            ],
+            "description": "若当回合未击败对手，则恢复自身最大体力的1/3"
+          },
+          {
+            "id": 54,
+            "args": [
+              1,
+              3
+            ],
+            "description": "1回合使对方攻击伤害是正常状态下的1/3倍"
+          }
+        ],
+        "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS；无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游；若当回合未击败对手，则恢复自身最大体力的1/3；1回合使对方攻击伤害是正常状态下的1/3倍",
+        "revision": "seerapi:e009345b",
+        "hash": "e009345b",
+        "level": 53,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "54c678f5abd416948be991157f51a95682a8d541024a4edbd443f2fac888bf95",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38244:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 950,
+          "args": [
+            2
+          ],
+          "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS"
+        },
+        "index": 0,
+        "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS；无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游；若当回合未击败对手，则恢复自身最大体力的1/3；1回合使对方攻击伤害是正常状态下的1/3倍",
+        "metadata": {
+          "id": 950,
+          "argsNum": 1,
+          "template": "消除对手回合类效果，消除成功则对手{0}回合内攻击技能MISS",
+          "revision": "seerapi:a101219e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e009345b"
+      },
+      "sourceDigest": "a9ad841e2455787ebc962864e5f558e3ed1efc792b4e069cb7391e8c37b0624c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉",
+          "assertion": "test('4865/928清回合成功授一次免异且同源刷新，950成功封敌攻击MISS两回合，保护失败不授；996高于半血才附当前HP30%粉',()=>{const s=make(row(928));timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);timer(s,1,'priority');turn(s);assert.equal(s.fighters[0].counts.immune,1);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,0);}},()=>turn(s));const a=make(row(950));timer(a,1,'priority');turn(a,38244,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].effects['攻击必失'].end,2);const p=make(row(950));timer(p,1,'priority');timer(p,1,'protect');turn(p);assert.equal(p.fighters[1].effects['攻击必失'],undefined);for(const hp of[4500,4501]){const b=make({...row(996),hp});turn(b);assert.equal(sum(b,'percent'),hp>4500?Math.floor(hp*.3):0);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38244:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2327,
+          "args": [
+            3,
+            39
+          ],
+          "description": "无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游"
+        },
+        "index": 1,
+        "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS；无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游；若当回合未击败对手，则恢复自身最大体力的1/3；1回合使对方攻击伤害是正常状态下的1/3倍",
+        "metadata": {
+          "id": 2327,
+          "argsNum": 2,
+          "template": "无视对手能力提升效果，无视成功吸取对手最大体力的1/{0}，自身体力未恢复至满时令对手{1}",
+          "revision": "seerapi:c4cdba99"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e009345b"
+      },
+      "sourceDigest": "7c497f9056415982230fe75846adf2d00a41d027771328909875d21668d16fca",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/2327无视敌正阶段并成功比例吸取，未回复至满才神游，固定百分比免疫不取消理论回复，完全无正阶段不吸",
+          "assertion": "test('4865/2327无视敌正阶段并成功比例吸取，未回复至满才神游，固定百分比免疫不取消理论回复，完全无正阶段不吸',()=>{for(const hp of[1000,7000]){const s=make({...row(2327),hp});s.fighters[1].stages.def=6;turn(s);assert.equal(sum(s,'percent'),3000);assert.equal(s.fighters[0].hp,Math.min(9000,hp+3000));assert.equal(!!s.fighters[1].ailments['神游'],hp+3000<9000);const b=make({move:38244,index:-1,hp});turn(b);assert.equal(sum(s),sum(b));}const no=make({...row(2327),hp:1000});turn(no);assert.equal(sum(no,'percent'),0);assert.equal(no.fighters[0].hp,1000);const immune=make({...row(2327),hp:1000});immune.fighters[1].stages.def=2;timer(immune,1,'固定百分比免疫');turn(immune);assert.equal(sum(immune,'percent'),0);assert.equal(immune.fighters[0].hp,4000);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38244:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 579,
+          "args": [
+            3
+          ],
+          "description": "若当回合未击败对手，则恢复自身最大体力的1/3"
+        },
+        "index": 2,
+        "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS；无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游；若当回合未击败对手，则恢复自身最大体力的1/3；1回合使对方攻击伤害是正常状态下的1/3倍",
+        "metadata": {
+          "id": 579,
+          "argsNum": 1,
+          "template": "若当回合未击败对手，则恢复自身最大体力的1/{0}",
+          "revision": "seerapi:77928dd5"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e009345b"
+      },
+      "sourceDigest": "9812f16402ac6041093438af57a6c22ce352c902d75657567c2fde96a216ad4c",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/579当回合未击败回末回复三分一，后续击败无回复，1060成功吸强下回合封攻同源重授不中断当前有效窗",
+          "assertion": "test('4865/579当回合未击败回末回复三分一，后续击败无回复，1060成功吸强下回合封攻同源重授不中断当前有效窗',()=>{const s=make({...row(579),hp:1000});turn(s);assert.equal(s.fighters[0].hp,4000);const killed=make({...row(579),hp:1000});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.hurt(c.a,10000,'本回合后续独立伤害','true');},()=>turn(killed));assert.equal(killed.fighters[0].hp,1000);const a=make(row(1060));a.fighters[1].stages.def=2;turn(a,38246,10127);assert.equal(a.fighters[0].stages.def,2);assert.equal(a.fighters[1].stages.def,0);assert.ok(sum(a,'attack',1)>0);assert.equal(a.fighters[1].effects.attackBlock.start,2);a.fighters[1].stages.spd=2;turn(a,38246,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].effects.attackBlock.start,2);assert.equal(a.fighters[1].effects.attackBlock.end,3);const p=make(row(1060));p.fighters[1].stages.def=2;timer(p,1,'强化保护');turn(p);assert.equal(p.fighters[1].stages.def,2);assert.equal(p.fighters[1].effects.attackBlock,undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38244:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 54,
+          "args": [
+            1,
+            3
+          ],
+          "description": "1回合使对方攻击伤害是正常状态下的1/3倍"
+        },
+        "index": 3,
+        "description": "消除对手回合类效果，消除成功则对手2回合内攻击技能MISS；无视对手能力提升效果，无视成功吸取对手最大体力的1/3，自身体力未恢复至满时令对手神游；若当回合未击败对手，则恢复自身最大体力的1/3；1回合使对方攻击伤害是正常状态下的1/3倍",
+        "metadata": {
+          "id": 54,
+          "argsNum": 2,
+          "template": "{0}回合使对方攻击伤害是正常状态下的1/{1}倍",
+          "revision": "seerapi:6794bd46"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:e009345b"
+      },
+      "sourceDigest": "ab4fd716f1ff18c08ff0f9f12b16e4fe9fe5ebd26079f85567c0a7f9630315ee",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865/922四回合回末实际净弱反馈，保护阻止解除也不反馈；54只减攻击红伤不误减固定百分比真伤",
+          "assertion": "test('4865/922四回合回末实际净弱反馈，保护阻止解除也不反馈；54只减攻击红伤不误减固定百分比真伤',()=>{const s=make(row(922));s.fighters[0].stages.def=-2;turn(s);assert.equal(s.fighters[0].stages.def,0);assert.equal(s.fighters[1].stages.def,-2);assert.equal(s.fighters[0].effects['能力下降反馈'].end,4);const p=make(row(922));p.fighters[0].stages.def=-2;timer(p,0,'弱化不可解除反转');turn(p);assert.equal(p.fighters[0].stages.def,-2);assert.equal(p.fighters[1].stages.def,0);const a=make(row(54)),base=make({move:38244,index:-1});turn(a,38244,10127);turn(base,38244,10127);assert.ok(Math.abs(sum(a,'attack',1)-sum(base,'attack',1)/3)<=1);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)for(const type of['fixed','percent','true']){const hp=c.t.hp;c.hurt(c.t,300,'独立非红输出',type);assert.equal(hp-c.t.hp,300);}},()=>turn(a,38244,10127));});\r"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:29251",
+      "kind": "move",
+      "raw": {
+        "id": 29251,
+        "name": "法则注解",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          922,
+          478,
+          693,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 922,
+            "args": [
+              4
+            ],
+            "description": "4回合内每回合结束后解除并反馈自身能力下降状态"
+          },
+          {
+            "id": 478,
+            "args": [
+              3
+            ],
+            "description": "3回合内令对手使用的属性技能无效"
+          },
+          {
+            "id": 693,
+            "args": [
+              2,
+              100
+            ],
+            "description": "下2回合造成的攻击伤害额外提升100%"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "4回合内每回合结束后解除并反馈自身能力下降状态；3回合内令对手使用的属性技能无效；下2回合造成的攻击伤害额外提升100%；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:8465b3c4",
+        "hash": "8465b3c4",
+        "level": 57,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "b20f4015b69c3c4071c9fee4fe93eb8fcc85bb1e30ff208b8253377c6420b929",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29251:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 922,
+          "args": [
+            4
+          ],
+          "description": "4回合内每回合结束后解除并反馈自身能力下降状态"
+        },
+        "index": 0,
+        "description": "4回合内每回合结束后解除并反馈自身能力下降状态；3回合内令对手使用的属性技能无效；下2回合造成的攻击伤害额外提升100%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 922,
+          "argsNum": 1,
+          "template": "{0}回合内每回合结束后解除并反馈自身能力下降状态",
+          "revision": "seerapi:66cc76f"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8465b3c4"
+      },
+      "sourceDigest": "4de1a8592855e85dd3d9cd099542e8a46e180bd120a8a9e32b4c477361dfb3c9",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865/922四回合回末实际净弱反馈，保护阻止解除也不反馈；54只减攻击红伤不误减固定百分比真伤",
+          "assertion": "test('4865/922四回合回末实际净弱反馈，保护阻止解除也不反馈；54只减攻击红伤不误减固定百分比真伤',()=>{const s=make(row(922));s.fighters[0].stages.def=-2;turn(s);assert.equal(s.fighters[0].stages.def,0);assert.equal(s.fighters[1].stages.def,-2);assert.equal(s.fighters[0].effects['能力下降反馈'].end,4);const p=make(row(922));p.fighters[0].stages.def=-2;timer(p,0,'弱化不可解除反转');turn(p);assert.equal(p.fighters[0].stages.def,-2);assert.equal(p.fighters[1].stages.def,0);const a=make(row(54)),base=make({move:38244,index:-1});turn(a,38244,10127);turn(base,38244,10127);assert.ok(Math.abs(sum(a,'attack',1)-sum(base,'attack',1)/3)<=1);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)for(const type of['fixed','percent','true']){const hp=c.t.hp;c.hurt(c.t,300,'独立非红输出',type);assert.equal(hp-c.t.hp,300);}},()=>turn(a,38244,10127));});\r"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29251:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 478,
+          "args": [
+            3
+          ],
+          "description": "3回合内令对手使用的属性技能无效"
+        },
+        "index": 1,
+        "description": "4回合内每回合结束后解除并反馈自身能力下降状态；3回合内令对手使用的属性技能无效；下2回合造成的攻击伤害额外提升100%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 478,
+          "argsNum": 1,
+          "template": "{0}回合内令对手使用的属性技能无效",
+          "revision": "seerapi:aa169d7d"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8465b3c4"
+      },
+      "sourceDigest": "85fa4fac36867354d8a908eb5d04edd21322119180ce49c9bf6393d88e42aa76",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29251:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 693,
+          "args": [
+            2,
+            100
+          ],
+          "description": "下2回合造成的攻击伤害额外提升100%"
+        },
+        "index": 2,
+        "description": "4回合内每回合结束后解除并反馈自身能力下降状态；3回合内令对手使用的属性技能无效；下2回合造成的攻击伤害额外提升100%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 693,
+          "argsNum": 2,
+          "template": "下{0}回合造成的攻击伤害额外提升{1}%",
+          "revision": "seerapi:aca364fa"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8465b3c4"
+      },
+      "sourceDigest": "6aa06c63ce91b7e5f53c1357219c5945f094800af7d6cf43692ba2c9f5cd8a69",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化",
+          "assertion": "test('4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化',()=>{const a=make(row(693)),base=make({move:29251,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38245)].operations=[];turn(s);s.fighters[1].effects={};}for(const ratio of[2,2,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38245);}assert.ok(Math.abs(sum(a)-sum(base)*ratio)<=1);}for(const late of[false,true]){const s=make({...row(986),aStats:{spe:late?1:500}});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(s));assert.equal(c.modifier,late?1:1.5);}});\r"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29251:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 3,
+        "description": "4回合内每回合结束后解除并反馈自身能力下降状态；3回合内令对手使用的属性技能无效；下2回合造成的攻击伤害额外提升100%；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:8465b3c4"
+      },
+      "sourceDigest": "cea46179fbd785d4b3d9c03b1853f73e9e482af04346e6c53a796dcf80be0b92",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:29252",
+      "kind": "move",
+      "raw": {
+        "id": 29252,
+        "name": "多维一心",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1397,
+          1005,
+          191,
+          2403
+        ],
+        "effectInstances": [
+          {
+            "id": 1397,
+            "args": [
+              1,
+              2
+            ],
+            "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+          },
+          {
+            "id": 1005,
+            "args": [
+              2
+            ],
+            "description": "恢复自身最大体力的1/2并造成等量百分比伤害"
+          },
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 2403,
+            "args": [
+              100,
+              28,
+              2,
+              2
+            ],
+            "description": "100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果"
+          }
+        ],
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；恢复自身最大体力的1/2并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态；100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果",
+        "revision": "seerapi:7d9ae5eb",
+        "hash": "7d9ae5eb",
+        "level": 61,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "ff367cd0416eaae83a7c5879952c22ccff443c685cc48f8a3fd3656a09a26bcd",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29252:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1397,
+          "args": [
+            1,
+            2
+          ],
+          "description": "全属性+1，自身体力低于1/2时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；恢复自身最大体力的1/2并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态；100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果",
+        "metadata": {
+          "id": 1397,
+          "argsNum": 2,
+          "template": "全属性+{0}，自身体力低于1/{1}时强化效果翻倍",
+          "revision": "seerapi:b5d969f3"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7d9ae5eb"
+      },
+      "sourceDigest": "d26b62dde22bf25b2be4fd18ea1cc6852d6f26fecc3431d1cc87988fada24a6e",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强",
+          "assertion": "test('4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强',()=>{for(const r of[row(1005),row(1005,1)]){const d=source.moves.find(m=>m.id===r.move).effectInstances[r.index].args[0];for(const hp of[1000,8990,9000]){const s=make({...r,hp});turn(s);const n=Math.min(9000-hp,9000/d);assert.equal(s.fighters[0].hp,hp+n);assert.equal(sum(s,'percent'),n);}const ban=make({...r,hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);}for(const [id,hp,positive,want]of[[1397,4499,false,2],[1397,4500,false,1],[962,9000,false,2],[962,9000,true,1]]){const s=make({...row(id),hp});if(positive)s.fighters[0].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,want);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29252:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1005,
+          "args": [
+            2
+          ],
+          "description": "恢复自身最大体力的1/2并造成等量百分比伤害"
+        },
+        "index": 1,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；恢复自身最大体力的1/2并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态；100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果",
+        "metadata": {
+          "id": 1005,
+          "argsNum": 1,
+          "template": "恢复自身最大体力的1/{0}并造成等量百分比伤害",
+          "revision": "seerapi:5fea96f6"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7d9ae5eb"
+      },
+      "sourceDigest": "1b34ea265a7c6a2dedde7de0172236653a392b5ce1bb2252b491fda0f21d54be",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强",
+          "assertion": "test('4865/1005两真实比例实例先技能回血再按净HP增加附粉，满血禁疗无额外伤，1397低于半血双强962无正阶段双强',()=>{for(const r of[row(1005),row(1005,1)]){const d=source.moves.find(m=>m.id===r.move).effectInstances[r.index].args[0];for(const hp of[1000,8990,9000]){const s=make({...r,hp});turn(s);const n=Math.min(9000-hp,9000/d);assert.equal(s.fighters[0].hp,hp+n);assert.equal(sum(s,'percent'),n);}const ban=make({...r,hp:1000});timer(ban,0,'技能禁疗');turn(ban);assert.equal(ban.fighters[0].hp,1000);assert.equal(sum(ban,'percent'),0);}for(const [id,hp,positive,want]of[[1397,4499,false,2],[1397,4500,false,1],[962,9000,false,2],[962,9000,true,1]]){const s=make({...row(id),hp});if(positive)s.fighters[0].stages.def=1;turn(s);assert.equal(s.fighters[0].stages.atk,want);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29252:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 2,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；恢复自身最大体力的1/2并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态；100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7d9ae5eb"
+      },
+      "sourceDigest": "149872d25391cb8417012b6da938c77c50278e51767966caee04bbff1804f695",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2",
+          "assertion": "test('4865/4与5全部重复能力实例按参数执行，47四回合免弱，191反弹优先次数免异，478属性整招无效，843下两回合先制2',()=>{for(const m of source.moves)for(let index=0;index<m.effectInstances.length;index++){const e=m.effectInstances[index];if(![4,5].includes(e.id))continue;const seen=new Set();for(let seed=1;seed<=(e.args[1]===100?1:24);seed++){const s=make({move:m.id,index,seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s);const side=e.id===4?0:1,baseline=side===1&&e.args[0]===0?1:0;seen.add(s.fighters[side].stages[keys[e.args[0]]]-baseline);}assert.ok(seen.has(e.args[2]));if(e.args[1]<100)assert.ok(seen.has(0));}const weak=make(row(47));turn(weak);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.stage(c.t,-2,['def']);assert.equal(c.t.stages.def,0);}},()=>turn(weak));const reflect=make(row(191));turn(reflect);reflect.fighters[0].counts.immune=2;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.ok(c.a.ailments['中毒']);assert.equal(c.t.counts.immune,2);}},()=>turn(reflect));const block=make(row(478));turn(block);assert.equal(block.fighters[1].stages.atk,0);assert.equal(block.fighters[1].effects.statusBlock.end,2);const priority=make(row(843));turn(priority);priority.moveDefinitions[key(25528)].operations=[];for(const n of[2,2,0]){turn(priority);assert.equal(priority.fighters[0].soulState.resolvedPriority.value,n);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:29252:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2403,
+          "args": [
+            100,
+            28,
+            2,
+            2
+          ],
+          "description": "100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果"
+        },
+        "index": 3,
+        "description": "全属性+1，自身体力低于1/2时强化效果翻倍；恢复自身最大体力的1/2并造成等量百分比伤害；4回合内免疫并反弹所有受到的异常状态；100%令对手束缚，触发成功则2回合内对手下场时其对下只出战精灵执行此效果",
+        "metadata": {
+          "id": 2403,
+          "argsNum": 3,
+          "template": "{0}%令对手{1}，触发成功则{2}回合内对手下场时其对下只出战精灵执行此效果",
+          "revision": "seerapi:c3a2cf82"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:7d9ae5eb"
+      },
+      "sourceDigest": "ba9a733577c7684b698ba7ccbb2b4de16a27393ffb307c860ff7253904cba643",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "partial-awaiting-confirmation",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": [
+        "Q-4865-002"
+      ]
+    },
+    {
+      "key": "4865:move:38245",
+      "kind": "move",
+      "raw": {
+        "id": 38245,
+        "name": "收束之枪",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          954,
+          2404,
+          768
+        ],
+        "effectInstances": [
+          {
+            "id": 954,
+            "args": [],
+            "description": "若当前体力低于对手则先制+1"
+          },
+          {
+            "id": 2404,
+            "args": [
+              90,
+              150
+            ],
+            "description": "若对手的体力高于最大体力的90%则技能威力提升150%"
+          },
+          {
+            "id": 768,
+            "args": [
+              300
+            ],
+            "description": "对手每处于一种异常状态则附加300点固定伤害"
+          }
+        ],
+        "description": "若当前体力低于对手则先制+1；若对手的体力高于最大体力的90%则技能威力提升150%；对手每处于一种异常状态则附加300点固定伤害",
+        "revision": "seerapi:a89c166b",
+        "hash": "a89c166b",
+        "level": 71,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "94d8a91b4b004564f747a829b1342c8744b5f7a86d4ce8dfd0c56029d63b7c13",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38245:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 954,
+          "args": [],
+          "description": "若当前体力低于对手则先制+1"
+        },
+        "index": 0,
+        "description": "若当前体力低于对手则先制+1；若对手的体力高于最大体力的90%则技能威力提升150%；对手每处于一种异常状态则附加300点固定伤害",
+        "metadata": {
+          "id": 954,
+          "argsNum": 0,
+          "template": "若当前体力低于对手则先制+1",
+          "revision": "seerapi:2a6350e0"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a89c166b"
+      },
+      "sourceDigest": "02ed8ad17cd056377530a36974cf663787907aa448202aa8b7b2ebc7637a8e16",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制",
+          "assertion": "test('4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制',()=>{const s=make(row(198));turn(s);assert.equal(keys.filter(k=>s.fighters[1].stages[k]<0).length,2);for(const v of Object.values(s.fighters[1].stages))assert.ok([-2,-1,0,1].includes(v));for(const protectedCase of[false,true]){const a=make(row(521));a.fighters[0].stages.def=-2;if(protectedCase)timer(a,0,'弱化不可解除反转');turn(a);assert.equal(a.fighters[0].stages.def,protectedCase?-2:2);}for(const n of[0,1,2]){const a=make(row(768));if(n)a.fighters[1].ailments['麻痹']=3;if(n===2)a.fighters[1].ailments['害怕']=3;turn(a);assert.equal(sum(a,'fixed'),300*n);}for(const [id,hp,want]of[[836,8999,0],[836,9000,0],[954,8999,1],[954,9000,0]]){const a=make({...row(id),hp});turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,want);}const high=make({...row(836),targetHp:8999});turn(high);assert.equal(high.fighters[0].soulState.resolvedPriority.value,1);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38245:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2404,
+          "args": [
+            90,
+            150
+          ],
+          "description": "若对手的体力高于最大体力的90%则技能威力提升150%"
+        },
+        "index": 1,
+        "description": "若当前体力低于对手则先制+1；若对手的体力高于最大体力的90%则技能威力提升150%；对手每处于一种异常状态则附加300点固定伤害",
+        "metadata": {
+          "id": 2404,
+          "argsNum": 2,
+          "template": "若对手的体力高于最大体力的{0}%则技能威力提升{1}%",
+          "revision": "seerapi:f5145567"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a89c166b"
+      },
+      "sourceDigest": "767aeb253f88bca77dbc74b9917cf5e78ce7b9d92b19a96bb96fe8560cb77d92",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865/2404严格高于90%威力提升150%，2405当前全弱六项含免弱失败均真实执行，不假造下一只异常",
+          "assertion": "test('4865/2404严格高于90%威力提升150%，2405当前全弱六项含免弱失败均真实执行，不假造下一只异常',()=>{for(const hp of[8100,8101]){const s=make({...row(2404),targetHp:hp});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(s));assert.equal(c.power,hp>8100?375:150);}for(const immune of[false,true]){const s=make(row(2405));if(immune)timer(s,1,'免弱');turn(s);for(const k of keys)assert.equal(s.fighters[1].stages[k],immune?(k==='atk'?1:0):k==='atk'?0:-1);assert.equal(s.fighters[0].soulState.deferred2405[0].nextPetImplemented,false);assert.equal(s.fighters.length,2);assert.equal(s.fighters[1].ailments['混乱'],undefined);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38245:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 768,
+          "args": [
+            300
+          ],
+          "description": "对手每处于一种异常状态则附加300点固定伤害"
+        },
+        "index": 2,
+        "description": "若当前体力低于对手则先制+1；若对手的体力高于最大体力的90%则技能威力提升150%；对手每处于一种异常状态则附加300点固定伤害",
+        "metadata": {
+          "id": 768,
+          "argsNum": 1,
+          "template": "对手每处于一种异常状态则附加{0}点固定伤害",
+          "revision": "seerapi:7a14ed55"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:a89c166b"
+      },
+      "sourceDigest": "1d9c110d65e81de3eb3052ec44c923b850a99b751d570a4dad86306cc0386d4b",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制",
+          "assertion": "test('4865/198两能力无放回随机各弱2，521反转自身弱化遵守保护，768按异常种数固定附伤，836与954按真实HP关系先制',()=>{const s=make(row(198));turn(s);assert.equal(keys.filter(k=>s.fighters[1].stages[k]<0).length,2);for(const v of Object.values(s.fighters[1].stages))assert.ok([-2,-1,0,1].includes(v));for(const protectedCase of[false,true]){const a=make(row(521));a.fighters[0].stages.def=-2;if(protectedCase)timer(a,0,'弱化不可解除反转');turn(a);assert.equal(a.fighters[0].stages.def,protectedCase?-2:2);}for(const n of[0,1,2]){const a=make(row(768));if(n)a.fighters[1].ailments['麻痹']=3;if(n===2)a.fighters[1].ailments['害怕']=3;turn(a);assert.equal(sum(a,'fixed'),300*n);}for(const [id,hp,want]of[[836,8999,0],[836,9000,0],[954,8999,1],[954,9000,0]]){const a=make({...row(id),hp});turn(a);assert.equal(a.fighters[0].soulState.resolvedPriority.value,want);}const high=make({...row(836),targetHp:8999});turn(high);assert.equal(high.fighters[0].soulState.resolvedPriority.value,1);});"
+        },
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化",
+          "assertion": "test('4865/693下两回合红增100%与986先手红增50%只红伤，768固定附伤不因红增变化',()=>{const a=make(row(693)),base=make({move:29251,index:-1});for(const s of[a,base]){s.moveDefinitions[key(38245)].operations=[];turn(s);s.fighters[1].effects={};}for(const ratio of[2,2,1]){for(const s of[a,base]){s.rng=0x9e3779b9;turn(s,38245);}assert.ok(Math.abs(sum(a)-sum(base)*ratio)<=1);}for(const late of[false,true]){const s=make({...row(986),aStats:{spe:late?1:500}});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(s));assert.equal(c.modifier,late?1:1.5);}});\r"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:move:38246",
+      "kind": "move",
+      "raw": {
+        "id": 38246,
+        "name": "刹那天迁",
+        "type": "次元战斗",
+        "kind": "special",
+        "power": 160,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          1060,
+          2405,
+          2162,
+          762
+        ],
+        "effectInstances": [
+          {
+            "id": 1060,
+            "args": [
+              1
+            ],
+            "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效"
+          },
+          {
+            "id": 2405,
+            "args": [
+              1,
+              100,
+              10,
+              28
+            ],
+            "description": "令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚"
+          },
+          {
+            "id": 2162,
+            "args": [
+              0
+            ],
+            "description": "下次击败对手时，令对方下只出战精灵麻痹"
+          },
+          {
+            "id": 762,
+            "args": [
+              2,
+              60
+            ],
+            "description": "2回合内每回合恢复自身已损失体力的60%"
+          }
+        ],
+        "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效；令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚；下次击败对手时，令对方下只出战精灵麻痹；2回合内每回合恢复自身已损失体力的60%",
+        "revision": "seerapi:fe6a4c6c",
+        "hash": "fe6a4c6c",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4865",
+        "revision": "df717cc8",
+        "loadedAt": "2026-11-02T14:00:54.942Z"
+      },
+      "sourceDigest": "29d19a2c6e0ee80c8978764d0c4f30e2c351b97c92afe5cdb4dd9fc41c401cec",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38246:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1060,
+          "args": [
+            1
+          ],
+          "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效"
+        },
+        "index": 0,
+        "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效；令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚；下次击败对手时，令对方下只出战精灵麻痹；2回合内每回合恢复自身已损失体力的60%",
+        "metadata": {
+          "id": 1060,
+          "argsNum": 1,
+          "template": "吸取对手能力提升状态，吸取成功则下{0}回合对手攻击技能无效",
+          "revision": "seerapi:b9da1dbe"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:fe6a4c6c"
+      },
+      "sourceDigest": "4b4f67d23d9dcdd5105b7958a782491bdd063e3a7a42460b7d39fe210b0ae52d",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/579当回合未击败回末回复三分一，后续击败无回复，1060成功吸强下回合封攻同源重授不中断当前有效窗",
+          "assertion": "test('4865/579当回合未击败回末回复三分一，后续击败无回复，1060成功吸强下回合封攻同源重授不中断当前有效窗',()=>{const s=make({...row(579),hp:1000});turn(s);assert.equal(s.fighters[0].hp,4000);const killed=make({...row(579),hp:1000});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1)c.hurt(c.a,10000,'本回合后续独立伤害','true');},()=>turn(killed));assert.equal(killed.fighters[0].hp,1000);const a=make(row(1060));a.fighters[1].stages.def=2;turn(a,38246,10127);assert.equal(a.fighters[0].stages.def,2);assert.equal(a.fighters[1].stages.def,0);assert.ok(sum(a,'attack',1)>0);assert.equal(a.fighters[1].effects.attackBlock.start,2);a.fighters[1].stages.spd=2;turn(a,38246,10127);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[1].effects.attackBlock.start,2);assert.equal(a.fighters[1].effects.attackBlock.end,3);const p=make(row(1060));p.fighters[1].stages.def=2;timer(p,1,'强化保护');turn(p);assert.equal(p.fighters[1].stages.def,2);assert.equal(p.fighters[1].effects.attackBlock,undefined);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38246:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2405,
+          "args": [
+            1,
+            100,
+            10,
+            28
+          ],
+          "description": "令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚"
+        },
+        "index": 1,
+        "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效；令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚；下次击败对手时，令对方下只出战精灵麻痹；2回合内每回合恢复自身已损失体力的60%",
+        "metadata": {
+          "id": 2405,
+          "argsNum": 4,
+          "template": "令对手全属性-{0}，未触发则对方下只精灵登场时{1}%{2}、{3}",
+          "revision": "seerapi:6737e6e8"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:fe6a4c6c"
+      },
+      "sourceDigest": "b24c823433a89e48e280408fc19391888590dc768dd7edfbafa9853f6a1114a2",
+      "scope": "mixed",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865/2404严格高于90%威力提升150%，2405当前全弱六项含免弱失败均真实执行，不假造下一只异常",
+          "assertion": "test('4865/2404严格高于90%威力提升150%，2405当前全弱六项含免弱失败均真实执行，不假造下一只异常',()=>{for(const hp of[8100,8101]){const s=make({...row(2404),targetHp:hp});let c;observe((e,x)=>{if(e==='beforeDamage'&&x.a.side===0)c=x;},()=>turn(s));assert.equal(c.power,hp>8100?375:150);}for(const immune of[false,true]){const s=make(row(2405));if(immune)timer(s,1,'免弱');turn(s);for(const k of keys)assert.equal(s.fighters[1].stages[k],immune?(k==='atk'?1:0):k==='atk'?0:-1);assert.equal(s.fighters[0].soulState.deferred2405[0].nextPetImplemented,false);assert.equal(s.fighters.length,2);assert.equal(s.fighters[1].ailments['混乱'],undefined);}});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38246:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2162,
+          "args": [
+            0
+          ],
+          "description": "下次击败对手时，令对方下只出战精灵麻痹"
+        },
+        "index": 2,
+        "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效；令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚；下次击败对手时，令对方下只出战精灵麻痹；2回合内每回合恢复自身已损失体力的60%",
+        "metadata": {
+          "id": 2162,
+          "argsNum": 1,
+          "template": "下次击败对手时，令对方下只出战精灵{0}",
+          "revision": "seerapi:a9b4ca48"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:fe6a4c6c"
+      },
+      "sourceDigest": "a13488ef22d75b02fe2cf9e7a6305c4a63699f39368becb3502356e671698084",
+      "scope": "multiplayer",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "multi-pet-deferred",
+      "tests": [
+        {
+          "file": "tests/remaining-4865.test.cjs",
+          "name": "4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过",
+          "assertion": "test('4865全部18招保留真实有序参数与64种子基础行为，17招完整2050原生用招，2403参数矛盾明确报错不假装第18招完整通过',()=>{for(const m of source.moves){const a=make({move:m.id,soul:true}),c=E.WIKI.effectsEngine.compileInstances(m.effectInstances,source.effects,m);assert.equal(c.issue,'');assert.deepEqual(a.moveDefinitions[key(m.id)].operations.map(x=>[x.effectId,x.index,x.params]),c.operations.map(x=>[x.effectId,x.index,x.params]));if(m.id===29252){assert.throws(()=>turn(a),/Q-4865-002/);assert.equal(a.fighters[0].pp[key(m.id)],m.pp);assert.deepEqual(c.operations.find(o=>o.effectId===2403).params,[100,28,2,2]);a.moveDefinitions[key(m.id)].operations=a.moveDefinitions[key(m.id)].operations.filter(o=>o.effectId!==2403);turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}else{turn(a);assert.equal(a.fighters[0].pp[key(m.id)],m.pp-1);}require('./helpers/next50-base-probe.cjs').verify({...H,source:{...source,moves:[m]}});console.log('# 4865 base verified '+m.id);}assert.equal(require('../local-species.cjs').save(source).saved,false);});"
+        }
+      ],
+      "pendingQuestions": []
+    },
+    {
+      "key": "4865:skill:38246:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 762,
+          "args": [
+            2,
+            60
+          ],
+          "description": "2回合内每回合恢复自身已损失体力的60%"
+        },
+        "index": 3,
+        "description": "吸取对手能力提升状态，吸取成功则下1回合对手攻击技能无效；令对手全属性-1，未触发则对方下只精灵登场时100%混乱、束缚；下次击败对手时，令对方下只出战精灵麻痹；2回合内每回合恢复自身已损失体力的60%",
+        "metadata": {
+          "id": 762,
+          "argsNum": 2,
+          "template": "{0}回合内每回合恢复自身已损失体力的{1}%",
+          "revision": "seerapi:d32d2f5c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4865",
+          "revision": "df717cc8",
+          "loadedAt": "2026-11-02T14:00:54.942Z"
+        },
+        "skillRevision": "seerapi:fe6a4c6c"
+      },
+      "sourceDigest": "8b4003b0409eede29dba7cb02326c5ce7fa7729dea1030a6c4964ee1d8ddf093",
+      "scope": "single",
+      "reviewedAt": "2026-11-02T16:13:15.292Z",
+      "status": "known-branch-state-tested-awaiting-final-regression",
+      "tests": [
+        {
+          "file": "tests/remaining-4865-interactions.test.cjs",
+          "name": "4865/762第五两回合按每次实时已损60%回复且到期；乱流当前阵亡目标未超过其上限60%时不消逝",
+          "assertion": "test('4865/762第五两回合按每次实时已损60%回复且到期；乱流当前阵亡目标未超过其上限60%时不消逝',()=>{const s=make({...row(762),hp:1000});turn(s);assert.equal(s.fighters[0].hp,5800);assert.equal(s.fighters[0].effects['回合末已损回复'].end,2);s.moveDefinitions[key(38246)].operations=[];turn(s);assert.equal(s.fighters[0].hp,7720);turn(s);assert.equal(s.fighters[0].hp,7720);const a=make({move:10361,index:-1,soul:true,bStats:{maxHp:9999,atk:180}});observe((e,c)=>{if(e==='receivedAttack'&&c.a.side===0&&c.t.hp>0)c.hurt(c.t,50000,'当前受击反击结算输入','fixed');},()=>turn(a,10361,10127));assert.equal(a.fighters[1].hp,0);assert.equal(a.fighters[1].stats.maxHp,9999);assert.equal(a.fighters[1].soulState.vanished,undefined);assert.ok(sum(a,'attack',1)<=9999*.6);});\r"
+        }
+      ],
+      "pendingQuestions": []
+    }
+  ],
+  "pendingIndependentWork": [],
+  "pendingAnswerDependentWork": [
+    "Q-4865-001",
+    "Q-4865-002"
+  ],
+  "pendingBatchWork": [
+    "最终固定范围同版专项/接入及新完整npm"
+  ]
+}

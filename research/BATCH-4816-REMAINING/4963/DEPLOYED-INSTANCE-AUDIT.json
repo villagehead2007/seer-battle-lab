@@ -1,0 +1,2006 @@
+{
+  "at": "2026-11-05T20:16:35.211Z",
+  "status": "single-stage-complete",
+  "accepted": true,
+  "answerConfig": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/DEPLOY-4963.json",
+  "items": [
+    {
+      "key": "4963:soul:2160",
+      "kind": "soul",
+      "raw": {
+        "id": 2160,
+        "description": "回合开始时，若自身处于异常状态，则免疫受到的攻击伤害，免疫成功则获得等量的护盾|战斗阶段结束时，恢复己方所有精灵41点体力|（boss无效）",
+        "desc_formatting_adjustment": null,
+        "analyze_desc": "[sprite name=dot4][color=#57c975]回合开始时[/color]，若自身处于异常状态，则免疫受到的攻击伤害，免疫成功则获得等量的[color=#57c975]护盾[/color]|[sprite name=dot4][color=#57c975]战斗阶段结束时[/color]，恢复[color=#52a5f2]己方[/color]所有精灵41点体力",
+        "hash": "6a2bbb52",
+        "eid": 2565,
+        "args": [
+          1,
+          0
+        ],
+        "isAdvanced": false,
+        "source": {
+          "url": "https://api.seerapi.com/v1/soulmark/2160",
+          "revision": "6a2bbb52",
+          "loadedAt": "2026-11-04T01:44:18.170Z"
+        },
+        "from": null,
+        "intensifiedTo": null
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "c10f8d28cc048ad7b30f48b9925b7cea2e418a2202188520ec24d0362001cdb8",
+      "review": {
+        "scope": "mixed",
+        "rationale": "异常快照按来源6a2bbb52；新答其他免伤共存仍授盾且魂印优先、次数不耗，零伤/忽免/属性边界保留。",
+        "singleBehavior": "回合初异常时免普通技能红伤，并按实际被免完整量同源刷新授盾，异源盾共存；普通次数/回合/反弹/概率/暴击免伤并存不夺走魂印授盾，相关次数不耗。忽免正常伤且不授盾、属性附伤按原范围独立；战阶结束当前自身回复41技能禁疗不封。",
+        "deferredBehavior": "战斗阶段结束时，为真正己方其他在场或场下成员恢复41体力，按各自来源与回复限制执行。",
+        "trigger": "战斗阶段结束，实际存在其他己方成员",
+        "futureMechanisms": [
+          "真实队伍存活成员遍历与场下体力回复"
+        ],
+        "dependencyEvidence": [
+          {
+            "kind": "team-members",
+            "quote": "己方所有精灵"
+          }
+        ],
+        "sourceDigest": "c10f8d28cc048ad7b30f48b9925b7cea2e418a2202188520ec24d0362001cdb8",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+              "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚",
+              "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');turn(q,38618,10127);assert.equal(q.round,2);assert.equal(sum(q,'attack',1),0);assert.ok(q.fighters[0].suitState.shield>0);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+              "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+              "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留",
+              "assertion": "test('4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留',()=>{for(const mode of ['normal','all','nullify','xiao','reflect','probability','critical']){const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const x of[a,b])x.fighters[0].ailments['疲惫']=3;a.fighters[0].suitState.shield=50;if(mode==='normal')timer(a,0,'攻击伤害免疫');if(mode==='all')timer(a,0,'当回合免伤');if(mode==='nullify')a.fighters[0].counts.attackNullify=2;if(mode==='xiao')a.fighters[0].counts.xiaoAttackImmunity=2;if(mode==='reflect')a.fighters[0].counts.attackReflect=2;if(mode==='probability')timer(a,0,'概率攻击免疫',{chance:100});if(mode==='critical'){timer(a,0,'致命攻击免疫');for(const x of[a,b])timer(x,1,'必定暴击');}turn(a,38618,10127);turn(b,38618,10127);assert.ok(sum(b,'attack',1)>0);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,50+sum(b,'attack',1),mode);assert.equal(a.fighters[0].hp,1041);if(mode==='nullify')assert.equal(a.fighters[0].counts.attackNullify,2);if(mode==='xiao')assert.equal(a.fighters[0].counts.xiaoAttackImmunity,2);if(mode==='reflect')assert.equal(a.fighters[0].counts.attackReflect,2);if(mode==='probability')assert.equal(a.fighters[0].soulState.immunityRollKey,undefined);}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+              "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚",
+              "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');turn(q,38618,10127);assert.equal(q.round,2);assert.equal(sum(q,'attack',1),0);assert.ok(q.fighters[0].suitState.shield>0);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+              "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+              "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留",
+              "assertion": "test('4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留',()=>{for(const mode of ['normal','all','nullify','xiao','reflect','probability','critical']){const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const x of[a,b])x.fighters[0].ailments['疲惫']=3;a.fighters[0].suitState.shield=50;if(mode==='normal')timer(a,0,'攻击伤害免疫');if(mode==='all')timer(a,0,'当回合免伤');if(mode==='nullify')a.fighters[0].counts.attackNullify=2;if(mode==='xiao')a.fighters[0].counts.xiaoAttackImmunity=2;if(mode==='reflect')a.fighters[0].counts.attackReflect=2;if(mode==='probability')timer(a,0,'概率攻击免疫',{chance:100});if(mode==='critical'){timer(a,0,'致命攻击免疫');for(const x of[a,b])timer(x,1,'必定暴击');}turn(a,38618,10127);turn(b,38618,10127);assert.ok(sum(b,'attack',1)>0);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,50+sum(b,'attack',1),mode);assert.equal(a.fighters[0].hp,1041);if(mode==='nullify')assert.equal(a.fighters[0].counts.attackNullify,2);if(mode==='xiao')assert.equal(a.fighters[0].counts.xiaoAttackImmunity,2);if(mode==='reflect')assert.equal(a.fighters[0].counts.attackReflect,2);if(mode==='probability')assert.equal(a.fighters[0].soulState.immunityRollKey,undefined);}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+              "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚",
+              "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');turn(q,38618,10127);assert.equal(q.round,2);assert.equal(sum(q,'attack',1),0);assert.ok(q.fighters[0].suitState.shield>0);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+              "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+              "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留",
+              "assertion": "test('4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留',()=>{for(const mode of ['normal','all','nullify','xiao','reflect','probability','critical']){const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const x of[a,b])x.fighters[0].ailments['疲惫']=3;a.fighters[0].suitState.shield=50;if(mode==='normal')timer(a,0,'攻击伤害免疫');if(mode==='all')timer(a,0,'当回合免伤');if(mode==='nullify')a.fighters[0].counts.attackNullify=2;if(mode==='xiao')a.fighters[0].counts.xiaoAttackImmunity=2;if(mode==='reflect')a.fighters[0].counts.attackReflect=2;if(mode==='probability')timer(a,0,'概率攻击免疫',{chance:100});if(mode==='critical'){timer(a,0,'致命攻击免疫');for(const x of[a,b])timer(x,1,'必定暴击');}turn(a,38618,10127);turn(b,38618,10127);assert.ok(sum(b,'attack',1)>0);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,50+sum(b,'attack',1),mode);assert.equal(a.fighters[0].hp,1041);if(mode==='nullify')assert.equal(a.fighters[0].counts.attackNullify,2);if(mode==='xiao')assert.equal(a.fighters[0].counts.xiaoAttackImmunity,2);if(mode==='reflect')assert.equal(a.fighters[0].counts.attackReflect,2);if(mode==='probability')assert.equal(a.fighters[0].soulState.immunityRollKey,undefined);}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封",
+              "assertion": "test('4963/2160回合初异常快照免攻击红伤并按完整被免量授盾，非满HP真实魂印回复41且技能禁疗不封',()=>{const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const s of[a,b])s.fighters[0].ailments['疲惫']=3;timer(a,0,'技能禁疗');turn(a,38618,10127);turn(b,38618,10127);assert.equal(sum(a,'attack',1),0);assert.ok(sum(b,'attack',1)>0);assert.equal(a.fighters[0].suitState.shield,sum(b,'attack',1));assert.equal(a.fighters[0].hp,1041);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚",
+              "assertion": "test('4963/2160同源盾刷新本次数额异源50共存，忽略免伤不授盾，其他免伤并存仍授盾且不回滚',()=>{const s=make({move:38618,index:-1,soul:true,hp:1000});s.fighters[0].ailments['疲惫']=5;s.fighters[0].suitState.shield=50;turn(s,38618,10127);const first=s.fighters[0].suitState.shield;assert.ok(first>50);s.fighters[1].stats.atk=500;turn(s,38618,10127);const amount=s.fighters[0].soulState.cloud2160.grants[0].amount;assert.equal(s.fighters[0].suitState.shield,50+amount);assert.ok(s.fighters[0].suitState.shield>first);const x=make({move:38618,index:-1,soul:true,hp:1000});x.fighters[0].ailments['疲惫']=3;x.fighters[1].counts.nextAttackIgnoreImmunity=1;turn(x,38618,10127);assert.ok(sum(x,'attack',1)>0);assert.equal(x.fighters[0].suitState.shield,0);const q=make({move:38618,index:-1,soul:true,hp:1000});q.fighters[0].ailments['疲惫']=3;timer(q,0,'攻击伤害免疫');turn(q,38618,10127);assert.equal(q.round,2);assert.equal(sum(q,'attack',1),0);assert.ok(q.fighters[0].suitState.shield>0);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立",
+              "assertion": "test('4963/2160异常在回合初之后附加不追授本回合免伤，当前自己回复41上限截取且血药独立',()=>{const old=E.SOULS;E.SOULS={...old,run(e,c){old.run(e,c);if(e==='beforeUse'&&c.a.side===0)c.ailment(c.a,'疲惫',c.t,false,false,2);}};let s;try{s=make({move:38618,index:-1,soul:true,hp:8990});turn(s,38618,10127);}finally{E.SOULS=old;}assert.ok(sum(s,'attack',1)>0);assert.equal(s.fighters[0].suitState.shield,0);const x=make({move:29499,index:-1,soul:true,hp:8990});turn(x,29499,20117);assert.equal(x.fighters[0].hp,9000);});"
+            },
+            {
+              "file": "tests/remaining-4963-soul.test.cjs",
+              "name": "4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP",
+              "assertion": "test('4963/2160免普通攻击红不把4000真实冰系属性附伤当作普通攻击免伤，属性附伤仍真实减HP',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4000/snapshot.json'),s=make({move:38618,index:-1,soul:true,enemySource:enemy,enemyLoadout:[29371,10047,22660,14897,38423],hp:5000});turn(s,38618,10047);s.fighters[0].ailments['疲惫']=4;turn(s,38618,29371);const e=s.damageEvents.find(e=>e.round===2&&e.sourceSide===1&&e.redCategory==='attribute');assert.ok(e);assert.ok(e.settledDamage>0);assert.ok(e.hpLoss>0);assert.equal(s.fighters[0].suitState.shield,0);});\r"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留",
+              "assertion": "test('4963已答魂印与其他免伤共存仍按被免完整量授盾，优先不耗免攻/反弹次数且异源盾保留',()=>{for(const mode of ['normal','all','nullify','xiao','reflect','probability','critical']){const a=make({move:38618,index:-1,soul:true,hp:1000}),b=make({move:38618,index:-1,hp:1000});for(const x of[a,b])x.fighters[0].ailments['疲惫']=3;a.fighters[0].suitState.shield=50;if(mode==='normal')timer(a,0,'攻击伤害免疫');if(mode==='all')timer(a,0,'当回合免伤');if(mode==='nullify')a.fighters[0].counts.attackNullify=2;if(mode==='xiao')a.fighters[0].counts.xiaoAttackImmunity=2;if(mode==='reflect')a.fighters[0].counts.attackReflect=2;if(mode==='probability')timer(a,0,'概率攻击免疫',{chance:100});if(mode==='critical'){timer(a,0,'致命攻击免疫');for(const x of[a,b])timer(x,1,'必定暴击');}turn(a,38618,10127);turn(b,38618,10127);assert.ok(sum(b,'attack',1)>0);assert.equal(sum(a,'attack',1),0);assert.equal(a.fighters[0].suitState.shield,50+sum(b,'attack',1),mode);assert.equal(a.fighters[0].hp,1041);if(mode==='nullify')assert.equal(a.fighters[0].counts.attackNullify,2);if(mode==='xiao')assert.equal(a.fighters[0].counts.xiaoAttackImmunity,2);if(mode==='reflect')assert.equal(a.fighters[0].counts.attackReflect,2);if(mode==='probability')assert.equal(a.fighters[0].soulState.immunityRollKey,undefined);}});\r"
+            }
+          ]
+        },
+        "status": "single-stage-complete",
+        "userConfirmations": [
+          "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/CONFIRMATION-4963.json"
+        ],
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:move:38618",
+      "kind": "move",
+      "raw": {
+        "id": 38618,
+        "name": "披云",
+        "type": "自然龙",
+        "kind": "special",
+        "power": 85,
+        "pp": 20,
+        "priority": 3,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          1199,
+          989
+        ],
+        "effectInstances": [
+          {
+            "id": 1199,
+            "args": [
+              3
+            ],
+            "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力"
+          },
+          {
+            "id": 989,
+            "args": [
+              300,
+              300
+            ],
+            "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+          }
+        ],
+        "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力；造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍",
+        "revision": "seerapi:21a91275",
+        "hash": "21a91275",
+        "level": 1,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "6f585be720464ddc02469d5d61efd081865fcef1b9723f6e1042ab195fff9905",
+      "review": {
+        "sourceDigest": "6f585be720464ddc02469d5d61efd081865fcef1b9723f6e1042ab195fff9905",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "真实技能38618的基础威力、PP、先制、命中、暴击、用招资格；原始有序效果另逐项审核。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38618:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1199,
+          "args": [
+            3
+          ],
+          "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力"
+        },
+        "index": 0,
+        "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力；造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍",
+        "metadata": {
+          "id": 1199,
+          "argsNum": 1,
+          "template": "吸取对手能力提升状态，吸取成功则对手{0}回合内无法通过自身技能恢复体力",
+          "revision": "seerapi:460b07bf"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:21a91275"
+      },
+      "sourceDigest": "c49104f9c0c52df06b1a464347cbd0aec7594fd2c5747871883110816e667aa4",
+      "review": {
+        "sourceDigest": "c49104f9c0c52df06b1a464347cbd0aec7594fd2c5747871883110816e667aa4",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38618:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 989,
+          "args": [
+            300,
+            300
+          ],
+          "description": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍"
+        },
+        "index": 1,
+        "description": "吸取对手能力提升状态，吸取成功则对手3回合内无法通过自身技能恢复体力；造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍",
+        "metadata": {
+          "id": 989,
+          "argsNum": 2,
+          "template": "造成的伤害低于{0}则附加{1}点固定伤害，自身体力低于对手时固定伤害翻倍",
+          "revision": "seerapi:90412566"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:21a91275"
+      },
+      "sourceDigest": "0424fce8ee10428b2be436ea79d319b58f37db89d90e92415a9fecf201645932",
+      "review": {
+        "sourceDigest": "0424fce8ee10428b2be436ea79d319b58f37db89d90e92415a9fecf201645932",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "造成的伤害低于300则附加300点固定伤害，自身体力低于对手时固定伤害翻倍",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍",
+              "assertion": "test('4963/1199真实偷强成功才技能禁疗且魂印回复及血药不受，989低红300固定低于敌HP翻倍',()=>{for(const boost of[false,true]){const s=make({move:38618,index:0});if(boost)s.fighters[1].stages.def=1;turn(s,38618,20117);assert.equal(s.fighters[0].stages.def,boost?1:0);assert.equal(!!s.fighters[1].effects['技能禁疗'],boost);}for(const hp of[1000,9000]){const x=make({move:38618,index:1,hp});turn(x,38618,20117);assert.equal(sum(x,'fixed'),hp===1000?600:300);}const high=make({move:38618,index:1,aStats:{spa:9999}});turn(high,38618,20117);assert.ok(sum(high)>=300);assert.equal(sum(high,'fixed'),0);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:move:29498",
+      "kind": "move",
+      "raw": {
+        "id": 29498,
+        "name": "四象帷",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          191,
+          463,
+          156,
+          1670
+        ],
+        "effectInstances": [
+          {
+            "id": 191,
+            "args": [
+              4
+            ],
+            "description": "4回合内免疫并反弹所有受到的异常状态"
+          },
+          {
+            "id": 463,
+            "args": [
+              3,
+              300
+            ],
+            "description": "3回合内每回合所受的伤害减少300点"
+          },
+          {
+            "id": 156,
+            "args": [
+              3
+            ],
+            "description": "3回合内使得对手所有能力增强效果失效"
+          },
+          {
+            "id": 1670,
+            "args": [
+              50,
+              10,
+              100
+            ],
+            "description": "50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果"
+          }
+        ],
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "revision": "seerapi:1b71e559",
+        "hash": "1b71e559",
+        "level": 5,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "74633f76885bb25d9e128edd4532671aed2d6ded91e2b77c0597349718c090cd",
+      "review": {
+        "sourceDigest": "74633f76885bb25d9e128edd4532671aed2d6ded91e2b77c0597349718c090cd",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "真实技能29498的基础威力、PP、先制、命中、暴击、用招资格；原始有序效果另逐项审核。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29498:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 191,
+          "args": [
+            4
+          ],
+          "description": "4回合内免疫并反弹所有受到的异常状态"
+        },
+        "index": 0,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "metadata": {
+          "id": 191,
+          "argsNum": 1,
+          "template": "{0}回合内免疫并反弹所有受到的异常状态",
+          "revision": "seerapi:ebdb8dc2"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1b71e559"
+      },
+      "sourceDigest": "310f1338ad86401ad3b78348e62126bfe5663885dfe033e7c344d1b6399b1c87",
+      "review": {
+        "sourceDigest": "310f1338ad86401ad3b78348e62126bfe5663885dfe033e7c344d1b6399b1c87",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "4回合内免疫并反弹所有受到的异常状态",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29498:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 463,
+          "args": [
+            3,
+            300
+          ],
+          "description": "3回合内每回合所受的伤害减少300点"
+        },
+        "index": 1,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "metadata": {
+          "id": 463,
+          "argsNum": 2,
+          "template": "{0}回合内每回合所受的伤害减少{1}点",
+          "revision": "seerapi:f74b5b1b"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1b71e559"
+      },
+      "sourceDigest": "e81e5d14f02b29bc71720db84550693a44f84e40ae769e32a46c486047ef98d9",
+      "review": {
+        "sourceDigest": "e81e5d14f02b29bc71720db84550693a44f84e40ae769e32a46c486047ef98d9",
+        "scope": "single",
+        "rationale": "Q001明确每完整技能减300，原生多段共享、下个完整技能重置，其他来源463不改；星皇之怒沿RULES20既有绕过受击减伤约定。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "三回合内每个完整普通技能红伤共享300定额减免，按实际剩余额度逐段使用，技能/回合重新使用分别计数；非红不扣，正常穿减沿原规则折算；皇怒既有例外不改。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300",
+              "assertion": "test('4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300',()=>{const a=make({move:29498,index:1,bStats:{atk:9999}}),b=make({move:29498,index:-1,bStats:{atk:9999}});turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));const enemy=require('../research/BATCH-4816-REMAINING/4956/snapshot.json'),x=make({move:29498,index:1,enemySource:enemy,enemyLoadout:[38591,29480,29481,38589,29485]});turn(x,29498,38591);assert.equal(sum(x,'attack',1),0);assert.equal(x.fighters[1].effects['免异常'].end,3);const q=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,200,'第一包真实红伤','attack');c.hurt(c.t,200,'第二包真实红伤','attack');}},()=>turn(q,29498,20117));assert.equal(q.round,2);assert.equal(q.fighters[0].hp,8900);assert.equal(sum(q,'attack',1),100);});"
+            },
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免",
+              "assertion": "test('4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免',()=>{const s=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,100,'第一小红','attack');c.hurt(c.t,100,'第二小红','attack');for(const type of['fixed','percent','true'])c.hurt(c.t,100,'明确非红伤害',type);}},()=>turn(s,29498,20117));assert.equal(s.fighters[0].hp,8700);});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤",
+              "assertion": "test('4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),opts={move:29498,index:1,enemySource:enemy,enemyLoadout:[10703,20276,20565,11141,38550],bStats:{spa:9999}},a=make(opts),b=make({...opts,index:-1});for(let r=1;r<=2;r++){for(const x of[a,b])x.fighters[0].hp=9000;turn(a,29498,10703);turn(b,29498,10703);const records=a.damageEvents.filter(e=>e.round===r&&e.sourceSide===1&&e.type==='attack');assert.ok(records.length>=2);assert.equal(sum(a,'attack',1),sum(b,'attack',1)-300);assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));assert.equal(Object.values(a.fighters[0].soulState.flat4634963.uses).reduce((n,e)=>n+e.spent,0),300);}});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免",
+              "assertion": "test('4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免',()=>{const enemy=require('../local-species.cjs').species(3291),ids=[30376,25294,25295,30380,30381],seen=new Set();for(let seed=1;seed<=12;seed++){const opts={move:29498,index:1,enemySource:enemy,enemyLoadout:ids,enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0},a=make(opts),b=make({...opts,index:-1});turn(a,29498,30380);turn(b,29498,30380);const ae=a.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack'),be=b.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack');assert.equal(ae.length,be.length);assert.ok(ae.length>=1&&ae.length<=2);ae.forEach((e,i)=>assert.equal(e.settledDamage,Math.max(0,be[i].settledDamage-(i===0?300:0))));assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));seen.add(ae.length);}assert.deepEqual(seen,new Set([1,2]));});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300",
+              "assertion": "test('4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300',()=>{const a=make({move:29498,index:1,bStats:{atk:9999}}),b=make({move:29498,index:-1,bStats:{atk:9999}});turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));const enemy=require('../research/BATCH-4816-REMAINING/4956/snapshot.json'),x=make({move:29498,index:1,enemySource:enemy,enemyLoadout:[38591,29480,29481,38589,29485]});turn(x,29498,38591);assert.equal(sum(x,'attack',1),0);assert.equal(x.fighters[1].effects['免异常'].end,3);const q=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,200,'第一包真实红伤','attack');c.hurt(c.t,200,'第二包真实红伤','attack');}},()=>turn(q,29498,20117));assert.equal(q.round,2);assert.equal(q.fighters[0].hp,8900);assert.equal(sum(q,'attack',1),100);});"
+            },
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免",
+              "assertion": "test('4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免',()=>{const s=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,100,'第一小红','attack');c.hurt(c.t,100,'第二小红','attack');for(const type of['fixed','percent','true'])c.hurt(c.t,100,'明确非红伤害',type);}},()=>turn(s,29498,20117));assert.equal(s.fighters[0].hp,8700);});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤",
+              "assertion": "test('4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),opts={move:29498,index:1,enemySource:enemy,enemyLoadout:[10703,20276,20565,11141,38550],bStats:{spa:9999}},a=make(opts),b=make({...opts,index:-1});for(let r=1;r<=2;r++){for(const x of[a,b])x.fighters[0].hp=9000;turn(a,29498,10703);turn(b,29498,10703);const records=a.damageEvents.filter(e=>e.round===r&&e.sourceSide===1&&e.type==='attack');assert.ok(records.length>=2);assert.equal(sum(a,'attack',1),sum(b,'attack',1)-300);assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));assert.equal(Object.values(a.fighters[0].soulState.flat4634963.uses).reduce((n,e)=>n+e.spent,0),300);}});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免",
+              "assertion": "test('4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免',()=>{const enemy=require('../local-species.cjs').species(3291),ids=[30376,25294,25295,30380,30381],seen=new Set();for(let seed=1;seed<=12;seed++){const opts={move:29498,index:1,enemySource:enemy,enemyLoadout:ids,enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0},a=make(opts),b=make({...opts,index:-1});turn(a,29498,30380);turn(b,29498,30380);const ae=a.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack'),be=b.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack');assert.equal(ae.length,be.length);assert.ok(ae.length>=1&&ae.length<=2);ae.forEach((e,i)=>assert.equal(e.settledDamage,Math.max(0,be[i].settledDamage-(i===0?300:0))));assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));seen.add(ae.length);}assert.deepEqual(seen,new Set([1,2]));});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300",
+              "assertion": "test('4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300',()=>{const a=make({move:29498,index:1,bStats:{atk:9999}}),b=make({move:29498,index:-1,bStats:{atk:9999}});turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));const enemy=require('../research/BATCH-4816-REMAINING/4956/snapshot.json'),x=make({move:29498,index:1,enemySource:enemy,enemyLoadout:[38591,29480,29481,38589,29485]});turn(x,29498,38591);assert.equal(sum(x,'attack',1),0);assert.equal(x.fighters[1].effects['免异常'].end,3);const q=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,200,'第一包真实红伤','attack');c.hurt(c.t,200,'第二包真实红伤','attack');}},()=>turn(q,29498,20117));assert.equal(q.round,2);assert.equal(q.fighters[0].hp,8900);assert.equal(sum(q,'attack',1),100);});"
+            },
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免",
+              "assertion": "test('4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免',()=>{const s=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,100,'第一小红','attack');c.hurt(c.t,100,'第二小红','attack');for(const type of['fixed','percent','true'])c.hurt(c.t,100,'明确非红伤害',type);}},()=>turn(s,29498,20117));assert.equal(s.fighters[0].hp,8700);});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤",
+              "assertion": "test('4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),opts={move:29498,index:1,enemySource:enemy,enemyLoadout:[10703,20276,20565,11141,38550],bStats:{spa:9999}},a=make(opts),b=make({...opts,index:-1});for(let r=1;r<=2;r++){for(const x of[a,b])x.fighters[0].hp=9000;turn(a,29498,10703);turn(b,29498,10703);const records=a.damageEvents.filter(e=>e.round===r&&e.sourceSide===1&&e.type==='attack');assert.ok(records.length>=2);assert.equal(sum(a,'attack',1),sum(b,'attack',1)-300);assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));assert.equal(Object.values(a.fighters[0].soulState.flat4634963.uses).reduce((n,e)=>n+e.spent,0),300);}});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免",
+              "assertion": "test('4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免',()=>{const enemy=require('../local-species.cjs').species(3291),ids=[30376,25294,25295,30380,30381],seen=new Set();for(let seed=1;seed<=12;seed++){const opts={move:29498,index:1,enemySource:enemy,enemyLoadout:ids,enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0},a=make(opts),b=make({...opts,index:-1});turn(a,29498,30380);turn(b,29498,30380);const ae=a.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack'),be=b.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack');assert.equal(ae.length,be.length);assert.ok(ae.length>=1&&ae.length<=2);ae.forEach((e,i)=>assert.equal(e.settledDamage,Math.max(0,be[i].settledDamage-(i===0?300:0))));assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));seen.add(ae.length);}assert.deepEqual(seen,new Set([1,2]));});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300",
+              "assertion": "test('4963/463真实首个红伤减少300、已命中零红照常授敌免异，跨完整技能重置，同技能两包共享300',()=>{const a=make({move:29498,index:1,bStats:{atk:9999}}),b=make({move:29498,index:-1,bStats:{atk:9999}});turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));turn(a,29498,10127);turn(b,29498,10127);assert.equal(sum(a,'attack',1),Math.max(0,sum(b,'attack',1)-300));const enemy=require('../research/BATCH-4816-REMAINING/4956/snapshot.json'),x=make({move:29498,index:1,enemySource:enemy,enemyLoadout:[38591,29480,29481,38589,29485]});turn(x,29498,38591);assert.equal(sum(x,'attack',1),0);assert.equal(x.fighters[1].effects['免异常'].end,3);const q=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,200,'第一包真实红伤','attack');c.hurt(c.t,200,'第二包真实红伤','attack');}},()=>turn(q,29498,20117));assert.equal(q.round,2);assert.equal(q.fighters[0].hp,8900);assert.equal(sum(q,'attack',1),100);});"
+            },
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免",
+              "assertion": "test('4963/463两次各100红伤无额度差异仍真实零损，非红固定百分比真实伤害均不被减免',()=>{const s=make({move:29498,index:1});watch((e,c)=>{if(e==='beforeUse'&&c.a.side===1){c.hurt(c.t,100,'第一小红','attack');c.hurt(c.t,100,'第二小红','attack');for(const type of['fixed','percent','true'])c.hurt(c.t,100,'明确非红伤害',type);}},()=>turn(s,29498,20117));assert.equal(s.fighters[0].hp,8700);});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤",
+              "assertion": "test('4963已答463原生多段共享整技能300减伤，下一完整技能重置，不影响非红附伤',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),opts={move:29498,index:1,enemySource:enemy,enemyLoadout:[10703,20276,20565,11141,38550],bStats:{spa:9999}},a=make(opts),b=make({...opts,index:-1});for(let r=1;r<=2;r++){for(const x of[a,b])x.fighters[0].hp=9000;turn(a,29498,10703);turn(b,29498,10703);const records=a.damageEvents.filter(e=>e.round===r&&e.sourceSide===1&&e.type==='attack');assert.ok(records.length>=2);assert.equal(sum(a,'attack',1),sum(b,'attack',1)-300);assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));assert.equal(Object.values(a.fighters[0].soulState.flat4634963.uses).reduce((n,e)=>n+e.spent,0),300);}});"
+            },
+            {
+              "file": "tests/answered-4963.test.cjs",
+              "name": "4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免",
+              "assertion": "test('4963已答463真实3291普通技能减300，皇怒沿已核实绕过受击减伤约定不受该减免',()=>{const enemy=require('../local-species.cjs').species(3291),ids=[30376,25294,25295,30380,30381],seen=new Set();for(let seed=1;seed<=12;seed++){const opts={move:29498,index:1,enemySource:enemy,enemyLoadout:ids,enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0},a=make(opts),b=make({...opts,index:-1});turn(a,29498,30380);turn(b,29498,30380);const ae=a.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack'),be=b.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.type==='attack');assert.equal(ae.length,be.length);assert.ok(ae.length>=1&&ae.length<=2);ae.forEach((e,i)=>assert.equal(e.settledDamage,Math.max(0,be[i].settledDamage-(i===0?300:0))));assert.equal(a.fighters[0].hp,9000-sum(a,'attack',1));seen.add(ae.length);}assert.deepEqual(seen,new Set([1,2]));});"
+            }
+          ]
+        },
+        "userConfirmations": [
+          "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/CONFIRMATION-4963.json"
+        ],
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29498:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 156,
+          "args": [
+            3
+          ],
+          "description": "3回合内使得对手所有能力增强效果失效"
+        },
+        "index": 2,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "metadata": {
+          "id": 156,
+          "argsNum": 1,
+          "template": "{0}回合内使得对手所有能力增强效果失效",
+          "revision": "seerapi:5b873120"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1b71e559"
+      },
+      "sourceDigest": "53bcb2f5b56d7a8e1caaa4cefba6ed23c38de5f4f44df82f69133d38dde610fa",
+      "review": {
+        "sourceDigest": "53bcb2f5b56d7a8e1caaa4cefba6ed23c38de5f4f44df82f69133d38dde610fa",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "3回合内使得对手所有能力增强效果失效",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封",
+              "assertion": "test('4963/191实际反弹敌异常并保次数免异，156敌后续能力增强失效但自身强化不被封',()=>{const enemy=require('../research/BATCH-4816-REMAINING/4995/snapshot.json'),s=make({move:29498,index:0,enemySource:enemy,enemyLoadout:[38549,20276,20565,11141,38550]});s.moveDefinitions[key(38549)].operations=s.moveDefinitions[key(38549)].operations.filter(o=>o.effectId===1447);s.fighters[0].counts.immune=2;turn(s,29498,38549);assert.equal(s.fighters[0].ailments['束缚'],undefined);assert.ok(s.fighters[1].ailments['束缚']);assert.equal(s.fighters[0].counts.immune,2);const q=make({move:29498,index:2});turn(q,29498,20309);assert.equal(q.fighters[1].stages.atk,0);assert.equal(q.fighters[1].effects['奥菲利娅能力增强失效'].end,3);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29498:3",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1670,
+          "args": [
+            50,
+            10,
+            100
+          ],
+          "description": "50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果"
+        },
+        "index": 3,
+        "description": "4回合内免疫并反弹所有受到的异常状态；3回合内每回合所受的伤害减少300点；3回合内使得对手所有能力增强效果失效；50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "metadata": {
+          "id": 1670,
+          "argsNum": 3,
+          "template": "{0}%令对手{1}，对手为自身天敌时概率提升{2}%，未触发则消除对手回合类效果",
+          "revision": "seerapi:86a7e4fa"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1b71e559"
+      },
+      "sourceDigest": "7e18caab5a3e29f52504d91dca3def4ef321c6d3b0db0268354cb6032bfaa4fa",
+      "review": {
+        "sourceDigest": "7e18caab5a3e29f52504d91dca3def4ef321c6d3b0db0268354cb6032bfaa4fa",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "50%令对手混乱，对手为自身天敌时概率提升100%，未触发则消除对手回合类效果",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举",
+              "assertion": "test('4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举',()=>{const candidate=Object.keys(source.typeChart.aliases).find(t=>E.typeEffectiveness(t,source.type,source.typeChart)>1);assert.ok(candidate);for(let seed=1;seed<=8;seed++){const s=make({move:29498,index:3,seed:seed*987654321});s.fighters[1].type=candidate;turn(s,29498,20117);assert.ok(s.fighters[1].ailments['混乱']);}const seen=new Set();for(let seed=1;seed<=16;seed++){const x=make({move:29498,index:3,seed:seed*987654321});x.fighters[1].type='普通';turn(x,29498,20117);seen.add(!!x.fighters[1].ailments['混乱']);}assert.equal(seen.size,2);const q=make({move:29498,index:3});q.fighters[1].type=candidate;q.fighters[1].counts.immune=1;turn(q,29498,20117);assert.equal(q.fighters[1].ailments['混乱'],undefined);assert.equal(q.fighters[1].effects['攻击必中'],undefined);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举",
+              "assertion": "test('4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举',()=>{const candidate=Object.keys(source.typeChart.aliases).find(t=>E.typeEffectiveness(t,source.type,source.typeChart)>1);assert.ok(candidate);for(let seed=1;seed<=8;seed++){const s=make({move:29498,index:3,seed:seed*987654321});s.fighters[1].type=candidate;turn(s,29498,20117);assert.ok(s.fighters[1].ailments['混乱']);}const seen=new Set();for(let seed=1;seed<=16;seed++){const x=make({move:29498,index:3,seed:seed*987654321});x.fighters[1].type='普通';turn(x,29498,20117);seen.add(!!x.fighters[1].ailments['混乱']);}assert.equal(seen.size,2);const q=make({move:29498,index:3});q.fighters[1].type=candidate;q.fighters[1].counts.immune=1;turn(q,29498,20117);assert.equal(q.fighters[1].ailments['混乱'],undefined);assert.equal(q.fighters[1].effects['攻击必中'],undefined);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举",
+              "assertion": "test('4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举',()=>{const candidate=Object.keys(source.typeChart.aliases).find(t=>E.typeEffectiveness(t,source.type,source.typeChart)>1);assert.ok(candidate);for(let seed=1;seed<=8;seed++){const s=make({move:29498,index:3,seed:seed*987654321});s.fighters[1].type=candidate;turn(s,29498,20117);assert.ok(s.fighters[1].ailments['混乱']);}const seen=new Set();for(let seed=1;seed<=16;seed++){const x=make({move:29498,index:3,seed:seed*987654321});x.fighters[1].type='普通';turn(x,29498,20117);seen.add(!!x.fighters[1].ailments['混乱']);}assert.equal(seen.size,2);const q=make({move:29498,index:3});q.fighters[1].type=candidate;q.fighters[1].counts.immune=1;turn(q,29498,20117);assert.equal(q.fighters[1].ailments['混乱'],undefined);assert.equal(q.fighters[1].effects['攻击必中'],undefined);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举",
+              "assertion": "test('4963/1670天敌混乱概率100、普通50成败与免异失败清回合，原始实例不再套疲惫枚举',()=>{const candidate=Object.keys(source.typeChart.aliases).find(t=>E.typeEffectiveness(t,source.type,source.typeChart)>1);assert.ok(candidate);for(let seed=1;seed<=8;seed++){const s=make({move:29498,index:3,seed:seed*987654321});s.fighters[1].type=candidate;turn(s,29498,20117);assert.ok(s.fighters[1].ailments['混乱']);}const seen=new Set();for(let seed=1;seed<=16;seed++){const x=make({move:29498,index:3,seed:seed*987654321});x.fighters[1].type='普通';turn(x,29498,20117);seen.add(!!x.fighters[1].ailments['混乱']);}assert.equal(seen.size,2);const q=make({move:29498,index:3});q.fighters[1].type=candidate;q.fighters[1].counts.immune=1;turn(q,29498,20117);assert.equal(q.fighters[1].ailments['混乱'],undefined);assert.equal(q.fighters[1].effects['攻击必中'],undefined);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:move:29499",
+      "kind": "move",
+      "raw": {
+        "id": 29499,
+        "name": "乘瑞气",
+        "type": "普通",
+        "kind": "status",
+        "power": 0,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          911,
+          852,
+          843
+        ],
+        "effectInstances": [
+          {
+            "id": 911,
+            "args": [
+              1
+            ],
+            "description": "全属性+1，自身处于能力提升状态时强化效果翻倍"
+          },
+          {
+            "id": 852,
+            "args": [
+              30,
+              2
+            ],
+            "description": "附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍"
+          },
+          {
+            "id": 843,
+            "args": [
+              2,
+              2
+            ],
+            "description": "下2回合令自身所有技能先制+2"
+          }
+        ],
+        "description": "全属性+1，自身处于能力提升状态时强化效果翻倍；附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍；下2回合令自身所有技能先制+2",
+        "revision": "seerapi:305366a0",
+        "hash": "305366a0",
+        "level": 9,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "3786d7d51646db336f6af7a70ab24fd839259cc388748c28a612e972de30a29c",
+      "review": {
+        "sourceDigest": "3786d7d51646db336f6af7a70ab24fd839259cc388748c28a612e972de30a29c",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "真实技能29499的基础威力、PP、先制、命中、暴击、用招资格；原始有序效果另逐项审核。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29499:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 911,
+          "args": [
+            1
+          ],
+          "description": "全属性+1，自身处于能力提升状态时强化效果翻倍"
+        },
+        "index": 0,
+        "description": "全属性+1，自身处于能力提升状态时强化效果翻倍；附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 911,
+          "argsNum": 1,
+          "template": "全属性+{0}，自身处于能力提升状态时强化效果翻倍",
+          "revision": "seerapi:570cd71c"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:305366a0"
+      },
+      "sourceDigest": "ca52aed79ee176d3c238eca878e099476b0a5ba29189d938fa0d755edf0b3244",
+      "review": {
+        "sourceDigest": "ca52aed79ee176d3c238eca878e099476b0a5ba29189d938fa0d755edf0b3244",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "全属性+1，自身处于能力提升状态时强化效果翻倍",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29499:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 852,
+          "args": [
+            30,
+            2
+          ],
+          "description": "附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍"
+        },
+        "index": 1,
+        "description": "全属性+1，自身处于能力提升状态时强化效果翻倍；附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 852,
+          "argsNum": 2,
+          "template": "附加自身最大体力{0}%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/{1}则恢复效果和百分比伤害翻倍",
+          "revision": "seerapi:737d1f13"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:305366a0"
+      },
+      "sourceDigest": "4eb213eef451b101bf098c901059f356ef62ba41489739eb4745d73bc2edc1d6",
+      "review": {
+        "sourceDigest": "4eb213eef451b101bf098c901059f356ef62ba41489739eb4745d73bc2edc1d6",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:29499:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 843,
+          "args": [
+            2,
+            2
+          ],
+          "description": "下2回合令自身所有技能先制+2"
+        },
+        "index": 2,
+        "description": "全属性+1，自身处于能力提升状态时强化效果翻倍；附加自身最大体力30%的百分比伤害并恢复等量体力，恢复体力时若自身体力低于最大体力的1/2则恢复效果和百分比伤害翻倍；下2回合令自身所有技能先制+2",
+        "metadata": {
+          "id": 843,
+          "argsNum": 2,
+          "template": "下{0}回合令自身所有技能先制+{1}",
+          "revision": "seerapi:fd9c78de"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:305366a0"
+      },
+      "sourceDigest": "11892979fac7a1c9baf07d2dd81c770eda0687e577bfa1a5d5167ca163e6b49a",
+      "review": {
+        "sourceDigest": "11892979fac7a1c9baf07d2dd81c770eda0687e577bfa1a5d5167ca163e6b49a",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "下2回合令自身所有技能先制+2",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制",
+              "assertion": "test('4963/911已有强化才效果翻倍，852低半附粉与理论回血不因免粉或残HP缩小，技能禁疗独立，843次回先制',()=>{for(const positive of[false,true]){const s=make({move:29499,index:0});if(positive)s.fighters[0].stages.acc=1;turn(s,29499,20117);assert.equal(s.fighters[0].stages.atk,positive?2:1);}for(const immune of[false,true])for(const ban of[false,true]){const x=make({move:29499,index:1,hp:1000,targetHp:10});if(immune)timer(x,1,'固定百分比免疫');if(ban)timer(x,0,'技能禁疗');turn(x,29499,20117);assert.equal(x.fighters[0].hp,ban?1000:6400);assert.equal(sum(x,'percent'),immune?0:5400);}const q=make({move:29499,index:2});turn(q,29499,20117);assert.equal(q.fighters[0].effects.id984.start,2);assert.equal(q.fighters[0].effects.id984.amount,2);});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:move:38619",
+      "kind": "move",
+      "raw": {
+        "id": 38619,
+        "name": "云雷变",
+        "type": "自然龙",
+        "kind": "special",
+        "power": 150,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 97,
+        "alwaysHit": false,
+        "critical": "1/16",
+        "effectIds": [
+          2529,
+          169
+        ],
+        "effectInstances": [
+          {
+            "id": 2529,
+            "args": [
+              2,
+              30
+            ],
+            "description": "2回合内若对手处于沉默则对手无法行动"
+          },
+          {
+            "id": 169,
+            "args": [
+              2,
+              100,
+              30
+            ],
+            "description": "2回合内每回合额外附加100%概率令对手沉默"
+          }
+        ],
+        "description": "2回合内若对手处于沉默则对手无法行动；2回合内每回合额外附加100%概率令对手沉默",
+        "revision": "seerapi:1a2bc458",
+        "hash": "1a2bc458",
+        "level": 13,
+        "fifth": false,
+        "sourceFlags": {
+          "is_fifth": false,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "regular"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "aadcdc3f232698f9079f3c1d298e0d21ac3aa3d26f2a1deee00a14c95db6988f",
+      "review": {
+        "sourceDigest": "aadcdc3f232698f9079f3c1d298e0d21ac3aa3d26f2a1deee00a14c95db6988f",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "真实技能38619的基础威力、PP、先制、命中、暴击、用招资格；原始有序效果另逐项审核。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38619:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 2529,
+          "args": [
+            2,
+            30
+          ],
+          "description": "2回合内若对手处于沉默则对手无法行动"
+        },
+        "index": 0,
+        "description": "2回合内若对手处于沉默则对手无法行动；2回合内每回合额外附加100%概率令对手沉默",
+        "metadata": {
+          "id": 2529,
+          "argsNum": 2,
+          "template": "{0}回合内若对手处于{1}则对手无法行动",
+          "revision": "seerapi:5a583eee"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1a2bc458"
+      },
+      "sourceDigest": "a050e6af2bc87df99a11420923c5f83e690b1401ec50174ed099338bb3c875b3",
+      "review": {
+        "sourceDigest": "a050e6af2bc87df99a11420923c5f83e690b1401ec50174ed099338bb3c875b3",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "2回合内若对手处于沉默则对手无法行动",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38619:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 169,
+          "args": [
+            2,
+            100,
+            30
+          ],
+          "description": "2回合内每回合额外附加100%概率令对手沉默"
+        },
+        "index": 1,
+        "description": "2回合内若对手处于沉默则对手无法行动；2回合内每回合额外附加100%概率令对手沉默",
+        "metadata": {
+          "id": 169,
+          "argsNum": 3,
+          "template": "{0}回合内每回合额外附加{1}%概率令对手{2}",
+          "revision": "seerapi:68d00cca"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:1a2bc458"
+      },
+      "sourceDigest": "315838963b0328fa89a65cd717ef60754126abc4880ff29c1fd8f4af18b1b8c8",
+      "review": {
+        "sourceDigest": "315838963b0328fa89a65cd717ef60754126abc4880ff29c1fd8f4af18b1b8c8",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "2回合内每回合额外附加100%概率令对手沉默",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败",
+              "assertion": "test('4963/2529沉默在两回合持续条件中真实禁行动、移除沉默恢复行动，169真实沉默概率100及免异失败',()=>{const s=make({move:38619,index:0});s.fighters[1].ailments['沉默']=3;const before=s.fighters[1].pp[key(10127)];turn(s,38619,10127);assert.equal(s.fighters[1].pp[key(10127)],before);delete s.fighters[1].ailments['沉默'];turn(s,38618,10127);assert.equal(s.fighters[1].pp[key(10127)],before-1);for(const immune of[0,1]){const x=make({move:38619,index:1});x.fighters[1].counts.immune=immune;turn(x,38619,20117);assert.equal(!!x.fighters[1].ailments['沉默'],!immune);}});"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:move:38620",
+      "kind": "move",
+      "raw": {
+        "id": 38620,
+        "name": "天门跃",
+        "type": "自然龙",
+        "kind": "special",
+        "power": 160,
+        "pp": 5,
+        "priority": 0,
+        "accuracy": 95,
+        "alwaysHit": true,
+        "critical": "1/16",
+        "effectIds": [
+          915,
+          1923,
+          1467
+        ],
+        "effectInstances": [
+          {
+            "id": 915,
+            "args": [
+              2,
+              100,
+              6
+            ],
+            "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕"
+          },
+          {
+            "id": 1923,
+            "args": [
+              1
+            ],
+            "description": "1回合内令对手使用的攻击技能无效"
+          },
+          {
+            "id": 1467,
+            "args": [
+              3,
+              1
+            ],
+            "description": "随机使自身3项能力值+1，先出手时提升效果翻倍"
+          }
+        ],
+        "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕；1回合内令对手使用的攻击技能无效；随机使自身3项能力值+1，先出手时提升效果翻倍",
+        "revision": "seerapi:4e3ae928",
+        "hash": "4e3ae928",
+        "level": 76,
+        "fifth": true,
+        "sourceFlags": {
+          "is_fifth": true,
+          "is_special": false,
+          "skill_activation_item": null,
+          "classification": "fifth"
+        },
+        "provider": "seerapi",
+        "sourceTargetCount": 1,
+        "deferredEffects": [],
+        "limitations": [],
+        "advanced": false
+      },
+      "source": {
+        "provider": "seerapi",
+        "url": "https://api.seerapi.com/v1/pet/4963",
+        "revision": "b74176d1",
+        "loadedAt": "2026-11-04T01:44:12.152Z",
+        "storage": "local",
+        "savedAt": "2026-11-05T20:16:35.413Z"
+      },
+      "sourceDigest": "e688720f05357d3f6b1c13f9b554068678d9eea0f96e0209a09ec21ed9b8e156",
+      "review": {
+        "sourceDigest": "e688720f05357d3f6b1c13f9b554068678d9eea0f96e0209a09ec21ed9b8e156",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "真实技能38620的基础威力、PP、先制、命中、暴击、用招资格；原始有序效果另逐项审核。",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-native.test.cjs",
+              "name": "4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证",
+              "assertion": "test('4963全部5招基础分类真实HP/PP/先制与0PP拒绝，有序完整当前2160逐招8种子及64基础命中暴击随机验证',()=>{require('./helpers/next50-base-probe.cjs').verify(require('./helpers/remaining-4963.cjs'));for(const m of source.moves){const s=make({move:m.id,index:-1,aStats:{atk:180,spa:18}});turn(s,m.id,20117);assert.equal(s.fighters[0].pp[key(m.id)],m.pp-1);assert.equal(s.fighters[0].soulState.resolvedPriority.value,m.priority);const es=(s.damageEvents??[]).filter(e=>e.sourceSide===0&&e.type==='attack');assert.equal(es.length,m.kind==='status'?0:1);if(es.length){assert.equal(es[0].attackValue,m.kind==='physical'?180:18);assert.equal(s.fighters[1].hp,9000-es[0].hpLoss);assert.ok(es[0].settledDamage>0);}const z=make({move:m.id,index:-1});z.fighters[0].pp[key(m.id)]=0;assert.throws(()=>turn(z,m.id,20117),/有 PP/);for(let seed=1;seed<=8;seed++){const x=make({move:m.id,soul:true,hp:8000,seed:seed*987654321});turn(x,m.id,20117);assert.equal(x.fighters[0].pp[key(m.id)],m.pp-1);assert.ok(x.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp));}}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38620:0",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 915,
+          "args": [
+            2,
+            100,
+            6
+          ],
+          "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕"
+        },
+        "index": 0,
+        "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕；1回合内令对手使用的攻击技能无效；随机使自身3项能力值+1，先出手时提升效果翻倍",
+        "metadata": {
+          "id": 915,
+          "argsNum": 3,
+          "template": "消除对手回合类效果，消除成功则自身下{0}回合攻击有{1}%使对手{2}",
+          "revision": "seerapi:b9b1d058"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:4e3ae928"
+      },
+      "sourceDigest": "dfb759815e4d7dfe74067fc61a865187cac82e396f1dae1073bba41209ab5b34",
+      "review": {
+        "sourceDigest": "dfb759815e4d7dfe74067fc61a865187cac82e396f1dae1073bba41209ab5b34",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38620:1",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1923,
+          "args": [
+            1
+          ],
+          "description": "1回合内令对手使用的攻击技能无效"
+        },
+        "index": 1,
+        "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕；1回合内令对手使用的攻击技能无效；随机使自身3项能力值+1，先出手时提升效果翻倍",
+        "metadata": {
+          "id": 1923,
+          "argsNum": 1,
+          "template": "{0}回合内令对手使用的攻击技能无效",
+          "revision": "seerapi:ff680459"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:4e3ae928"
+      },
+      "sourceDigest": "97d5e4a7cad67396ad9ae75fd541eabe8b88d1e442d25ad1ed89809253e956c5",
+      "review": {
+        "sourceDigest": "97d5e4a7cad67396ad9ae75fd541eabe8b88d1e442d25ad1ed89809253e956c5",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "1回合内令对手使用的攻击技能无效",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    },
+    {
+      "key": "4963:skill:38620:2",
+      "kind": "skill",
+      "raw": {
+        "instance": {
+          "id": 1467,
+          "args": [
+            3,
+            1
+          ],
+          "description": "随机使自身3项能力值+1，先出手时提升效果翻倍"
+        },
+        "index": 2,
+        "description": "消除对手回合类效果，消除成功则自身下2回合攻击有100%使对手害怕；1回合内令对手使用的攻击技能无效；随机使自身3项能力值+1，先出手时提升效果翻倍",
+        "metadata": {
+          "id": 1467,
+          "argsNum": 2,
+          "template": "随机使自身{0}项能力值+{1}，先出手时提升效果翻倍",
+          "revision": "seerapi:4c9d7d8e"
+        }
+      },
+      "source": {
+        "snapshot": {
+          "provider": "seerapi",
+          "url": "https://api.seerapi.com/v1/pet/4963",
+          "revision": "b74176d1",
+          "loadedAt": "2026-11-04T01:44:12.152Z",
+          "storage": "local",
+          "savedAt": "2026-11-05T20:16:35.413Z"
+        },
+        "skillRevision": "seerapi:4e3ae928"
+      },
+      "sourceDigest": "01b959d5482f3f58a81b623846b24cf2cb9cb25b96ba38aed8627dcd8a0d731b",
+      "review": {
+        "sourceDigest": "01b959d5482f3f58a81b623846b24cf2cb9cb25b96ba38aed8627dcd8a0d731b",
+        "scope": "single",
+        "rationale": "已答完整技能减伤单位与免伤优先级以真实多段/实际HP、3291既有例外、七类并存免伤授盾及公共伤害回归验证。",
+        "reviewedBy": "Codex source, latest user answer and concrete state assertions review",
+        "reviewedAt": "2026-11-05T20:16:35.211Z",
+        "status": "single-stage-complete",
+        "singleBehavior": "随机使自身3项能力值+1，先出手时提升效果翻倍",
+        "implementation": [
+          "dist/range-souls.js",
+          "dist/range-effects.js",
+          "dist/effect-registry.js",
+          "dist/souls.js"
+        ],
+        "tests": {
+          "success": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "failure": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "boundary": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ],
+          "interaction": [
+            {
+              "file": "tests/remaining-4963-skills.test.cjs",
+              "name": "4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1",
+              "assertion": "test('4963/915清回合成功下两回攻击100害怕且失败不授，1923当前一回封攻击，1467真实三不同能力先手2后手1',()=>{const s=make({move:38620,index:0});turn(s,38620,20117);assert.equal(s.fighters[0].effects['攻击附加异常'].start,2);turn(s,38618,20117);assert.ok(s.fighters[1].ailments['害怕']);const x=make({move:38620,index:0});x.fighters[1].effects={};turn(x,38620,20117);assert.equal(x.fighters[0].effects['攻击附加异常'],undefined);const q=make({move:38620,index:1});turn(q,38620,10127);assert.equal(sum(q,'attack',1),0);for(const first of[false,true]){const z=make({move:38620,index:2,aStats:{spe:first?500:1}});turn(z,38620,20117);assert.equal(Object.values(z.fighters[0].stages).filter(n=>n>0).length,3);for(const n of Object.values(z.fighters[0].stages).filter(n=>n>0))assert.equal(n,first?2:1);}});\r"
+            }
+          ]
+        },
+        "reviewStatus": "single-stage-accepted",
+        "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+        "batchAcceptance": "research/BATCH-4816-REMAINING/FINAL-GATES/result-v8.json",
+        "acceptedAt": "2026-11-07T05:02:54.191Z"
+      }
+    }
+  ],
+  "pendingAnswerDependentWork": [],
+  "pendingBatchWork": [],
+  "acceptance": "research/BATCH-4816-REMAINING/ANSWER-DEPLOYMENT-2026-11-05T10-51-34-562Z/4963-ACCEPTED.json",
+  "acceptedAt": "2026-11-07T05:02:54.191Z",
+  "metadataRefreshedAt": "2026-11-07T05:03:17.207Z"
+}

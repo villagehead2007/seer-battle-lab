@@ -1,0 +1,31 @@
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict');
+const E=require('../dist/engine.js'),candidate=require('../research/LIGHT-SP-2026-11-07/candidate-13311.json');
+function make({enemyAttack=100,enemySpeed=100,soul=true}={}){const a=structuredClone(candidate),b=structuredClone(candidate);a.souls=soul?a.souls:[];b.souls=[];b.id=900002;b.name='SP对照';const base=structuredClone(a.moves[0]);const neutral=(id,kind,power)=>({...base,id,name:'SP对照'+id,kind,power,pp:99,alwaysHit:true,priority:0,critical:'0/16',fifth:false,effectIds:[],effectInstances:[],description:''});b.moves=[neutral(900201,'status',0),neutral(900202,'physical',80),structuredClone(candidate.moves.find(x=>x.id===12898))];return E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[[38626,38625,29503,29502,38624],b.moves.map(x=>x.id)],criticals:false,seed:'divine-vessel',builds:[{overrides:{maxHp:1000,atk:160,spa:100,def:300,spd:300,spe:500}},{overrides:{maxHp:9000,atk:enemyAttack,spa:100,def:300,spd:300,spe:enemySpeed}}]});}
+const turn=(s,move=38626,enemy=900201)=>E.resolveTurn(s,['wiki:'+move,'wiki:'+enemy]);
+test('SP真实魂印初始化神魂四记录，第五自身致死信号变系并移除最后固定记录',()=>{
+ const s=make();assert.equal(s.fighters[0].soulId,2162);assert.deepEqual(s.fighters[0].soulState.divineVessel.records,['ailment','weakness','percent','fixed']);const out=turn(s);assert.equal(out.fighters[0].type,'神灵');assert.deepEqual(out.fighters[0].soulState.divineVessel.records,['ailment','weakness','percent']);assert.equal(out.fighters[0].soulState.divineVessel.removed,1);assert.ok(out.damageEvents.some(x=>x.sourceSide===0&&x.type==='fixed'&&x.settledDamage===200));assert.equal(out.damageEvents.filter(x=>x.sourceSide===0&&x.type==='percent').length,0);
+});
+test('SP承影未清除任何回合效果时不禁止行动，保护导致无法清除则实际禁止3回合',()=>{
+ const normal=turn(make(),38624);assert.equal(normal.fighters[1].pp['wiki:900201'],98);
+ const s=make();s.fighters[1].effects.protect={start:1,end:5};s.fighters[1].effects['攻击必中']={start:1,end:5};const out=turn(s,38624);assert.equal(out.fighters[1].effects['无法行动'].end,3);assert.equal(out.fighters[1].pp['wiki:900201'],99);assert.ok(out.fighters[1].effects['攻击必中']);
+});
+test('SP神灵第五零PP可选择且正PP照常消费，神魂记录控制下回合前N槽选择',()=>{
+ const s=make();s.fighters[0].type='神灵';s.fighters[0].pp['wiki:38626']=0;assert.ok(E.availableMoves(s.fighters[0]).includes('wiki:38626'));const out=turn(s);assert.equal(out.fighters[0].pp['wiki:38626'],0);assert.equal(out.fighters[0].soulState.divineVessel.free.from,2);assert.equal(out.fighters[0].soulState.divineVessel.free.count,4);
+ const f=out.fighters[0];for(const k of f.moves)f.pp[k]=0;assert.ok(E.availableMoves(f).includes(f.moves[3]));assert.equal(E.availableMoves(f).includes(f.moves[4]),false);
+});
+test('SP真正致死红伤被免疫后移除记录并承担真实代价，代价上限为最大HP四分之一',()=>{
+ const s=make({enemyAttack:9999,enemySpeed:1000});const out=turn(s,29502,900202);const f=out.fighters[0];assert.equal(f.type,'神灵');assert.equal(f.soulState.divineVessel.removed,1);const cost=f.soulState.divineVessel.history.find(x=>x.kind==='immunity-cost');assert.ok(cost.immuneAmount>=1000);assert.equal(cost.cost,250);assert.equal(f.hp,750);assert.ok(out.damageEvents.some(e=>e.targetSide===0&&e.sourceSide===0&&e.type==='true'&&e.settledDamage===250));
+});
+test('SP免伤真实代价按移除数叠加，外部全伤免疫也被通知，真实代价不可再次免疫',()=>{
+ const s=make({enemySpeed:1000});const f=s.fighters[0];f.type='神灵';f.soulState.divineVessel.records=['ailment','weakness'];f.soulState.divineVessel.removed=2;f.effects['当回合免伤']={start:1,end:5};const out=turn(s,29502,12898),holder=out.fighters[0],costs=holder.soulState.divineVessel.history.filter(x=>x.kind==='immunity-cost');const fixed=costs.find(x=>x.type==='fixed');assert.equal(fixed.immuneAmount,50);assert.equal(fixed.cost,25);assert.ok(costs.some(x=>x.type==='attack'));assert.equal(holder.hp,1000-costs.reduce((n,x)=>n+Math.floor(x.cost),0));assert.ok(out.damageEvents.filter(e=>e.targetSide===0&&e.type==='true').every(e=>e.settledDamage>0));
+});
+test('SP低额对敌伤害只加致死标记，触发对方SP免疫并变系，不把伤害提高到当前HP',()=>{
+ const a=structuredClone(candidate),b=structuredClone(candidate),load=[38626,38625,29503,29502,38624];const s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[load,load],criticals:false,builds:[{overrides:{maxHp:1000,atk:160,def:300,spe:500}},{overrides:{maxHp:1000,atk:160,def:300,spe:100}}]});const out=E.resolveTurn(s,['wiki:38624','wiki:29502']);const victim=out.fighters[1];assert.equal(victim.type,'神灵');const cost=victim.soulState.divineVessel.history.find(x=>x.kind==='immunity-cost');assert.ok(cost.immuneAmount>0&&cost.immuneAmount<1000);assert.equal(victim.hp,1000-Math.floor(cost.cost));assert.equal(out.fighters[0].counts.attackNullify??0,0);const marked=out.lethalDamageEvents.find(e=>e.sourceSide===0&&e.targetSide===1&&e.amount>0);assert.equal(marked.deemedLethal,true);assert.equal(marked.naturalLethal,false);assert.equal(marked.lethal,true);assert.ok(out.lethalDamageEvents.filter(e=>e.sourceSide===e.targetSide).every(e=>e.deemedLethal===false));
+});
+module.exports={make,turn};
+test('SP前N槽零PP实际执行下回合技能，回合开始预约再下回合不会覆盖当前资格',()=>{
+ const H=require('./helpers/light-source-battle.cjs');let s=H.make(38624,{id:13311,soul:true});s=H.turn(s,H.WAIT);assert.equal(s.fighters[0].type,'远古 圣灵');s.fighters[0].pp['wiki:38624']=0;const before=s.fighters[1].hp;assert.ok(E.availableMoves(s.fighters[0]).includes('wiki:38624'));const out=H.turn(s,38624);assert.ok(out.fighters[1].hp<before);assert.equal(out.fighters[0].pp['wiki:38624'],0);assert.equal(out.fighters[0].soulState.divineVessel.free.from,3);
+});
+test('SP一记录前一槽零PP可实际使用，第二槽仍拒绝且连续回合资格不被下一轮预约覆盖',()=>{
+ const H=require('./helpers/light-source-battle.cjs');let s=H.make(38624,{id:13311,soul:true});Object.assign(s.fighters[0].soulState.divineVessel,{records:['ailment'],removed:3});s=H.turn(s,H.WAIT);s.fighters[0].pp['wiki:38624']=0;s.fighters[0].pp['wiki:'+H.WAIT]=0;assert.ok(E.availableMoves(s.fighters[0]).includes('wiki:38624'));assert.equal(E.availableMoves(s.fighters[0]).includes('wiki:'+H.WAIT),false);assert.throws(()=>H.turn(s,H.WAIT));const before=s.fighters[1].hp,first=H.turn(s,38624);assert.ok(first.fighters[1].hp<before);const second=H.turn(first,38624);assert.ok(second.fighters[1].hp<first.fighters[1].hp);assert.equal(second.fighters[0].pp['wiki:38624'],0);assert.equal(second.fighters[0].soulState.divineVessel.currentFree.count,1);
+});
