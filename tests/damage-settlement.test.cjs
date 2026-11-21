@@ -4,7 +4,29 @@ const key=(id,i)=>'wiki:'+(id*10+i);
 function game(a,b=snap(99002),builds=[{},{}]){return E.createBattle({wikiSnapshots:[a,b],criticals:false,seed:'range-test',builds});}
 
 test('完整结算：非致死、恰好致死和溢出致死分别记录伤害与HP减少',()=>{for(const hp of [1000,800,200]){let s=game(snap(99650,null,[[29,[800]]]),snap(99651),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:2000}}]);s.fighters[1].hp=hp;s=E.resolveTurn(s,[key(99650,1),key(99651,1)]);const d=s.damageEvents.find(d=>d.targetSide===1);assert.equal(d.settledDamage,800);assert.equal(d.hpLoss,Math.min(hp,800));assert.equal(s.fighters[1].hp,Math.max(0,hp-800));assert.ok(s.turns[0].events.some(e=>e.text.includes('结算伤害 800')));}});
-test('完整结算：圣甲盖亚溢出致死按800反击而非剩余200',()=>{for(const hp of [700,900]){let s=game(snap(99652,null,[[29,[800]]]),snap(3056,410),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:1000}}]);s.fighters[0].hp=hp;s.fighters[1].hp=200;s=E.resolveTurn(s,[key(99652,1),key(3056,1)]);assert.equal(s.fighters[0].hp,Math.max(0,hp-800));assert.equal(s.fighters[1].hp,hp<=800?1:0);const d=s.damageEvents.find(d=>d.type==='true');assert.equal(d.settledDamage,800);assert.equal(d.hpLoss,Math.min(hp,800));}});
+test('完整结算：圣甲盖亚溢出致死按完整红伤反击，固定800致死不提供基数',()=>{
+  for(const sourceHp of [1,900]){
+    const a=snap(99652,null,[[29,[800]]]),b=snap(3056,410);
+    const builds=[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:1000}}];
+    const start=()=>{const s=game(a,b,builds);s.fighters[0].hp=sourceHp;s.fighters[1].hp=20;return s;};
+    const fixed=E.resolveTurn(start(),[key(99652,1),key(3056,1)]);
+    assert.equal(fixed.damageEvents[0].settledDamage,800);
+    assert.equal(fixed.damageEvents[0].hpLoss,20);
+    assert.equal(fixed.fighters[0].hp,sourceHp);
+    assert.equal(fixed.fighters[1].hp,0);
+    assert.ok(!fixed.damageEvents.some(d=>d.type==='true'));
+    const red=E.resolveTurn(start(),[key(99652,0),key(3056,1)]);
+    const [hit,back]=red.damageEvents;
+    assert.equal(hit.type,'attack');
+    assert.equal(hit.hpLoss,20);
+    assert.ok(hit.settledDamage>20);
+    assert.equal(back.type,'true');
+    assert.equal(back.settledDamage,hit.settledDamage);
+    assert.equal(back.hpLoss,Math.min(sourceHp,hit.settledDamage));
+    assert.equal(red.fighters[0].hp,sourceHp-back.hpLoss);
+    assert.equal(red.fighters[1].hp,sourceHp===1?1:0);
+  }
+});
 test('完整结算：固定伤害先经过减免护罩再记录，免疫不扣血',()=>{for(const immune of [false,true]){let s=game(snap(99653,null,[[29,[800]]]),snap(99654),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:2000},resistance:{fixed:50}}]);s.fighters[1].hp=100;s.fighters[1].suitState.barrier=100;if(immune)s.fighters[1].effects['当回合免伤']={start:1,end:1};s=E.resolveTurn(s,[key(99653,1),key(99654,1)]);if(immune){assert.equal(s.fighters[1].hp,100);assert.equal((s.damageEvents??[]).length,0);}else{assert.equal(s.damageEvents[0].settledDamage,300);assert.equal(s.damageEvents[0].hpLoss,100);assert.equal(s.fighters[1].suitState.barrier,0);}}});
 test('Q-DAMAGE-001：保留1HP不截断800完整伤害，实际损失199',()=>{let s=game(snap(99655,null,[[29,[800]]]),snap(99656,611),[{overrides:{maxHp:2000,spe:900}},{overrides:{maxHp:1000}}]);s.fighters[1].hp=200;s=E.resolveTurn(s,[key(99655,1),key(99656,1)]);assert.equal(s.fighters[1].hp,1);assert.equal(s.damageEvents[0].hpLoss,199);assert.equal(s.damageEvents[0].settledDamage,800);});
 test('完整结算：攻击逐段记录，致死段保留完整值并停止后续段',()=>{const a=snap(99657,null,[[31,[3,3]]]);a.moves[0].effectIds=[31];a.moves[0].effectInstances=[{id:31,args:[3,3]}];a.moves[1].effectIds=[];a.moves[1].effectInstances=[];let base=game(a,snap(99658),[{overrides:{maxHp:9999,spe:900}},{overrides:{maxHp:9999}}]);let full=E.resolveTurn(base,[key(99657,0),key(99658,1)]);const ds=full.damageEvents.filter(d=>d.type==='attack');assert.equal(ds.length,3);base.fighters[1].hp=ds[0].settledDamage+1;const s=E.resolveTurn(base,[key(99657,0),key(99658,1)]),hits=s.damageEvents.filter(d=>d.type==='attack');assert.equal(hits.length,2);assert.equal(hits[1].settledDamage,ds[1].settledDamage);assert.equal(hits[1].hpLoss,1);assert.equal(s.fighters[1].hp,0);assert.equal(s.fighters[1].roundSettledSkillDamageTaken,hits.reduce((n,d)=>n+d.settledDamage,0));});

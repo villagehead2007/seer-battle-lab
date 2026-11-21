@@ -24,9 +24,9 @@
   }
   function renderSpMarsFifth(f,i,move,disabled){
     const rules=E.SpMars,pp=rules.projectedBody(f,state.round)?.pp??f.pp;
-    return `<details class="move" ${rules.fifthForm(f,selected[i])?'open':''}><summary data-sp-mars-detail="${move.id}">${escape(move.name)} · PP ${pp[move.id]} / ${move.pp}</summary>${rules.legalForms(f).map(form=>{
+    return `<details class="move" ${rules.fifthForm(f,selected[i])?'open':''}><summary data-move-detail="${move.id}">${escape(move.name)} · PP ${pp[move.id]} / ${move.pp}</summary>${rules.legalForms(f).map(form=>{
       const key=rules.choiceKey(form);
-      return `<button class="button secondary" data-side="${i}" data-move="${key}" data-sp-mars-detail="${move.id}" data-sp-mars-form="${form}" aria-pressed="${selected[i]===key}" ${disabled?'disabled':''}>${rules.LABELS[form]}</button>`;
+      return `<button class="button secondary" data-side="${i}" data-move="${key}" data-move-detail="${move.id}" data-move-form="${form}" aria-pressed="${selected[i]===key}" ${disabled?'disabled':''}>${rules.LABELS[form]}</button>`;
     }).join('')}</details>`;
   }
   function renderFighter(i) {
@@ -49,20 +49,25 @@
     el.innerHTML = `<div class="fighter-head"><div class="side-label"><span>${sideName(i)} / ${i === 0 ? 'ALPHA' : 'BRAVO'}</span><span class="type-pill">${escape(f.type)}</span></div><div class="name-row"><h2>${escape(f.name)}</h2><span class="level">Lv.${f.level} · No.${escape(f.number)}</span></div>${marsFormHtml}<div class="hp-row"><span>${f.hp === 0 ? '已倒下' : '体力 HP'}</span><span class="hp-numbers"><b>${f.hp}</b> / ${f.stats.maxHp}</span></div><div class="hp-track" role="progressbar" aria-label="${sideName(i)}体力" aria-valuenow="${f.hp}" aria-valuemin="0" aria-valuemax="${f.stats.maxHp}"><div class="hp-fill ${pct <= 25 ? 'danger' : pct <= 50 ? 'low' : ''}" style="width:${pct}%"></div></div>${renderXin(f,i)}${renderThunderStars(f,i)}${renderSpMars(f,i)}<div class="stats">${Object.entries(E.STAT_LABELS).map(([key, label]) => `<div class="stat ${f.stages[key] ? 'changed' : ''}"><span>${label}</span><strong>${E.effective(f, key)}</strong></div>`).join('')}</div><div class="status-row">${status}</div>${affinityHtml}${soulHtml}${equipmentHtml}</div><div class="move-area"><div class="move-heading"><span>本回合技能</span><span>${state.finished ? '对战结束' : selected[i] ? '已选择 · 可更改' : '等待选择'}</span></div><div class="moves">${ids.map(id => {
       const m = (state.moveDefinitions??E.MOVES)[id];
       if(E.SpMars.owns(f)&&id===E.SpMars.FIFTH_KEY)return renderSpMarsFifth(f,i,m,state.finished||!legal.includes(id));
-      const custom=E.SpMars.owns(f)&&Object.values(E.SpMars.MOVES).includes(m.wikiId);
-      return `<button class="move" data-side="${i}" data-move="${id}" ${custom?`data-sp-mars-detail="${id}"`:''} aria-label="${sideName(i)} ${escape(m.name)}" aria-pressed="${selected[i] === id}" ${state.finished || !legal.includes(id) ? 'disabled' : ''}><span class="move-top"><span class="move-name">${escape(m.name)}</span><span class="move-pp">${id === 'struggle' ? '不限 PP' : `PP ${(E.SpMars.projectedBody(f,state.round)?.pp??f.pp)[id]} / ${m.pp}`}</span></span><span class="move-meta"><span class="${m.type === '草' ? 'grass' : ''}">${m.kind === "status" ? "属性技能" : `${escape(m.slot || m.category)} · ${escape(m.type)} · ${escape(m.category)}`}</span><span>威力 ${m.power || '—'}</span><span>${m.alwaysHit ? "必中" : `命中 ${m.accuracy}%`}</span>${m.priority ? `<span>先制 +${m.priority}</span>` : ""}</span>${custom?'':`<span class="move-description">${escape(m.description)}</span>`}${m.deferredEffects?.length?`<span class="move-description">多精灵待实现：${m.deferredEffects.map(x=>escape(x.description)).join("；")}</span>`:""}</button>`;
+      return `<button class="move" data-side="${i}" data-move="${id}" data-move-detail="${escape(id)}" aria-label="${sideName(i)} ${escape(m.name)}" aria-pressed="${selected[i] === id}" ${state.finished || !legal.includes(id) ? 'disabled' : ''}><span class="move-top"><span class="move-name">${escape(m.name)}</span><span class="move-pp">${id === 'struggle' ? '不限 PP' : `PP ${(E.SpMars.projectedBody(f,state.round)?.pp??f.pp)[id]} / ${m.pp}`}</span></span><span class="move-meta"><span class="${m.type === '草' ? 'grass' : ''}">${m.kind === "status" ? "属性技能" : `${escape(m.slot || m.category)} · ${escape(m.type)} · ${escape(m.category)}`}</span><span>威力 ${m.power || '—'}</span><span>${m.alwaysHit ? "必中" : `命中 ${m.accuracy}%`}</span>${m.priority ? `<span>先制 +${m.priority}</span>` : ""}</span>${m.deferredEffects?.length?`<span class="move-description">多精灵待实现：${m.deferredEffects.map(x=>escape(x.description)).join("；")}</span>`:""}</button>`;
     }).join('')}</div><div class="potion-actions"><span>本回合药剂</span>${['potion:hp','potion:pp'].map(id=>`<button class="button secondary" data-side="${i}" data-move="${id}" aria-label="${sideName(i)} ${escape(E.MOVES[id].name)}" aria-pressed="${selected[i]===id}" ${state.finished?'disabled':''}>${escape(E.MOVES[id].name)} · 无限</button>`).join('')}</div></div>`;
-    if(E.SpMars.owns(f))window.BattlePresentation.bindSpMarsMoveDetails(el,state.initial.wikiSnapshots?.[i]);
-  }
-  function renderLogEvent(event){
-    if(event.segments){
-      const rows=event.segments.map(hit=>`<li>第 ${hit.segment.index+1} 段 · ${escape(hit.text)}${hit.detail?`<div class="calculation">${escape(hit.detail)}</div>`:''}</li>`).join('');
-      return `<div class="log-event damage"><details><summary>${escape(event.text)}</summary><ol>${rows}</ol></details></div>`;
-    }
-    return `<div class="log-event ${escape(event.kind)}">${escape(event.text)}${event.detail?`<details><summary>查看伤害计算</summary><div class="calculation">${escape(event.detail)}</div></details>`:''}</div>`;
+    window.BattlePresentation.bindMoveDetails(el,state.initial.wikiSnapshots?.[i],key=>(state.moveDefinitions??E.MOVES)[key]);
   }
   function renderLogs() {
-    $('battle-log').innerHTML = state.turns.length ? state.turns.slice().reverse().map(turn => `<section class="log-turn"><h3>ROUND ${String(turn.round).padStart(2, '0')} · 第 ${turn.round} 回合</h3>${window.BattleDisplay.logEvents(turn.events).map(renderLogEvent).join('')}</section>`).join('') : '<div class="empty-log"><div class="empty-symbol" aria-hidden="true">≡</div><strong>对战已就绪</strong><p>先为 A 方和 B 方各选择一个技能，再点击“结算回合”。行动顺序和结算结果会显示在这里。</p></div>';
+    const log=$('battle-log'),display=window.BattleDisplay;
+    if(!state.turns.length){
+      log.innerHTML='<div class="empty-log"><div class="empty-symbol" aria-hidden="true">≡</div><strong>对战已就绪</strong><p>先为 A 方和 B 方各选择一个技能，再点击“结算回合”。行动顺序和结算结果会显示在这里。</p></div>';
+      return;
+    }
+    log.replaceChildren();
+    for(const turn of state.turns.slice().reverse()){
+      const section=document.createElement('section'),title=document.createElement('h3');
+      section.className='log-turn';
+      title.textContent='ROUND '+String(turn.round).padStart(2,'0')+' · 第 '+turn.round+' 回合';
+      section.append(title);
+      for(const event of display.logEvents(turn.events))section.append(display.renderLogEvent(event));
+      log.append(section);
+    }
   }
   function selectionName(side,key){
     const form=E.SpMars.fifthForm(state.fighters[side],key);

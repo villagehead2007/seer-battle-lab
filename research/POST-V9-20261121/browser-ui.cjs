@@ -74,7 +74,8 @@ async function main(){
         [2000104,5,[/属性技能 · 威力 0 · PP 5 · 必中 · 基础先制 \+0/,/4 回合内.*1\/3/,/下 2 回合先制 \+2/,/已阵亡的形态也会激活/]],
         [2000105,6,[/属性技能 · 威力 0/,/350 点体力/,/300 点护盾/,/技能无效时.*1\/2.*50%/]],
       ])await expectTip(move('wiki:'+id),count,checks);
-      const summary=page.locator('summary[data-sp-mars-detail="wiki:2000101"]').first();
+      const fighter=mode==='单精灵'?'#fighter-0':'.team-fighter.side-a';
+      const summary=page.locator(fighter+' summary[data-move-detail="wiki:2000101"]');
       await expectTip(summary,9,[/属性技能 · 威力 0 · PP 5 · 必中 · 基础先制 \+3/,/原第五 · 技能效果/,
         /5 回合内免疫并反弹/,/存活形态/,/1\/4 的真实伤害/,/下回合开始时换位/,/吸取对手最大体力的 1\/3/,
         /整招无效时仍执行.*魂印词条/]);

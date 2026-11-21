@@ -32,12 +32,28 @@ test('凝寒止喧 90 段按实际体力损失合并，护盾与同回合另一�
   assert.equal(expected[0].damage.hpLoss,0);
   assert.equal(row.text,`B 方使用凝寒止喧，命中 90 段，A 方共损失 ${loss} 点体力。`);
   assert.deepEqual(row.segments,expected);
+  assert.equal(row.damage.hpLoss,loss);
+  assert.equal(row.damage.settledDamage,expected.reduce((n,e)=>n+e.damage.settledDamage,0));
+  assert.equal(display.damageLabel(row.damage),'攻击伤害（红伤）');
   assert.ok(row.segments.every(e=>e.detail.includes('完整结算')));
   const extra=rendered.find(e=>e.damage?.type==='fixed'&&e.damage.hpLoss===30);
+  assert.equal(display.damageLabel(extra.damage),'固定伤害');
+  const healing=rendered.find(e=>e.healing).healing;
+  assert.equal(healing.targetName,battle.fighters[0].name);
+  assert.equal(healing.hpGain,loss+30);
   const potion=rendered.findIndex(e=>e.text.includes('使用了血药'));
   assert.ok(rendered.indexOf(row)<rendered.indexOf(extra)&&rendered.indexOf(extra)<potion);
   assert.equal(out.fighters[0].hp,2000);
   assert.deepEqual(events,original);
+});
+
+test('伤害类型按事件字段区分，独立属性伤害保持自身标签',()=>{
+  for(const [damage,label] of [
+    [{type:'attack',redCategory:'attribute'},'独立属性伤害'],
+    [{type:'attack',redCategory:'attack'},'攻击伤害（红伤）'],
+    [{type:'fixed'},'固定伤害'],[{type:'percent'},'百分比伤害'],
+    [{type:'true'},'真实伤害'],[{type:'direct'},'直接伤害'],
+  ])assert.equal(display.damageLabel(damage),label);
 });
 
 test('免伤仍有命中段，提前击倒只计真实段且倒下者不再用药',()=>{

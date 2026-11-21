@@ -2,7 +2,7 @@
   if(location.search!=='?mode=team')return;
   const E=window.BattleEngine,T=window.TeamBattle;
   const teams=[[],[]],leads=[0,0],sides=[0,1],$=id=>document.getElementById(id);
-  let game=null,initialMatch=null;
+  let game=null,initialMatch=null,replacement=[null,null];
   const expandedResources=new Set();
   function el(tag,text){
     const node=document.createElement(tag);
@@ -124,12 +124,18 @@
     for(const side of sides){
       const value=choices[side],label=panel.querySelector('[data-selection="'+side+'"]');
       if(!label)continue;
-      const form=E.SpMars.fifthForm(game.battle.fighters[side],value);
-      label.textContent = value ? (value==='switch/random'?'驱逐换人（随机）':value.startsWith('switch/') ? '换入 '+teams[side][Number(value.slice(7))].snapshot.name : form?game.battle.moveDefinitions[E.SpMars.FIFTH_KEY].name+' · '+E.SpMars.LABELS[form]:game.battle.moveDefinitions[value].name)
-        : game.phase==='finished'?'已结束':game.phase==='replace'&&!game.pending.includes(side)?'等待对方补位':'待选择';
+      const f=turnView().battle.fighters[side];
+      const form=E.SpMars.fifthForm(f,value);
+      const move=cardMove(side,form?E.SpMars.FIFTH_KEY:value);
+      label.textContent = value ? (value==='switch/random'?'驱逐换人（随机）':value.startsWith('switch/') ? '换入 '+teams[side][Number(value.slice(7))].snapshot.name : form?move.name+' · '+E.SpMars.LABELS[form]:move?.name??'无需出招')
+        : game.phase==='finished'?'已结束':'待选择';
     }
     const resolve=panel.querySelector('[data-team-resolve]');
-    if(resolve)resolve.disabled=(game.phase==='replace'?game.pending:sides).some(i=>!choices[i]);
+    if(resolve)resolve.disabled=sides.some(i=>{
+      if(game.phase!=='replace')return !choices[i];
+      if(game.pending.includes(i)&&replacement[i]==null)return true;
+      return !choices[i]&&game.battle.teamDrivenAction1061?.[i]?.round!==game.battle.round;
+    });
   }
 
   function choice(side,key,cls,label,reason='') {
@@ -141,16 +147,33 @@
     return b;
   }
 
+  function turnView(){
+    return game.phase==='replace'?T.projectReplacement(game,replacement):game;
+  }
+
+  function cardMove(side,key){
+    if(replacement[side]!=null&&key?.startsWith('wiki:')){
+      const slot=game.slots[side][replacement[side]];
+      const selection=slot.config.moves.find(id=>String(id)===key.slice(5));
+      const raw=E.WIKI.selectedMove(slot.config.snapshot,selection);
+      if(raw)return {...raw,name:raw.selectionName??raw.name,wikiId:raw.id};
+    }
+    return game.battle.moveDefinitions[key];
+  }
+
   function fighterPanel(side) {
-    const f=game.battle.fighters[side],active=game.active[side],phase=game.phase;
+    const view=turnView(),f=view.battle.fighters[side],active=view.active[side],phase=game.phase;
+    const waiting=phase==='replace'&&game.pending.includes(side)&&replacement[side]==null;
+    const drivenAction=phase==='replace'&&view.battle.teamDrivenAction1061?.[side]?.round===view.battle.round;
+    const canAct=phase!=='finished'&&!waiting&&!drivenAction;
     const card=node('article','fighter team-fighter '+(side?'side-b':'side-a'));
     card.setAttribute('aria-label',sideName(side)+' '+f.name);
     const head=node('div','fighter-head'),line=node('div','side-label');
-    line.append(el('span',sideName(side)+' · '+(f.soulState.vanished?'已消逝':f.hp?'在场':'阵亡')),node('span','type-pill',f.type));
+    line.append(el('span',sideName(side)+' · '+(replacement[side]!=null?'待补位':f.soulState.vanished?'已消逝':f.hp?'在场':'阵亡')),node('span','type-pill',f.type));
     const names=node('div','name-row');names.append(el('h2',f.name),node('span','level','Lv.'+f.level));
     head.append(line,names);
     const P=window.BattlePresentation,snapshot=game.slots[side][active].config.snapshot;
-    const affinity=P.affinity(f,game.battle.fighters[1-side],game.battle),typeBox=node('div','affinity-summary');
+    const affinity=P.affinity(f,view.battle.fighters[1-side],view.battle),typeBox=node('div','affinity-summary');
     typeBox.setAttribute('aria-label',sideName(side)+'属性克制');
     typeBox.append(el('span',affinity.from+' → '+affinity.to),el('strong','×'+affinity.multiplier),el('small',affinity.note));head.append(typeBox);
     const soul=P.soul(f,snapshot),soulBox=node('details','soul-card');
@@ -198,23 +221,45 @@
     if(list.childElementCount)head.append(list);card.append(head);
     const area=node('div','move-area'),heading=node('div','move-heading'),selected=el('strong');
     selected.dataset.selection=String(side);heading.append(el('span','本回合行动'),selected);area.append(heading);
+    if(phase==='replace'&&game.pending.includes(side)){
+      const bench=node('div','team-bench');
+      for(const index of T.candidates(game,side,true)){
+        const reserve=game.slots[side][index].fighter;
+        const b=button('补位 '+reserve.name,()=>{
+          if(replacement[side]===index)return;
+          replacement[side]=index;choices[side]=null;
+          const updated=turnView(),opponent=1-side,action=choices[opponent];
+          if(action?.startsWith('switch/')&&!T.candidates(updated,opponent).includes(Number(action.slice(7))))
+            choices[opponent]=null;
+          render();
+        });
+        b.dataset.replacementMember=String(index);b.dataset.side=String(side);
+        b.setAttribute('aria-pressed',String(replacement[side]===index));bench.append(b);
+      }
+      area.prepend(node('h4','bench-title','选择补位精灵'),bench);
+    }
+    if(waiting||drivenAction){
+      if(drivenAction)area.append(el('p','本回合已被驱逐，无需再选行动。'));
+      card.append(area);
+      return card;
+    }
     const legal=E.availableMoves(f,game.battle.round),moves=node('div','team-moves');
     for(const key of [...new Set([...f.moves,...legal.filter(k=>k!=='team:switch'&&!k.startsWith('potion:'))])]){
-      const move=game.battle.moveDefinitions[key];
+      const move=cardMove(side,key);
       if(!move)continue;
       const currentPp=E.SpMars.projectedBody(f,game.battle.round)?.pp??f.pp;
-      const reason=phase!=='action'?(phase==='replace'?'补位期间不能用招':'对战结束'):!legal.includes(key)?(f.soulState.collapsedSkills1809?.[key]?'本场已崩溃':currentPp[key]===0?'PP 已耗尽':'当前不可用'):'';
+      const reason=!canAct?'对战结束':!legal.includes(key)?(f.soulState.collapsedSkills1809?.[key]?'本场已崩溃':currentPp[key]===0?'PP 已耗尽':'当前不可用'):'';
       if(E.SpMars.owns(f)&&key===E.SpMars.FIFTH_KEY){
         const group=node('details','move team-move');
         const summary=el('summary',`${move.name} · PP ${currentPp[key]} / ${move.pp}`);
-        summary.dataset.spMarsDetail=key;
+        summary.dataset.moveDetail=key;
         group.append(summary);
         for(const form of E.SpMars.legalForms(f)){
           const label=E.SpMars.LABELS[form];
           const button=choice(side,E.SpMars.choiceKey(form),'button secondary',label,reason);
           button.textContent=label;
-          button.dataset.spMarsDetail=key;
-          button.dataset.spMarsForm=form;
+          button.dataset.moveDetail=key;
+          button.dataset.moveForm=form;
           button.removeAttribute('title');
           group.append(button);
         }
@@ -225,72 +270,51 @@
       const mark=node('span','action-icon '+move.kind,move.kind==='status'?'◎':move.kind==='physical'?'⚔':'✦');mark.setAttribute('aria-hidden','true');
       const info=node('span','action-info');
       info.append(node('strong','move-name',move.name),node('small','move-pp',key==='struggle'?'不限 PP':'PP '+currentPp[key]+' / '+move.pp));
-      if(E.SpMars.owns(f)&&Object.values(E.SpMars.MOVES).includes(move.wikiId)){
-        b.dataset.spMarsDetail=key;
-        b.removeAttribute('title');
-      }else b.title=reason||[move.name,move.description].filter(Boolean).join(' · ');
+      b.dataset.moveDetail=key;
+      if(!reason)b.removeAttribute('title');
       b.append(mark,info);moves.append(b);
     }
     area.append(moves);
     const potions=node('div','potion-actions team-potions');
     for(const key of ['potion:hp','potion:pp']){
-      const move=game.battle.moveDefinitions[key],label=move.name,reason=phase!=='action'||!legal.includes(key)?'当前不可用':'';
+      const move=cardMove(side,key),label=move.name,reason=!canAct||!legal.includes(key)?'当前不可用':'';
       const b=choice(side,key,'button secondary team-potion',label,reason);
       const icon=node('span','bottle-icon '+(key==='potion:hp'?'hp-bottle':'pp-bottle'));icon.setAttribute('aria-hidden','true');
       b.append(icon,el('span',label));potions.append(b);
     }
     area.append(potions);
     const bench=node('div','team-bench');bench.setAttribute('aria-label',sideName(side)+'场下精灵');
-    const canChoose=phase==='action'||phase==='replace'&&game.pending.includes(side);
-    const allowed=canChoose?T.candidates(game,side,phase==='replace'):[],driven=phase==='action'&&T.switchMode(game,side)==='expelled';
+    const allowed=canAct?T.candidates(view,side):[],driven=canAct&&T.switchMode(view,side)==='expelled';
     teams[side].forEach((m,i)=>{
       if(i===active)return;
       const reserve=game.slots[side][i].fighter;
-      const reason=reserve.soulState.vanished?'已消逝':allowed.includes(i)?'':reserve.hp<=0?'已阵亡':phase==='finished'?'对战结束':phase==='replace'?'无需补位':'无法主动切换';
+      const reason=reserve.soulState.vanished?'已消逝':allowed.includes(i)?'':reserve.hp<=0?'已阵亡':phase==='finished'?'对战结束':'无法主动切换';
       const b=choice(side,'switch/'+i,'team-reserve', '换入 '+m.snapshot.name, reason);
       if(driven&&allowed.includes(i))b.append(node('small','bench-state','主动更换视为驱逐，可指定此队友')); 
       b.append(el('strong',m.snapshot.name),health(reserve,true));
       if(reason)b.append(node('small','bench-state',reason));
       bench.append(b);
     });
-    area.append(node('h4','bench-title',phase==='replace'&&game.pending.includes(side)?'选择补位精灵':'场下精灵'));
+    area.append(node('h4','bench-title','场下精灵'));
     if(!bench.children.length)bench.append(node('span','effect-empty','无场下成员'));
     area.append(bench);card.append(area);
-    if(E.SpMars.owns(f))P.bindSpMarsMoveDetails(card,snapshot);
+    P.bindMoveDetails(card,snapshot,key=>cardMove(side,key));
     return card;
   }
 
   function journal() {
     const log=node('aside','log-panel team-journal');log.setAttribute('aria-label','回合详情');
     const title=node('div','log-header');title.append(el('h2','回合详情'));log.append(title);
-    const body=node('div','battle-log'),groups=new Map(),details=new Map();
-    for(const turn of game.battle.turns)for(const [turnEventIndex,event] of turn.events.entries()){
-      const key=turn.round+'|'+event.text;
-      if(!details.has(key))details.set(key,[]);
-      details.get(key).push({...event,turnEventIndex});
-    }
-    for(const line of game.history){
+    const body=node('div','battle-log'),groups=new Map();
+    for(const [index,line] of game.history.entries()){
       const match=/^第 (\d+) 回合 · ([\s\S]+)$/.exec(line);
       const round=match?Number(match[1]):null,text=match?match[2]:line;
       if(!groups.has(round))groups.set(round,[]);
-      const rich=details.get(round+'|'+text)?.shift();
-      groups.get(round).push(rich??{text,kind:''});
+      groups.get(round).push(game.historyDetails?.[index]??{text,kind:''});
     }
     for(const [round,events] of [...groups].reverse()){
       const section=node('section','log-turn');section.append(el('h3',round===null?'对战记录':'第 '+round+' 回合'));
-      for(const event of window.BattleDisplay.logEvents(events)){
-        const item=node('div','log-event '+event.kind,event.segments?'':event.text);
-        if(event.segments){
-          const disclosure=el('details');disclosure.append(el('summary',event.text));
-          for(const hit of event.segments){
-            const row=el('div','第 '+(hit.segment.index+1)+' 段 · '+hit.text);
-            if(hit.detail)row.append(node('small','event-detail',hit.detail));
-            disclosure.append(row);
-          }
-          item.append(disclosure);
-        }else if(event.detail)item.append(node('small','event-detail',event.detail));
-        section.append(item);
-      }
+      for(const event of window.BattleDisplay.logEvents(events))section.append(window.BattleDisplay.renderLogEvent(event));
       body.append(section);
     }
     body.tabIndex=0;log.append(body);
@@ -302,7 +326,17 @@
     return log;
   }
 
+  function appendMatchControls(actions){
+    actions.append(button('重新开局',()=>{
+      expandedResources.clear();choices=[null,null];replacement=[null,null];
+      const initial=structuredClone(initialMatch);
+      game=T.create(initial.teams,initial.leads,initial.settings);render();
+    }));
+    actions.append(button('返回组队',()=>{game=null;choices=[null,null];replacement=[null,null];render();}));
+  }
+
   function render() {
+    window.BattlePresentation.closeMoveDetails();
     picker.hidden=!!game;growth.hidden=!!game;
     document.body.classList.toggle('team-in-battle',!!game);panel.replaceChildren();
     if(!game){setup();return;}
@@ -312,19 +346,14 @@
     const host=node('span','growth-help team-host-label','房主 '+sideName(game.battle.challengedSide)+' · 同档必先优先');host.title='本场开始时随机确定，换人后保持不变';bar.append(host);
     const actions=node('div','team-actions');
     if(game.phase!=='finished'){
-      const submit=button(game.phase==='replace'?'确认补位':'结算回合',()=>{
+      const submit=button(game.phase==='replace'?'确认补位并结算回合':'结算回合',()=>{
         const selected=choices.map(value=>value==='switch/random'?{switchTo:'random'}:value?.startsWith('switch/')?{switchTo:Number(value.slice(7))}:value);
-        game=game.phase==='replace'?T.replace(game,selected.map(a=>a?.switchTo??null)):T.turn(game,selected);
-        choices=[null,null];render();
+        game=game.phase==='replace'?T.turnWithReplacement(game,replacement,selected):T.turn(game,selected);
+        choices=[null,null];replacement=[null,null];render();
       });
       submit.className='button primary';submit.dataset.teamResolve='';actions.append(submit);
     }
-    actions.append(button('重新开局',()=>{
-      expandedResources.clear();choices=[null,null];
-      const initial=structuredClone(initialMatch);
-      game=T.create(initial.teams,initial.leads,initial.settings);render();
-    }));
-    actions.append(button('返回组队',()=>{game=null;choices=[null,null];render();}));
+    appendMatchControls(actions);
     bar.append(actions);arena.append(bar);
     const cards=node('div','team-cards');for(const side of sides)cards.append(fighterPanel(side));
     arena.append(cards);panel.append(arena,journal());updateSelection();

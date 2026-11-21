@@ -116,6 +116,31 @@
       [group('原第五 · 技能效果',base),group('魂印 · 选择形态与换位',switchRules)]};
   }
 
+  function moveDetails(snapshot,key,move,form){
+    const original=spMarsMove(snapshot,key,form);
+    if(original)return original;
+    if(!move)return null;
+    const selection=key.startsWith('wiki:')?key.slice(5):move.wikiId;
+    const selectionId=typeof selection==='string'&&/^\d+$/.test(selection)?Number(selection):selection;
+    const source=snapshot&&selectionId!=null?E.WIKI.selectedMove(snapshot,selectionId):null;
+    const details=source??move;
+    const type=details.kind==='status'?'属性技能':
+      [details.type,{physical:'物攻',special:'特攻'}[details.kind]].filter(Boolean).join('')||'技能';
+    const accuracy=details.alwaysHit?'必中':Number.isFinite(details.accuracy)?'命中 '+details.accuracy+'%':null;
+    const priority=Number.isFinite(details.priority)?'基础先制 '+(details.priority>=0?'+':'')+details.priority:null;
+    const meta=[type,Number.isFinite(details.power)?'威力 '+details.power:null,
+      key==='struggle'?'不限 PP':Number.isFinite(details.pp)?'PP '+details.pp:null,accuracy,priority].filter(Boolean).join(' · ');
+    const paragraphs=text=>String(text??'').replace(/<br\s*\/?\s*>/gi,'\n').split(/\r?\n/)
+      .map(line=>clean(line).trim()).filter(Boolean);
+    const lines=paragraphs(details.description);
+    const effects=details.effectInstances?.flatMap(instance=>paragraphs(instance.description))??[];
+    const normalize=text=>text.replace(/[\s；;]+/g,'');
+    const hasCompleteInstances=effects.length&&normalize(effects.join(''))===normalize(lines.join(''));
+    const groups=[{label:'技能效果',lines:hasCompleteInstances?effects:lines.length?lines:['资料未列出额外效果。']}];
+    if(source?.selectionNote)groups.unshift({label:'所选分支',lines:paragraphs(source.selectionNote)});
+    return {name:details.selectionName??details.name,meta,groups};
+  }
+
   let tip,anchor,closeTimer;
   function closeMoveDetails(){
     clearTimeout(closeTimer);
@@ -130,7 +155,7 @@
     tip.style.left=Math.max(margin,Math.min(bounds.left,window.innerWidth-tip.offsetWidth-margin))+'px';
     const above=bounds.top-margin-gap,below=window.innerHeight-bounds.bottom-margin-gap;
     const placeAbove=above>below;
-    tip.style.maxHeight=Math.min(window.innerHeight-2*margin,Math.max(140,above,below))+'px';
+    tip.style.maxHeight=Math.min(window.innerHeight-2*margin,Math.max(72,above,below))+'px';
     tip.style.top=Math.max(margin,Math.min(placeAbove?bounds.top-gap-tip.offsetHeight:bounds.bottom+gap,
       window.innerHeight-margin-tip.offsetHeight))+'px';
   }
@@ -167,10 +192,11 @@
     positionMoveDetails();
   }
 
-  function bindSpMarsMoveDetails(container,snapshot){
+  function bindMoveDetails(container,snapshot,lookup){
     if(anchor&&!anchor.isConnected)closeMoveDetails();
-    for(const target of container.querySelectorAll('[data-sp-mars-detail]')){
-      const details=spMarsMove(snapshot,target.dataset.spMarsDetail,target.dataset.spMarsForm);
+    for(const target of container.querySelectorAll('[data-move-detail]')){
+      const key=target.dataset.moveDetail;
+      const details=moveDetails(snapshot,key,lookup(key),target.dataset.moveForm);
       if(!details)continue;
       const show=()=>openMoveDetails(target,details);
       const hide=event=>{
@@ -183,5 +209,5 @@
     }
   }
 
-  return Object.freeze({soul,equipment,explain,affinity,spMarsMove,bindSpMarsMoveDetails});
+  return Object.freeze({soul,equipment,explain,affinity,spMarsMove,moveDetails,bindMoveDetails,closeMoveDetails});
 });

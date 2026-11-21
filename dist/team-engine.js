@@ -77,6 +77,13 @@
     for(const f of s.fighters)for(const slot of f.soulState.charm1999?.slots??[])if(s.moveDefinitions[slot.alias])charms[slot.alias]=s.moveDefinitions[slot.alias];
     s.moveDefinitions={...E.MOVES,...charms,'team:switch':{id:'team:switch',name:'中切',kind:'item',priority:0,power:0,operations:[]}};
   }
+  function appendHistory(game,round,events,isTurn=false){
+    const details=game.historyDetails??={};
+    for(const [index,event] of events.entries()){
+      details[game.history.length]={...event,turnEventIndex:isTurn?index:null};
+      game.history.push('第 '+round+' 回合 · '+event.text);
+    }
+  }
   function enter(game,changed){
     const s=game.battle;
     s.entryEvents=[];
@@ -112,7 +119,7 @@
       ability.grantStar({a:f},f,'gift',source);
       if(slot.wasLead&&slot.entries===1)ability.grantStar({a:f},f,'blessing',source);
     }
-    game.history.push(...s.entryEvents.map(e=>'第 '+s.round+' 回合 · '+e.text));
+    appendHistory(game,s.round,s.entryEvents);
   }
   function switchMode(game,side){return E.teamSwitchReplacement(game.battle)?'expelled':'voluntary';}
   function candidates(game,side,forced=false){
@@ -502,7 +509,8 @@
       s.turns.at(-1).events.push({text});game.history.push('第 '+completed+' 回合 · '+text);
     }else {game.phase=game.pending.length?'replace':'action';if(game.phase==='action'){E.prepareTeamExile(s);E.prepareWindDue2058(s);}}
   }
-  function turn(previous,choices){
+  const unavailableAction='team:unavailable-action';
+  function turn(previous,choices,afterReplacement=false){
     if(previous.phase!=='action'||!Array.isArray(choices)||choices.length!==2)throw Error('当前不能提交回合');
     const game=copy(previous),s=game.battle;
     const drivenAction=sides.map(side=>s.teamDrivenAction1061?.[side]?.round===s.round);
@@ -510,7 +518,9 @@
     for(const side of sides)if(requested[side]!=null&&!candidates(game,side).includes(requested[side]))throw Error('不可换入该成员');
     // User 2026-11-10: 2144 changes departure semantics, never the chosen target.
     const targets=requested;
-    for(const side of sides)if(!drivenAction[side]&&targets[side]==null&&!E.validBattleChoice(s.fighters[side],choices[side],s.round))throw Error('请选择合法行动');
+    if(!afterReplacement)for(const side of sides){
+      if(!drivenAction[side]&&targets[side]==null&&!E.validBattleChoice(s.fighters[side],choices[side],s.round))throw Error('请选择合法行动');
+    }
     swap(game,targets,false,departures);
     for(const side of sides)if(targets[side]!=null){
       const incoming=s.fighters[side];
@@ -537,7 +547,15 @@
       const present=opponents[game.active[1-side]];
       present.dishengFieldTurns=(present.dishengFieldTurns??0)+1;
     }
-    const actions=choices.map((choice,i)=>drivenAction[i]||targets[i]!=null?'team:switch':choice);
+    const actions=choices.map((choice,side)=>{
+      if(drivenAction[side]||targets[side]!=null)return 'team:switch';
+      if(!afterReplacement)return choice;
+      // Entry effects can alter the chosen skill before it starts.
+      const fighter=s.fighters[side];
+      const key=fighter.soulState.charm1999?.slots.find(slot=>slot.id===choice)?.alias??choice;
+      return E.validBattleChoice(fighter,key,s.round)?key:unavailableAction;
+    });
+    if(afterReplacement&&actions.includes(unavailableAction))s.moveDefinitions[unavailableAction]={id:unavailableAction,name:'所选行动无法执行',kind:'item',priority:-100,power:0,operations:[]};
     delete s.teamKnockout;
     game.battle=E.resolveTurn(s,actions);
     E.captureTeamLaw2146(game.battle);
@@ -655,7 +673,7 @@
       }
     }
     const last=game.battle.turns.at(-1);
-    game.history.push(...last.events.map(e=>'第 '+last.round+' 回合 · '+e.text));
+    appendHistory(game,last.round,last.events,true);
     adjudicate(game);
     return game;
   }
@@ -666,6 +684,37 @@
     swap(game,targets,true);adjudicate(game);
     return game;
   }
-  return {create,turn,replace,candidates,switchMode};
-});
 
+  function projectReplacement(game,targets){
+    const active=game.active.map((position,side)=>targets[side]??position);
+    const fighters=active.map((position,side)=>targets[side]==null?game.battle.fighters[side]:game.slots[side][position].fighter);
+    return {...game,active,battle:{...game.battle,fighters}};
+  }
+
+  function turnWithReplacement(previous,targets,choices){
+    if(previous.phase!=='replace'||!Array.isArray(targets)||targets.length!==2||!Array.isArray(choices)||choices.length!==2)throw Error('请选择补位及本回合行动');
+    for(const side of sides){
+      const target=targets[side];
+      if(previous.pending.includes(side)?!candidates(previous,side,true).includes(target):target!=null)
+        throw Error('请选择合法补位成员');
+    }
+    const projected=projectReplacement(previous,targets);
+    const round=previous.battle.round;
+    for(const side of sides){
+      const choice=choices[side];
+      if(previous.battle.teamDrivenAction1061?.[side]?.round===round)continue;
+      const legal=choice&&typeof choice==='object'?candidates(projected,side).includes(choice.switchTo):
+        E.validBattleChoice(projected.battle.fighters[side],choice,round);
+      if(!legal)throw Error('请为双方选择可执行的行动');
+    }
+    const game=replace(previous,targets);
+    if(game.phase!=='action')return game;
+    const actions=choices.map((choice,side)=>{
+      if(game.active[side]!==projected.active[side])return unavailableAction;
+      if(choice&&typeof choice==='object'&&!candidates(game,side).includes(choice.switchTo))return unavailableAction;
+      return choice;
+    });
+    return turn(game,actions,true);
+  }
+  return {create,turn:(game,choices)=>turn(game,choices),replace,candidates,switchMode,projectReplacement,turnWithReplacement};
+});

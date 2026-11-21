@@ -287,7 +287,7 @@
     if(validVersion&&f.soulId===410){
       active('圣甲·盖亚 · 回合回复',f.hp<=0?'已阵亡：不回复':state.gaiaRecovery?'已启动：每回合回复 '+Math.floor(f.stats.maxHp/3)+' 点 · 下场清除':'未启动：使用技能后开启');
       active('圣甲·盖亚 · 临终反击',f.level===100?'100级 · 战斗阶段实际死亡时触发':f.level+'级 · 不触发临终反击');
-      if((f.roundSettledSkillDamageTaken??0)>0)active('圣甲·盖亚 · 已受技能伤害',f.roundSettledSkillDamageTaken+' 点 · 完整结算');
+      if((state.gaiaCounterDamage??0)>0)active('圣甲·盖亚 · 已受攻击伤害',state.gaiaCounterDamage+' 点 · 完整结算');
     }
     if(validVersion&&[395,396].includes(f.soulId)){
       active('王龙 · 当前红伤减免',Math.round((E.SOULS.trait(f,'attackReduction')??0)*100)+'% · 固定、百分比及真实伤害不减');
@@ -859,17 +859,70 @@
     });
     const sideName=side=>side===0?'A 方':'B 方';
     return events.flatMap((event,index)=>{
-      if (event.kind==='move'&&summarizedMoves.has(event.turnEventIndex??index)) return [];
+      const turnEventIndex=event.turnEventIndex===undefined?index:event.turnEventIndex;
+      if (event.kind==='move'&&summarizedMoves.has(turnEventIndex)) return [];
       const segments=byCast.get(keys.get(index));
       if (!segments) return [event];
       if (segments[0]!==event) return [];
       const hpLoss=segments.reduce((total,hit)=>total+hit.damage.hpLoss,0);
       const {sourceSide,targetSide}=event.damage;
       const text=`${sideName(sourceSide)}使用${event.segment.move}，命中 ${segments.length} 段，${sideName(targetSide)}共损失 ${hpLoss} 点体力。`;
-      return [{kind:'damage',text,segments}];
+      const settledDamage=segments.reduce((total,hit)=>total+hit.damage.settledDamage,0);
+      return [{kind:'damage',text,segments,damage:{...event.damage,hpLoss,settledDamage}}];
     });
   }
-  return Object.freeze({fighter,team,specs,reiStatuses,spMarsStatuses,logEvents,queuedLabels:Object.freeze(queuedLabels)});
+  function damageLabel(damage) {
+    if(damage.type==='attack'&&damage.redCategory==='attribute')return '独立属性伤害';
+    return {attack:'攻击伤害（红伤）',fixed:'固定伤害',percent:'百分比伤害',true:'真实伤害',direct:'直接伤害'}[damage.type]??'伤害';
+  }
+
+  function renderLogEvent(event) {
+    function node(tag,className='',text=''){
+      const el=document.createElement(tag);
+      if(className)el.className=className;
+      el.textContent=text;
+      return el;
+    }
+    const {damage,healing,segments}=event;
+    const change=damage??healing;
+    const row=node('div','log-event '+(event.kind??''));
+    if(change){
+      const amount=damage?damage.hpLoss:healing.hpGain;
+      const direction=damage?'loss':'gain';
+      row.dataset.hpChange=direction;
+      if(damage)row.dataset.damageType=damage.type;
+      if(amount===0)row.classList.add('log-hp-zero');
+      const headline=node('span','log-hp-headline');
+      const side=change.targetSide===0?'A 方':change.targetSide===1?'B 方':'';
+      const target=[side,change.targetName].filter(Boolean).join(' · ');
+      headline.append(node('span','log-hp-label',damage?'受伤 · '+damageLabel(damage):'回复体力'),
+        node('strong','log-hp-target',[target,(amount===0?'0':(damage?'−':'+')+amount)+' HP'].filter(Boolean).join(' ')));
+      if(!amount)headline.append(node('span','log-hp-status',damage?'未扣血':'未恢复'));
+      const settlement=segments?' 完整结算 '+damage.settledDamage+' 点。':
+        healing?.settledHealing>amount?' 恢复结算 '+healing.settledHealing+' 点。':'';
+      const caption=node('span','log-hp-detail',event.text+settlement);
+      if(segments){
+        const details=node('details','log-hit-details'),summary=node('summary');
+        summary.append(headline,caption);
+        const list=node('ol','log-hit-segments');
+        for(const hit of segments){
+          const item=node('li','',`第 ${hit.segment.index+1} 段 · ${hit.text}`);
+          if(hit.detail)item.append(node('div','calculation',hit.detail));
+          list.append(item);
+        }
+        details.append(summary,list);
+        row.append(details);
+      }else row.append(headline,caption);
+    }else row.textContent=event.text;
+    if(event.detail&&!segments){
+      const details=node('details','log-calculation');
+      details.append(node('summary','','查看伤害计算'),node('div','calculation',event.detail));
+      row.append(details);
+    }
+    return row;
+  }
+
+  return Object.freeze({fighter,team,specs,reiStatuses,spMarsStatuses,logEvents,damageLabel,renderLogEvent,queuedLabels:Object.freeze(queuedLabels)});
 });
 
 
