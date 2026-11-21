@@ -374,7 +374,11 @@
     if(validVersion&&f.soulId===2040&&state.pharaohBleedDue2040>=round)add('图特预约流血','第'+state.pharaohBleedDue2040+'回合回初流血1回合 · 已于战阶末检查条件');
     if(validVersion&&f.soulId===1617){const n=state.swordEntryCount??0;add('剑灵登场圣剑快照',n+' 柄 · 攻击伤害 +'+n*10+'%'+(n>=2?'、受到攻击伤害 -'+(n-1)*10+'%':'')+(n>=3?'、先制 +1':'')+(n>=4?'、免疫异常':'')+' · 下场清除，返场重取');if(state.swordEntryEnd>=round&&state.swordEntryReduction>0)add('处决印记登场减伤',Math.round(state.swordEntryReduction*100)+'% · 余 '+(state.swordEntryEnd-round+1)+' 回合');}
     if(validVersion&&f.soulId===2120)add('下次登场睡眠',(state.doctor2120?.sleepDuration??3)+' 回合 · 消强且睡眠成功才递减，最低1 · 背包观察双方复活后重置3');
-    if(validVersion&&f.soulId===1967&&state.wudao1967)add('武道本场在场计时',state.wudao1967.fieldRounds+' 回合 · 场下暂停，返场重开血之道 · 血道仅前10回抵挡');
+    const wudao=wudaoStatus(f);
+    if(wudao){
+      items.unshift({name:'武道',value:wudao,activeOnly:true});
+      if(state.wudao1967)add('武道本场在场计时',state.wudao1967.fieldRounds+' 回合 · 场下暂停，返场重开血之道 · 血道仅前10回抵挡');
+    }
     if(validVersion&&f.soulId===1999)add('本次登场衰减',Math.min(3,state.declines1999??0)+' / 3 次 · 基础攻击先制 +'+(3-(state.declines1999??0))+'、吸取 '+(50-10*(state.declines1999??0))+'% · 返场重置');
     if(state.saff2111Source)add('溯洄崩溃','直到下场，属性技能无效');
     const named=state.specialStates??{};
@@ -871,6 +875,16 @@
       return [{kind:'damage',text,segments,damage:{...event.damage,hpLoss,settledDamage}}];
     });
   }
+  function wudaoStatus(f){
+    if(f.soulId!==1967||!E.SOULS.acceptsSource(1967,f.soulHash))return null;
+    const state=f.soulState.wudao1967;
+    if(!state)return '未启动';
+    const direction=state.direction==='reverse'?'逆转':'正转';
+    if(state.closed)return direction+' · 已关闭';
+    const phase=E.SOULS.registry[1967].abilities.phaseLabel(f);
+    return direction+' · '+(phase??'未启动');
+  }
+
   function damageLabel(damage) {
     if(damage.type==='attack'&&damage.redCategory==='attribute')return '独立属性伤害';
     return {attack:'攻击伤害（红伤）',fixed:'固定伤害',percent:'百分比伤害',true:'真实伤害',direct:'直接伤害'}[damage.type]??'伤害';
@@ -922,7 +936,7 @@
     return row;
   }
 
-  return Object.freeze({fighter,team,specs,reiStatuses,spMarsStatuses,logEvents,damageLabel,renderLogEvent,queuedLabels:Object.freeze(queuedLabels)});
+  return Object.freeze({fighter,team,specs,reiStatuses,spMarsStatuses,wudaoStatus,logEvents,damageLabel,renderLogEvent,queuedLabels:Object.freeze(queuedLabels)});
 });
 
 

@@ -296,8 +296,10 @@ add(872,'afterHit',(c,p)=>{
   const zeus=c.m.wikiId===19141&&c.m.revision==='seerapi:ac504c8'&&c.effectInstanceIndex===0;
   if(zeus)delete c.a.soulState.zeusSeal19141;
   if(c.steal(c.a,c.t,'技能')){
+    const previous=c.t.effects.statusBlock;
     c.timed(c.t,'statusBlock',p[0],{});
-    if(zeus)c.a.soulState.zeusSeal19141={round:c.round,targetSide:c.t.side,seal:c.t.effects.statusBlock};
+    if(zeus&&previous!==c.t.effects.statusBlock)
+      c.a.soulState.zeusSeal19141={round:c.round,targetSide:c.t.side,seal:c.t.effects.statusBlock};
   }
 },[turns]);
 add(165,'afterHit',(c,p)=>c.timed(c.a,'每回合强化',p[0],{stages:[0,p[1],0,p[1],0,0]}),[turns,stage]);
@@ -3374,7 +3376,7 @@ metadata[2011]={info:'自身持有北冥狂刃时造成的攻击伤害提升{0}%
 metadata[2016]={info:'{0}回合内使用技能{1}%随机附加{2}种控制类异常状态',args_num:3};add(2016,'afterHit',(c,p)=>c.timed(c.a,'北冥用招随机控制',p[0],{chance:p[1],count:p[2]}),[turns,pct,[1,30]]);
 const exact4515=(m,i,id,hash,index,args,p)=>(m.wikiId??m.id)===id&&(m.hash===hash||m.hash===undefined&&typeof m.id==='string'&&m.id.startsWith('wiki:'))&&m.revision==='seerapi:'+hash&&i===index&&JSON.stringify(args)===JSON.stringify(p);
 {const old=registry[1878],is=(m,i,p)=>exact4515(m,i,36655,'e4ff3a5b',0,[4],p);registry[1878]=Object.freeze({...old,validate(p,m,i){if((m.wikiId??m.id)===36655&&!is(m,i,p))throw Error('4515 1878 source mismatch');old.validate(p,m,i);},qualifiedClear4515:c=>c.clear(c.t),execute(c,p){if((c.m.wikiId??c.m.id)!==36655)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4515 1878 source mismatch');const had=Object.values(c.t.effects).some(e=>conditionStatusRules.timedPresent(e,c.round));c.clear(c.t);if(!had)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'无回合吸取');}});}
-for(const [id,kind]of [[2012,'attack'],[2013,'status']]){metadata[id]={info:'击败对手则令对手下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效',args_num:0};add(id,'afterAttack',c=>{if(c.t.hp>0||!c.t.soulState.deathResolved)return;(c.a.soulState.huoguangNextOpponentRestrictions??={})[id]={sourceMove:c.m.wikiId??c.m.id,revision:c.m.revision,kind,defeatRound:c.round,startRound:c.round+1,duration:1,confirmation:'Q-N50-4515-002'};},[], '真实击败后对方下一只出场精灵在下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效；当前对手复活不算击败，队伍及后继出场第二阶段实现');const old=registry[id];registry[id]=Object.freeze({...old,onTeamKnockout:(p,m,round)=>({effectId:id,start:round+1,end:round+1}),onTeamEntry(member,grant){member.effects[kind==='attack'?'attackBlock':'statusBlock']={start:grant.start,end:grant.end};},qualifiedPayload4515(c){c.timed(c.t,kind==='attack'?'attackBlock':'statusBlock',1,{},c.round+1);}});}
+for(const [id,kind]of [[2012,'attack'],[2013,'status']]){metadata[id]={info:'击败对手则令对手下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效',args_num:0};add(id,'afterAttack',c=>{if(c.t.hp>0||!c.t.soulState.deathResolved)return;c.holdOpponentSeal(kind==='attack'?'attackBlock':'statusBlock',1,{},c.round+1);(c.a.soulState.huoguangNextOpponentRestrictions??={})[id]={sourceMove:c.m.wikiId??c.m.id,revision:c.m.revision,kind,defeatRound:c.round,startRound:c.round+1,duration:1,confirmation:'Q-N50-4515-002'};},[], '真实击败后对方下一只出场精灵在下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效；当前对手复活不算击败，队伍及后继出场第二阶段实现');const old=registry[id];registry[id]=Object.freeze({...old,onTeamKnockout:(p,m,round)=>({effectId:id,start:round+1,end:round+1}),onTeamEntry(member,grant){member.effects[kind==='attack'?'attackBlock':'statusBlock']={start:grant.start,end:grant.end};},qualifiedPayload4515(c){c.timed(c.t,kind==='attack'?'attackBlock':'statusBlock',1,{},c.round+1);}});}
 
 
 const exact4516=(m,i,id,hash,index,args,p)=>(m.wikiId??m.id)===id&&(m.hash===hash||m.hash===undefined&&typeof m.id==='string'&&m.id.startsWith('wiki:'))&&m.revision==='seerapi:'+hash&&i===index&&JSON.stringify(args)===JSON.stringify(p);
@@ -6371,7 +6373,7 @@ const handlers4829={
 for(const[idText,fn]of Object.entries(handlers4829)){const id=+idText,old=registry[id],meta=[{"id":1750,"argsNum":0,"template":"无视自身能力下降状态","revision":"seerapi:d0a6bc9e"},{"id":1060,"argsNum":1,"template":"吸取对手能力提升状态，吸取成功则下{0}回合对手攻击技能无效","revision":"seerapi:b9da1dbe"},{"id":1932,"argsNum":2,"template":"{0}回合内免疫并反弹除{1}外所有受到的异常状态","revision":"seerapi:b17912dc"},{"id":917,"argsNum":3,"template":"命中后{0}%使对手{1}，未触发则附加自身最大体力值1/{2}的百分比伤害","revision":"seerapi:6512b626"},{"id":1984,"argsNum":2,"template":"{0}回合内自身受到的攻击伤害额外减少{1}%","revision":"seerapi:77949f66"},{"id":1168,"argsNum":1,"template":"全属性+{0}，双方任意一方处于异常状态则强化效果翻倍","revision":"seerapi:eab088e8"},{"id":1065,"argsNum":3,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果和百分比伤害翻倍","revision":"seerapi:8a968e14"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":1605,"argsNum":2,"template":"{0}%令对手{1}","revision":"seerapi:91c079b3"},{"id":1019,"argsNum":2,"template":"造成的攻击伤害若高于{0}则令对手{1}回合内使用的属性技能无效","revision":"seerapi:de0e9b23"},{"id":1874,"argsNum":0,"template":"攻击时将自身的能力下降状态视为相应的能力提升状态","revision":"seerapi:e4fda230"},{"id":693,"argsNum":2,"template":"下{0}回合造成的攻击伤害额外提升{1}%","revision":"seerapi:aca364fa"},{"id":1660,"argsNum":3,"template":"{0}%令对手{1}，未触发则降低对手所有技能{2}点PP值","revision":"seerapi:459971f7"},{"id":2145,"argsNum":1,"template":"解除并附加给对手自身所处的异常状态，解除成功则对手{0}回合内技能命中效果失效","revision":"seerapi:3919e992"},{"id":1265,"argsNum":2,"template":"下{0}次受到的攻击伤害减少{1}%","revision":"seerapi:553873eb"},{"id":1926,"argsNum":1,"template":"下{0}次攻击技能无视攻击免疫效果","revision":"seerapi:e4bff6b9"},{"id":881,"argsNum":0,"template":"若自身处于能力下降状态则技能先制+3","revision":"seerapi:897c0169"},{"id":1221,"argsNum":1,"template":"反转自身能力下降状态，反转成功则自身免疫下{0}次受到的异常状态","revision":"seerapi:ff7ec3df"},{"id":547,"argsNum":2,"template":"使敌我双方同时{0}{1}回合","revision":"seerapi:e185e1b5"},{"id":915,"argsNum":3,"template":"消除对手回合类效果，消除成功则自身下{0}回合攻击有{1}%使对手{2}","revision":"seerapi:b9b1d058"},{"id":1356,"argsNum":1,"template":"打出致命一击则附加对手最大体力1/{0}的百分比伤害","revision":"seerapi:4daf0872"},{"id":933,"argsNum":1,"template":"未击败对手则己方下{0}次攻击技能必定打出致命一击","revision":"seerapi:f2e9e9be"},{"id":1286,"argsNum":0,"template":"当回合击败对手则恢复自身所有技能PP值","revision":"seerapi:e53f7fae"}].find(x=>x.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',validate(p,m,i){const b=bindings4829.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4829 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(source4829(c,id))return fn(c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
 registry[1065]=Object.freeze({...registry[1065],used4829(c){const e=c.a.effects['卡布达用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp,n=c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'卡布达用招回血','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'卡布达净回血等量附伤','percent');}});
 
-{const old=registry[1060];registry[1060]=Object.freeze({...old,execute(c,p){if(!(((c.m.wikiId??c.m.id)===38120&&c.m.revision==='seerapi:394e0ef8')||((c.m.wikiId??c.m.id)===38132&&c.m.revision==='seerapi:3c215d72'))||c.effectInstanceIndex!==1)return old.execute(c,p);const before={...c.t.stages},prior=c.t.effects.attackBlock;c.steal(c.a,c.t,'技能');if(Object.keys(before).some(k=>before[k]>0&&c.t.stages[k]<before[k])){c.timed(c.t,'attackBlock',p[0],{},c.round+1);if(prior&&prior.start<=c.round&&prior.end>=c.round)c.t.effects.attackBlock.start=prior.start;}}});}
+{const old=registry[1060];registry[1060]=Object.freeze({...old,execute(c,p){if(!(((c.m.wikiId??c.m.id)===38120&&c.m.revision==='seerapi:394e0ef8')||((c.m.wikiId??c.m.id)===38132&&c.m.revision==='seerapi:3c215d72'))||c.effectInstanceIndex!==1)return old.execute(c,p);const before={...c.t.stages},prior=c.a.effects.heldAttackBlock;c.steal(c.a,c.t,'技能');if(Object.keys(before).some(k=>before[k]>0&&c.t.stages[k]<before[k])){c.timed(c.t,'attackBlock',p[0],{},c.round+1);if(prior&&prior.start<=c.round&&prior.end>=c.round)c.a.effects.heldAttackBlock.start=prior.start;}}});}
 
 {const old=registry[1286];registry[1286]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===38134&&c.m.revision==='seerapi:82f2baf1'&&c.effectInstanceIndex===3){c.a.soulState.roundKillRestorePP=c.round;c.a.soulState.roundKillRestorePPOrigin4829={round:c.round,sourceHash:'82f2baf1'};return;}return old.execute(c,p);}});}
 
@@ -6399,7 +6401,7 @@ const handlers4834={
 463(c,p){c.timed(c.a,'伤害定额减免',p[0],{amount:p[1],whale408:true,source4634834:true});}
 };
 for(const[idText,fn]of Object.entries(handlers4834)){const id=+idText,old=registry[id],meta=[{"id":30,"argsNum":0,"template":"后出手的话威力为2倍","revision":"seerapi:a580c02e"},{"id":4,"argsNum":3,"template":"技能使用成功时，{1}%改变自身{0}等级{2}","revision":"seerapi:cda7be9a"},{"id":33,"argsNum":0,"template":"消除对手能力提升状态","revision":"seerapi:2fdd3e71"},{"id":5,"argsNum":3,"template":"技能使用成功时，{1}%改变对手{0}等级{2}","revision":"seerapi:6392cf41"},{"id":31,"argsNum":2,"template":"1回合做{0}次攻击","revision":"seerapi:3920f039"},{"id":2,"argsNum":0,"template":"对方体力小于1/2时威力加倍","revision":"seerapi:a0610304"},{"id":35,"argsNum":0,"template":"惩罚，对方能力等级越高，此技能威力越大","revision":"seerapi:94f7d2fb"},{"id":32,"argsNum":1,"template":"使用后{0}回合攻击击中对象要害概率增加1/16","revision":"seerapi:8e72ea32"},{"id":43,"argsNum":1,"template":"恢复自身最大体力的1/{0}","revision":"seerapi:b33246e"},{"id":20,"argsNum":2,"template":"{0}%令本方疲惫，{1}回合无法攻击","revision":"seerapi:7fa1fc0a"},{"id":2363,"argsNum":0,"template":"消除对手能力提升状态，若对手不处于能力提升状态则消除对手回合类效果","revision":"seerapi:70adc323"},{"id":1930,"argsNum":3,"template":"自身每有{0}级先制则连击次数+{1}，最高连击{2}次","revision":"seerapi:cc4b5c3d"},{"id":2116,"argsNum":2,"template":"先出手时{0}回合内对手体力恢复效果减少{1}%","revision":"seerapi:db2fdebf"},{"id":1357,"argsNum":1,"template":"后出手时造成的伤害提高{0}%","revision":"seerapi:12eeaeab"},{"id":191,"argsNum":1,"template":"{0}回合内免疫并反弹所有受到的异常状态","revision":"seerapi:ebdb8dc2"},{"id":1558,"argsNum":2,"template":"下{0}回合若打出致命一击则造成的攻击伤害提升{1}%","revision":"seerapi:d227d545"},{"id":1879,"argsNum":4,"template":"获得{0}点护罩，若自身双防总和高于对手则额外获得{1}点，护罩消失时{2}%令对手{3}","revision":"seerapi:d996352b"},{"id":962,"argsNum":1,"template":"全属性+{0}，自身不处于能力提升状态时强化效果翻倍","revision":"seerapi:40fccdb9"},{"id":615,"argsNum":3,"template":"{0}回合内使用技能恢复{1}点体力，体力低于1/{2}时恢复至满","revision":"seerapi:89dfe887"},{"id":1390,"argsNum":4,"template":"{0}%令对手{1}，未触发则{2}回合内每回合{3}%闪避对手攻击","revision":"seerapi:f704f704"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":2364,"argsNum":2,"template":"{0}回合内令对手属性技能无效，无效成功则自身免疫下{1}次对手的攻击","revision":"seerapi:afceb493"},{"id":463,"argsNum":2,"template":"{0}回合内每回合所受的伤害减少{1}点","revision":"seerapi:f74b5b1b"},{"id":1821,"argsNum":1,"template":"未击败对手则恢复自身所有技能{0}点PP值","revision":"seerapi:27a88fca"},{"id":959,"argsNum":1,"template":"消除对手回合类效果，消除成功则自身全属性+{0}","revision":"seerapi:9a8686f9"},{"id":1177,"argsNum":0,"template":"自身处于能力提升状态则使自身能力提升状态翻倍","revision":"seerapi:cda78460"},{"id":1041,"argsNum":2,"template":"造成的攻击伤害若低于{0}则令对手下{1}次使用的攻击技能无效","revision":"seerapi:9f16b1e3"},{"id":2366,"argsNum":3,"template":"造成的攻击伤害高于{0}时{1}回合内对手体力恢复效果减少{2}%","revision":"seerapi:7e4e2ce4"}].find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:id===2366?'afterAttack':'afterHit',validate(p,m,i){const b=bindings4834.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4834 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(source4834(c,id))return fn(c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
-registry[2364]=Object.freeze({...registry[2364],afterUse4834(c){if(c.a.soulState.attackNullifySources4599)syncCounter4599(c.a,'attackNullify');const e=c.t.effects.statusBlock,src=e?.source2364;if(c.a.hp<=0||!c.actualUsed||c.m.kind!=='status'||!c.invalidReason.blocked||c.successful||!src||src.ownerSide!==c.a.side||e.start>c.round||e.end<c.round)return;refreshCounter4599(c,'attackNullify',src.attacks,'4834/38150/7dbae9d2/2364');}});
+registry[2364]=Object.freeze({...registry[2364],afterUse4834(c){if(c.a.soulState.attackNullifySources4599)syncCounter4599(c.a,'attackNullify');const e=c.a.effects.heldStatusBlock,src=e?.source2364;if(c.a.hp<=0||!c.actualUsed||c.m.kind!=='status'||!c.invalidReason.blocked||c.successful||!src||src.ownerSide!==c.a.side||e.start>c.round||e.end<c.round)return;refreshCounter4599(c,'attackNullify',src.attacks,'4834/38150/7dbae9d2/2364');}});
 
 {const old=registry[20];registry[20]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===10138&&c.m.revision==='seerapi:ace772ea'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[100,1]'){if(statusRoll(c,p[0]))c.ailment(c.a,'疲惫',c.a,false,false,p[1]+1,{probabilityPercent:p[0],declaredDuration:p[1],selfControlTiming:'after-own-action'});return;}return old.execute(c,p);}});}
 
@@ -6527,7 +6529,7 @@ const handlers4865={
 922(c,p){c.timed(c.a,'能力下降反馈',p[0],{source9224865:true});},
 54(c,p){c.timed(c.t,'伤害输出降低',p[0],{fraction:1-1/p[1],scopeRed4865:true});},
 579(c,p){(c.a.soulState.ji579Replies??=[]).push({round:c.round,denominator:p[0],label:c.m.name,moveId:c.m.wikiId??c.m.id,sourceRevision:c.m.revision});},
-1060(c,p){const before={...c.t.stages},prior=c.t.effects.attackBlock;c.steal(c.a,c.t,'技能');if(stats.some(k=>before[k]>0&&c.t.stages[k]<before[k])){c.timed(c.t,'attackBlock',p[0],{},c.round+1);if(prior&&prior.start<=c.round&&prior.end>=c.round)c.t.effects.attackBlock.start=prior.start;}}
+1060(c,p){const before={...c.t.stages},prior=c.a.effects.heldAttackBlock;c.steal(c.a,c.t,'技能');if(stats.some(k=>before[k]>0&&c.t.stages[k]<before[k])){c.timed(c.t,'attackBlock',p[0],{},c.round+1);if(prior&&prior.start<=c.round&&prior.end>=c.round)c.a.effects.heldAttackBlock.start=prior.start;}}
 };
 const source2403Shape4865=(p,m,i)=>(m?.wikiId??m?.id)===29252&&m.hash==='7d9ae5eb'&&m.revision==='seerapi:7d9ae5eb'&&i===3&&Array.isArray(p)&&p.length===4&&[100,28,2,2].every((n,j)=>p[j]===n);
 for(const id of [2327,2403,2404,2405,922,54,579,1060]){const old=registry[id],meta=metadata4865.find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:id===2327?old.phase:id===2404?'beforeDamage':'afterHit',...(id===2403?{partial:false,instanceArgsNumFor(m,i,e,entry){if(source2403Shape4865(e?.args,m,i))return 4;return old.instanceArgsNumFor?.(m,i,e,entry)??old.instanceArgsNum??meta.argsNum;},deploymentPendingFor(p,m,i){if(source2403Shape4865(p,m,i))return '';return old?.deploymentPendingFor?.(p,m,i);},deferred:old.deferred,deferredFor(p,m,i){if(source2403Shape4865(p,m,i))return '触发成功则2回合内对手真实下场时，对真实下只出战精灵执行此效果；当前初次束缚已按用户确认第四参数冗余、默认独立2或3回合实现；原始四参数完整保留。';return old.deferredFor?.(p,m,i)??old.deferred;}}:{}),...(id===2405?{deferred:'当前令对手全属性-1已实现；未触发后真实对方下只精灵登场100%混乱、束缚需第二阶段，保留实例全部参数。'}:{}),validate(p,m,i){const b=bindings4865.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4865 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(bindings4865.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index)&&handlers4865[id])return handlers4865[id](c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
@@ -7379,26 +7381,24 @@ for(const id of [2017,934]){
     }
   });
 }
-for(const id of [1128,1827,910]){
-  const rule=registry[id];
-  function grantBlock(c,p){
-    if(id!==910 && c.t.hp<=0)c.queueEntry(c.t,{effectId:id,amount:p[0],shared:[3322,3514,4354,4400,4501,4510,4676].includes(Number(c.a.number))});
+for(const id of [1128,1827]){
+  const rule=registry[id],key=id===1128?'opponentAttackInvalid1128':'opponentStatusInvalid1827';
+  const atUseEnd=new Set(id===1128?[28030,36611]:[36289,36566,36612]);
+  function holdBlock(c,p,atEnd=false){
+    const move=c.m.wikiId??c.m.id;
+    if(id===1128&&([35793,38348].includes(move)||['seerapi:e0502df4','seerapi:3bc89db0'].includes(c.m.revision))){
+      const [revision,index]=move===35793?['seerapi:e0502df4',3]:move===38348?['seerapi:3bc89db0',4]:[];
+      if(c.m.revision!==revision||c.effectInstanceIndex!==index||p[0]!==1)
+        throw Error('Q-N20-4354-008：1128仅确认原版本精确实例[1]');
+    }
+    if(id===1128&&move===31847&&c.m.revision==='seerapi:b6cb32cc'&&c.effectInstanceIndex===1)return;
+    if(!c.a||atUseEnd.has(move)!==atEnd)return;
+    if(move===37203&&!atEnd)rule.execute(c,p);
+    if(c.t.hp<=0)c.a.counts[key]=(c.a.counts[key]??0)+p[0];
   }
   registry[id]=Object.freeze({...rule,hooks:{...rule.hooks,afterUse(c,p){
-    if(!c.teamMode)return rule.hooks?.afterUse?.(c,p);
-    if(id===1128 && c.m.kind==='status')grantBlock(c,p);
-  }},execute(c,p){
-    if(!c.teamMode)return rule.execute(c,p);
-    grantBlock(c,p);
-  },onTeamEntry(member,grant,services){
-    if(id===910){
-      member.effects.statusBlock={start:services.round,end:services.round+grant.amount-1};
-    }else{
-      const count=id===1128?'nextAttackInvalid1128':'nextStatusInvalid1827';
-      if(grant.shared)services.addTeamBlock(member,count,grant.amount);
-      else member.counts[count]=(member.counts[count]??0)+grant.amount;
-    }
-  }});
+    holdBlock(c,p,true);
+  }},execute:holdBlock});
 }
 registry[1090]=Object.freeze({...registry[1090],
   onTeamKnockout:(args,move,round)=>({effectId:1090,start:round+1,end:round+args[0],shared:(move.wikiId??move.id)===37522}),
@@ -7533,9 +7533,9 @@ registry[2279]=Object.freeze({...registry[2279],onTeamKnockout(p,m,round,owner,t
   if(owner.soulId===1948&&target.soulState.mark1948?.owner===owner.side)return {effectId:2279};
 },onTeamEntry(member,g,services){services.huntMark(member);}});
 registry[2159]=Object.freeze({...registry[2159],onTeamKnockout(p,m,round,actor){
+  actor.counts.opponentAttackInvalid1128=(actor.counts.opponentAttackInvalid1128??0)+1;
   return {effectId:2159,percent:p[0]*(actor.soulState.lastWhisperLayers??0)};
 },onTeamEntry(member,grant,s){
-  s.addTeamBlock(member,'nextAttackInvalid1128',1);
   if(grant.percent>0)s.drain(member,Math.floor(member.stats.maxHp*grant.percent/100));
 }});
 registry[2426]=Object.freeze({...registry[2426],onTeamKnockout(p,m,round,actor){

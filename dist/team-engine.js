@@ -654,6 +654,10 @@
           if([185,1830,2551,2194,2159,2326,2426,1663,2027,2017,1654,1090].includes(op.effectId)&&(actor.soulState.teamLandedPayload?.round!==s.round||actor.soulState.teamLandedPayload.move!==move.move.id))continue;
           if(op.effectId===698&&(actor.soulState.teamPayload698?.round!==s.round||actor.soulState.teamPayload698.move!==move.move.id||actor.soulState.teamPayload698.disabled))continue;
           const grant=E.WIKI.effectsEngine.registry[op.effectId]?.onTeamKnockout?.(op.sourceArgs,move.move,s.round,actor,opponent,battle);
+          if(grant?.effectId===910){
+            actor.effects.heldStatusBlock={start:s.round+1,end:s.round+grant.amount};
+            continue;
+          }
           if(grant){
             const queue=(battle.teamEntryGrants??=[[],[]])[1-side];
             queue.push(grant);
@@ -691,7 +695,7 @@
     return {...game,active,battle:{...game.battle,fighters}};
   }
 
-  function turnWithReplacement(previous,targets,choices){
+  function turnWithReplacement(previous,targets,choices,{blind=false}={}){
     if(previous.phase!=='replace'||!Array.isArray(targets)||targets.length!==2||!Array.isArray(choices)||choices.length!==2)throw Error('请选择补位及本回合行动');
     for(const side of sides){
       const target=targets[side];
@@ -703,7 +707,8 @@
     for(const side of sides){
       const choice=choices[side];
       if(previous.battle.teamDrivenAction1061?.[side]?.round===round)continue;
-      const legal=choice&&typeof choice==='object'?candidates(projected,side).includes(choice.switchTo):
+      const selectionView=blind?projectReplacement(previous,targets.map((target,i)=>i===side?target:null)):projected;
+      const legal=choice&&typeof choice==='object'?candidates(selectionView,side).includes(choice.switchTo):
         E.validBattleChoice(projected.battle.fighters[side],choice,round);
       if(!legal)throw Error('请为双方选择可执行的行动');
     }

@@ -959,7 +959,7 @@ test('六个1779按真实换人次数由当前在场队友吸取；次数耗尽�
   }
 });
 
-test('击败后的1128与1827在真正补位者下一次对应技能上消费，910按连续回合结束',()=>{
+test('击败后的1128与1827由施放者持有，910按连续回合结束',()=>{
   for(const [id,move,effect] of [
     [3322,30515,1128],[3514,31519,1128],[3516,31529,1128],[3516,38010,1128],[3577,31847,1128],
     [3613,30515,1128],[3652,32233,1128],[4354,35793,1128],[4354,38348,1128],[4400,28030,1128],
@@ -976,7 +976,7 @@ test('击败后的1128与1827在真正补位者下一次对应技能上消费，
     out=Team.replace(out,[null,1]);const f=out.battle.fighters[1];
     const attack=f.moves.find(k=>out.battle.moveDefinitions[k].power>0),status='wiki:20117';
     const key=effect===1128?attack:status,other=effect===1128?status:attack;
-    if(effect!==910)out=Team.turn(out,[{switchTo:1},other]);
+    if(effect!==910)out=Team.turn(out,['potion:pp',other]);
     const times=effect===910?2:1;
     for(let i=0;i<times;i++){
       const before=out.battle.fighters[1],pp=before.pp[key];

@@ -10,7 +10,8 @@ const reviewJsonCache=new Map();
 function currentReviewJson(file){const resolved=path.join(__dirname,file),stat=fs.statSync(resolved,{bigint:true}),stamp=stat.size+':'+stat.mtimeNs,old=reviewJsonCache.get(file);if(old?.stamp===stamp)return old.value;const value=JSON.parse(fs.readFileSync(resolved,'utf8'));reviewJsonCache.set(file,{stamp,value});return value;}
 
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
-const server = http.createServer(async (req, res) => {
+async function localHandler(req,res) {
+  if(req.url.startsWith('/api/lan/'))return require('./lan-server.cjs').manage(req,res,localHandler);
   if(req.method!=='GET'){res.writeHead(405);return res.end();}
   const url=new URL(req.url,'http://localhost');
   if(url.pathname==='/api/launcher/health'){
@@ -66,5 +67,6 @@ const server = http.createServer(async (req, res) => {
     if (error) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': types[path.extname(target)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(data);
   });
-});
+}
+const server=http.createServer(localHandler);
 server.listen(Number(process.env.PORT)||0, '127.0.0.1', () => console.log(`Local: http://127.0.0.1:${server.address().port}`));

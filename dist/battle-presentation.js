@@ -192,11 +192,25 @@
     positionMoveDetails();
   }
 
+  function teamHead(game,view,side,replacing,display,teamItems,snapshots){
+    const battle=game.battle,f=view.battle.fighters[side],snapshot=view.slots[side][view.active[side]].config.snapshot;
+    const withHelp=item=>({name:item.name,value:item.value,help:explain(item,f,battle,snapshots)});
+    return {f:{name:f.name,type:f.type,level:f.level,hp:f.hp,stats:{maxHp:f.stats.maxHp},stages:f.stages},
+      status:replacing?'待补位':f.soulState.vanished?'已消逝':f.hp?'在场':'阵亡',
+      affinity:affinity(f,view.battle.fighters[1-side],view.battle),soul:soul(f,snapshot),gear:equipment(f),
+      display:{group:display.group,companions:display.companions,items:display.items.map(withHelp)},
+      teamItems:teamItems.map(withHelp),
+      descriptions:E.describeEffects(f,battle.round).map(text=>({text,help:explain(text,f,battle,snapshots)}))};
+  }
+
   function bindMoveDetails(container,snapshot,lookup){
+    bindPreparedDetails(container,(key,form)=>moveDetails(snapshot,key,lookup(key),form));
+  }
+  function bindPreparedDetails(container,lookup){
     if(anchor&&!anchor.isConnected)closeMoveDetails();
     for(const target of container.querySelectorAll('[data-move-detail]')){
       const key=target.dataset.moveDetail;
-      const details=moveDetails(snapshot,key,lookup(key),target.dataset.moveForm);
+      const details=lookup(key,target.dataset.moveForm);
       if(!details)continue;
       const show=()=>openMoveDetails(target,details);
       const hide=event=>{
@@ -209,5 +223,5 @@
     }
   }
 
-  return Object.freeze({soul,equipment,explain,affinity,spMarsMove,moveDetails,bindMoveDetails,closeMoveDetails});
+  return Object.freeze({teamHead,bindPreparedDetails,soul,equipment,explain,affinity,spMarsMove,moveDetails,bindMoveDetails,closeMoveDetails});
 });

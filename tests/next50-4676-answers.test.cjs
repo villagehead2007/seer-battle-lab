@@ -48,8 +48,8 @@ test('4676用户回答2212成功疲惫当次攻击继续，随后行动受控且
 });
 test('4676用户回答1827击败共享标记保留，已有共享标记的首次属性用招消费无效',()=>{
   const s=make({move:37511,index:4});s.fighters[1].hp=1;turn(s);
-  assert.equal(s.fighters[1].hp,0);assert.equal(s.fighters[1].counts.nextStatusInvalid1827,1);
-  const resumed=make({move:20077,index:-1});resumed.fighters[1].counts.nextStatusInvalid1827=s.fighters[1].counts.nextStatusInvalid1827;turn(resumed,20077,20077);
-  assert.equal(resumed.fighters[1].counts.nextStatusInvalid1827,0);
+  assert.equal(s.fighters[1].hp,0);assert.equal(s.fighters[0].counts.opponentStatusInvalid1827,1);
+  const resumed=make({move:20077,index:-1});resumed.fighters[0].counts.opponentStatusInvalid1827=s.fighters[0].counts.opponentStatusInvalid1827;turn(resumed,20077,20077);
+  assert.equal(resumed.fighters[0].counts.opponentStatusInvalid1827,0);
   assert.equal(resumed.fighters[1].stages.atk,0);assert.equal(resumed.fighters[1].pp[key(20077)],19);
 });
