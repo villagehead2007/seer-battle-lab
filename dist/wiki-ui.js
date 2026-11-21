@@ -1,0 +1,82 @@
+(()=>{'use strict';const E=window.BattleEngine,$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const sides=[{data:null,selected:[],seq:0,busy:false},{data:null,selected:[],seq:0,busy:false}];
+$('wiki-sides').innerHTML=sides.map((_,i)=>`<section class="wiki-side"><h3>${i?'B':'A'} 方精灵</h3><form id="wiki-search-${i}" class="wiki-search"><input id="wiki-query-${i}" aria-label="${i?'B':'A'}方图鉴搜索" maxlength="40" value="${i?'2988':'2987'}" placeholder="精灵名称或编号" required><button class="button secondary">搜索精灵</button></form><p id="wiki-status-${i}" role="status"></p><div id="wiki-results-${i}" class="wiki-results"></div><div id="wiki-detail-${i}"></div></section>`).join('');
+if(typeof location!=='undefined' && location.search==='?mode=team')window.teamReadMember=i=>{
+  const s=sides[i];
+  if(s.busy||!s.data||!E.WIKI.assess(s.data,s.selected).supported)throw Error('请先加载本地精灵并完成合法配招');
+  return structuredClone({snapshot:s.data,moves:s.selected,build:window.teamReadBuild(i)});
+};
+function request(route,params){return window.BattleDataRequest($('data-provider').value,route,params);}
+function pair(){const ready=sides.every(s=>s.data&&!s.busy&&E.WIKI.assess(s.data,s.selected).supported);$('wiki-start').disabled=!ready;$('wiki-pair-status').textContent=ready?'双方配置已适配，可按实验规则开战。':'请完成双方加载；仅所选技能与魂印均有适配规则时可开战。';}
+function loadoutOrder(i){
+ if(location.search!=='?mode=team')return '';
+ const state=sides[i];
+ return '<fieldset class="wiki-loadout-order"><legend>技能槽位顺序</legend><p class="growth-help">从上到下对应第1至第5号位，可调整后再加入队伍。</p><ol>'+state.selected.map((id,index)=>{
+ const move=E.WIKI.selectedMove(state.data,id);
+ return '<li data-order-skill="'+esc(id)+'"><span>'+esc(move?.selectionName??move?.name??id)+'</span><div><button type="button" class="button secondary" data-wiki-order-side="'+i+'" data-order-index="'+index+'" data-order-delta="-1" aria-label="'+esc(move?.name??id)+'上移" '+(index===0?'disabled':'')+'>上移</button><button type="button" class="button secondary" data-wiki-order-side="'+i+'" data-order-index="'+index+'" data-order-delta="1" aria-label="'+esc(move?.name??id)+'下移" '+(index===state.selected.length-1?'disabled':'')+'>下移</button></div></li>';
+ }).join('')+'</ol></fieldset>';
+}
+function reviewNoteMatches(snapshot,n){
+ if(!n.sourceCurrent||Number(n.speciesId)!==Number(snapshot.id)||String(n.sourceRevision)!==String(snapshot.source?.revision))return false;
+ if(n.soul!=null)return snapshot.souls.some(s=>Number(s.id)===Number(n.soul)&&s.hash===n.sourceHash);
+ const move=E.WIKI.selectedMove(snapshot,n.skill);return !!move&&move.hash===n.moveHash;
+}
+window.teamReviewNoteCurrent=(snapshot,n)=>reviewNoteMatches(snapshot,n)||
+ (n.reviewState==='stale'&&snapshot.source?.storage==='local'&&Number(n.speciesId)===Number(snapshot.id)&&
+  String(n.deployedRevision)===String(snapshot.source.revision)&&(n.soul!=null
+   ?snapshot.souls.some(s=>Number(s.id)===Number(n.soul)&&s.hash===n.deployedSoulHash)
+   :E.WIKI.selectedMove(snapshot,n.skill)?.hash===n.moveHash&&!!n.moveHash));
+function reviewStatus(notes){
+ if(!notes.length)return '队伍分支待核验';
+ const states=notes.map(n=>n.reviewState);
+ if(states.every(s=>s==='certified'))return '已通过正式验收';
+ if(states.every(s=>s==='passed'||s==='certified'))return '队伍专项通过，待正式验收';
+ if(states.some(s=>s==='passed'||s==='certified'))return '部分专项通过，余项待核验';
+ if(states.includes('partial'))return '部分实现，待核验';
+ if(states.every(s=>s==='unimplemented'))return '未实现';
+ if(states.every(s=>s==='recorded'))return '已有专项记录，待逐项核对';
+ return '队伍分支待核验';
+}
+function sourceReviewNotes(state,s){return(state.reviewNotes??[]).filter(n=>reviewNoteMatches(s,n));}
+function soulReviewStatus(state,s,soul,description){
+ const notes=sourceReviewNotes(state,s).filter(n=>Number(s.id)===3425&&description.includes('三种加护')?n.key==='3425:skill:38525:0':n.soul===soul&&n.historicalNotes.some(x=>(typeof x==='string'?x:x.description)===description));
+ return reviewStatus(notes);
+}
+function soulReviewLine(state,s,soul,description){
+ const blessing=Number(s.id)===3425&&description.includes('三种加护'),text=blessing?'星界圣令三加护（需携带技能）：场下各类可生效一次，实际重新登场恢复':description;
+ return '<p class="growth-help">'+esc(soulReviewStatus(state,s,soul,description))+' · '+esc(text)+'</p>'+(blessing?'<details><summary>历史延期记录</summary><p>'+esc(description)+'</p></details>':'');
+}
+function effectReviewNotes(state,s,move,op){
+ const notes=sourceReviewNotes(state,s).filter(n=>n.skill===move.id&&n.moveHash===move.hash);
+ if(op.field)return notes.filter(n=>n.kind==='move');
+ const indices=[...new Set(E.WIKI.compile(move,s).operations.filter(x=>x.effectId===op.effectId&&(op.index==null||x.index===op.index)).map(x=>x.index))];
+ return indices.map(index=>notes.find(n=>n.kind==='skill'&&n.index===index&&n.ruleId===op.effectId)??{reviewState:'pending'});
+}
+function effectReviewStatus(state,s,move,op){return reviewStatus(effectReviewNotes(state,s,move,op));}
+function moveReviewSummary(state,s,move,compiled){
+ const notes=(compiled.deferred??[]).flatMap(op=>effectReviewNotes(state,s,move,op));
+ return '单挑已适配 · '+reviewStatus(notes);
+}
+function detail(i){const state=sides[i],s=state.data,a=E.WIKI.assess(s,state.selected);
+if(typeof location!=='undefined'&&location.search==='?mode=team'&&a.supported){
+  const pair=E.WIKI.prepare([s,s],[state.selected,state.selected]);
+  (window.teamPreviewSpecies??=[])[i]=pair[0].species;
+  const card=document.querySelector('.growth-card.side-'+(i?'b':'a'));
+  const legend=card?.querySelector(':scope > legend');
+  if(legend)legend.textContent=(i?'B':'A')+' 方 · '+s.name;
+  const profile=E.SPECIES[pair[0].species],meta=card?.querySelector(':scope > .species-meta');
+  if(meta)meta.textContent=profile.type+'系 · 原始种族值 '+Object.values(profile.base).reduce((a,b)=>a+b,0)+' · 不含特训';
+  window.dispatchEvent(new Event('team-member-preview'));
+}
+$('wiki-detail-'+i).innerHTML=`<h4>${esc(s.name)} <small>#${s.id} · ${esc(s.type)}</small></h4><p class="growth-help">${Object.entries({maxHp:'体力',atk:'攻击',def:'防御',spa:'特攻',spd:'特防',spe:'速度'}).map(([k,n])=>`${n} ${(s.souls.find(x=>x.id===a.profile.soul)?.base??s.base)[k]}`).join(' · ')}</p><p><a href="${esc(s.source.url)}" target="_blank" rel="noopener noreferrer">${s.source.provider==='seerapi'?'SeerAPI 原始资料':'Wiki 原条目'}</a> · ${s.source.storage==='local'?'已永久保存本地 · ':''}修订 ${s.source.revision}</p><p class="wiki-support ${a.supported?'supported':''}">${a.supported?'已适配当前实验规则':esc(a.issues.concat(s.typeChartError?[s.typeChartError]:[]).join('；'))}</p>${(s.relatedForms??[]).map(form=>`<button type="button" class="button secondary" data-load-side="${i}" data-id="${form.id}">切换为${esc(form.name)}</button>`).join('')}${s.souls.length>1?`<label>魂印版本<select data-soul-side="${i}">${s.souls.map(x=>`<option value="${x.id}" ${x.id===(s.selectedSoulId??s.souls.at(-1).id)?'selected':''}>${esc(E.SOULS.registry[x.id]?.name??'待适配')} · ${x.id}</option>`).join('')}</select></label>`:''}${s.trainingCompatibility?`<label>精灵版本<select data-fifth-side="${i}">${s.skillVersions.map(g=>`<option value="${g.id}" ${(s.selectedSkillVersion??'trained')===g.id?'selected':''}>${g.id==='trained'?'能力强化（800）':'原版（726）'}</option>`).join('')}</select></label>`:''}${(s.additionalFifths||s.fifthActivation)?`<label>第五技能<select data-fifth-side="${i}">${s.skillVersions.filter(g=>g.soulId===(s.selectedSoulId??s.souls.at(-1).id)).map(g=>`<option value="${g.id}" ${(s.selectedSkillVersion??s.skillVersions.find(x=>x.soulId===(s.selectedSoulId??s.souls.at(-1).id))?.id)===g.id?'selected':''}>${esc(s.moves.find(m=>m.id===g.fifthId)?.name)}</option>`).join('')}</select></label>`:''}${(E.SOULS.registry[a.profile.soul]?.deferred??[]).map(x=>soulReviewLine(state,s,a.profile.soul,x)).join('')}<details><summary>魂印与效果 ID · ${s.souls.map(x=>x.id).join(' / ')||'无条目'}</summary>${s.souls.map(x=>`<p>魂印 ${x.id}：${esc(x.description.replace(/<[^>]*>/g,' '))}</p>`).join('')}</details><p>技能适配 ${s.moves.filter(m=>!E.WIKI.moveIssue(m,s)).length}/${s.moves.length} · 配招 ${state.selected.length}/${E.WIKI.slotCount(s)}${s.moves.some(m=>m.fifth)?"（含一个第五技能）":"（无第五技能）"}</p><div class="wiki-moves">${E.WIKI.selectableMoves(s).slice().sort((a,b)=>Number(b.fifth)-Number(a.fifth)||b.level-a.level).map(m=>{const compiled=E.WIKI.compile(m,s),issue=compiled.issue;return `<label class="wiki-move"><span><input type="checkbox" data-wiki-side="${i}" value="${m.selectionId??m.id}" ${state.selected.includes(m.selectionId??m.id)?'checked':''} ${issue?'disabled':''}>${esc(m.selectionName??m.name)}${m.fifth?' · 第五':''}</span>${m.selectionNote?'<small>'+esc(m.selectionNote)+'</small>':''}<small>技能 ${m.id} · ${({physical:'物理',special:'特殊',status:'属性'})[m.kind]??'未知'} · 威力 ${m.power} · PP ${m.pp} · 先制 ${m.priority}</small><small>效果 ID：${m.effectIds.join(' / ')||'无'} · ${issue?esc(issue):compiled.deferred?.length?esc(moveReviewSummary(state,s,m,compiled)):'已适配'}</small>${(compiled.experimental??[]).map(x=>`<small>实验规则：${esc(x)}</small>`).join('')}${(compiled.deferred??[]).map(op=>`<small>${esc(effectReviewStatus(state,s,m,op))} · ${op.field?"字段 "+esc(op.field):"效果 "+op.effectId}</small><details><summary>历史延期记录</summary><p>${esc(op.description)}</p></details>`).join('')}<details><summary data-move-detail="wiki:${esc(m.selectionId??m.id)}">查看在线技能描述</summary><p>${esc(m.description||'无附加效果')}</p>${compiled.operations?.length?`<p>已解析执行顺序：${compiled.operations.map(op=>`${op.effectId}（${op.deferred?esc(effectReviewStatus(state,s,m,op)):op.phase==='beforeCrit'?'暴击判定前':op.phase==='beforeOrder'?'行动排序前':op.phase==='beforeDamageSetup'?'伤害结算前':op.phase==='beforeDamage'?'伤害计算前':op.phase==='beforeUse'?'技能结算前':op.phase==='onMiss'?'未命中':op.phase==='afterAttack'?'攻击结束':'命中后'}）`).join(' → ')}</p>`:''}${m.effectIds.map(id=>{const e=s.effects.find(x=>x.id===id);return `<p>效果 ${id}：${esc(e?.template??'条目缺失')}<br>参数数量：${e?.argsNum??'未知'}${e?.parameters?' · '+esc(e.parameters):''}</p>`}).join('')}</details></label>`}).join('')}</div>`+loadoutOrder(i);
+const definitions=new Map(E.WIKI.selectableMoves(s).map(move=>['wiki:'+(move.selectionId??move.id),move]));
+window.BattlePresentation.bindMoveDetails($('wiki-detail-'+i),s,key=>definitions.get(key));
+pair();}
+async function load(i,id){const state=sides[i],seq=++state.seq;state.busy=true;state.data=null;state.selected=[];$('wiki-detail-'+i).textContent='';$('wiki-status-'+i).textContent=$('data-provider').value==='local'?'正在读取本地精灵文件…':'正在读取种族、全部技能、魂印与效果条目…';pair();try{const data=await request('species',{id});try{if(!data.typeChart)data.typeChart=await request('types',{});}catch(error){if(!E.WIKI.profiles[data.id])data.typeChartError=error.message;}let reviewNotes=[];try{const response=await fetch('/api/local/team-notes?id='+encodeURIComponent(data.id));if(response.ok){const notes=await response.json();if(Array.isArray(notes))reviewNotes=notes;}}catch{}if(seq!==state.seq)return;state.reviewNotes=reviewNotes;state.data=data;state.selected=E.WIKI.defaultMoves(data);state.busy=false;detail(i);refreshCoverage();$('wiki-status-'+i).textContent=data.source.storage==='local'?'本地资料已加载，无需联网。':'在线资料已加载；尚未完整适配，未写入本地精灵库。';}catch(e){if(seq===state.seq){state.busy=false;$('wiki-status-'+i).textContent='加载失败：'+e.message+' 请确认来源和精灵部署状态后重试。';pair();}}}
+$('data-provider').addEventListener('change',()=>{sides.forEach((s,i)=>{s.seq++;s.busy=false;s.data=null;s.selected=[];$('wiki-detail-'+i).textContent='';$('wiki-results-'+i).textContent='';$('wiki-status-'+i).textContent='已切换来源，请重新搜索。';});pair();});
+for(let i=0;i<2;i++)$('wiki-search-'+i).addEventListener('submit',async event=>{event.preventDefault();const q=$('wiki-query-'+i).value.trim(),state=sides[i],seq=++state.seq;state.busy=true;pair();$('wiki-status-'+i).textContent=$('data-provider').value==='local'?'正在搜索本地精灵库…':'正在查询在线图鉴…';$('wiki-results-'+i).textContent='';try{const d=await request('search',{q});if(seq!==state.seq)return;$('wiki-results-'+i).innerHTML=d.results.map(r=>`<button type="button" class="button secondary" data-load-side="${i}" data-id="${r.id}">${esc(r.name)} · #${r.id} · ${esc(r.type)}</button>`).join('');$('wiki-status-'+i).textContent=d.results.length?`找到 ${d.results.length} 项${d.results.length===20?'（最多20项，请缩小关键词）':''}，点击加载。`:'未找到匹配精灵；本地来源只显示已部署条目。';}catch(e){if(seq===state.seq)$('wiki-status-'+i).textContent='搜索失败：'+e.message;}finally{if(seq===state.seq){state.busy=false;pair();}}});
+$('wiki-sides').addEventListener('click',event=>{const order=event.target.closest('[data-wiki-order-side]');if(order){const i=Number(order.dataset.wikiOrderSide),from=Number(order.dataset.orderIndex),delta=Number(order.dataset.orderDelta),state=sides[i],to=from+delta;if(state&&!state.busy&&Number.isInteger(from)&&[-1,1].includes(delta)&&from>=0&&from<state.selected.length&&to>=0&&to<state.selected.length){const [move]=state.selected.splice(from,1);state.selected.splice(to,0,move);detail(i);}return;}const b=event.target.closest('[data-load-side]');if(b)load(+b.dataset.loadSide,b.dataset.id);});
+$('wiki-sides').addEventListener('change',event=>{const fifthSelect=event.target.closest('[data-fifth-side]');if(fifthSelect){const i=+fifthSelect.dataset.fifthSide;sides[i].data.selectedSkillVersion=fifthSelect.value;if(sides[i].data.trainingCompatibility)sides[i].data=E.WIKI.versionSnapshots(sides[i].data).find(g=>g.selectedSkillVersion===fifthSelect.value);sides[i].selected=E.WIKI.defaultMoves(sides[i].data);detail(i);return;}const soulSelect=event.target.closest('[data-soul-side]');if(soulSelect){const i=+soulSelect.dataset.soulSide;sides[i].data.selectedSoulId=+soulSelect.value;delete sides[i].data.selectedSkillVersion;if(sides[i].data.skillVersions)sides[i].selected=E.WIKI.defaultMoves(sides[i].data);detail(i);return;}const input=event.target.closest('[data-wiki-side]');if(!input)return;const i=+input.dataset.wikiSide,id=input.value.includes('@')?input.value:Number(input.value),s=sides[i];if(input.checked){if(s.selected.length>=E.WIKI.slotCount(s.data)){input.checked=false;$('wiki-status-'+i).textContent='技能位已满，请先取消一招。';return;}s.selected.push(id);}else s.selected=s.selected.filter(x=>x!==id);detail(i);});
+$('wiki-start').addEventListener('click',()=>{if($('wiki-start').disabled)return;window.dispatchEvent(new CustomEvent('wiki-start-battle',{detail:{snapshots:sides.map(s=>s.data),loadouts:sides.map(s=>s.selected.slice())}}));});
+async function refreshCoverage(){try{const d=await window.BattleDataRequest('local','status',{}),c=d.coverage;const format=rs=>rs.map(([a,b])=>a===b?String(a):`${a}–${b}`).join('、')||'暂无';$('coverage-summary').textContent=`本地可用 ${format(c.savedRanges)} 号 · 共 ${d.count} 只 · 跳过 ${c.skipped.length} 只`;$('coverage-saved').textContent=`已保存编号：${format(c.savedRanges)}`;$('coverage-skipped').textContent=`无魂印跳过（${c.skipped.length}只）：${c.skipped.map(x=>`${x.id} ${x.name}`).join('、')||'暂无'}`;}catch{$('coverage-summary').textContent='适配范围读取失败，请刷新页面重试。';}}
+refreshCoverage();
+})();
