@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4238-battle.cjs'),{make,pick,turn,timer,key,keys,E}=H,events=(o,type='attack',side=1)=>(o.damageEvents??[]).filter(e=>e.type===type&&e.targetSide===side),sum=(o,type='attack',side=1)=>events(o,type,side).reduce((n,e)=>n+e.settledDamage,0),seed=i=>Math.imul(i+1,2654435761)>>>0;
+test('4238 691真实秒杀成功与失败样本、控制未用不触发',()=>{let success=0,fail=0;for(let i=0;i<80;i++){const s=make(pick(691)[0],{seed:seed(i)}),o=turn(s);if(o.fighters[1].hp===0)success++;else fail++;}assert.ok(success>0&&fail>0);const s=make(pick(691)[0]);s.fighters[0].ailments['疲惫']=3;assert.equal(turn(s).fighters[1].hp,9000);});

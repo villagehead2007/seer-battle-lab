@@ -38,9 +38,9 @@ test('烧伤威力修正和公共威力强化叠加，清除后不再降低威�
 test('中毒烧伤冻伤每回合各扣八分之一，不互相覆盖，结束后停止扣血',()=>{
  let s=game();for(const n of ['中毒','烧伤','冻伤'])S.apply(s.fighters[0],n,1,2);s=turn(s);assert.equal(s.fighters[0].hp,1000);s=turn(s);assert.equal(s.fighters[0].hp,400);assert.deepEqual(s.fighters[0].ailments,{});s=turn(s);assert.equal(s.fighters[0].hp,400);
 });
-test('持续伤害沿用百分比免疫与抗性，已倒下目标不重复扣血',()=>{
- const s=game();S.apply(s.fighters[0],'中毒',1,2);timer(s,0,'当回合免伤');assert.equal(turn(s).fighters[0].hp,1600);
- const reduced=game();S.apply(reduced.fighters[0],'冻伤',1,2);reduced.fighters[0].build.resistance.percent=50;assert.equal(turn(reduced).fighters[0].hp,1500);
+test('用户20261110三种持续真伤不受百分比免疫抗性影响，已倒下目标不重复扣血',()=>{
+ const s=game();S.apply(s.fighters[0],'中毒',1,2);timer(s,0,'当回合免伤');assert.equal(turn(s).fighters[0].hp,1400);
+ const reduced=game();S.apply(reduced.fighters[0],'冻伤',1,2);reduced.fighters[0].build.resistance.percent=50;assert.equal(turn(reduced).fighters[0].hp,1400);
  const lethal=game();lethal.fighters[0].hp=100;for(const n of ['中毒','烧伤','冻伤'])S.apply(lethal.fighters[0],n,1,2);const o=turn(lethal);assert.equal(o.fighters[0].hp,0);assert.equal(o.finished,true);assert.equal(o.turns[0].events.filter(x=>x.text.includes(' 点')&&/中毒|烧伤|冻伤/.test(x.text)).length,1);
 });
 test('真实清异常技能清除持续伤害，未到期控制也可被公共清除且不触发到期转化',()=>{
@@ -72,7 +72,7 @@ test('倒下精灵冰封到期不产生弱化或待转化，状态实例相互�
 test('来源编码绑定及浏览器脚本加载顺序与Node端产生相同状态结果',()=>{
  const fs=require('fs'),path=require('path'),vm=require('vm'),db=require('../status-database.cjs');for(const [name,id]of Object.entries(S.ids))assert.equal(db.getById(id).name,name);assert.equal(S.sourceRevision,db.database.sources['wiki-mechanics'].revision);
  const dir=path.join(__dirname,'../dist'),html=fs.readFileSync(path.join(dir,'index.html'),'utf8');const scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(x=>x[1]);assert.ok(scripts.indexOf('status-rules.js')<scripts.indexOf('souls.js'));
- const browser=vm.createContext({console});for(const file of scripts.slice(0,scripts.indexOf('engine.js')+1))vm.runInContext(fs.readFileSync(path.join(dir,file),'utf8'),browser,{filename:file});
+ const browser=vm.createContext({console,structuredClone});for(const file of scripts.slice(0,scripts.indexOf('engine.js')+1))vm.runInContext(fs.readFileSync(path.join(dir,file),'utf8'),browser,{filename:file});
  const a=game(),b=browser.BattleEngine.createBattle(a.initial);S.apply(a.fighters[0],'烧伤',1,2);browser.BattleEngine.STATUS_RULES.apply(b.fighters[0],'烧伤',1,2);const x=turn(a,0),y=browser.BattleEngine.resolveTurn(b,[key(0,0),key(1,2)]);assert.equal(x.fighters[1].hp,y.fighters[1].hp);assert.equal(x.fighters[0].hp,y.fighters[0].hp);assert.equal(y.fighters[0].ailments['烧伤'],2);
 });
 test('疲惫显式时长经真实效果入口生效，清异常技能恢复状态而不引发转化',()=>{

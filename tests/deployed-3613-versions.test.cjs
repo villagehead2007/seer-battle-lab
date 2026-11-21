@@ -20,7 +20,7 @@ test('3613 技能版本保留31招原始第五标记、27招原版与30招觉醒
     assert.ok(ids.includes(s.selectedSoulId===909?32045:37195));
     assert.equal(E.WIKI.assess(s,ids).supported,true);
   }
-  assert.deepEqual(store.species(3613),source);
+  assert.deepEqual(store.species(3613),{...source,gender:{id:2,url:'https://api.seerapi.com/v1/pet_gender/2',source:{url:'https://api.seerapi.com/v1/pet/3613',revision:'fc00d9e'}}});
 });
 
 test('3613 跨版本第五和觉醒追加技能不能注入原版战斗',()=>{

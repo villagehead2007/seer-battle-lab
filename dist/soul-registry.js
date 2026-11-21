@@ -8,28 +8,37 @@ const healthRules=typeof module==='object'&&module.exports?require('./health-rul
 const natureBlessingTraits={attackPriority:f=>f.soulState.natureBlessings??0,attackReduction:f=>(f.soulState.natureBlessings??0)*.08,ailmentImmunityChance:f=>(f.soulState.natureBlessings??0)*.25};
 const registry={
 1015:{name:'加列韦',sourceHash:'f628ba9d',traits:{attackPriority:f=>f.ailments['烧伤']?1:0},hooks:{roundStart(c){if(probabilityObserver4853(c,(.5)*100,c.random())<.5)c.ailment(c.t,'烧伤',c.a);if(probabilityObserver4853(c,(.5)*100,c.random())<.5)c.ailment(c.a,'烧伤',c.a);},beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.ailments['烧伤']>=c.round)c.hurt(c.t,c.t.stats.maxHp/3,'加列韦烧伤追加','percent');},beforeDamage(c){if(c.a.ailments['烧伤']>=c.round)c.modifier*=2;}}},
- 999:{name:'混沌·哈肯萨·原魂印',sourceHash:'829dc61',traits:{},hooks:{beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.hp>0)c.hurt(c.t,c.round*18,'混沌哈肯萨原魂印追加','fixed');},combatEnd(c){if(c.a.hp<=0)return;if(c.t.hp>c.a.hp){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'哈肯萨原魂印回复');c.hurt(c.t,c.a.hp-before,'哈肯萨原魂印回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:1},c.round+1);}}},
+ 999:{name:'混沌·哈肯萨·原魂印',sourceHash:'829dc61',traits:{},hooks:{beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.hp>0)c.hurt(c.t,c.round*18,'混沌哈肯萨原魂印追加','fixed');},combatEnd(c){if(c.a.hp<=0)return;if(c.t.hp>c.a.hp){const healed=c.heal(c.a,c.a.stats.maxHp/3,'哈肯萨原魂印回复')??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,'哈肯萨原魂印回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:1},c.round+1);}}},
  1756:{name:'混沌·哈肯萨·觉醒魂印',sourceHash:'ee3379dc',deferred:['首次登场按对方出战背包龙系数量及龙神哈莫计算黯龙余恨；两种层数下场保留'],traits:{attackMultiplier:f=>1+(f.soulState.darkDragonHatred??0)*.02},hooks:{
  roundStart(c){c.a.soulState.fallenDragonResentment=Math.min(c.round,Math.max(0,50-(c.a.soulState.darkDragonHatred??0)));},
  beforeUse(c){if(c.m.kind!=='status'&&c.m.kind!=='item'&&c.t.hp>0)c.hurt(c.t,(c.a.soulState.fallenDragonResentment??0)*20,'混沌哈肯萨觉醒追加','fixed');},
- combatEnd(c){if(c.a.hp<=0)return;const total=(c.a.soulState.darkDragonHatred??0)+(c.a.soulState.fallenDragonResentment??0);if(c.t.hp>c.a.hp||total>30){const before=c.a.hp;c.heal(c.a,Math.min(c.a.stats.maxHp-c.a.hp,c.a.stats.maxHp/3),'哈肯萨觉醒回复');c.hurt(c.t,c.a.hp-before,'哈肯萨觉醒回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:total>30?2:1},c.round+1);}
+ combatEnd(c){if(c.a.hp<=0)return;const total=(c.a.soulState.darkDragonHatred??0)+(c.a.soulState.fallenDragonResentment??0);if(c.t.hp>c.a.hp||total>30){const healed=c.heal(c.a,Math.min(c.a.stats.maxHp-c.a.hp,c.a.stats.maxHp/3),'哈肯萨觉醒回复')??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,'哈肯萨觉醒回复追加','percent');}if(c.t.hp<c.a.hp)c.timed(c.a,'id984',1,{amount:total>30?2:1},c.round+1);}
  }},
  993:{name:'该洛西斯·原魂印',sourceHash:'88fa5288',traits:{},hooks:{
  beforeUse(c){if(c.a.hp>0&&c.m.kind!=='item')c.timed(c.a,c.m.kind==='status'?'特殊攻击闪避':'物理攻击闪避',2,{});},
- combatEnd(c){if(c.a.hp<=0)return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'该洛西斯原魂印回复');if(c.a.hp<c.t.hp)c.hurt(c.t,c.a.hp-before,'该洛西斯原魂印追加','percent');}
+ combatEnd(c){if(c.a.hp<=0)return;const healed=c.heal(c.a,c.a.stats.maxHp/3,'该洛西斯原魂印回复')??0;if(c.a.hp>0&&c.a.hp<c.t.hp&&healed>0)c.hurt(c.t,healed,'该洛西斯原魂印追加','percent');}
  }},
  1769:{name:'该洛西斯·觉醒魂印',sourceHash:'ab627512',traits:{immuneAilments:['石化']},hooks:{
  beforeDamage(c){if(c.shieldValue(c.a)>c.shieldValue(c.t))c.modifier*=1.5;},
  beforeIncomingAttack(c){if(c.shieldValue(c.a)<c.shieldValue(c.t))c.reduction=.5;},
  beforeIncomingDamage(c){if(['fixed','percent'].includes(c.type)&&c.shieldValue(c.a)<c.shieldValue(c.t))c.amount*=.5;},
  afterUse(c){if(c.a.hp<=0||c.m.kind==='item')return;c.timed(c.a,c.m.kind==='status'?'特殊攻击闪避':'物理攻击闪避',2,{});if(c.on(c.a,'物理攻击闪避')&&c.on(c.a,'特殊攻击闪避')&&c.t.hp>0)c.ailment(c.t,'疲惫',c.a);},
- combatEnd(c){if(c.a.hp<=0)return;if(c.a.hp>c.t.hp)c.a.suitState.shield+=Math.floor(c.a.stats.maxHp/3);else if(c.a.hp<c.t.hp){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,'该洛西斯魂印回复');if(c.t.hp>0)c.hurt(c.t,c.a.hp-before,'该洛西斯魂印追加','percent');}}
+ combatEnd(c){if(c.a.hp<=0)return;if(c.a.hp>c.t.hp)c.a.suitState.shield+=Math.floor(c.a.stats.maxHp/3);else if(c.a.hp<c.t.hp){const healed=c.heal(c.a,c.a.stats.maxHp/3,'该洛西斯魂印回复')??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,'该洛西斯魂印追加','percent');}}
  }},
  987:{name:'圣光莫妮卡·原魂印',sourceHash:'19c8b803',deferred:['之后每次登场获得2层自然祝福；下场清空自然祝福'],traits:{...natureBlessingTraits},hooks:{
-  battleStart(c){c.a.soulState.natureBlessings=4;},
+  battleStart(c){const st=c.a.soulState,entryGrant=(st.teamEntry?.number??1)>1?2:4;st.natureBlessings=Math.min(4,(c.teamMode?(st.natureBlessings??0):0)+entryGrant);},
   combatEnd(c){const n=c.a.soulState.natureBlessings??0;c.a.soulState.natureBlessings=Math.max(0,Math.min(4,n+(c.used[c.a.side]?-1:1)));}
  }},
- 2072:{name:'圣光莫妮卡·觉醒魂印',sourceHash:'43159cba',deferred:['上只在场队友PP恢复与琼华之庇；对方上只精灵参与最优系别比较'],traits:{...natureBlessingTraits,ignorePP:f=>(f.soulState.ningjie??0)>0},hooks:{battleStart(c){c.a.soulState.ningjie=4;},choiceLocked(c){c.a.soulState.selectedSkill=c.m.kind!=='item';},roundEnd(c){const n=c.a.soulState.ningjie??0;if(n<=0||c.a.hp<=0)return;const duration=n===5?3:2;let applied=false;if(!c.selectedSkill(c.t)){c.a.soulState.ningjie=n-1;applied=c.ailment(c.t,'沉默',c.a,false,false,duration);}if(!c.selectedSkill(c.t)&&!applied)c.timed(c.a,'最优对手系别',duration,{},c.round+1);}}},
+ 2072:{name:'圣光莫妮卡·觉醒魂印',sourceHash:'43159cba',deferred:['上只在场队友PP恢复与琼华之庇；对方上只精灵参与最优系别比较'],traits:{attackPriority:f=>natureBlessingTraits.attackPriority(f)+(f.soulState.teamEntry?(f.soulState.ningjie??0):0),
+ attackReduction:f=>1-(1-natureBlessingTraits.attackReduction(f))*(1-(f.soulState.teamEntry?(f.soulState.ningjie??0)*.08:0)),
+ ailmentImmunityChance:f=>1-(1-natureBlessingTraits.ailmentImmunityChance(f))*(1-Math.min(1,f.soulState.teamEntry?(f.soulState.ningjie??0)*.25:0)),
+ ignorePP:f=>(f.soulState.ningjie??0)>0},hooks:{beforeIncomingAttack(c){
+   const layers=c.a.soulState.ningjie??0;
+   if(!c.teamMode||!layers||c.attackImmunityIgnored||c.sameType(c.m.type,c.t.type))return;
+   const token=c.round+':'+c.m.id+':'+(c.t.soulState.skillUses?.[c.m.id]??0),st=c.a.soulState;
+   if(st.ningjieImmunityUse!==token){st.ningjieImmunityUse=token;st.ningjieImmune=layers>=4||c.random()<layers*.25;}
+   if(st.ningjieImmune)c.immuneAttack=true;
+ },battleStart(c){if(c.a.soulState.ningjie!==5)c.a.soulState.ningjie=4;},choiceLocked(c){c.a.soulState.selectedSkill=c.m.kind!=='item';},roundEnd(c){const n=c.a.soulState.ningjie??0;if(n<=0||c.a.hp<=0)return;const duration=n===5?3:2;let applied=false;if(!c.selectedSkill(c.t)){if(!c.teamMode||n<5)c.a.soulState.ningjie=n-1;applied=c.ailment(c.t,'沉默',c.a,false,false,duration);}if((c.teamMode||!c.selectedSkill(c.t))&&!applied)c.timed(c.a,'最优对手系别',duration,{},c.round+1);}}},
  1935:{name:'混沌天蛇太祖·强化魂印',sourceHash:'cc25b75e',traits:{},hooks:{
   opponentAfterUse(c){
    if(c.a.hp<=0||c.t.hp<=0||c.m.kind==='status'||c.m.kind==='item')return;
@@ -61,15 +70,15 @@ const registry={
   beforeOpponentAttack(c){c.a.soulState.zakFullBeforeHit=c.a.hp===c.a.stats.maxHp;},
   attackDamageTaken(c){if(c.a.hp<=0)return;if(c.a.soulState.zakFullBeforeHit)c.timed(c.a,'id984',1,{amount:3},c.round+1);else c.heal(c.a,c.a.stats.maxHp/3,'咤克斯受击回复');},
   afterHit(c){if(c.m.kind!=='status'&&c.t.hp>0&&c.random()<.15+(c.a.soulState.zakKills??0)*.03)c.soulInstantKill4706(c.t,'咤克斯魂印秒杀');},
-  damageDealt(c){if(c.t.hp<=0&&!c.a.soulState.zakCurrentDefeat){c.a.soulState.zakCurrentDefeat=true;c.a.soulState.zakKills=(c.a.soulState.zakKills??0)+1;}}
+  damageDealt(c){if(c.t.hp<=0&&!c.teamMode&&!c.a.soulState.zakCurrentDefeat){c.a.soulState.zakCurrentDefeat=true;c.a.soulState.zakKills=(c.a.soulState.zakKills??0)+1;}}
  }},
  937:{name:'异星装甲·赛伯斯特·原魂印',sourceHash:'adb683c6',traits:{},hooks:{
   beforeCrit(c){c.forceCrit=c.random()<.5;c.chance=0;},
-  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/4,'赛伯魂印吸取','赛伯魂印吸取');}
+  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,(c.settledDamage??c.dealt)*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/4,'赛伯魂印吸取','赛伯魂印吸取');}
  }},
  1475:{name:'异星装甲·赛伯斯特·强化魂印',sourceHash:'6616741b',traits:{},hooks:{
   beforeCrit(c){c.forceCrit=c.random()<.7;c.chance=0;},
-  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,c.dealt*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'赛伯魂印吸取','赛伯魂印吸取');}
+  afterAttack(c){if(c.a.hp<=0)return;if(!c.crit){c.timed(c.a,'必定暴击',1,{},c.round+1);c.timed(c.a,'id984',1,{amount:1},c.round+1);}const hp=c.a.hp;c.heal(c.a,(c.settledDamage??c.dealt)*.5,'赛伯魂印攻击回复');if(c.a.hp-hp<200&&c.t.hp>0)healthRules.drainPercent(c,c.t.stats.maxHp/3,'赛伯魂印吸取','赛伯魂印吸取');}
  }},
  931:{name:'极天之翼·托鲁克·原魂印',sourceHash:'1f447fc',deferred:['下场时清除累计先制，下场不保留'],traits:{skillPriority:f=>f.soulState.torukPriority??0},hooks:{
   roundStart(c){c.a.soulState.torukPriority=c.a.soulState.torukPending??0;},
@@ -81,11 +90,11 @@ const registry={
  }},
  928:{name:'不灭地威·萨瑞卡·原魂印',sourceHash:'7e7e253b',traits:{},hooks:{
   roundStart(c){c.stage(c.a,1,['def','spd','spe']);c.stage(c.t,-1,['def','spd','spe']);},
-  attackDamageTaken(c){if(c.a.hp<=0||(c.settledDamage??c.dealt)<=0)return;if((c.settledDamage??c.dealt)>350)c.heal(c.a,c.a.stats.maxHp,'萨瑞卡原魂印回满');else if((c.settledDamage??c.dealt)<350&&c.t.hp>0)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'萨瑞卡原魂印反伤','fixed');}
+  attackDamageTaken(c){if(c.a.hp<=0||(c.settledDamage??c.dealt)<=0)return;if((c.settledDamage??c.dealt)>350)c.heal(c.a,c.a.stats.maxHp,'萨瑞卡原魂印回满');else if((c.settledDamage??c.dealt)<350&&c.t.hp>0)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'萨瑞卡原魂印反伤','percent');}
  }},
  1474:{name:'不灭地威·萨瑞卡·强化魂印',sourceHash:'d9dc93f8',traits:{},hooks:{
   roundStart(c){c.stage(c.a,1,['def','spd','spe']);c.stage(c.t,-1,['def','spd','spe']);},
-  attackDamageTaken(c){if(c.a.hp<=0||(c.settledDamage??c.dealt)<=0)return;if((c.settledDamage??c.dealt)>340)c.heal(c.a,c.a.stats.maxHp,'萨瑞卡强化魂印回满');else if((c.settledDamage??c.dealt)<340&&c.t.hp>0)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'萨瑞卡强化魂印反伤','fixed');}
+  attackDamageTaken(c){if(c.a.hp<=0||(c.settledDamage??c.dealt)<=0)return;if((c.settledDamage??c.dealt)>340)c.heal(c.a,c.a.stats.maxHp,'萨瑞卡强化魂印回满');else if((c.settledDamage??c.dealt)<340&&c.t.hp>0)c.hurt(c.t,(c.settledDamage??c.dealt)*.5,'萨瑞卡强化魂印反伤','percent');}
  }},
  920:{name:'跃迁狂剑·兰斯洛特·原魂印',sourceHash:'463de87b',traits:{criticalReflectType:'fixed'},hooks:{
   criticalIncoming(c){c.hurt(c.t,c.amount,'兰斯原魂印暴击反弹','fixed');if(c.t.hp>0)healthRules.drainFixed(c,300,'兰斯原魂印吸取','兰斯原魂印吸取');c.timed(c.a,'id984',1,{amount:3},c.round+1);},
@@ -107,7 +116,8 @@ const registry={
  }},
  919:{name:'奥佩娅',sourceHash:'94e9f841',deferred:['切换再次上场时触发第2次首回合攻击减伤/封属或免异常/封攻；每场战斗上限2次'],traits:{attackReduction:f=>f.soulState.opheaReduceRound===f.soulState.currentRound?.5:0,ailmentImmune:f=>f.soulState.opheaImmuneRound===f.soulState.currentRound},hooks:{
   roundStart(c){c.a.soulState.currentRound=c.round;},
-  opponentBeforeUse(c){if(c.round!==1)return;if(c.m.kind==='status'){c.a.soulState.opheaImmuneRound=c.round;c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+1;}else if(c.m.kind!=='item'){c.a.soulState.opheaReduceRound=c.round;c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+1;}},
+  opponentBeforeUse(c){const entry=c.a.soulState.teamEntry;
+    if(c.teamMode?(entry?.round!==c.round||entry.number>2):c.round!==1)return;if(c.m.kind==='status'){c.a.soulState.opheaImmuneRound=c.round;c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+1;}else if(c.m.kind!=='item'){c.a.soulState.opheaReduceRound=c.round;c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+1;}},
   beforeUse(c){if(c.m.kind==='status'&&c.t.hp>0&&!(probabilityObserver4853(c,(.5)*100,c.random())<.5&&c.ailment(c.t,'害怕',c.a)))c.clear(c.t);}
  }},
  917:{name:'鬼面幽蝶·原魂印',sourceHash:'ca1e851b',traits:{skillPriority:f=>f.soulState.butterflyPriorityCurrent?2:0,dodgeChance:f=>f.soulState.butterflyDodge??0,attackReduction:f=>f.soulState.butterflyReduction??0},hooks:{
@@ -145,7 +155,7 @@ const registry={
  6:{name:'回合回复',sourceHash:'4781ae94',traits:{},hooks:{roundEnd(c){if(c.a.hp>0)c.heal(c.a,c.a.stats.maxHp/10,'魂印回合回复');}}},
  7:{name:'回合回复',sourceHash:'6a81773a',traits:{},hooks:{roundEnd(c){if(c.a.hp>0)c.heal(c.a,c.a.stats.maxHp/10,'魂印回合回复');}}},
  622:{name:'皇',traits:{weaknessImmune:true,pinkImmune:true,entryAilmentRounds:3,entryAilmentLabel:'星皇之佑'},hooks:{
-  afterUse(c){const special=[30381,30380,30376,25294,25295,'emperor5','emperor150','emperorQuick','gate','cycle'].includes(c.m.wikiId??c.m.id);if(c.a.hp>0&&c.t.hp>0&&c.m.id!=='struggle'&&(special||!c.successful))c.rage();if(c.a.hp>0)c.heal(c.a,c.a.stats.maxHp/8,'星皇之赐');}
+  afterUse(c){const special=[30381,30380,30376,25294,25295,'emperor5','emperor150','emperorQuick','gate','cycle'].includes(c.m.wikiId??c.m.id);const ordinaryInvalid=!c.successful&&!c.invalidReason?.miss&&!c.invalidReason?.forcedMiss&&!c.invalidReason?.evaded;if(c.a.hp>0&&c.t.hp>0&&c.m.id!=='struggle'&&(special||ordinaryInvalid))c.rage();}
  }},
  527:{name:'雷 · 强化',traits:{},hooks:{
   roundStart(c){const {a,t,round,steal,emit,name}=c;steal(a,t,'回合开始');const shortened=Object.values(t.effects).filter(e=>e.end>round);for(const e of shortened){e.start=Math.min(e.start,round);e.end=round;}if(shortened.length)emit(`${name(a)} 魂印「雷」将对手 ${shortened.length} 项回合效果压缩至本回合结束（不属于消除）。`);a.soulHigh=a.hp>t.hp;a.soulProtect=a.hp<t.hp;if(a.soulProtect)emit(`${name(a)} 体力低于对手，魂印赋予本回合免断回合。`);if(a.soulHigh)emit(`${name(a)} 体力高于对手，登记回合末攻击 +2、速度与命中 +1。`);},
@@ -174,11 +184,19 @@ const registry={
  }}
 };
 function id(f){return f.soulId??({emperor:622,king:527}[f.species]??null);}
-function trait(f,key){const value=registry[id(f)]?.traits[key],own=typeof value==='function'?value(f):value,g=guardStates.trait(f,key,f.soulState?.calculationRound??f.soulState?.availableRound??1);const base=g===undefined?own:g||own;return registry[1966]?.abilities?.trait(f,key,base)??base;}
-function run(event,c){if(event==='roundEnd'&&c.a.hp>0&&c.a.soulState.bright2009>=c.round){for(const k of c.t.moves)if(c.t.pp[k]===0)c.t.pp[k]=Math.min(5,c.maxPP(k));}const soul=registry[id(c.a)],defeatBlocked=c.a.hp<=0&&c.a.soulState?.defeatEffectsSuppressed&&(event==='death'||event==='executionDefeat'||soul?.defeatOnlyHooks?.includes(event));if(!defeatBlocked){soul?.hooks[event]?.(c);guardStates.run(event,c,key=>{const v=soul?.traits[key];return typeof v==='function'?v(c.a):v;});}if(!defeatBlocked||!['death','executionDefeat'].includes(event))soul?.copyImmunityEvent?.(event,c);c.flushAilmentExecutions2058?.();c.syncStages?.();}
+function xinMark1061(f,round=f.soulState?.xinMarkRound1061??f.soulState?.calculationRound??f.soulState?.availableRound??1){const mark=f.soulState?.teamXinMark1061;return mark?.sourceHash==='e7c06bfc'&&mark.start<=round&&mark.end>=round;}
+function trait(f,key){if(xinMark1061(f)){if(['pinkImmune','ailmentImmune','weaknessImmune'].includes(key))return true;if(key==='pinkImmunityLabel')return '辛之印记';}const value=registry[id(f)]?.traits[key],own=typeof value==='function'?value(f):value,g=guardStates.trait(f,key,f.soulState?.calculationRound??f.soulState?.availableRound??1);const base=g===undefined?own:g||own;return registry[1966]?.abilities?.trait(f,key,base)??base;}
+function run(event,c){if(event==='beforeCrit'&&xinMark1061(c.a,c.round)&&c.m?.kind!=='status'&&!c.m?.attributeDamage&&!c.m?.typedDirect1791)c.forceCrit=true;if(event==='roundEnd'&&c.a.hp>0&&c.a.soulState.bright2009>=c.round){for(const k of c.t.moves)if(c.t.pp[k]===0)c.t.pp[k]=Math.min(5,c.maxPP(k));}const soul=registry[id(c.a)],defeatBlocked=(c.teamMode&&(event==='opponentDefeated'||soul?.knockoutOnlyHooks?.includes(event))&&c.a.soulState.knightDuel4911?.kind==='defeat'&&!c.a.soulState.knightDuel4911.inactiveLast)||c.a.hp<=0&&c.a.soulState?.defeatEffectsSuppressed&&(event==='death'||event==='executionDefeat'||soul?.defeatOnlyHooks?.includes(event));if(!defeatBlocked){const hook=soul?.hooks[event];if(hook){if(c.withNarakuClearEffect)c.withNarakuClearEffect(()=>hook(c));else hook(c);}guardStates.run(event,c,key=>{const v=soul?.traits[key];return typeof v==='function'?v(c.a):v;});}if(!defeatBlocked||!['death','executionDefeat'].includes(event)){
+    if(c.fieldExecutors&&event==='timedEffectEnded'&&c.effect?.fieldBatch&&!c.effect.executorBatchConsumed){
+      c.effect.executorBatchConsumed=true;c.fieldExecutors.count=Math.max(0,c.fieldExecutors.count-1);
+    }
+    if(c.fieldExecutors&&id(c.a)!==2139)registry[2139].copyImmunityEvent(event,c);
+    else soul?.copyImmunityEvent?.(event,c);
+  }c.flushAilmentExecutions2058?.();c.syncStages?.();}
 const extend=typeof module==='object'&&module.exports?require('./range-souls.js'):globalThis.RangeSouls;extend(registry);
+for(const [id,hooks] of Object.entries({697:['afterUse'],1617:['afterUse'],1727:['damageDealt'],1733:['damageDealt'],1751:['damageDealt']}))registry[id]={...registry[id],knockoutOnlyHooks:Object.freeze(hooks)};
 for(const v of Object.values(registry)){Object.freeze(v.traits);Object.freeze(v.hooks);Object.freeze(v);}
-function copiedDamageImmune(c){return !!registry[id(c.a)]?.copiedDamageImmune?.(c);}
+function copiedDamageImmune(c){return !!(c.a.effects?.['执行者复制免疫']?.fieldBatch?registry[2139]:registry[id(c.a)])?.copiedDamageImmune?.(c);}
 function acceptsSource(soulId,hash){const rule=registry[soulId];return !!rule&&(rule.sourceHash===hash||rule.sourceHashes?.includes(hash)===true);}
 return Object.freeze({registry:Object.freeze(registry),id,trait,run,copiedDamageImmune,acceptsSource});
 });

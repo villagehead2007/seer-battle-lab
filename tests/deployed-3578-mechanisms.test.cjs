@@ -12,7 +12,7 @@ test('3578 消强736成功封属两回合、无强化失败与负等级保留',(
 test('3578 反弱1194成功反转后免弱四回合、无弱化和禁强不登记',()=>{
   const e=pick(1194)[0],s=make(e,{opponentEffect:pick(5).find(e=>e.params[0]===5)});s.fighters[0].stages.acc=-2;s.fighters[0].stages.def=-6;let o=turn(s,e.moveId,900023);assert.equal(o.fighters[0].stages.acc,2);assert.equal(o.fighters[0].stages.def,6);assert.equal(o.fighters[0].effects['免弱'].end,4);
   for(let r=2;r<=5;r++){o=turn(o,IDLE,900023);assert.equal(o.fighters[0].stages.acc,r<=4?2:1);}assert.equal(turn(make(e)).fighters[0].effects['免弱'],undefined);
-  const ban=make(e);ban.fighters[0].stages.atk=-2;timer(ban,0,'禁强化');const b=turn(ban);assert.equal(b.fighters[0].stages.atk,-2);assert.equal(b.fighters[0].effects['免弱'],undefined);
+  const ban=make(e);ban.fighters[0].stages.atk=-2;timer(ban,0,'禁强化');const b=turn(ban);assert.equal(b.fighters[0].stages.atk,0);assert.equal(b.fighters[0].effects['免弱'],undefined);
 });
 test('3578 免异常48两个实例分别四或五回合、到期及次数免疫互不混淆',()=>{
   for(const e of pick(48)){let s=make(e);s.fighters[0].counts.immune=1;for(let r=1;r<=e.params[0];r++){s.rng=0;s=turn(s,r===1?e.moveId:IDLE,FEAR);assert.deepEqual(s.fighters[0].ailments,{});assert.equal(s.fighters[0].counts.immune,1);}s.rng=0;s=turn(s,IDLE,FEAR);assert.equal(s.fighters[0].counts.immune,0);assert.deepEqual(s.fighters[0].ailments,{});s.rng=8;s=turn(s,IDLE,FEAR);assert.ok(s.fighters[0].ailments['麻痹']);}

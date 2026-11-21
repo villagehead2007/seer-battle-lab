@@ -1,6 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const store=require('../local-species.cjs'),E=require('../dist/engine.js');
 const source=store.species(3190);
+require('./deployed-3190-source-combinations.test.cjs');
+require('./deployed-3190-native-soul-timed.test.cjs');
+require('./deployed-3190-native-probability.test.cjs');
+require('./deployed-3190-display.test.cjs');
 
 test('3190 王·布莱克：技能与两版魂印可本地开局并结算',()=>{
   assert.deepEqual(store.issues(source),[]);

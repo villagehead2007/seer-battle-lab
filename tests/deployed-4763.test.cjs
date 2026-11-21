@@ -392,7 +392,7 @@ test('4763完整37931的837按实际使用次数300至500封顶，理论回复�
   }
 });
 
-test('4763整招无效仍累计837使用次数，控制/道具不累计；下一次实际吸取350不是300', () => {
+test('4763整招无效、受控和药剂均不增加837成长，下一次首次命中吸取300', () => {
   for (const mode of ['invalid', 'control', 'item']) {
     const s = make({move: 37931, hp: 1000});
     if (mode === 'invalid') s.fighters[0].counts.nextSkillInvalid = 1;
@@ -401,8 +401,8 @@ test('4763整招无效仍累计837使用次数，控制/道具不累计；下一
     assert.equal(sum(s, 'fixed'), 0);
     delete s.fighters[0].ailments['疲惫']; s.fighters[0].hp = 1000;
     go(s, 37931);
-    assert.equal(sum(s, 'fixed'), mode === 'invalid' ? 350 : 300);
-    assert.equal(s.fighters[0].hp, mode === 'invalid' ? 1350 : 1300);
+    assert.equal(sum(s, 'fixed'), 300);
+    assert.equal(s.fighters[0].hp, 1300);
   }
 });
 

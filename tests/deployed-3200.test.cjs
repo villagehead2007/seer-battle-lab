@@ -1,6 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const store=require('../local-species.cjs'),E=require('../dist/engine.js');
 const source=store.species(3200);
+require('./deployed-3200-native-soul-timing.test.cjs');
+require('./deployed-3200-native-combinations.test.cjs');
+require('./deployed-3200-display.test.cjs');
+require('./deployed-3200-native-boundaries.test.cjs');
 
 test('3200 霍德尔：技能与两版魂印可本地开局并结算',()=>{
   assert.deepEqual(store.issues(source),[]);

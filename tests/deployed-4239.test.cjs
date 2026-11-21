@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4239-battle.cjs'),{make,pick,turn,timer,key,keys,E}=H,ev=(o,type='attack',side=1)=>(o.damageEvents??[]).filter(e=>e.type===type&&e.targetSide===side),sum=(o,type='attack',side=1)=>ev(o,type,side).reduce((n,e)=>n+e.settledDamage,0),seed=i=>Math.imul(i+1,2654435761)>>>0;
+test('4239 4和5全部原实例真实能力改变、免弱不补降',()=>{for(const e of pick(4)){const o=turn(make(e));assert.equal(o.fighters[0].stages[keys[e.params[0]]],e.params[2]);}for(const e of pick(5)){let s=make(e);assert.equal(turn(s).fighters[1].stages[keys[e.params[0]]],e.params[2]);s=make(e);timer(s,1,'免弱');assert.equal(turn(s).fighters[1].stages[keys[e.params[0]]],0);}});

@@ -1,0 +1,5 @@
+'use strict';
+const E=require('../../dist/engine.js'),store=require('../../local-species.cjs'),source=store.species(3004),{loadout}=require('./3001-native.cjs');
+function make(id,o={}){const b=store.species(o.enemyId??2989),stats={maxHp:9000,atk:1200,spa:3600,def:4000,spd:4000,spe:1000};const s=E.createBattle({wikiSnapshots:[source,b],wikiLoadouts:[loadout(source,[id,...(o.extraMoves??[])]),loadout(b,o.enemyMoves??[])],seed:o.seed??14,criticals:o.criticals??false,builds:[{overrides:{...stats,...o.aStats},...(o.aGear??{})},{overrides:{...stats,atk:180,spa:180,spe:100,...o.bStats},...(o.bGear??{})}]});for(const [side,k]of [[0,'a'],[1,'b']]){if(o[k+'Hp']!==undefined)s.fighters[side].hp=o[k+'Hp'];Object.assign(s.fighters[side].stages,o[k+'Stages']??{});Object.assign(s.fighters[side].effects,structuredClone(o[k+'Effects']??{}));}return s;}
+const turn=(s,a,b='potion:pp')=>E.resolveTurn(s,[typeof a==='number'?'wiki:'+a:a,typeof b==='number'?'wiki:'+b:b]);
+module.exports={E,source,make,turn,loadout};

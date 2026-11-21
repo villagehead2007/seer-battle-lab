@@ -31,5 +31,5 @@ test('4761十层咒怨只免控制不免中毒，非红百分比毒伤仍完整1
  const s=make({move:20142,index:-1});s.fighters[0].soulState.magicCurse1973=10;
  observed(s,'afterUse',1,c=>{assert.equal(c.ailment(c.t,'睡眠',c.a,false,false,2),false);assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),true);});
  assert.equal(s.fighters[0].ailments['睡眠'],undefined);assert.ok(s.fighters[0].ailments['中毒']);assert.equal(s.fighters[0].hp,7875);
- const poison=(s.damageEvents??[]).filter(e=>e.type==='percent'&&e.targetSide===0);assert.equal(poison.length,1);assert.equal(poison[0].settledDamage,1125);assert.equal(poison[0].hpLoss,1125);
+ const poison=(s.damageEvents??[]).filter(e=>e.type==='true'&&e.targetSide===0&&e.sourceSide===1);assert.equal(poison.length,1);assert.equal(poison[0].settledDamage,1125);assert.equal(poison[0].hpLoss,1125);
 });

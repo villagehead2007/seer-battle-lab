@@ -4,7 +4,7 @@
 // measure one clause. No engine callbacks or registries are stubbed.
 const assert=require('node:assert/strict');
 const E=require('../../dist/engine.js');
-const source=require('../../data/species/3592.json').snapshot;
+const source=require('../../research/POST-V9-20261121/before-official/3592.json').snapshot;
 const keys=['atk','def','spa','spd','spe','acc'];
 const IDLE=900010,WAIT=900020,HIT=900021,FEAR=900022;
 const key=id=>'wiki:'+id;

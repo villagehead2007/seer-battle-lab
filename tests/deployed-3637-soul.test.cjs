@@ -10,7 +10,7 @@ test('3637 双魂印350与340严格受击阈值、相等空分支及回满',()=>
  const original=turn(incoming(928,345),IDLE,HIT),enhanced=turn(incoming(1474,345),IDLE,HIT);assert.equal(original.fighters[0].hp,655);assert.equal(enhanced.fighters[0].hp,9000);
 });
 test('3637 双魂印反伤类型抗性、零伤失误与护罩交互',()=>{
- for(const soul of [928,1474]){const s=incoming(soul,200);s.fighters[1].build.resistance.fixed=0;s.fighters[1].build.resistance.percent=50;assert.equal(turn(s,IDLE,HIT).fighters[1].hp,8900);s.fighters[1].build.resistance.fixed=50;assert.equal(turn(s,IDLE,HIT).fighters[1].hp,8950);s.fighters[1].suitState.barrier=60;const b=turn(s,IDLE,HIT);assert.equal(b.fighters[1].hp,9000);assert.equal(b.fighters[1].suitState.barrier,10);
+ for(const soul of [928,1474]){const s=incoming(soul,200);s.fighters[1].build.resistance.fixed=0;s.fighters[1].build.resistance.percent=50;assert.equal(turn(s,IDLE,HIT).fighters[1].hp,8950);s.fighters[1].build.resistance.fixed=50;assert.equal(turn(s,IDLE,HIT).fighters[1].hp,8950);s.fighters[1].suitState.barrier=60;const b=turn(s,IDLE,HIT);assert.equal(b.fighters[1].hp,9000);assert.equal(b.fighters[1].suitState.barrier,10);
  const no=incoming(soul,200);timer(no,0,'当回合免伤');assert.deepEqual(turn(no,IDLE,HIT).fighters.map(f=>f.hp),[1000,9000]);const miss=incoming(soul,200);timer(miss,1,'攻击必失');assert.deepEqual(turn(miss,IDLE,HIT).fighters.map(f=>f.hp),[1000,9000]);}
 });
 test('3637 双魂印致死不复活、固粉不触发、技能禁疗不拦魂印',()=>{

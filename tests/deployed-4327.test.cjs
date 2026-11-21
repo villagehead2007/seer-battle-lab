@@ -1,1 +1,6 @@
 'use strict';
+// Latest human absorption rule: own boost-ban still clears the enemy's boosts,
+// but grants no own boost/success reward. Only the obsolete ban-case expectation
+// changes; keep all protective-source failures and the established834next-two-round assertion.
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4327-battle.cjs'),old799=[require('./helpers/3613-799-battle.cjs'),require('./helpers/4001-799-battle.cjs')],old1025=[require('./helpers/3200-1025-battle.cjs'),require('./helpers/3223-1025-battle.cjs')],{E,make,pick,turn,timer,key}=H,ev=(o,type='attack',side=1)=>(o.damageEvents??[]).filter(e=>e.type===type&&e.targetSide===side),sum=(o,type='attack',side=1)=>ev(o,type,side).reduce((n,e)=>n+e.settledDamage,0),seed=i=>Math.imul(i+1,2654435761)>>>0;
+test('4327全部27招真实PP控制唯一第五，无新精灵超固定名单，原始种族值与类型保留',()=>{assert.equal(H.source.moves.length,27);assert.deepEqual(H.source.moves.filter(m=>m.fifth).map(m=>m.id),[35653]);for(const m of H.source.moves){const s=make({moveId:m.id,index:-1}),o=turn(s);assert.equal(o.fighters[0].pp[key(m.id)],m.pp-1);if(m.kind!=='status')assert.ok(sum(o)>0);const c=make({moveId:m.id,index:-1});c.fighters[0].ailments['疲惫']=3;assert.equal(turn(c).fighters[0].pp[key(m.id)],m.pp);}});

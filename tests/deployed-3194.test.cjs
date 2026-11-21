@@ -1,6 +1,12 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const store=require('../local-species.cjs'),E=require('../dist/engine.js');
 const source=store.species(3194);
+require('./deployed-3194-native-soul-count.test.cjs');
+require('./deployed-3194-native-combinations.test.cjs');
+require('./deployed-3194-native-rewards.test.cjs');
+require('./deployed-3194-native-timed-probability.test.cjs');
+require('./deployed-3194-display.test.cjs');
+require('./deployed-3194-native-coverage-gaps.test.cjs');
 
 test('3194 魔王·咤克斯：技能与魂印可本地开局并结算',()=>{
   assert.deepEqual(store.issues(source),[]);

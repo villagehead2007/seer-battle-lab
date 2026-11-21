@@ -4,9 +4,24 @@ function observe(fn,run,before=false){const old=E.SOULS;E.SOULS={...old,run(e,c)
 test('4903已答表内项数：首次出战高体弱化失败九次重授第一项不因重触第六次停止，真实回血维持高体并清异常，表内六项不授',()=>{
  const s=make({move:24170,soul:true,aStats:{def:1,spd:1},bStats:{atk:9999}});timer(s,1,'免弱');for(let r=1;r<=8;r++){s.fighters[0].ailments['中毒']=s.round+1;if(r===5)Object.assign(s,E.resolveTurn(s,['potion:pp',key(20117)]));else turn(s,24170,10127);const st=s.fighters[0].soulState.emperor4903;assert.equal(st.entries,1);assert.equal(st.entryTriggers,r+1);assert.equal(st.capUntil,r+1);assert.equal(s.fighters[0].ailments['中毒'],undefined);assert.equal(sum(s,'attack',1),r===5?0:2250);assert.ok(s.fighters[0].hp>4500);}let checked=false;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===0){const st=c.a.soulState.emperor4903,until=st.capUntil;st.entries=6;assert.equal(E.SOULS.registry[2090].abilities.entry(c),false);assert.equal(st.capUntil,until);st.entries=1;checked=true;}},()=>turn(s,24170,20117));assert.equal(checked,true);
 });
-test('4903已答25%整次技能：多段共2250、额外技能各2250，非红不计额度，属性技能红同次共额，魂印红不误限',()=>{
+test('4903已答25%整次技能：多段共2250、皇怒无视2090，非红不计额度，属性技能红同次共额，魂印红不误限',()=>{
  const multi=make({move:20155,index:-1,soul:true,aStats:{def:1},bStats:{atk:9999},enemyLoadout:[10713,20117,10127,20309,37911]});turn(multi,20155,10713);assert.equal(sum(multi,'attack',1),2250);assert.ok(multi.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===1).length>=2);
- const emperor=require('../local-species.cjs').species(3291),seen=new Set();for(let seed=1;seed<=16;seed++){const s=make({move:20155,index:-1,soul:true,aStats:{def:1,spd:1},enemySource:emperor,enemyLoadout:[30376,25294,25295,30380,30381],enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0});turn(s,20155,30380);const hits=s.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(hits.every(e=>e.settledDamage===2250));seen.add(hits.length);assert.equal(sum(s,'attack',1),2250*hits.length);}assert.deepEqual([...seen].sort(),[1,2]);
+ const emperor=require('../local-species.cjs').species(3291),seen=new Set();
+ for(let seed=1;seed<=16;seed++){
+  const s=make({move:20155,index:-1,soul:true,aStats:{def:1,spd:1},enemySource:emperor,enemyLoadout:[30376,25294,25295,30380,30381],enemySoul:true,bStats:{atk:9999},seed:Math.imul(seed,0x9e3779b1)>>>0});
+  turn(s,20155,30380);
+  const hits=s.damageEvents.filter(event=>event.type==='attack'&&event.sourceSide===1);
+  const normal=hits.filter(event=>!event.starRage622),rage=hits.filter(event=>event.starRage622);
+  assert.deepEqual(normal.map(event=>[event.settledDamage,event.hpLoss]),[[2250,2250]]);
+  seen.add(rage.length);
+  if(rage.length){
+   assert.ok(rage[0].settledDamage>2250);
+   assert.equal(rage[0].hpLoss,6750);
+   assert.equal(s.fighters[0].hp,0);
+  }
+  assert.equal(sum(s,'attack',1),2250+(rage[0]?.settledDamage??0));
+ }
+ assert.deepEqual([...seen].sort(),[0,1]);
  const s=make({move:20155,index:-1,soul:true});observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.hurt(c.t,3000,'独立魂印红','attack'),3000);for(const type of['fixed','percent','true'])assert.equal(c.hurt(c.t,100,'非红不计',type),100);}},()=>turn(s,20155,20117));assert.equal(sum(s,'attack',1),3000);
 });
 test('4903已答153：两回合战阶按完整红伤一半技能回复，附加固粉真不计，过量不截回复基数，技能禁疗与自然到期真实生效',()=>{

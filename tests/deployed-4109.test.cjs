@@ -10,8 +10,8 @@ test('4109高伤附伤跟随实际回复、回复削减和满血，不以理论�
   const s=make(undefined,{soul:1342,hp});strong(s,3100);timer(s,0,'回复效果削减',{fraction});const o=turn(s);assert.equal(o.fighters[0].hp,hp+want);const ds=o.damageEvents.filter(e=>e.type==='percent');assert.equal(ds.length,want?1:0);if(want)assert.equal(ds[0].settledDamage,want);
  }
 });
-test('4109多段各2000合计4000只执行一次高伤回复，固定百分比附伤不计攻击门槛',()=>{
- const s=make(undefined,{soul:1342,hp:1000});strong(s,2000,2);const o=turn(s);assert.equal(o.damageEvents.filter(e=>e.type==='attack').length,2);assert.equal(o.fighters[0].hp,4000);assert.equal(o.damageEvents.filter(e=>e.type==='percent').length,1);
+test('4109自然两段各低于3000且合计超过3000只执行一次高伤回复，固定百分比附伤不计攻击门槛',()=>{
+ const s=make(undefined,{soul:1342,hp:1000,aStats:{atk:1000}}),multi=s.moveDefinitions[key(s.auditMoveId)],mr=E.WIKI.effectsEngine.registry[31],mc=E.WIKI.effectsEngine.compileInstances([{id:31,args:[2,2],description:mr.template}],[{id:31,argsNum:mr.argsNum,template:mr.template}],multi);assert.equal(mc.issue,'');multi.power=250;multi.operations=mc.operations;const o=turn(s),red=o.damageEvents.filter(e=>e.type==='attack'),percent=o.damageEvents.filter(e=>e.type==='percent');assert.equal(red.length,2);assert.ok(red.every(e=>e.settledDamage>0&&e.settledDamage<3000));assert.ok(red.reduce((sum,e)=>sum+e.settledDamage,0)>3000);assert.equal(o.fighters[0].hp,4000);assert.equal(percent.length,1);assert.equal(percent[0].settledDamage,3000);
  const t=make(undefined,{soul:1342,hp:1000});strong(t,2000);const m=t.moveDefinitions[key(t.auditMoveId)],r=E.WIKI.effectsEngine.registry[29],c=E.WIKI.effectsEngine.compileInstances([{id:29,args:[2000],description:r.template}],[{id:29,argsNum:r.argsNum,template:r.template}],m);assert.equal(c.issue,'');m.operations=c.operations;
  const x=turn(t);assert.equal(x.fighters[0].hp,1000);assert.equal(x.damageEvents.find(e=>e.type==='fixed').settledDamage,2000);assert.equal(x.damageEvents.find(e=>e.type==='percent').settledDamage,3000);
 });

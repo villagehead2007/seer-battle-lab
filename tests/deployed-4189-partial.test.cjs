@@ -95,9 +95,9 @@ test('4189 679两回合技能禁疗、789消回合后受伤翻倍、1395先手�
  const e=pick(1395)[0],a=turn(make(e)),b=turn(make(e,{omit:true}));assert.ok(Math.abs((9000-a.fighters[1].hp)-2*(9000-b.fighters[1].hp))<=1);
  const late=turn(make(pick(1549)[0],{aStats:{spe:10},bStats:{spe:900}}));assert.equal(late.fighters[0].effects['攻击先制'].start,2);assert.equal(late.fighters[0].effects['攻击先制'].amount,1);
 });
-test('4189 1249沿用已核实按实际攻击损失一半吸血和独立异常百分伤，禁疗不吞独立附伤',()=>{
+test('4189 1249按完整红伤一半吸血，异常追加按实际回复，禁疗时为零',()=>{
  const e=pick(1249)[0],s=make(e,{hp:1000});s.fighters[1].ailments['失明']=9;const a=turn(s),n=Math.floor(a.fighters[0].lastAttackDamage/2);assert.equal(a.fighters[0].hp,1000+n);assert.equal(a.fighters[1].hp,9000-a.fighters[0].lastAttackDamage-n);
- const z=make(e,{hp:1000});z.fighters[1].ailments['失明']=9;timer(z,0,'技能禁疗');const b=turn(z);assert.equal(b.fighters[0].hp,1000);assert.equal(b.fighters[1].hp,9000-b.fighters[0].lastAttackDamage-Math.floor(b.fighters[0].lastAttackDamage/2));
+ const z=make(e,{hp:1000});z.fighters[1].ailments['失明']=9;timer(z,0,'技能禁疗');const b=turn(z);assert.equal(b.fighters[0].hp,1000);assert.equal(b.fighters[1].hp,9000-b.fighters[0].lastAttackDamage);
 });
 test('4189 23真实技能、单原版魂印与普通伙伴技能完整保留，本地配招初始化和实际耗PP',()=>{
  assert.equal(H.source.moves.length,23);assert.deepEqual(H.source.souls.map(x=>x.id),[1411]);assert.equal(H.source.moves.find(m=>m.id===37621).fifth,false);assert.deepEqual(H.source.moves.filter(m=>m.fifth).map(m=>m.id),[34914]);for(const m of H.source.moves){const s=make({moveId:m.id,index:null},{omit:true}),o=turn(s);assert.ok(s.fighters[0].moves.includes(key(m.id)));assert.ok(o.fighters[0].pp[key(m.id)]<s.fighters[0].pp[key(m.id)]);}

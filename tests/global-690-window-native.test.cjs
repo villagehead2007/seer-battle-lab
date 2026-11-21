@@ -1,0 +1,9 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3242-native.cjs'),store=require('../local-species.cjs');
+test('690同窗口仅首次触发，真实清除对手封属后再次消强不重授，新用原招才开启新窗口',()=>{
+ let s=H.make(24120,{extraMoves:[17489],enemyId:3242,enemyMoves:[10715],aStats:{spe:4000},bStages:{acc:6}});s=H.turn(s,24120);s=H.turn(s,'potion:pp',10715);assert.equal(s.fighters[1].effects.statusBlock.end,4);s=H.turn(s,17489,10715);assert.equal(s.fighters[1].effects.statusBlock,undefined);assert.equal(s.fighters[0].effects['强化消失封属'].triggered,true);s=H.turn(s,24120);assert.equal(s.fighters[0].effects['强化消失封属'].triggered,false);assert.equal(s.fighters[0].effects['强化消失封属'].start,5);s=H.turn(s,'potion:pp',10715);assert.equal(s.fighters[1].effects.statusBlock.start,5);assert.equal(s.fighters[1].effects.statusBlock.end,7);
+});
+test('4532原魂1745与28294原690完整共存，下三回合消强当回封属，到期恢复且消回合可移除监听',()=>{
+ for(const clear of [false,true]){const a=store.species(4532),b=store.species(3242),stats={maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:4000};a.selectedSoulId=1745;b.selectedSoulId=567;let s=H.E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[H.loadout(a,[28294]),H.loadout(b,[10715,17489,20308])],seed:14,criticals:false,builds:[{overrides:stats},{overrides:{...stats,spe:100}}]});Object.assign(s.fighters[0].stages,{atk:1,acc:6});s.fighters[1].stages.acc=6;s=H.turn(s,28294);assert.equal(s.fighters[0].soulId,1745);assert.equal(s.fighters[0].effects['强化消失封属'].start,2);assert.equal(s.fighters[0].effects['强化消失封属'].end,4);
+ s=H.turn(s,'potion:pp',clear?17489:10715);if(clear){s=H.turn(s,'potion:pp',10715);assert.equal(s.fighters[1].effects.statusBlock,undefined);}else{assert.equal(s.fighters[1].effects.statusBlock.start,2);assert.equal(s.fighters[1].effects.statusBlock.end,4);const spa=s.fighters[1].stages.spa;assert.equal(spa,-1);for(let r=3;r<=5;r++){s=H.turn(s,'potion:pp',20308);assert.equal(s.fighters[1].stages.spa,spa+(r===5?1:0));}}
+ }
+});

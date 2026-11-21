@@ -1,6 +1,32 @@
 'use strict';const test=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn,timer,sum,key}=require('./helpers/remaining-4903.cjs');
 test('4903/4与5重复实例真实命中双防双攻特防速下降，585全属性强化而非只登记指令',()=>{for(const [id,levels]of[[20155,{acc:2}],[20082,{acc:-2}],[20546,{def:-1,spd:-1}],[17586,{atk:-1,spa:-1,spd:-1}],[24169,{spe:-2,acc:-2}]]){const s=make({move:id});if(id===24169)s.moveDefinitions[key(id)].operations=s.moveDefinitions[key(id)].operations.filter(op=>op.index<2);turn(s,id,null);for(const[k,v]of Object.entries(levels))assert.equal((id===20155?s.fighters[0]:s.fighters[1]).stages[k],v);}const s=make({move:24170,index:0});turn(s);assert.ok(Object.values(s.fighters[0].stages).every(v=>v===1));});
-test('4903/125每完整技能红伤封250且不减固定50，额外技能重新计额并两回到期',()=>{const s=make({move:17585,index:0,aStats:{spd:1},bStats:{spa:9999},loadout:[17585,20155,14102,29351,38393]});for(let r=1;r<=3;r++){turn(s,r===1?17585:20155,10716);assert.equal(sum(s,'fixed',1),r<=2?50:0);if(r<=2)assert.equal(sum(s,'attack',1),250);else assert.ok(sum(s,'attack',1)>250);}const a=make({move:17585,index:0,aStats:{def:1,spd:1},bStats:{atk:9999,spa:9999}}),old=E.WIKI.effectsEngine;E.WIKI.effectsEngine={...old,run(p,o,c){const out=old.run(p,o,c);if(p==='afterUse'&&c.a.side===1&&c.m.id===key(10716))c.reproduceSkillComponent(c.moveDefinition(key(10127)));return out;}};try{turn(a,17585,10716);assert.equal(sum(a,'attack',1),500);assert.equal(a.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===1).length,2);}finally{E.WIKI.effectsEngine=old;}});
+test('4903/125整回合红伤封250且不减固定50，额外技能共用回合额度并两回到期',()=>{
+ const s=make({move:17585,index:0,aStats:{spd:1},bStats:{spa:9999},loadout:[17585,20155,14102,29351,38393]});
+ for(let round=1;round<=3;round++){
+  turn(s,round===1?17585:20155,10716);
+  assert.equal(sum(s,'fixed',1),round<=2?50:0);
+  if(round<=2)assert.equal(sum(s,'attack',1),250);
+  else assert.ok(sum(s,'attack',1)>250);
+ }
+ const replay=make({move:17585,index:0,aStats:{def:1,spd:1},bStats:{atk:9999,spa:9999}});
+ const engine=E.WIKI.effectsEngine;
+ E.WIKI.effectsEngine={...engine,run(phase,operations,context){
+  const result=engine.run(phase,operations,context);
+  if(phase==='afterUse'&&context.a.side===1&&context.m.id===key(10716)){
+   context.reproduceSkillComponent(context.moveDefinition(key(10127)));
+  }
+  return result;
+ }};
+ try{
+  turn(replay,17585,10716);
+  const red=replay.damageEvents.filter(event=>event.type==='attack'&&event.sourceSide===1);
+  assert.deepEqual(red.map(event=>event.settledDamage),[250,0]);
+  assert.equal(sum(replay,'attack',1),250);
+  assert.equal(sum(replay,'fixed',1),50);
+ }finally{
+  E.WIKI.effectsEngine=engine;
+ }
+});
 
 test('4903/693下两回红伤增加100%本次不增，实际第三回后到期',()=>{const options={move:17585,loadout:[17585,14102,20155,29351,38393]},a=make({...options,index:1}),b=make({...options,index:-1});for(let r=1;r<=4;r++){const m=r===1?17585:14102;turn(a,m,20117);turn(b,m,20117);const am=sum(a),bm=sum(b);if(r===2||r===3)assert.ok(Math.abs(am-2*bm)<=1);else assert.equal(am,bm);}});
 test('4903/692免致命红并等量直接扣攻击者体力，662只免致命红，两者不免命中固定50',()=>{for(const reflect of[false,true]){const move=reflect?24168:32929,index=reflect?0:1,s=make({move,index});timer(s,1,'必定暴击');timer(s,1,'固定百分比免疫');turn(s,move,10716);assert.equal(sum(s,'attack',1),0);assert.equal(sum(s,'fixed',1),50);assert.equal(s.fighters[0].hp,8950);const direct=(s.healthLossEvents??[]).filter(e=>e.type==='direct'&&e.targetSide===1).reduce((n,e)=>n+e.hpLoss,0);assert.equal(direct>0,reflect);assert.equal(s.fighters[1].hp,9000-sum(s,'attack')-direct);}});

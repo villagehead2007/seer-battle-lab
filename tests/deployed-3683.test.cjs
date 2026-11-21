@@ -31,7 +31,7 @@ test('3683 4和5有序实例能力变化、概率失败、六级截断和免弱'
 test('3683 1123吸强成功延后先制，保护失败与持续边界',()=>{
  const s=make(e(1123));s.fighters[1].stages.atk=2;const o=turn(s);assert.equal(o.fighters[0].stages.atk,2);assert.equal(o.fighters[1].stages.atk,0);assert.deepEqual(o.fighters[0].effects.id984,{start:2,end:2,amount:2});
  for(const protection of ['幽蝶强化保护','hypnosBoostProtect']){const b=structuredClone(s);timer(b,1,protection);assert.equal(turn(b).fighters[0].effects.id984,undefined);}
- const ban=structuredClone(s);timer(ban,0,'禁强化');assert.equal(turn(ban).fighters[1].stages.atk,2);assert.equal(turn(make(e(1123))).fighters[0].effects.id984,undefined);
+ const ban=structuredClone(s);timer(ban,0,'禁强化');const b=turn(ban);assert.equal(b.fighters[1].stages.atk,0);assert.equal(b.fighters[0].stages.atk,0);assert.equal(b.fighters[0].effects.id984,undefined);assert.equal(turn(make(e(1123))).fighters[0].effects.id984,undefined);
  o.fighters[0].stats.spe=1;assert.equal(turn(o,900031).turns[1].first,0);assert.equal(turn(turn(o,900031),900031).turns[2].first,1);
 });
 
@@ -62,14 +62,14 @@ test('3683 2496零攻击伤害低体交换，等体高体和正伤害不交换',
 
 test('3683 968初次控制异常与免疫，后续回合不重复入场',()=>{
  const s=make(undefined,{soul:968,seed:1}),o=turn(s,900031);assert.equal(o.randomStatusEvents.filter(x=>x.type==='draw').length,1);assert.ok(require('../dist/status-rules.js').isControl(o.randomStatusEvents[0].name));assert.equal(o.fighters[1].pp[key(900041)],99);assert.equal(turn(o,900031).randomStatusEvents.filter(x=>x.type==='draw').length,1);
- const im=make(undefined,{soul:968,seed:1});timer(im,1,'免异常');const n=turn(im,900031);assert.equal(Object.keys(n.fighters[1].ailments).length,0);assert.equal(n.fighters[1].pp[key(900041)],98);
+ const store=require('../local-species.cjs'),loadout=require('./helpers/3001-native.cjs').loadout,a=store.species(3683),b=store.species(5000),im=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,[]),loadout(b,[10993])],seed:1,criticals:false});assert.equal(Object.keys(im.fighters[1].ailments).length,0);const before=im.fighters[1].pp['wiki:10993'],n=E.resolveTurn(im,['potion:pp','wiki:10993']);assert.equal(Object.keys(n.fighters[1].ailments).length,0);assert.equal(n.fighters[1].pp['wiki:10993'],before);assert.ok(n.turns.at(-1).events.some(e=>e.text.includes('B 方 使用极光')));assert.ok(n.damageEvents.some(e=>e.sourceSide===1&&e.type==='attack'&&e.settledDamage>0)); // 753生命在回末把唯一损失的1PP恢复。
 });
 
 test('3683 968低伤下回合先制必暴，高伤随机异常及280边界',()=>{
  const s=make(undefined,{soul:968});s.fighters[0].soulState.chaosEntered=true;let low=turn(s);assert.ok(low.fighters[0].lastAttackDamage<280);assert.equal(low.fighters[0].effects['必定暴击'].start,2);low.fighters[0].stats.spe=1;const next=turn(low,900030);assert.equal(next.turns[1].first,0);assert.ok(next.turns[1].events.some(x=>JSON.stringify(x).includes('暴击')));
- const high=make(undefined,{soul:968,aStats:{atk:8000}});high.fighters[0].soulState.chaosEntered=true;const h=turn(high);assert.ok(h.fighters[0].lastAttackDamage>280);assert.equal(h.randomStatusEvents.filter(x=>x.type==='draw').length,1);assert.equal(h.fighters[0].effects['必定暴击'],undefined);
+ const high=make(undefined,{soul:968,aStats:{atk:8000}}),beforeHigh=high.randomStatusEvents.filter(x=>x.type==='draw').length,h=turn(high);assert.ok(h.fighters[0].lastAttackDamage>280);assert.equal(h.randomStatusEvents.filter(x=>x.type==='draw').length,beforeHigh+1);assert.equal(h.fighters[0].effects['必定暴击'],undefined);
  // A fixed attack-damage cap exercises equality without changing the soul rule.
- const edge=make(undefined,{soul:968,aStats:{atk:8000}});edge.fighters[0].soulState.chaosEntered=true;edge.fighters[1].hp=280;const end=turn(edge);assert.equal(end.fighters[0].lastAttackDamage,280);assert.equal(end.fighters[0].effects['必定暴击'],undefined);assert.equal(end.randomStatusEvents,undefined);
+ const edge=make(undefined,{soul:968,aStats:{atk:8000}}),beforeEdge=edge.randomStatusEvents.filter(x=>x.type==='draw').length;timer(edge,1,'攻击伤害上限',{amount:280});const end=turn(edge);assert.equal(end.fighters[0].lastAttackDamage,280);assert.equal(end.fighters[0].effects['必定暴击'],undefined);assert.equal(end.randomStatusEvents.filter(x=>x.type==='draw').length,beforeEdge);
 });
 
 test('3683 2561携带初始化剥离混沌，原版保留属性与首次入场封属消费',()=>{

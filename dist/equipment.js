@@ -18,15 +18,21 @@
     if(input.slots!==undefined){if(!Array.isArray(input.slots)||input.slots.length!==3)throw new Error('异常抗性顺序配置必须恰有三个槽位。');out.slots=input.slots.map((slot,index)=>{if(!slot||typeof slot!=='object'||typeof slot.name!=='string'||(slot.name&&!AILMENTS.includes(slot.name))||!Number.isInteger(slot.chance)||slot.chance<0||slot.chance>100)throw new Error('第'+(index+1)+'异常抗性槽必须提供有效异常与0–100整数概率。');return {name:slot.name,chance:slot.chance};});const names=out.slots.map(x=>x.name).filter(Boolean);if(new Set(names).size!==names.length)throw new Error('三个抗性槽不能重复选择异常。');out.major=out.slots[0].name;out.minor=out.slots[1].name;}return out;
   }
   function suitBonus(id,key,value){if(!Object.hasOwn(SUITS,id))throw new Error('请选择有效套装。');const suit=SUITS[id];return (suit.flat[key]??0)+Math.floor(value*(suit.percent[key]??0)/100);}
-  function resistanceChance(f,k){const r=f.build.resistance,base=r.slots?(r.slots.find(x=>x.name===k)?.chance??0)/100:r.major===k?.55:r.minor===k?.18:0,mark=f.soulState?.fiveMarks2125?.火土,round=f.soulState?.availableRound??1;if(mark&&mark.start<=round&&mark.end>=round){const slots=r.slots??[{name:r.major,chance:55},{name:r.minor,chance:18}],valid=slots.filter(x=>x.name),max=Math.max(0,...valid.map(x=>x.chance)),best=valid.filter(x=>x.chance===max);if(max>0&&best.length===1&&best[0].name===k)return 1;}return Math.min(1,base+(f.soulState?.curtainResistance2046?.status===k?f.soulState.curtainResistance2046.bonus:0));}
+  function resistanceChance(f,k){const r=f.build.resistance,base=r.slots?(r.slots.find(x=>x.name===k)?.chance??0)/100:r.major===k?.55:r.minor===k?.18:0,mark=f.soulState?.fiveMarks2125?.火土,round=f.soulState?.availableRound??1;if(f.soulState?.heroOath2009){const slots=r.slots??[{name:r.major,chance:55},{name:r.minor,chance:18}];const best=Math.max(0,...slots.filter(slot=>slot.name).map(slot=>slot.chance));if(best&&slots.some(slot=>slot.name===k&&slot.chance===best))return 1;}if(mark&&mark.start<=round&&mark.end>=round){const slots=r.slots??[{name:r.major,chance:55},{name:r.minor,chance:18}],valid=slots.filter(x=>x.name),max=Math.max(0,...valid.map(x=>x.chance)),best=valid.filter(x=>x.chance===max);if(max>0&&best.length===1&&best[0].name===k)return 1;}return Math.min(1,base+(f.soulState?.curtainResistance2046?.status===k?f.soulState.curtainResistance2046.bonus:0));}
+  function damageResistance(f,type){
+    if(['fixed','percent'].includes(type)&&(f.soulId===622||(f.soulId==null&&f.species==='emperor')))return 100;
+    const mark=f.soulState?.teamXinMark1061,round=f.soulState?.xinMarkRound1061??f.soulState?.calculationRound??f.soulState?.availableRound??1;
+    if(['fixed','percent'].includes(type)&&mark?.sourceHash==='e7c06bfc'&&mark.start<=round&&mark.end>=round)return 100;
+    return f.build.resistance[type]??0;
+  }
   // Pure shared calculation: damage resistance applies to the whole matching damage.
-  function mitigate(f,amount,type,{bypass=false}={}){
+  function mitigate(f,amount,type,{bypass=false,ignoreImmunity=false,ignoreResistance=false}={}){
     let n=Math.max(0,amount);if(bypass)return Math.floor(n);
-    if(['fixed','percent'].includes(type)&&(f.soulId===622||(f.soulId==null&&f.species==='emperor')))return 0;
-    n*=1-(f.build.resistance[type]??0)/100;
+    if(!ignoreImmunity&&['fixed','percent'].includes(type)&&(f.soulId===622||(f.soulId==null&&f.species==='emperor')))return 0;
+    if(!ignoreResistance)n*=1-damageResistance(f,type)/100;
     if(['fixed','percent'].includes(type)&&f.build.suit==='judgment')n*=1-(f.suitState?.judgmentReduction??0);
     if(['fixed','percent'].includes(type)&&f.build.suit==='destiny')n*=1-.02*(f.suitState?.stacks??0);
     return Math.max(0,Math.floor(n));
   }
-  return {SUITS,AILMENTS,DAMAGE_LABELS,normalizeResistance,suitBonus,resistanceChance,mitigate};
+  return {SUITS,AILMENTS,DAMAGE_LABELS,normalizeResistance,suitBonus,resistanceChance,damageResistance,mitigate};
 });

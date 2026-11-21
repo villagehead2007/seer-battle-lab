@@ -24,7 +24,7 @@ test('3291 亘古圣辰决低伤疲惫未击败封攻，免异常及皇怒封属
 test('3291 万皇宗魄决逐次暴击计数、暴击完整皇怒和攻击先制消费',()=>{
  const s=make(m(30381),{soul:622});s.fighters[0].counts.rageDouble=1;timer(s,0,'必定暴击');const o=turn(s);assert.equal(o.fighters[0].fifthUses,1);assert.equal(o.fighters[0].counts.rageFull,2);assert.equal(o.fighters[0].counts.attackPriority,2);assert.equal(o.fighters[0].pp[key(30381)],4);
  const n=turn(o,900030);assert.equal(n.fighters[0].counts.attackPriority,1);assert.equal(n.fighters[0].counts.rageFull,1);assert.equal(n.fighters[0].fifthUses,1);
- const no=make(m(30381),{soul:622});timer(no,0,'attackBlock');const b=turn(no);assert.equal(b.fighters[0].counts.rageFull,undefined);assert.equal(b.fighters[0].fifthUses,1);
+ const no=make(m(30381),{soul:622});timer(no,0,'attackBlock');const b=turn(no);assert.equal(b.fighters[0].counts.rageFull,undefined);assert.equal(b.fighters[0].fifthUses,0);assert.equal(b.fighters[0].pp[key(30381)],4);
 });
 test('3291 魂印免粉免弱、初始免异常、行动回复和基础技能不误触皇怒',()=>{
  const s=make(m(20530),{soul:622,hp:1000});s.fighters[0].counts.rageDouble=1;const o=turn(s);assert.equal(o.fighters[0].hp,2125);assert.equal(o.fighters[0].stages.acc,1);assert.ok(!o.turns[0].events.some(e=>e.text.includes('星皇之怒判定')));

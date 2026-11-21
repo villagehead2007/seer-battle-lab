@@ -63,7 +63,8 @@ test('3672 魂印957攻击增伤与属性减伤各叠三层，当前使用生效
  let s=make({moveId:10004,index:null},{soul:957,omit:true});for(let i=1;i<=4;i++){const plain=structuredClone(s);plain.fighters[0].soulId=0;const p=turn(plain,900030),o=turn(s,900030);const ratio=1+.4*Math.min(i,3);assert.ok(Math.abs(o.fighters[0].lastAttackDamage-p.fighters[0].lastAttackDamage*ratio)<3);assert.equal(o.fighters[0].soulState.miracleAttacks,Math.min(i,3));s=o;}
  s=make({moveId:10004,index:null},{soul:957,omit:true});for(let i=1;i<=4;i++){const plain=structuredClone(s);plain.fighters[0].soulId=0;const p=turn(plain,900031,900040),o=turn(s,900031,900040);assert.ok(Math.abs(o.fighters[1].lastAttackDamage-p.fighters[1].lastAttackDamage*(1-.2*Math.min(i,3)))<2);assert.equal(o.fighters[0].soulState.miracleStatuses,Math.min(i,3));s=o;}
  const control=make({moveId:10004,index:null},{soul:957,omit:true});control.fighters[0].ailments['疲惫']=1;assert.equal(turn(control,900030).fighters[0].soulState.miracleAttacks,undefined);
- const failed=make({moveId:10004,index:null},{soul:957,omit:true});timer(failed,0,'skillBlock');const f=turn(failed,900030);assert.equal(f.fighters[0].soulState.miracleAttacks,1);assert.equal(f.fighters[1].hp,9000);
+ const failed=make({moveId:10004,index:null},{soul:957,omit:true});timer(failed,0,'skillBlock');const f=turn(failed,900030);assert.equal(f.fighters[0].soulState.miracleAttacks??0,0);assert.equal(f.fighters[1].hp,9000);
+ const immune=make({moveId:10004,index:null},{soul:957,omit:true});timer(immune,1,'当回合免伤');const zero=turn(immune,900030);assert.equal(zero.fighters[1].hp,9000);assert.equal(zero.fighters[0].soulState.miracleAttacks,1,'actual zero-damage hit still earns a layer');
  const fixed=make(e(29),{soul:957});const fo=turn(fixed);assert.equal(9000-fo.fighters[1].hp-fo.fighters[0].lastAttackDamage,20);
 });
 

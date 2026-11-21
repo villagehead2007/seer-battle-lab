@@ -7,11 +7,11 @@ test('3592 魂印886满血所有技能先制二、残血不加及回合开始锁
  const s=make(plain,{soul:true,aStats:{spe:1}});timer(s,1,'id984',{amount:3});const o=turn(s,11077,HIT);assert.equal(o.turns[0].first,1);assert.ok(o.fighters[0].hp<9000);assert.equal(o.fighters[0].soulState.netherFull,true);const control=make(plain,{aStats:{spe:1}});timer(control,1,'id984',{amount:3});assert.equal(dmg(o),dmg(turn(control,11077,HIT)));
  const r=make(plain,{soul:true,hp:8999});timer(r,1,'id984',{amount:3});assert.equal(turn(r).turns[0].first,1);
 });
-test('3592 魂印886残血攻击固伤粉伤提升50%、回血不改变当回合判定',()=>{
+test('3592 魂印886残血仅红伤提升50%、固伤粉伤不变且回血不改当回合判定',()=>{
  const normal=turn(make(plain)),low=turn(make(plain,{soul:true,hp:8999}));assert.ok(Math.abs(dmg(low)-dmg(normal)*1.5)<=1);
- const fixed=turn(make(pick(29)[0],{soul:true,hp:8999}));assert.equal(9000-fixed.fighters[1].hp-dmg(fixed),75);
- const pink=turn(make(pick(532)[0],{soul:true,hp:1000}));assert.equal(pink.fighters[0].hp,4000);assert.equal(pink.fighters[1].hp,4500);
- const heal=turn(make(pick(532)[0],{soul:true,hp:8999}));assert.equal(heal.fighters[0].hp,9000);assert.equal(heal.fighters[1].hp,8999); // one actual HP healed, then 1.5 floored
+ const fixed=turn(make(pick(29)[0],{soul:true,hp:8999}));assert.equal(9000-fixed.fighters[1].hp-dmg(fixed),50);
+ const pink=turn(make(pick(532)[0],{soul:true,hp:1000}));assert.equal(pink.fighters[0].hp,4000);assert.equal(pink.fighters[1].hp,6000);
+ const heal=turn(make(pick(532)[0],{soul:true,hp:8999}));assert.equal(heal.fighters[0].hp,9000);assert.equal(heal.fighters[1].hp,8999); // one actual HP healed; percentage damage remains one
  const im=make(pick(29)[0],{soul:true,hp:8999});timer(im,1,'当回合免伤');assert.equal(turn(im).fighters[1].hp,9000);
 });
 test('3592 魂印886攻击未击败下回合必暴、属性和控制不授予、到期',()=>{

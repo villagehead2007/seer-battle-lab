@@ -9,13 +9,108 @@ function verifiedMoveIssue(m,snapshot){const rule=registry[m.id];if(!rule)return
 
 const effectsEngine=typeof module==='object'&&module.exports?require('./effect-registry.js'):globalThis.BattleEffectRegistry;
 const statNames={'攻击':'atk','防御':'def','特攻':'spa','特防':'spd','速度':'spe','命中':'acc'};
-function profileFor(s){const selected=s.souls.find(x=>x.id===(s.selectedSoulId??s.souls.at(-1)?.id));return (s.source?.provider!=='seerapi'?profiles[s.id]:null)??{key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:'')+(s.trainingCompatibility?':version:'+(s.selectedSkillVersion??'trained'):''),soul:selected&&['seerapi','composite'].includes(s.source?.provider)&&E.SOULS.registry[selected.id]?.sourceHash&&E.SOULS.acceptsSource(selected.id,selected.hash)?selected.id:null,defaults:[]};}
+function profileFor(s){if(E.SpMars.validSource(s))return {key:'wiki:'+s.id,soul:E.SpMars.SOUL_ID,defaults:[]};const selected=s.souls.find(x=>x.id===(s.selectedSoulId??s.souls.at(-1)?.id));return (s.source?.provider!=='seerapi'?profiles[s.id]:null)??{key:'wiki:'+s.id+(s.souls.length>1?':soul:'+selected?.id:'')+(s.trainingCompatibility?':version:'+(s.selectedSkillVersion??'trained'):''),soul:selected&&['seerapi','composite'].includes(s.source?.provider)&&E.SOULS.registry[selected.id]?.sourceHash&&E.SOULS.acceptsSource(selected.id,selected.hash)?selected.id:null,defaults:[]};}
 // The source skill inventory is never filtered or rewritten. Groups describe
 // legal battle versions; shared ordinary skills remain available after awakening.
+const restoredFifthBindings = {
+  3425: {
+    pet: "186cbef7",
+    souls: {"740":"c4233dc1","1030":"f7c4dc3b"},
+    fifths: [31057,37198],
+    skills: [10047,22660,14897,22661,14935,31052,22662,14898,22637,31053,25634,31054,25635,31055,25636,31056,38525,31057,37198],
+    rawOrder: [10047,22660,14897,22661,14935,31052,22662,14898,22637,31053,25634,31054,25635,31055,25636,31056,38525,31057,37198],
+    skillHashes: {
+      10047: "b6e75e96", 14897: "cf9dc445", 14898: "a2b437d9", 14935: "be783af3",
+      22637: "9a191895", 22660: "42a190d8", 22661: "9f8af798", 22662: "43c4852c",
+      25634: "bcfe0c1d", 25635: "cf145fda", 25636: "1830c50c", 31052: "cf469b9b",
+      31053: "7ab9953a", 31054: "2b847d73", 31055: "1608c74", 31056: "d26f2e98",
+      31057: "76a23e3f", 37198: "9264e4bb", 38525: "a14337fd",
+    },
+    activation: {"id":1725848,"hash":"b61da9c0","moveId":37198},
+    activationData: {
+      id: 1725848,
+      name: "圣灵荣光",
+      item_number: 1,
+      item: {"id":1725848,"url":"https://api.seerapi.com/v1/item/1725848"},
+      skill: {"id":37198,"url":"https://api.seerapi.com/v1/skill/37198"},
+      pet: {"id":3425,"url":"https://api.seerapi.com/v1/pet/3425"},
+      hash: "b61da9c0",
+    },
+  },
+  3482: {
+    pet: "86cf01c4",
+    souls: {"792":"c7ad1f39"},
+    fifths: [31357,37466],
+    skills: [10127,20117,10710,10636,20164,31352,10650,20514,12452,31353,25785,31354,25786,31355,25787,31356,31357,37466],
+    rawOrder: [10127,20117,10710,10636,20164,31352,10650,20514,12452,31353,25785,31354,25786,31355,25787,31356,31357,37466],
+    skillHashes: {
+      10127: "fb5a2c8", 10636: "5673e564", 10650: "bb09625e", 10710: "65487314",
+      12452: "3bbec87", 20117: "8e1d4e2f", 20164: "e1fe9847", 20514: "bcd1924c",
+      25785: "9a8cb4a8", 25786: "aa558379", 25787: "37dcdf5f", 31352: "dca6a373",
+      31353: "30e4ac4d", 31354: "bcec7953", 31355: "fd2fed3d", 31356: "7046b719",
+      31357: "565890f0", 37466: "684d205b",
+    },
+    activation: {"id":1726156,"hash":"e50e807a","moveId":37466},
+    activationData: {
+      id: 1726156,
+      name: "九霄斗甲",
+      item_number: 1,
+      item: {"id":1726156,"url":"https://api.seerapi.com/v1/item/1726156"},
+      skill: {"id":37466,"url":"https://api.seerapi.com/v1/skill/37466"},
+      pet: {"id":3482,"url":"https://api.seerapi.com/v1/pet/3482"},
+      hash: "e50e807a",
+    },
+  },
+  3529: {
+    pet: "2905139b",
+    souls: {"836":"ed285c8d"},
+    fifths: [31600,37313],
+    skills: [10499,20491,10530,21153,11531,19990,21042,11025,25110,19991,25111,30010,30011,25112,30012,30013,30014,25113,30015,25114,30016,31597,25907,31598,25908,31599,31600,37313],
+    rawOrder: [10499,20491,10530,21153,11531,19990,21042,11025,25110,19991,25111,30010,30011,25112,30012,30013,30014,25113,30015,25114,30016,31597,25907,31598,25908,31599,31600,37313],
+    skillHashes: {
+      10499: "c3e03106", 10530: "edf3858e", 11025: "6a821725", 11531: "ba1b7599",
+      19990: "c213631f", 19991: "960076ec", 20491: "3f3a5a35", 21042: "fe80de4b",
+      21153: "f00228e2", 25110: "c4df9f05", 25111: "a9904b6a", 25112: "39badf7",
+      25113: "8bcce7a0", 25114: "e01a3eaf", 25907: "b0e2964d", 25908: "b25fc094",
+      30010: "ddbafa8d", 30011: "ba15e127", 30012: "ce874452", 30013: "813f2433",
+      30014: "94b4e91", 30015: "1a271a32", 30016: "35dd0907", 31597: "47041eda",
+      31598: "51a3fa25", 31599: "a8ea849f", 31600: "db07e11", 37313: "8b931ce2",
+    },
+    activation: {"id":1726001,"hash":"993ef5af","moveId":37313},
+    activationData: {
+      id: 1726001,
+      name: "归魂幻瞳",
+      item_number: 1,
+      item: {"id":1726001,"url":"https://api.seerapi.com/v1/item/1726001"},
+      skill: {"id":37313,"url":"https://api.seerapi.com/v1/skill/37313"},
+      pet: {"id":3529,"url":"https://api.seerapi.com/v1/pet/3529"},
+      hash: "993ef5af",
+    },
+  },
+};
 function additionalFifthIssues(s){
  const issues=[],p=s.additionalFifths?.rawPet,ref=s.additionalFifths?.source,moves=s.moves??[],groups=s.skillVersions;
  if(s.source?.provider!=='seerapi'||!p||p.id!==s.id||p.hash!==s.source.revision||ref?.url!==s.source.url||ref?.revision!==p.hash||p.advance)issues.push('追加第五缺少匹配的非觉醒来源');
- const reviewed={4657:{"pet":"8722ac1","souls":{"1859":"9482d536"},"fifths":[37432,38296],"skills":[10006,20177,10361,10204,10553,37428,10218,13224,24619,19912,28764,37429,28765,37430,28766,37431,37432,38296],"skillHashes":{"10006":"4d93a02d","10204":"7941b6cb","10218":"13722def","10361":"bea3e03c","10553":"fd273775","13224":"34257fc","19912":"a27cd9dc","20177":"e3d4ec87","24619":"4c205f77","28764":"fd6c5917","28765":"b465520","28766":"e8739ed","37428":"5ab407a7","37429":"2e648f3c","37430":"f5ac54bd","37431":"5d6b37db","37432":"e134d5d5","38296":"ccf63b08"}},4499:{"pet":"e5af2be4","souls":{"1714":"5cd3c296"},"fifths":[36553,37021],"skills":[10047,22660,14897,22661,14935,36548,22662,14898,22637,32104,36549,36550,28285,36551,28286,36552,36553,37021],"skillHashes":{"10047":"b6e75e96","14897":"cf9dc445","14898":"a2b437d9","14935":"be783af3","22637":"9a191895","22660":"42a190d8","22661":"9f8af798","22662":"43c4852c","28285":"7a3272f2","28286":"a3d661d6","32104":"6db7c427","36548":"b683e2c6","36549":"6e138efb","36550":"9a657111","36551":"b95882e4","36552":"16962886","36553":"d136aee3","37021":"6c8a3945"}},4450:{"pet":"57bec5fc","souls":{"1664":"46f1182e"},"fifths":[36302,36303],"skills":[36292,28162,36293,36294,28163,36295,36296,28164,36297,36298,28165,36299,28166,36300,28167,36301,36302,36303],"skillHashes":{"28162":"383021c1","28163":"92c87405","28164":"26ad69ae","28165":"6863d9d9","28166":"c78c3497","28167":"9d2c686d","36292":"ad4de666","36293":"9092932","36294":"48336d0","36295":"cc179ae5","36296":"8458786c","36297":"901eed","36298":"c59cda5a","36299":"fba43147","36300":"a1ebc99b","36301":"b424f93b","36302":"d99707dc","36303":"9ce8cd45"}},4401:{"pet":"85a8e9b0","souls":{"1618":"3fc997ef"},"fifths":[36021,28355],"skills":[10611,21119,11904,11088,22870,35555,15250,20156,15247,35556,27809,35557,27810,35558,27811,35559,36018,28032,36019,28033,36020,38582,36021,28355],"skillHashes":{"10611":"fbb778c","11088":"ca9177fa","11904":"e571ad0b","15247":"c31b2269","15250":"6497a014","20156":"d46ac18a","21119":"35aa8b13","22870":"e3b8f3cb","27809":"428cfb52","27810":"547cc4e8","27811":"8096f118","28032":"7a7aba86","28033":"8192aefa","28355":"64f1a24b","35555":"7b700b04","35556":"d73d43c3","35557":"f70977eb","35558":"d52a142","35559":"73c27a9a","36018":"7f2a1ac6","36019":"2cf274ff","36020":"feae06e0","36021":"a1afa9d4","38582":"9cd5f1f2"}},4394:{"pet":"98ed6dd5","souls":{"1612":"7a3cbc9d"},"fifths":[35990,37252],"skills":[10250,20369,14102,21106,14104,35985,22196,14109,23618,35986,28016,35987,28017,35988,28018,35989,35990,37252],"skillHashes":{"10250":"985b2ed8","14102":"ba5cc8e2","14104":"b0599f2a","14109":"9130c696","20369":"489bc3c","21106":"3e69d238","22196":"6d94d1c6","23618":"64a9dcbd","28016":"54cb99b8","28017":"5df56412","28018":"de1982ec","35985":"46da0782","35986":"ddf86827","35987":"7414d4ef","35988":"47d1cb6f","35989":"79746c50","35990":"5a1b5564","37252":"36217e60"}},4384:{"pet":"30c83ee7","souls":{"1603":"bc2323a2"},"fifths":[35933,37277],"skills":[10361,20156,10363,20769,19710,35928,10366,34041,35929,27989,35930,27990,35931,27991,35932,35933,37277],"skillHashes":{"10361":"bea3e03c","10363":"70f1c782","10366":"38d23d64","19710":"404f98b8","20156":"d46ac18a","20769":"d13aa09e","27989":"64d94bb8","27990":"a3704523","27991":"f2bae284","34041":"aff0e964","35928":"f398c3b9","35929":"e6c64305","35930":"ddcf7bdc","35931":"db95b5ca","35932":"a1d4c74f","35933":"db0f41d7","37277":"bc70b2e"}},4373:{"pet":"28f30e22","souls":{"1598":"bd54e01d"},"fifths":[35896,37360],"skills":[10611,21119,11904,11088,22870,35891,15250,20156,15247,35892,27972,35893,27973,35894,27974,35895,35896,37360],"skillHashes":{"10611":"fbb778c","11088":"ca9177fa","11904":"e571ad0b","15247":"c31b2269","15250":"6497a014","20156":"d46ac18a","21119":"35aa8b13","22870":"e3b8f3cb","27972":"cd108416","27973":"21ebeb25","27974":"324c2fa1","35891":"7ff9bfae","35892":"aa6f76da","35893":"59004476","35894":"6dbd9278","35895":"db452545","35896":"87d98b22","37360":"b0bca17d"}},4358:{"pet":"867ea8fa","souls":{"1583":"84dc0c15","1905":"b805865a"},"fifths":[35814,38358],"skills":[10008,20190,10194,20171,10009,35809,20872,12231,21828,35810,27932,35811,27933,35812,27934,35813,35814,38358],"skillHashes":{"10008":"ca1f800","10009":"4dfa0d08","10194":"8628d5a","12231":"58870bc","20171":"7211512b","20190":"52c97b2","20872":"cf70644e","21828":"cafb8c6b","27932":"db8e1d68","27933":"ac7e85b4","27934":"a68d445","35809":"deeca389","35810":"3284e980","35811":"edd43b35","35812":"96866607","35813":"31caec3e","35814":"ae2e20b9","38358":"338078d"}},4354:{"pet":"5f80b53","souls":{"1578":"fa7a82b4","2079":"82ea8f8b"},"fifths":[35793,38348],"skills":[14478,22408,10121,13577,22409,35788,10589,22410,24930,35789,27922,35790,27923,35791,27924,35792,38118,35793,38348],"skillHashes":{"10121":"5c7fe1da","10589":"13262625","13577":"695f358d","14478":"6c0d013d","22408":"332ae081","22409":"9587b49a","22410":"b39e2f60","24930":"bd8571e","27922":"e06eccf7","27923":"e7d79091","27924":"5f3dfafd","35788":"31e2560a","35789":"4ba18110","35790":"d6885f60","35791":"73d0fdf4","35792":"98eacee7","35793":"e0502df4","38118":"89959ef9","38348":"3bc89db0"}},4347:{"pet":"6297de96","souls":{"1571":"dad708c7","1786":"d0e7ec19"},"fifths":[35755,36519],"skills":[10006,20267,10391,10404,20438,34502,10548,20483,11583,34503,27304,34504,27305,34505,27306,34506,35752,27906,35753,27907,35754,35755,36519],"skillHashes":{"10006":"4d93a02d","10391":"d133ec17","10404":"a9caf5ba","10548":"ceafe4d","11583":"994e7530","20267":"9db9dc0a","20438":"928f210b","20483":"ff7a25e9","27304":"b73ad416","27305":"abfc6d12","27306":"54cb8eba","27906":"23dfe9c0","27907":"2568d573","34502":"38f599d7","34503":"49651a47","34504":"727565a1","34505":"265ec943","34506":"90c4dee7","35752":"e2e1f8a","35753":"a171c65d","35754":"220147b0","35755":"ba76568d","36519":"38eefafb"}},4333:{"pet":"ad8a14b6","souls":{"1559":"5f62f895","1851":"feedc462"},"fifths":[35687,37398],"skills":[10001,22962,13103,20521,15588,35036,23462,13105,21741,32908,26541,35037,27562,35038,27563,35039,35183,27633,35184,27634,35185,35684,27873,35685,27874,35686,35687,37398]},4329:{"pet":"81dec1d0","souls":{"1555":"90557811","1735":"763e1182"},"fifths":[35665,36696],"skills":[10194,20491,14484,21153,11531,35660,20521,13564,24833,35661,27861,35662,27862,35663,27863,35664,35665,36696]},4318:{"pet":"89fa9038","souls":{"1545":"6033b2c8","1903":"1e3b3684"},"fifths":[35599,37276],"skills":[10006,20168,13611,20713,10681,35594,21520,12086,21939,35595,27828,35596,27829,35597,27830,35598,35599,37276]},4287:{"pet":"654fe35a","souls":{"1508":"a7ad3e9d"},"fifths":[35438,37274],"skills":[10223,20865,11923,10401,20866,35435,11731,20980,19849,31525,25871,31526,27752,35436,27753,35437,35438,37274]},4258:{"pet":"236a026e","souls":{"1482":"e8fc42fa","2139":"f102f34c"},"fifths":[35288,38515],"skills":[10086,20889,13601,20241,10330,35189,20355,13693,24622,35190,27637,35191,27638,35192,27639,35193,35281,35282,35283,35284,35285,27680,35286,27681,35287,35288,38515]},4238:{"pet":"27014a5f","souls":{"1457":"a43f4529"},"fifths":[35176,37419],"skills":[10001,20288,10194,20044,16130,35171,23376,15879,23939,35172,27627,35173,27628,35174,27629,35175,35176,37419]},4219:{"pet":"7dadfe66","souls":{"1438":"eec535e4","1992":"d91b07c"},"fifths":[35072,38042],"skills":[10250,20496,10096,11977,20652,35067,20118,11167,14089,35068,27577,35069,27578,35070,27579,35071,37620,35072,38042]},4215:{"pet":"6cc578dc","souls":{"1433":"996b2094"},"fifths":[35050,37966],"skills":[10086,20496,10287,10363,21034,14325,10692,20437,11620,14328,22314,14326,22315,14329,22316,14327,35045,10447,20906,10256,35046,27566,35047,27567,35048,27568,35049,35050,37966]},4147:{"pet":"a6a942e","souls":{"1376":"f8f409d4","2110":"d9891927"},"fifths":[34699,38437],"skills":[10086,20230,12234,10154,20060,34694,12505,20922,13012,34695,27394,34696,27395,34697,27396,34698,37963,34699,38437]},4135:{"pet":"f7781539","souls":{"1362":"56119652","1787":"18701ac4"},"fifths":[34633,36521],"skills":[10499,20267,10047,10531,20618,34628,19627,20689,23623,34629,27362,34630,27363,34631,27364,34632,34633,36521]},3983:{"pet":"dd1c2f33","souls":{"1245":"33086155","2030":"20d9251"},"fifths":[33903,37964],"skills":[10074,20157,10308,10313,22003,33898,11730,20953,11035,33899,27024,33900,27025,33901,27026,33902,29193,33903,37964]},3979:{"pet":"276d7069","souls":{"1243":"4946c8eb","1368":"262ce263"},"fifths":[33875,38456],"skills":[10250,21008,10380,20152,20082,15979,10597,21531,12935,15980,23293,15984,23294,15985,23295,15986,19595,24898,19596,24899,19597,33872,27010,33873,27011,33874,33875,38456]},3964:{"pet":"ea1fc02b","souls":{"1229":"2f9a892d"},"fifths":[33806,37334],"skills":[10001,20288,10194,20044,16130,33802,23376,15879,23939,33803,26974,33804,26975,26976,26977,33805,29017,33806,37334]},3945:{"pet":"c6394afd","souls":{"1208":"759c6257","1367":"50638b6e"},"fifths":[33716,37335],"skills":[10001,20030,10287,11104,20118,16058,10148,20631,14384,16059,23346,16079,23347,16080,23348,16081,33713,26929,33714,26930,33715,33716,37335]},3924:{"pet":"c5651867","souls":{"1189":"df9cfd69","1366":"23429ae1"},"fifths":[33608,38371],"skills":[10535,20288,10200,10351,20088,16093,11915,20226,13609,16094,23380,16138,23381,16139,23382,16140,19501,24850,19502,24851,19503,33605,26878,33606,26879,33607,33608,38371]},3907:{"pet":"de43b4c0","souls":{"1174":"7235899d","1365":"2f320b3c"},"fifths":[33519,38295],"skills":[10086,20190,10278,12255,21727,16030,10025,20766,11544,16031,23326,16038,23327,16039,23328,16040,19511,24855,19512,24856,19513,33516,26836,33517,26837,33518,33519,38295]},3541:{"pet":"f64f1f52","souls":{"847":"eb7203d"},"fifths":[31664,38372],"skills":[10004,20230,10403,20847,10394,15935,21698,10424,23268,11657,23269,15936,15937,23270,15938,15939,31536,25877,31537,25878,31538,31661,25939,31662,25940,31663,29016,31664,38372]},3883:{"pet":"6db1cc33","souls":{"1152":"8375e9ba","1448":"e7307947"},"fifths":[33388,37336],"skills":[10250,20270,10120,10396,20816,33385,13300,20679,10623,14409,22364,26772,22365,33386,26773,33387,38117,33388,37336]},3875:{"pet":"26cc33c7","souls":{"1145":"b03fdda2","1446":"2945f022"},"fifths":[33346,38234],"skills":[10127,20138,10379,10386,20183,33343,10637,21658,10551,15037,22742,15035,26752,33344,26753,33345,33346,38234]},3847:{"pet":"964d86e0","souls":{"1120":"25657a99","1620":"9448f0d7"},"fifths":[33208,38455],"skills":[10250,21684,11599,10160,20270,30810,11031,20188,10502,30811,25512,30812,25513,30813,25514,30814,33205,26687,33206,26688,33207,29011,33208,38455]},3763:{pet:'eca3b34f',souls:{1043:'38b44fb2',1816:'564c8af3'},fifths:[32790,37141],skills:[14478,22408,10121,13577,22409,32785,10589,22410,24930,32786,26485,32787,26486,32788,26487,32789,29020,32790,37141]}}[s.id];
+ const reviewed={...restoredFifthBindings,4657:{"pet":"8722ac1","souls":{"1859":"9482d536"},"fifths":[37432,38296],"skills":[10006,20177,10361,10204,10553,37428,10218,13224,24619,19912,28764,37429,28765,37430,28766,37431,37432,38296],"skillHashes":{"10006":"4d93a02d","10204":"7941b6cb","10218":"13722def","10361":"bea3e03c","10553":"fd273775","13224":"34257fc","19912":"a27cd9dc","20177":"e3d4ec87","24619":"4c205f77","28764":"fd6c5917","28765":"b465520","28766":"e8739ed","37428":"5ab407a7","37429":"2e648f3c","37430":"f5ac54bd","37431":"5d6b37db","37432":"e134d5d5","38296":"ccf63b08"}},4499:{"pet":"e5af2be4","souls":{"1714":"5cd3c296"},"fifths":[36553,37021],"skills":[10047,22660,14897,22661,14935,36548,22662,14898,22637,32104,36549,36550,28285,36551,28286,36552,36553,37021],"skillHashes":{"10047":"b6e75e96","14897":"cf9dc445","14898":"a2b437d9","14935":"be783af3","22637":"9a191895","22660":"42a190d8","22661":"9f8af798","22662":"43c4852c","28285":"7a3272f2","28286":"a3d661d6","32104":"6db7c427","36548":"b683e2c6","36549":"6e138efb","36550":"9a657111","36551":"b95882e4","36552":"16962886","36553":"d136aee3","37021":"6c8a3945"}},4450:{"pet":"57bec5fc","souls":{"1664":"46f1182e"},"fifths":[36302,36303],"skills":[36292,28162,36293,36294,28163,36295,36296,28164,36297,36298,28165,36299,28166,36300,28167,36301,36302,36303],"skillHashes":{"28162":"383021c1","28163":"92c87405","28164":"26ad69ae","28165":"6863d9d9","28166":"c78c3497","28167":"9d2c686d","36292":"ad4de666","36293":"9092932","36294":"48336d0","36295":"cc179ae5","36296":"8458786c","36297":"901eed","36298":"c59cda5a","36299":"fba43147","36300":"a1ebc99b","36301":"b424f93b","36302":"d99707dc","36303":"9ce8cd45"}},4401:{"pet":"85a8e9b0","souls":{"1618":"3fc997ef"},"fifths":[36021,28355],"skills":[10611,21119,11904,11088,22870,35555,15250,20156,15247,35556,27809,35557,27810,35558,27811,35559,36018,28032,36019,28033,36020,38582,36021,28355],"skillHashes":{"10611":"fbb778c","11088":"ca9177fa","11904":"e571ad0b","15247":"c31b2269","15250":"6497a014","20156":"d46ac18a","21119":"35aa8b13","22870":"e3b8f3cb","27809":"428cfb52","27810":"547cc4e8","27811":"8096f118","28032":"7a7aba86","28033":"8192aefa","28355":"64f1a24b","35555":"7b700b04","35556":"d73d43c3","35557":"f70977eb","35558":"d52a142","35559":"73c27a9a","36018":"7f2a1ac6","36019":"2cf274ff","36020":"feae06e0","36021":"a1afa9d4","38582":"9cd5f1f2"}},4394:{"pet":"98ed6dd5","souls":{"1612":"7a3cbc9d"},"fifths":[35990,37252],"skills":[10250,20369,14102,21106,14104,35985,22196,14109,23618,35986,28016,35987,28017,35988,28018,35989,35990,37252],"skillHashes":{"10250":"985b2ed8","14102":"ba5cc8e2","14104":"b0599f2a","14109":"9130c696","20369":"489bc3c","21106":"3e69d238","22196":"6d94d1c6","23618":"64a9dcbd","28016":"54cb99b8","28017":"5df56412","28018":"de1982ec","35985":"46da0782","35986":"ddf86827","35987":"7414d4ef","35988":"47d1cb6f","35989":"79746c50","35990":"5a1b5564","37252":"36217e60"}},4384:{"pet":"30c83ee7","souls":{"1603":"bc2323a2"},"fifths":[35933,37277],"skills":[10361,20156,10363,20769,19710,35928,10366,34041,35929,27989,35930,27990,35931,27991,35932,35933,37277],"skillHashes":{"10361":"bea3e03c","10363":"70f1c782","10366":"38d23d64","19710":"404f98b8","20156":"d46ac18a","20769":"d13aa09e","27989":"64d94bb8","27990":"a3704523","27991":"f2bae284","34041":"aff0e964","35928":"f398c3b9","35929":"e6c64305","35930":"ddcf7bdc","35931":"db95b5ca","35932":"a1d4c74f","35933":"db0f41d7","37277":"bc70b2e"}},4373:{"pet":"28f30e22","souls":{"1598":"bd54e01d"},"fifths":[35896,37360],"skills":[10611,21119,11904,11088,22870,35891,15250,20156,15247,35892,27972,35893,27973,35894,27974,35895,35896,37360],"skillHashes":{"10611":"fbb778c","11088":"ca9177fa","11904":"e571ad0b","15247":"c31b2269","15250":"6497a014","20156":"d46ac18a","21119":"35aa8b13","22870":"e3b8f3cb","27972":"cd108416","27973":"21ebeb25","27974":"324c2fa1","35891":"7ff9bfae","35892":"aa6f76da","35893":"59004476","35894":"6dbd9278","35895":"db452545","35896":"87d98b22","37360":"b0bca17d"}},4358:{"pet":"867ea8fa","souls":{"1583":"84dc0c15","1905":"b805865a"},"fifths":[35814,38358],"skills":[10008,20190,10194,20171,10009,35809,20872,12231,21828,35810,27932,35811,27933,35812,27934,35813,35814,38358],"skillHashes":{"10008":"ca1f800","10009":"4dfa0d08","10194":"8628d5a","12231":"58870bc","20171":"7211512b","20190":"52c97b2","20872":"cf70644e","21828":"cafb8c6b","27932":"db8e1d68","27933":"ac7e85b4","27934":"a68d445","35809":"deeca389","35810":"3284e980","35811":"edd43b35","35812":"96866607","35813":"31caec3e","35814":"ae2e20b9","38358":"338078d"}},4354:{"pet":"5f80b53","souls":{"1578":"fa7a82b4","2079":"82ea8f8b"},"fifths":[35793,38348],"skills":[14478,22408,10121,13577,22409,35788,10589,22410,24930,35789,27922,35790,27923,35791,27924,35792,38118,35793,38348],"skillHashes":{"10121":"5c7fe1da","10589":"13262625","13577":"695f358d","14478":"6c0d013d","22408":"332ae081","22409":"9587b49a","22410":"b39e2f60","24930":"bd8571e","27922":"e06eccf7","27923":"e7d79091","27924":"5f3dfafd","35788":"31e2560a","35789":"4ba18110","35790":"d6885f60","35791":"73d0fdf4","35792":"98eacee7","35793":"e0502df4","38118":"89959ef9","38348":"3bc89db0"}},4347:{"pet":"6297de96","souls":{"1571":"dad708c7","1786":"d0e7ec19"},"fifths":[35755,36519],"skills":[10006,20267,10391,10404,20438,34502,10548,20483,11583,34503,27304,34504,27305,34505,27306,34506,35752,27906,35753,27907,35754,35755,36519],"skillHashes":{"10006":"4d93a02d","10391":"d133ec17","10404":"a9caf5ba","10548":"ceafe4d","11583":"994e7530","20267":"9db9dc0a","20438":"928f210b","20483":"ff7a25e9","27304":"b73ad416","27305":"abfc6d12","27306":"54cb8eba","27906":"23dfe9c0","27907":"2568d573","34502":"38f599d7","34503":"49651a47","34504":"727565a1","34505":"265ec943","34506":"90c4dee7","35752":"e2e1f8a","35753":"a171c65d","35754":"220147b0","35755":"ba76568d","36519":"38eefafb"}},4333:{"pet":"ad8a14b6","souls":{"1559":"5f62f895","1851":"feedc462"},"fifths":[35687,37398],"skills":[10001,22962,13103,20521,15588,35036,23462,13105,21741,32908,26541,35037,27562,35038,27563,35039,35183,27633,35184,27634,35185,35684,27873,35685,27874,35686,35687,37398]},4329:{"pet":"81dec1d0","souls":{"1555":"90557811","1735":"763e1182"},"fifths":[35665,36696],"skills":[10194,20491,14484,21153,11531,35660,20521,13564,24833,35661,27861,35662,27862,35663,27863,35664,35665,36696]},4318:{"pet":"89fa9038","souls":{"1545":"6033b2c8","1903":"1e3b3684"},"fifths":[35599,37276],"skills":[10006,20168,13611,20713,10681,35594,21520,12086,21939,35595,27828,35596,27829,35597,27830,35598,35599,37276]},4287:{"pet":"654fe35a","souls":{"1508":"a7ad3e9d"},"fifths":[35438,37274],"skills":[10223,20865,11923,10401,20866,35435,11731,20980,19849,31525,25871,31526,27752,35436,27753,35437,35438,37274]},4258:{"pet":"236a026e","souls":{"1482":"e8fc42fa","2139":"f102f34c"},"fifths":[35288,38515],"skills":[10086,20889,13601,20241,10330,35189,20355,13693,24622,35190,27637,35191,27638,35192,27639,35193,35281,35282,35283,35284,35285,27680,35286,27681,35287,35288,38515]},4238:{"pet":"27014a5f","souls":{"1457":"a43f4529"},"fifths":[35176,37419],"skills":[10001,20288,10194,20044,16130,35171,23376,15879,23939,35172,27627,35173,27628,35174,27629,35175,35176,37419]},4219:{"pet":"7dadfe66","souls":{"1438":"eec535e4","1992":"d91b07c"},"fifths":[35072,38042],"skills":[10250,20496,10096,11977,20652,35067,20118,11167,14089,35068,27577,35069,27578,35070,27579,35071,37620,35072,38042]},4215:{"pet":"6cc578dc","souls":{"1433":"996b2094"},"fifths":[35050,37966],"skills":[10086,20496,10287,10363,21034,14325,10692,20437,11620,14328,22314,14326,22315,14329,22316,14327,35045,10447,20906,10256,35046,27566,35047,27567,35048,27568,35049,35050,37966]},4147:{"pet":"a6a942e","souls":{"1376":"f8f409d4","2110":"d9891927"},"fifths":[34699,38437],"skills":[10086,20230,12234,10154,20060,34694,12505,20922,13012,34695,27394,34696,27395,34697,27396,34698,37963,34699,38437]},4135:{"pet":"f7781539","souls":{"1362":"56119652","1787":"18701ac4"},"fifths":[34633,36521],"skills":[10499,20267,10047,10531,20618,34628,19627,20689,23623,34629,27362,34630,27363,34631,27364,34632,34633,36521]},3983:{"pet":"dd1c2f33","souls":{"1245":"33086155","2030":"20d9251"},"fifths":[33903,37964],"skills":[10074,20157,10308,10313,22003,33898,11730,20953,11035,33899,27024,33900,27025,33901,27026,33902,29193,33903,37964]},3979:{"pet":"276d7069","souls":{"1243":"4946c8eb","1368":"262ce263"},"fifths":[33875,38456],"skills":[10250,21008,10380,20152,20082,15979,10597,21531,12935,15980,23293,15984,23294,15985,23295,15986,19595,24898,19596,24899,19597,33872,27010,33873,27011,33874,33875,38456]},3964:{"pet":"ea1fc02b","souls":{"1229":"2f9a892d"},"fifths":[33806,37334],"skills":[10001,20288,10194,20044,16130,33802,23376,15879,23939,33803,26974,33804,26975,26976,26977,33805,29017,33806,37334]},3945:{"pet":"c6394afd","souls":{"1208":"759c6257","1367":"50638b6e"},"fifths":[33716,37335],"skills":[10001,20030,10287,11104,20118,16058,10148,20631,14384,16059,23346,16079,23347,16080,23348,16081,33713,26929,33714,26930,33715,33716,37335]},3924:{"pet":"c5651867","souls":{"1189":"df9cfd69","1366":"23429ae1"},"fifths":[33608,38371],"skills":[10535,20288,10200,10351,20088,16093,11915,20226,13609,16094,23380,16138,23381,16139,23382,16140,19501,24850,19502,24851,19503,33605,26878,33606,26879,33607,33608,38371]},3907:{"pet":"de43b4c0","souls":{"1174":"7235899d","1365":"2f320b3c"},"fifths":[33519,38295],"skills":[10086,20190,10278,12255,21727,16030,10025,20766,11544,16031,23326,16038,23327,16039,23328,16040,19511,24855,19512,24856,19513,33516,26836,33517,26837,33518,33519,38295]},3541:{"pet":"f64f1f52","souls":{"847":"eb7203d"},"fifths":[31664,38372],"skills":[10004,20230,10403,20847,10394,15935,21698,10424,23268,11657,23269,15936,15937,23270,15938,15939,31536,25877,31537,25878,31538,31661,25939,31662,25940,31663,29016,31664,38372]},3883:{"pet":"6db1cc33","souls":{"1152":"8375e9ba","1448":"e7307947"},"fifths":[33388,37336],"skills":[10250,20270,10120,10396,20816,33385,13300,20679,10623,14409,22364,26772,22365,33386,26773,33387,38117,33388,37336]},3875:{"pet":"26cc33c7","souls":{"1145":"b03fdda2","1446":"2945f022"},"fifths":[33346,38234],"skills":[10127,20138,10379,10386,20183,33343,10637,21658,10551,15037,22742,15035,26752,33344,26753,33345,33346,38234]},3847:{"pet":"964d86e0","souls":{"1120":"25657a99","1620":"9448f0d7"},"fifths":[33208,38455],"skills":[10250,21684,11599,10160,20270,30810,11031,20188,10502,30811,25512,30812,25513,30813,25514,30814,33205,26687,33206,26688,33207,29011,33208,38455]},3763:{pet:'eca3b34f',souls:{1043:'38b44fb2',1816:'564c8af3'},fifths:[32790,37141],skills:[14478,22408,10121,13577,22409,32785,10589,22410,24930,32786,26485,32787,26486,32788,26487,32789,29020,32790,37141]}}[s.id];
+ const restored=restoredFifthBindings[s.id];
+ if(restored){
+   const approved=restored.activation,activation=s.additionalFifths?.activation;
+   const slot=p?.skill?.find(x=>x.skill.id===approved.moveId),move=moves.find(m=>m.id===approved.moveId);
+   const url='https://api.seerapi.com/v1/skill_activation_item/'+approved.id;
+   const selected=groups?.filter(g=>g.fifthId===approved.moveId);
+   if(JSON.stringify(activation?.raw)!==JSON.stringify(restored.activationData) ||
+      activation.source?.url!==url || activation.source?.revision!==approved.hash ||
+      slot?.is_special!==true || slot?.is_advanced!==false ||
+      slot?.skill_activation_item?.id!==approved.id || slot.skill_activation_item.url!==url ||
+      JSON.stringify(move?.sourceFlags?.skill_activation_item)!==JSON.stringify(slot.skill_activation_item) ||
+      !selected?.length || selected.some(g=>g.activationSource?.url!==url||g.activationSource?.revision!==approved.hash)){
+     issues.push('追加第五激活道具、技能及适用精灵与已核来源不一致');
+   }
+   if(JSON.stringify(p?.skill?.map(x=>x.skill.id))!==JSON.stringify(restored.rawOrder) ||
+      JSON.stringify(moves.map(m=>m.id))!==JSON.stringify(restored.skills)){
+     issues.push('追加第五来源技能顺序已变化');
+   }
+ }
  if(s.id===4657){const activation=s.additionalFifths?.activation,raw=activation?.raw,slot=p?.skill?.find(x=>x.skill.id===38296),move=moves.find(x=>x.id===38296),group=groups?.find(x=>x.id==='partner');if(raw?.id!==1727841||raw.hash!=='c35c125b'||raw.pet?.id!==4657||raw.skill?.id!==38296||activation.source?.url!=='https://api.seerapi.com/v1/skill_activation_item/1727841'||activation.source?.revision!==raw.hash||slot?.skill_activation_item?.id!==raw.id||JSON.stringify(move?.sourceFlags?.skill_activation_item)!==JSON.stringify(slot?.skill_activation_item)||group?.fifthId!==38296||group?.activationSource?.url!==activation.source.url||group?.activationSource?.revision!==raw.hash||!groups.some(g=>g.id==='original'&&g.fifthId===37432))issues.push('4657伙伴激活物或第五版本来源不一致');}if(!reviewed||p?.hash!==reviewed.pet||s.souls.some(x=>reviewed.souls[x.id]!==x.hash))issues.push('追加第五来源版本尚未审核');
  const raw=p?.skill??[],souls=p?.soulmark??[],fifths=raw.filter(x=>x.is_fifth);
  if(reviewed&&(fifths.length!==reviewed.fifths.length||reviewed.fifths.some(id=>!fifths.some(x=>x.skill.id===id))))issues.push('追加第五来源编号未审核');
@@ -44,7 +139,60 @@ function town4186VersionIssues(s){
  if(s.selectedSkillVersion!==undefined&&!groups.some(g=>g.id===s.selectedSkillVersion&&g.soulId===(s.selectedSoulId??s.souls.at(-1)?.id)))issues.push('4186所选版本与魂印不匹配');
  return issues;
 }
+function poseidonVersionIssues(s){
+ const groups=s.skillVersions??[],moves=s.moves??[],activation=s.fifthActivation,advance=s.advance;
+ if(s.id!==3506||s.source?.revision!=='6c45f4ac'||s.source.url!=='https://api.seerapi.com/v1/pet/3506'||
+    activation?.revision!=='fd2e207c'||activation.raw?.hash!==activation.revision||activation.raw?.id!==1725955||
+    activation.raw?.pet?.id!==3506||activation.raw?.skill?.id!==37278||activation.url!=='https://api.seerapi.com/v1/skill_activation_item/1725955'||
+    advance?.hash!=='5a4428f6'||advance.raw?.hash!==advance.hash||advance.raw?.pet?.id!==3506||advance.raw?.soulmark?.id!==1685||
+    JSON.stringify(advance.raw?.skill?.map(x=>x.id))!=='[36404,28217,36405,36406]')return ['波塞冬版本来源不匹配'];
+ const expectedMoves=[[10535,"9756ea7a",false,false],[20267,"9db9dc0a",false,false],[12748,"9bc61bc5",false,false],[13803,"a9527b4",false,false],[21520,"f538a597",false,false],[15784,"991fe14a",false,false],[12673,"d0d8916c",false,false],[22011,"5b9519ee",false,false],[11013,"c80cfefb",false,false],[15785,"98dcf6ca",false,false],[23185,"20dcb12f",false,false],[15786,"bb99023d",false,false],[23186,"ecfcab46",false,false],[15787,"4e76932e",false,false],[23187,"fcf811da",false,false],[15788,"e1ed7041",false,false],[19096,"df698d08",false,false],[24636,"eaabed14",false,false],[19097,"aa5a1970",false,false],[24637,"32598359",false,false],[19098,"2ecda23d",false,false],[31474,"80bf32cd",false,false],[25846,"c5f2a3c5",false,false],[31475,"cf569663",false,false],[25847,"d896f956",false,false],[31476,"dbd594ad",false,false],[36404,"2ad2d04a",true,false],[28217,"c36ccdf7",true,false],[36405,"63aa0ae4",true,false],[31477,"7b80970",false,true],[36406,"d8a05181",true,true],[37278,"e75b59ff",false,true]];
+ if(JSON.stringify(moves.map(m=>[m.id,m.hash,m.advanced,m.fifth]))!==JSON.stringify(expectedMoves)||
+    moves.some(m=>m.sourceFlags?.is_fifth!==m.fifth||(m.sourceFlags?.skill_activation_item?.id??null)!==(m.id===37278?1725955:null)))return ['波塞冬技能与原始版本不符'];
+ const combinations=[[819,31477],[819,37278],[1685,36406],[1685,37278]];
+ if(groups.length!==4||s.souls.length!==2)return ['波塞冬版本数量不符'];
+ for(const [soulId,fifthId] of combinations){
+   const awake=soulId===1685,soul=s.souls.find(v=>v.id===soulId),g=groups.find(v=>v.soulId===soulId&&v.fifthId===fifthId);
+   const allowed=moves.filter(m=>m.fifth?m.id===fifthId:awake||!m.advanced).map(m=>m.id);
+   const source=fifthId===37278?activation:awake?{url:advance.source.url,revision:advance.hash}:s.source;
+   if(!g||g.id!=='soul-'+soulId+'-fifth-'+fifthId||soul?.hash!==(awake?'802a26cc':'8107d84e')||
+      g.soulHash!==soul.hash||soul.isAdvanced!==awake||g.source?.url!==source.url||g.source?.revision!==source.revision||
+      JSON.stringify(g.moveIds)!==JSON.stringify(allowed))return ['波塞冬魂印与第五技能配招不符'];
+ }
+ return [];
+}
+function parallelSoulIssues(s){
+ const binding={
+  3592:{pet:'4953dd3e',souls:[[886,'697c139'],[2169,'b21aef9d']],fifths:[31929],skill:[29524,'ffd41eae',1728654]},
+  3396:{pet:'dc761f33',souls:[[709,'92a0f2f8'],[2170,'5d814b1b']],fifths:[30895,37363],skill:[29525,'c87049ce',1728655]},
+ }[s.id];
+ const raw=s.parallelSoulCompatibility?.rawPet,moves=s.moves??[],groups=s.skillVersions??[];
+ if(!binding||s.source?.provider!=='seerapi'||s.source.revision!==binding.pet||
+    s.source.url!=='https://api.seerapi.com/v1/pet/'+s.id||raw?.id!==s.id||raw.hash!==binding.pet)
+  return ['并列魂印缺少匹配的物种原始版本'];
+ const same=(left,right)=>JSON.stringify(left)===JSON.stringify(right);
+ const [skill,hash,item]=binding.skill,newMove=moves.find(m=>m.id===skill);
+ if(!same(s.souls.map(row=>[row.id,row.hash]),binding.souls)||
+    !same(raw.soulmark?.map(row=>row.id),binding.souls.map(row=>row[0]))||
+    !same(raw.skill?.map(row=>row.skill.id),moves.map(row=>row.id))||
+    newMove?.hash!==hash||newMove.kind!=='status'||newMove.fifth||
+    raw.skill.find(row=>row.skill.id===skill)?.skill_activation_item?.id!==item||
+    newMove.sourceFlags?.skill_activation_item?.id!==item)
+  return ['并列魂印或新增技能来源不匹配'];
+ const expected=binding.souls.flatMap(([soulId,soulHash])=>binding.fifths.map(fifthId=>({
+  id:'soul-'+soulId+'-fifth-'+fifthId,soulId,soulHash,fifthId,
+  moveIds:moves.filter(m=>!m.fifth||m.id===fifthId).map(m=>m.id),
+  source:{url:s.source.url,revision:s.source.revision},
+ })));
+ if(!same(groups,expected)||!same(moves.filter(m=>m.fifth).map(m=>m.id),binding.fifths)||
+    (s.selectedSoulId!==undefined&&!binding.souls.some(row=>row[0]===s.selectedSoulId))||
+    (s.selectedSkillVersion!==undefined&&!groups.some(g=>g.id===s.selectedSkillVersion&&g.soulId===(s.selectedSoulId??s.souls.at(-1).id))))
+  return ['并列魂印需二选一，且每份配招恰好一个第五'];
+ return [];
+}
 function skillVersionIssues(s,completion=false){
+ if(s.parallelSoulCompatibility!==undefined)return parallelSoulIssues(s);
+ if(s.fifthActivation!==undefined)return poseidonVersionIssues(s);
  if(s.trainingCompatibility!==undefined)return trainingVersionIssues(s);
  if(s.versionCompatibility!==undefined)return town4186VersionIssues(s);
  if(s.additionalFifths!==undefined)return additionalFifthIssues(s);
@@ -85,8 +233,19 @@ function trainingVersionIssues(s){
 }
 function versionSnapshots(s){return Array.isArray(s.skillVersions)?s.skillVersions.map(g=>({...s,...(s.trainingCompatibility?{base:g.base}:{}),selectedSoulId:g.soulId,selectedSkillVersion:g.id})):[s];}
 function availableMoves(s){if(s.skillVersions===undefined)return s.moves;const version=s.selectedSkillVersion??(s.trainingCompatibility?s.skillVersions.at(-1)?.id:null),group=s.skillVersions?.find?.(g=>g.soulId===(s.selectedSoulId??s.souls.at(-1)?.id)&&(!version||g.id===version));return s.moves.filter(m=>group?.moveIds?.includes(m.id));}
+const prayerTiers=new Map([[38472,{count:0,label:'0–4只',note:'消耗全部体力，回复场下精灵王全部体力和 PP。'}],['38472@5',{count:5,label:'5只',note:'消耗全部体力，回复场下精灵王并将首个可获得的标记补至上限。'}],['38472@6',{count:6,label:'6只',note:'自身保留 1 点体力，回复场下精灵王并将首个可获得的标记补至上限。'}]]);
+function prayerSource(s,m){return s.id===4004&&m?.id===38472&&m.revision==='seerapi:49d4d948'&&m.effectIds.includes(2553);}
+function selectedMove(s,id){
+ const tier=prayerTiers.get(id);
+ const move=availableMoves(s).find(m=>m.id===(tier?38472:id));
+ if(!tier)return move;
+ if(!prayerSource(s,move))return id===38472?move:undefined;
+ return {...move,selectionId:id,selectionName:move.name+'（'+tier.label+'）',prayerCount:tier.count,selectionNote:'待命背包精灵王 '+tier.label+'。'+tier.note+'三个版本共用每场一次。'};
+}
+function selectableMoves(s){return availableMoves(s).flatMap(m=>prayerSource(s,m)?[...prayerTiers.keys()].map(id=>selectedMove(s,id)):[m]);}
 function slotCount(s){const moves=availableMoves(s);return moves.some(m=>m.fifth)?5:Math.min(4,moves.length);}
 function compileCore(m,s){
+ if((s.source?.provider==='user-original'||m.provider==='user-original')&&(!E.SpMars.validSource(s)||m.provider!=='user-original'||m.revision!==s.source.revision||!Object.values(E.SpMars.MOVES).includes(m.id)))return {issue:'原创技能来源未核对',operations:[]};
  if(m.limitations?.length)return {issue:m.limitations.join('；'),operations:[]};
  
  if(m.provider!=='seerapi'&&registry[m.id])return {issue:verifiedMoveIssue(m,s),operations:E.MOVES[registry[m.id][0]].operations??[]};
@@ -97,7 +256,7 @@ function compileCore(m,s){
  if(!['physical','special','status'].includes(m.kind)||!Number.isInteger(m.power)||m.power<0||!Number.isInteger(m.pp)||m.pp<0||m.pp>100||!Number.isFinite(m.accuracy)||m.accuracy<0||m.accuracy>100||!Number.isInteger(m.priority)||Math.abs(m.priority)>10)return {issue:'技能基础参数无效'};
  if(!/^(?:[0-9]|1[0-6])\/16$/.test(m.critical??''))return {issue:'暴击概率规则尚未核对：'+(m.critical??'缺失')};
  const ids=m.effectIds??[],description=(m.description??'').trim();
- if(!ids.length)return {issue:description?'描述存在未编码效果，需核对':'',operations:[]};
+ if(!ids.length)return {issue:description&&m.provider!=='user-original'?'描述存在未编码效果，需核对':'',operations:[]};
  if(ids.some(id=>s.missingEffects.includes(id)))return {issue:'效果条目缺失'};
  if(m.provider==='seerapi'){if(m.id===21741&&m.effectInstances?.[0]?.args?.length===2&&(!({3788:'46525787',4289:'43769952',4333:'ad8a14b6'}[s.id]===s.source?.revision)||m.sourceParameterConfirmation?.speciesId!==s.id||m.sourceParameterConfirmation?.petHash!==s.source?.revision))return {issue:'复仇58来源参数确认不适用于当前精灵版本',operations:[]};if(JSON.stringify(ids)!==JSON.stringify(m.effectInstances?.map(x=>x.id)))return {issue:'实例与效果ID不一致',operations:[]};return effectsEngine.compileInstances(m.effectInstances,s.effects,m);}
  return effectsEngine.compile(ids,description,s.effects);
@@ -116,7 +275,7 @@ function assess(s,selected){const p=profileFor(s),issues=[];
  if(s.typeChart)try{effectiveness(s.type,s.type,s.typeChart);for(const m of s.moves.filter(m=>selected?.includes(m.id)&&m.kind!=='status'))effectiveness(m.type,s.type,s.typeChart);}catch(e){issues.push(e.message);}
  const ids=selected??defaultMoves(s),count=slotCount(s);if(ids.length!==count||new Set(ids).size!==count)issues.push(`请选择 ${count} 个不同技能`);
  if(s.moves.some(m=>m.fifth)&&ids.filter(id=>s.moves.find(m=>m.id===id)?.fifth).length!==1)issues.push('需要携带恰好一个第五技能');
- for(const id of ids){const m=availableMoves(s).find(m=>m.id===id);if(!m)issues.push(`技能 ${id} 不属于此精灵的当前版本`);else{const issue=moveIssue(m,s);if(issue)issues.push(`${m.name}：${issue}`);}}
+ for(const id of ids){const m=selectedMove(s,id);if(!m)issues.push(`技能 ${id} 不属于此精灵的当前版本`);else{const issue=moveIssue(m,s);if(issue)issues.push(`${m.name}：${issue}`);}}
  // Extra unreviewed skills cannot inherit the emperor's five-skill rage contract.
  if(p.key==='emperor'&&ids.some(id=>!p.defaults.includes(id)))issues.push('星皇额外技能与皇怒时序尚未核对');
  return {supported:issues.length===0,issues,profile:p,selected:ids};
@@ -124,17 +283,17 @@ function assess(s,selected){const p=profileFor(s),issues=[];
 function mergeCharts(snapshots){const charts=snapshots.map(s=>s.typeChart).filter(Boolean);if(!charts.length)return null;const chart=JSON.parse(JSON.stringify(charts[0]));for(const other of charts.slice(1)){if(other.revision!==chart.revision||JSON.stringify(other.rows)!==JSON.stringify(chart.rows))throw new Error('双方属性表版本不同，请重新加载');for(const [name,parts]of Object.entries(other.aliases)){if(chart.aliases[name]&&JSON.stringify(chart.aliases[name])!==JSON.stringify(parts))throw new Error('属性映射冲突');chart.aliases[name]=parts;}}return chart;}
 function prepare(snapshots,loadouts){if(!Array.isArray(snapshots)||snapshots.length!==2)throw new Error('需要双方在线数据快照');const checks=snapshots.map((s,i)=>assess(s,loadouts?.[i]));if(checks.some(c=>!c.supported))throw new Error(checks.flatMap(c=>c.issues).join('；'));
  const chart=mergeCharts(snapshots);
- if(chart){for(let i=0;i<2;i++){effectiveness(snapshots[i].type,snapshots[1-i].type,chart);for(const id of checks[i].selected){const m=snapshots[i].moves.find(m=>m.id===id);if(m.kind!=='status')effectiveness(m.type,snapshots[1-i].type,chart);}}}
+ if(chart){for(let i=0;i<2;i++){effectiveness(snapshots[i].type,snapshots[1-i].type,chart);for(const id of checks[i].selected){const m=selectedMove(snapshots[i],id);if(m.kind!=='status')effectiveness(m.type,snapshots[1-i].type,chart);}}}
  else if(new Set(snapshots.map(s=>s.id)).size!==2)throw new Error('同种对战需要通用属性克制表');
  if(snapshots[0].id===snapshots[1].id&&JSON.stringify(snapshots[0].base)!==JSON.stringify(snapshots[1].base)&&!snapshots.every(x=>x.trainingCompatibility&&trainingVersionIssues(x).length===0))throw new Error('同种精灵种族值版本不一致');
  const additions={},speciesAdditions={};
  for(let i=0;i<2;i++){const s=snapshots[i],c=checks[i],p=c.profile;
  const exactZero4661=s.id===4661&&s.source?.provider==='seerapi'&&s.source?.url==='https://api.seerapi.com/v1/pet/4661'&&String(s.source?.revision).replace(/^seerapi:/,'')==='5c1c001a'&&s.souls?.some(x=>x.id===1862&&x.hash==='9320d014')&&['maxHp','atk','def','spa','spd','spe'].every(k=>s.base?.[k]===0);for(const k of ['maxHp','atk','def','spa','spd','spe'])if(!exactZero4661&&(!Number.isInteger(s.base[k])||s.base[k]<1||s.base[k]>999))throw new Error('种族值无效');
  if(!chart&&s.type!==(p.key==='emperor'?'自然圣灵':'电'))throw new Error('在线属性已变化，需要核对克制表');
- const keys=[];for(const id of c.selected){const m=s.moves.find(m=>m.id===id),key=(m.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id;keys.push(key);const move={...E.MOVES[key],id:key,name:m.name,kind:m.kind,category:{physical:'物理',special:'特殊',status:'属性'}[m.kind],type:m.kind==='status'?'属性':m.type,power:m.power,pp:m.pp,accuracy:m.accuracy,alwaysHit:m.alwaysHit,priority:m.priority,description:m.description+(compile(m,s).experimental.length?'；实验规则：'+compile(m,s).experimental.join('；'):''),wikiId:m.id,fifth:m.fifth===true,...(m.powerGrowth?{powerGrowth:m.powerGrowth}:{}),...(m.hiddenEffect?{hiddenEffect:m.hiddenEffect}:{}),effectIds:m.effectIds,revision:m.revision,criticalChance:Number(m.critical?.split('/')[0]??1)/16,deferredEffects:compile(m,s).deferred,operations:compile(m,s).operations};if(additions[key]&&JSON.stringify(additions[key])!==JSON.stringify(move))throw new Error('同一技能数据版本不一致');additions[key]=move;}
- speciesAdditions[p.key]={...E.SPECIES[p.key],name:s.name,number:String(s.id),base:{...(s.souls.find(x=>x.id===p.soul)?.base??s.base)},type:s.type,moves:keys,soulId:p.soul,maxHpMultiplier:E.SOULS.registry[p.soul]?.traits.maxHpMultiplier??1,speedGrowthToHp:!!E.SOULS.registry[p.soul]?.traits.speedGrowthToHp,soul:p.soul?E.SOULS.registry[p.soul]?.name:undefined,soulText:s.souls.find(x=>x.id===p.soul)?.description.replace(/<[^>]*>/g,' ')??''};
+ const keys=[];for(const id of c.selected){const m=selectedMove(s,id),key=(m.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id;keys.push(key);const move={...E.MOVES[key],id:key,name:m.selectionName??m.name,...(m.prayerCount!==undefined?{prayerCount:m.prayerCount}:{}),kind:m.kind,category:{physical:'物理',special:'特殊',status:'属性'}[m.kind],type:m.kind==='status'?'属性':m.type,power:m.power,pp:m.pp,accuracy:m.accuracy,alwaysHit:m.alwaysHit,priority:m.priority,description:(m.selectionNote?m.selectionNote+' '+m.description:m.description)+(compile(m,s).experimental.length?'；实验规则：'+compile(m,s).experimental.join('；'):''),wikiId:m.id,fifth:m.fifth===true,...(m.powerGrowth?{powerGrowth:m.powerGrowth}:{}),...(m.hiddenEffect?{hiddenEffect:m.hiddenEffect}:{}),effectIds:m.effectIds,revision:m.revision,criticalChance:Number(m.critical?.split('/')[0]??1)/16,deferredEffects:compile(m,s).deferred,operations:compile(m,s).operations};if(additions[key]&&JSON.stringify(additions[key])!==JSON.stringify(move))throw new Error('同一技能数据版本不一致');additions[key]=move;}
+ speciesAdditions[p.key]={...E.SPECIES[p.key],name:s.name,number:String(s.id),base:{...(s.souls.find(x=>x.id===p.soul)?.base??s.base)},type:s.type,moves:keys,soulId:p.soul,...(s.id===3102 && p.soul===456 && s.souls.find(x=>x.id===456)?.hash==='15fe0576'?{partnerPanelBonus:{atk:50,maxHp:50}}:{}),maxHpMultiplier:E.SOULS.registry[p.soul]?.traits.maxHpMultiplier??1,speedGrowthToHp:!!E.SOULS.registry[p.soul]?.traits.speedGrowthToHp,soul:p.soul?E.SOULS.registry[p.soul]?.name:undefined,soulText:s.souls.find(x=>x.id===p.soul)?.description.replace(/<[^>]*>/g,' ')??''};
  }
  E.MOVES=Object.freeze({...E.MOVES,...additions});Object.assign(E.SPECIES,speciesAdditions);return checks.map((c,i)=>({species:c.profile.key,typeChart:chart,moves:c.selected.map(id=>(snapshots[i].source?.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id)}));
 }
-return {effectsEngine,registry,profiles,profileFor,skillVersionIssues,versionSnapshots,availableMoves,slotCount,defaultMoves,compile,effectiveness,moveIssue,assess,prepare,verified,fingerprint};
+return {effectsEngine,registry,profiles,profileFor,skillVersionIssues,versionSnapshots,availableMoves,selectableMoves,selectedMove,slotCount,defaultMoves,compile,effectiveness,moveIssue,assess,prepare,mergeCharts,verified,fingerprint};
 });

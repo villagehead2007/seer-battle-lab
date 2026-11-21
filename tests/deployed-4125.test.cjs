@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn,pick,timer,key,keys}=require('./helpers/4125-battle.cjs');
+test('4125 462两回合每段受击反弹100、408减免200及57实际用招回复',()=>{let s=make(pick(462)[0]),o=turn(s,undefined,900040);assert.equal(o.damageEvents.find(d=>d.type==='fixed'&&d.sourceSide===0).settledDamage,100);s=make(pick(408)[0]);o=turn(s,undefined,900040);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].effects['伤害定额减免'].amount,200);for(const e of pick(57)){o=turn(make(e,{hp:1000}));assert.equal(o.fighters[0].hp,4000);o=turn(o,900031);assert.equal(o.fighters[0].hp,7000);}});

@@ -90,7 +90,7 @@ test('2074按用户规则排除PVE山神守护，魇昧正常施加为白板异�
 });
 
 test('2074浏览器目录与数据库一致，浏览器和Node同种子真实结果一致',()=>{
- const dir=path.join(__dirname,'../dist'),html=fs.readFileSync(path.join(dir,'index.html'),'utf8'),scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]),browser=vm.createContext({console});
+ const dir=path.join(__dirname,'../dist'),html=fs.readFileSync(path.join(dir,'index.html'),'utf8'),scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]),browser=vm.createContext({console,structuredClone});
  for(const file of scripts.slice(0,scripts.indexOf('engine.js')+1))vm.runInContext(fs.readFileSync(path.join(dir,file),'utf8'),browser,{filename:file});
  assert.deepEqual(JSON.parse(JSON.stringify(browser.BattleStatusCatalog.records)),db.list().map(({id,name})=>({id,name})));
  assert.equal(browser.BattleStatusCatalog.databaseHash,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../data/statuses/statuses.json'))).digest('hex'));

@@ -149,13 +149,13 @@ test('3667 976消回合成功才封一次属性、攻击保留次数并实际消
  assert.equal(turn(make(x)).fighters[1].counts.nextStatusInvalid??0,0);assert.ok(blocked(x).fighters[1].hp===9000);
 });
 
-test('3667 408三回合定额减免攻击和粉伤、零下限与到期',()=>{
+test('3667 408三回合定额减免红伤、固定伤害独立、零下限与到期',()=>{
  const x=e(408);let s=turn(make(x,{bStats:{atk:3000}}),x.moveId,HIT),plain=turn(make(x,{omit:true,bStats:{atk:3000}}),x.moveId,HIT);
  assert.equal(s.fighters[0].hp-plain.fighters[0].hp,100);
  for(let r=2;r<=4;r++){s.fighters[0].hp=plain.fighters[0].hp=9000;s.rng=plain.rng=0;s=turn(s,IDLE,HIT);plain=turn(plain,IDLE,HIT);assert.equal(s.fighters[0].hp-plain.fighters[0].hp,r<=3?100:0);}
  assert.equal(turn(make(x),x.moveId,HIT).fighters[0].hp,9000);
  const pink=make(x,{opponentEffect:{moveId:32309,index:0}}); // 先制不造成粉伤；用持续固定伤害隔离共同扣血入口。
- timer(pink,0,'持续固定伤害',{amount:150});assert.equal(turn(pink).fighters[0].hp,8950);
+ timer(pink,0,'持续固定伤害',{amount:150});assert.equal(turn(pink).fighters[0].hp,8850);
  assert.equal(blocked(x).fighters[0].effects['伤害定额减免'],undefined);
 });
 

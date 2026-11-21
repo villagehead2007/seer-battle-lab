@@ -27,7 +27,7 @@ async function launch(port){
     if(info.state==='free'&&await launch(candidate)){port=candidate;break;}
   }
   if(port===null)throw Error('本地服务未启动。请查看 launcher-server.log，确认端口 61648–61655 可用。');
-  const url=`http://${host}:${port}/`;
+  const url=`http://${host}:${port}/modes.html`;
   console.log('对战实验台已就绪：'+url);
   if(!process.argv.includes('--no-open')){const browser=spawn('explorer.exe',[url],{windowsHide:true,detached:true,stdio:'ignore'});browser.on('error',()=>console.log('请手动打开上述地址。'));browser.unref();}
 })().catch(error=>{console.error(error.message);process.exitCode=1;});

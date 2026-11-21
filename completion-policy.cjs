@@ -30,7 +30,8 @@ function checkSource(entry, snapshot, root) {
   let validUrl=false;
   try { const url=new URL(source?.url);validUrl=url.protocol==='https:' && url.hostname==='api.seerapi.com'; } catch {}
   const authorizedComposite=source?.provider==='composite'&&require('./source-policy.cjs').compositeIssues(snapshot,root).length===0;
-  if(!authorizedComposite&&(source?.provider!=='seerapi'||!validUrl||!nonempty(source?.revision)||!nonempty(source?.loadedAt)||!Number.isFinite(Date.parse(source.loadedAt)))) errors.push(`${label}: source URL, revision and loadedAt required`);
+  const authorizedOriginal=source?.provider==='user-original'&&require('./source-policy.cjs').originalIssues(snapshot,root).length===0;
+  if(!authorizedComposite&&!authorizedOriginal&&(source?.provider!=='seerapi'||!validUrl||!nonempty(source?.revision)||!nonempty(source?.loadedAt)||!Number.isFinite(Date.parse(source.loadedAt)))) errors.push(`${label}: source URL, revision and loadedAt required`);
   if(entry.kind==='soul') {
     if(!nonempty(entry.raw.hash)||!nonempty(entry.raw.description))errors.push(`${label}: soul source hash and description required`);
     // The archived 1896 response has an explicit null args field. Preserve it;
@@ -124,6 +125,22 @@ function namedAssertionTest(text, name) {
   }
   return false;
 }
+function stateEvidenceIssues(key,review,root) {
+  const errors=[];
+  if (!Array.isArray(review.implementation) || !review.implementation.length) errors.push(key+': implementation required');
+  for (const file of review.implementation??[]) if (!safeFile(root,file)) errors.push(key+': implementation file missing: '+file);
+  for (const branch of ['success','failure','boundary','interaction']) {
+    const refs=review.tests?.[branch];
+    if (!Array.isArray(refs)||!refs.length) {errors.push(key+': '+branch+' state assertion coverage required');continue;}
+    for (const ref of refs) {
+      if (!nonempty(ref.assertion) || /^(success|failure|boundary|interaction)( state)?$/i.test(ref.assertion.trim()) || !nonempty(ref.name) || !safeFile(root,ref.file) || !/^tests\/.+\.test\.cjs$/.test(ref.file)) {
+        errors.push(key+': invalid '+branch+' test reference (specific state assertion required)');continue;
+      }
+      if (!namedAssertionTest(fs.readFileSync(path.join(root,ref.file),'utf8'),ref.name)) errors.push(key+': named assertion test missing: '+branch+' '+ref.file+' :: '+ref.name);
+    }
+  }
+  return errors;
+}
 function checkReview(entry, review, root) {
   const errors=[];
   if (!review || review.sourceDigest!==entry.sourceDigest) return [`${entryLabel(entry)}: missing or stale semantic review`];
@@ -133,16 +150,7 @@ function checkReview(entry, review, root) {
   if (review.scope==='multiplayer' && nonempty(review.singleBehavior)) errors.push(`${entry.key}: single behavior declared in multiplayer review; mixed scope required`);
   if (review.scope!=='multiplayer' || nonempty(review.singleBehavior)) {
     if (!review.singleBehavior?.trim() || !Array.isArray(review.implementation) || !review.implementation.length) errors.push(`${entry.key}: single behavior/code evidence required`);
-    for (const file of review.implementation??[]) if (!safeFile(root,file)) errors.push(`${entry.key}: implementation file missing: ${file}`);
-    for (const branch of ['success','failure','boundary','interaction']) {
-      const refs=review.tests?.[branch];
-      if (!Array.isArray(refs)||!refs.length) {errors.push(`${entry.key}: ${branch} state assertion coverage required`);continue;}
-      for (const ref of refs) {
-        if (!nonempty(ref.assertion) || /^(success|failure|boundary|interaction)( state)?$/i.test(ref.assertion.trim()) || !nonempty(ref.name) || !safeFile(root,ref.file) || !/^tests\/.+\.test\.cjs$/.test(ref.file)) {errors.push(`${entry.key}: invalid ${branch} test reference (specific state assertion required)`);continue;}
-        const text=fs.readFileSync(path.join(root,ref.file),'utf8');
-        if (!namedAssertionTest(text,ref.name)) errors.push(`${entry.key}: named assertion test missing: ${branch} ${ref.file} :: ${ref.name}`);
-      }
-    }
+    errors.push(...stateEvidenceIssues(entry.key,review,root));
   }
   if (review.scope!=='single' && (!review.deferredBehavior?.trim() || !review.trigger?.trim() || !Array.isArray(review.futureMechanisms) || !review.futureMechanisms.length)) errors.push(`${entry.key}: deferred branch, trigger and future mechanisms required`);
   return errors;
@@ -155,7 +163,7 @@ function checkEnhancementScope(entry,review,root) {
     ? [raw.instance?.description,raw.metadata?.template,raw.description].filter(nonempty).join('\n')
     : [raw.description,raw.desc_formatting_adjustment,raw.analyze_desc].filter(nonempty).join('\n');
   const labels=[JSON.stringify(raw),review.rationale,review.deferredBehavior,review.trigger,...(review.futureMechanisms??[])].join('\n');
-  if(!/伙伴|羁绊|觉醒|partner|bond|awakening/i.test(labels)&&!['4354:skill:35793:3','4354:skill:38348:4','4364:skill:35846:3','4364:skill:37340:3','4400:skill:28030:2','4400:skill:28031:2','4501:skill:36289:0','4501:skill:36566:1'].includes(entry.key)&&!(review.userConfirmation==='research/4501-user-confirmed-rules.json'&&raw.instance?.id===1827))return [];
+  if(!/伙伴|羁绊|觉醒|partner|bond|awakening/i.test(labels)&&!(review.userConfirmation==='research/3883-user-confirmed-rules.json'&&review.dependencyEvidence?.some(e=>e.kind==='next-entry'&&e.quote==='对方下只精灵出战时'))&&!['3883:skill:33388:2','3883:skill:37336:3','4354:skill:35793:3','4354:skill:38348:4','4364:skill:35846:3','4364:skill:37340:3','4400:skill:28030:2','4400:skill:28031:2','4501:skill:36289:0','4501:skill:36566:1'].includes(entry.key)&&!(review.userConfirmation==='research/4501-user-confirmed-rules.json'&&raw.instance?.id===1827))return [];
   const dependencies={
     'team-members':/队伍成员|队友|队伍中|背包中|同队/,
     bench:/替补精灵|替补|后备精灵/,
@@ -307,14 +315,29 @@ function checkEnhancementScope(entry,review,root) {
   if(lock4501&&entry.kind==='skill'&&review.scope==='mixed'&&review.userConfirmation==='research/4501-user-confirmed-rules.json'&&entry.source?.snapshot?.revision==='d4895ef3'&&entry.source?.skillRevision===lock4501[0]&&raw.index===lock4501[1]&&raw.instance?.id===1827&&JSON.stringify(raw.instance.args)==='[1]'&&raw.metadata?.revision==='seerapi:8a3d6982'&&digest({key:entry.key,kind:entry.kind,raw,source:entry.source})===entry.sourceDigest&&evidence?.length===1&&evidence[0].kind==='team-state'&&evidence[0].quote==='对手整个队伍都继承；只要对手上场精灵使用了属性就消耗这次次数并无效之'){
     try{const c=JSON.parse(fs.readFileSync(path.join(root,review.userConfirmation),'utf8')),b=c.instanceBindings?.[entry.key],a=c.scopeAuthorization;confirmedSwordTeamLock=c.answers?.some(x=>x.questionId==='Q-N20-4501-001'&&x.originalAnswer==='对手整个队伍都继承；只要对手上场精灵使用了属性就消耗这次次数并无效之')&&b?.questionId==='Q-N20-4501-001'&&b.sourceDigest===entry.sourceDigest&&b.rawDigest===digest(raw)&&b.petRevision==='d4895ef3'&&b.skillRevision===lock4501[0]&&b.effectRevision==='seerapi:8a3d6982'&&b.index===lock4501[1]&&JSON.stringify(b.args)==='[1]'&&a?.file==='research/FIXED50-SCOPED-PREAUTHORIZATION.2026-10-23.txt'&&a.sha256==='ddbaf0b109478e45d1ad3263f87fafcd0a62640863609d648aa1d031a1a2142d'&&crypto.createHash('sha256').update(fs.readFileSync(path.join(root,a.file))).digest('hex')===a.sha256;}catch{}
   }
-  return (valid||confirmedReentry||confirmedNightEntry||confirmedHolyEntry||confirmedLeonPreviousAlly||confirmedLachesisSword||confirmedSandTeamInvalid||confirmedYuliNext||confirmedYuliOtherEntry||confirmedYuliBackpack||confirmedSwordTeamLock)?[]:[`${entry.key}: partner/bond/awakening enhancement cannot be deferred without explicit source-backed team dependencyEvidence; personal enhancement requires single-stage state assertions`];
+  // Original2424 explicitly grants allied warm snow; partner unlock is personal,
+  // but this one resource clause follows the user's confirmed allied-side rule.
+  let confirmedWarmSnow=false;
+  if(entry.key==='4657:skill:38296:0'&&entry.kind==='skill'&&review.scope==='mixed'&&
+    entry.sourceDigest==='c6662efec98d964c5d25b3c7e0d7fcbe23fb902573d953abfcd98599de49e73d'&&
+    digest({key:entry.key,kind:entry.kind,raw,source:entry.source})===entry.sourceDigest&&
+    entry.source?.snapshot?.revision==='8722ac1'&&entry.source?.skillRevision==='seerapi:ccf63b08'&&
+    raw.index===0&&raw.instance?.id===2424&&JSON.stringify(raw.instance.args)==='[]'&&raw.metadata?.revision==='seerapi:2255679f'&&
+    evidence?.length===1&&evidence[0].kind==='team-state'&&evidence[0].quote==='己方获得等量的暖雪'&&sourceText.includes(evidence[0].quote)&&
+    review.allySideOwnershipAuthority==='research/TEAM-STAGE-2/USER-CONFIRMATION-EXPLICIT-ALLY-SIDE-OWNERSHIP-2026-11-17.json'){
+    try{const a=JSON.parse(fs.readFileSync(path.join(root,review.allySideOwnershipAuthority),'utf8'));
+      confirmedWarmSnow=a.doNotAskAgainForExplicitAllySideBinding===true&&a.sidePoolNotPerMemberCopy===true&&
+        a.confirmedRule==='Explicit ally-side effects such as 使己方 belong to allied side/team rather than the caster personal state.';
+    }catch{/* Missing user authority cannot qualify this exact source clause. */}
+  }
+  return (valid||confirmedReentry||confirmedNightEntry||confirmedHolyEntry||confirmedLeonPreviousAlly||confirmedLachesisSword||confirmedSandTeamInvalid||confirmedYuliNext||confirmedYuliOtherEntry||confirmedYuliBackpack||confirmedSwordTeamLock||confirmedWarmSnow)?[]:[`${entry.key}: partner/bond/awakening enhancement cannot be deferred without explicit source-backed team dependencyEvidence; personal enhancement requires single-stage state assertions`];
 }
 function safeFile(root,file) {
   if(typeof file!=='string'||path.isAbsolute(file))return false;
   const full=path.resolve(root,file),relative=path.relative(root,full);
   return relative&&!relative.startsWith('..')&&fs.existsSync(full)&&fs.statSync(full).isFile();
 }
-function validateCoverage(snapshot, reviews, todo, root, complete=false) {
+function validateCoverage(snapshot, reviews, todo, root, complete=false, teamReviews={}) {
   const failures=[];
   const relevant=inventory(snapshot);
   for(const entry of relevant) {
@@ -327,7 +350,12 @@ function validateCoverage(snapshot, reviews, todo, root, complete=false) {
       for(const row of rows) {
         if(row.scope!==review.scope||digest(row.raw)!==digest(entry.raw)||!nonempty(row.source?.url)||!nonempty(row.source?.revision)||!nonempty(row.description)||!nonempty(row.trigger)||!Array.isArray(row.futureMechanisms)||!row.futureMechanisms.length) failures.push(`${entry.key}: incomplete or inconsistent multiplayer evidence`);
       }
-      if(complete)failures.push(`${entry.key}: multiplayer branch remains deferred`);
+      if(complete){
+        const row=rows[0], proof=teamReviews[entry.key];
+        if(!row||!proof)failures.push(`${entry.key}: multiplayer branch remains deferred`);
+        else failures.push(...require('./research/TEAM-STAGE-2/complete-evidence.cjs').reviewIssues(
+          row,proof,(key,evidence)=>stateEvidenceIssues(key,evidence,root)));
+      }
     }
     if(review?.scope==='single' && rows.length)failures.push(`${entry.key}: single review conflicts with deferred multiplayer record`);
   }

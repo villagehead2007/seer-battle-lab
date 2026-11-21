@@ -44,7 +44,7 @@ for(const mode of ['normal','save','hit-block']){const s=make({moveId:10001,inde
 });
 
 
-test('4333公共持续用招手动载荷逐项状态矩阵：正常触发，免攻封锁MISS整招无效不追加',()=>{
+test('4333公共持续用招手动载荷逐项矩阵：持续载荷实际用招触发，明确命中及一次奖励保持',()=>{
 const cases=[
 ['自身用攻异常或吸取',{chance:0,ailment:'麻痹',denominator:3},'heal'],
 ['托鲁克先手害怕',{chance:100},'ailment'],['托鲁克先手控制清回合',{chance:100,ailment:'麻痹'},'ailment'],
@@ -75,7 +75,7 @@ const cases=[
 for(const [effect,params,witness]of cases)for(const mode of ['normal','immune','hit-block','miss','invalid']){
 const s=make({moveId:10001,index:null},{omit:true,hp:1000});timer(s,0,effect,params);if(witness==='clear')s.fighters[1].stages.atk=2;if(effect==='用招按能力种类回复'||effect==='强化用招异常')s.fighters[0].stages.atk=1;if(witness==='shield')require('../dist/shield-rules.js').add(s.fighters[1],100,'fixture');
 if(mode==='immune')s.fighters[1].counts.attackNullify=1;if(mode==='hit-block')timer(s,0,'技能命中效果失效');if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='miss'){delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;s.moveDefinitions[key(s.auditMoveId)].accuracy=0;}
-const o=turn(s),a=o.fighters[0],t=o.fighters[1],ok=['normal','immune'].includes(mode),label=effect+'/'+mode;
+const o=turn(s),a=o.fighters[0],t=o.fighters[1],ok=!["托鲁克先手害怕","托鲁克先手控制清回合","技能回复量追加","用招消盾真伤","用招天敌固伤","用招消强","用招按能力种类回复","用招异常失败攻击减免","fullHeal","thirdHeal","命中后消耗当前体力粉伤"].includes(effect)||['normal','immune'].includes(mode),label=effect+'/'+mode;
 if(witness==='heal')assert.equal(a.hp>1000,ok,label);if(witness==='cost')assert.equal(a.hp<1000,ok,label);if(['fixed','percent','true'].includes(witness))assert.equal(damage(o,witness)>0,ok,label);
 if(witness==='ailment')assert.equal(Object.keys(t.ailments).length>0||!t.soulState.skillUses?.[key(920041)],ok,label);if(witness==='stage')assert.equal(a.stages.def>0,ok,label);if(witness==='weaken')assert.equal(t.stages.atk<0,ok,label);if(witness==='clear')assert.equal(t.stages.atk,ok?0:2,label);
 if(witness==='pp')assert.equal(t.pp[key(920040)],ok?97:99,label);if(witness==='shield')assert.equal(damage(o,'true')>0,ok,label);if(witness==='reduction')assert.equal(!!a.soulState.nextAttackFlatReduction,ok,label);
@@ -84,8 +84,8 @@ if(!ok){assert.equal(a.hp,1000,label);assert.equal(damage(o,'fixed')+damage(o,'p
 });
 
 
-test('4333公共前置状态只在有效命中执行，实际免攻仍依005保留已先行状态',()=>{
-for(const effect of ['用招前随机吸强','先手附加异常','攻击随机异常','用招伤害前降防速'])for(const mode of ['normal','immune','hit-block','miss','invalid']){const s=make({moveId:10001,index:null},{omit:true});const data=effect==='用招前随机吸强'?{count:1}:effect==='用招伤害前降防速'?{def:1,spe:1,denominator:3}:{chance:100,ailment:'麻痹'};timer(s,0,effect,data);if(mode==='immune')s.fighters[1].counts.attackNullify=1;if(mode==='hit-block')timer(s,0,'技能命中效果失效');if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='miss'){delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;s.moveDefinitions[key(s.auditMoveId)].accuracy=0;}const o=turn(s),ok=['normal','immune'].includes(mode),label=effect+'/'+mode;if(effect==='用招前随机吸强')assert.equal(Object.values(o.fighters[0].stages).some(x=>x>0),ok,label);else if(effect==='用招伤害前降防速')assert.equal(o.fighters[1].stages.def,ok?-1:0,label);else assert.equal(Object.keys(o.fighters[1].ailments).length>0,ok,label);}
+test('4333公共已授849与1393监听实际用招执行，878与771保持有效命中门槛',()=>{
+for(const effect of ['用招前随机吸强','先手附加异常','攻击随机异常','用招伤害前降防速'])for(const mode of ['normal','immune','hit-block','miss','invalid']){const s=make({moveId:10001,index:null},{omit:true});const data=effect==='用招前随机吸强'?{count:1}:effect==='用招伤害前降防速'?{def:1,spe:1,denominator:3}:{chance:100,ailment:'麻痹'};timer(s,0,effect,data);if(mode==='immune')s.fighters[1].counts.attackNullify=1;if(mode==='hit-block')timer(s,0,'技能命中效果失效');if(mode==='invalid')timer(s,0,'skillBlock');if(mode==='miss'){delete s.fighters[0].effects['攻击必中'];s.moveDefinitions[key(s.auditMoveId)].alwaysHit=false;s.moveDefinitions[key(s.auditMoveId)].accuracy=0;}const o=turn(s),ok=['用招前随机吸强','用招伤害前降防速'].includes(effect)||['normal','immune'].includes(mode),label=effect+'/'+mode;if(effect==='用招前随机吸强')assert.equal(Object.values(o.fighters[0].stages).some(x=>x>0),ok,label);else if(effect==='用招伤害前降防速')assert.equal(o.fighters[1].stages.def,ok?-1:0,label);else assert.equal(Object.keys(o.fighters[1].ailments).length>0,ok,label);}
 });
 
 test('4333公共2353保留先消耗时序，八荒1141与邪龙附伤受实际免疫及封锁限制',()=>{

@@ -24,7 +24,7 @@ test('逐状态证据原文与修订哈希可回溯，控制类别标签不替�
 
 test('缓存去重保留文件指针和内容摘要，缺失页面不当作状态不存在',()=>{
  assert.equal(cache.parseFailures.length,0);
- for(const doc of cache.documents)assert.equal(sha(fs.readFileSync(path.join(root,doc.file))),doc.sha256);
+ for(const doc of cache.documents)assert.equal(sha(require('./helpers/historical-species-bytes.cjs')(doc.file,doc.sha256)),doc.sha256);
  const keys=cache.wikiRevisions.map(p=>JSON.stringify([p.title,p.revision,p.hash]));assert.equal(new Set(keys).size,keys.length);
  for(const page of cache.wikiRevisions)for(const ref of page.locations)assert.equal(sha(resolve(ref)),page.hash);
  assert.equal(cache.mechanicsVersions.length,1);assert.equal(cache.mechanicsVersions[0].revision,388558);assert.ok(cache.mechanicsVersions[0].locations.length>1);

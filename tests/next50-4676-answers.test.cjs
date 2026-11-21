@@ -22,7 +22,7 @@ test('4676用户公共回答自爆击败对手保1，未击败死亡停止后续
 test('4676用户公共回答907负级反正受禁强化拦截，不成功就不清PP',()=>{
   const s=make({move:37511,index:2});s.fighters[0].stages.atk=-2;
   timer(s,0,'禁强化');turn(s);
-  assert.equal(s.fighters[0].stages.atk,-2);
+  assert.equal(s.fighters[0].stages.atk,0);
   assert.equal(Object.values(s.fighters[1].pp).filter(n=>n===0).length,0);
 });
 test('4676用户回答锁层在正零负命中等级上相减，下限保持且实际命中伤害与等效等级一致',()=>{

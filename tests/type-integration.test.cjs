@@ -68,7 +68,7 @@ test('来源冲突记录逐项保存API和Wiki证据，不覆盖任一来源原�
 });
 
 test('浏览器按真实脚本顺序加载同一数据库，版本/矩阵/伤害与Node一致',()=>{
- const html=fs.readFileSync('dist/index.html','utf8'),scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]),context=vm.createContext({console});
+ const html=fs.readFileSync('dist/index.html','utf8'),scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]),context=vm.createContext({console,structuredClone});
  for(const file of scripts.slice(0,scripts.indexOf('engine.js')+1))vm.runInContext(fs.readFileSync('dist/'+file,'utf8'),context,{filename:file});
  assert.equal(context.BattleTypeCatalog.sha256,crypto.createHash('sha256').update(fs.readFileSync('data/types/types.json')).digest('hex'));
  const browser=context.BattleEngine;assert.equal(browser.typeEffectiveness('火飞行','草机械'),2.625);assert.equal(browser.sameTypeBonus('火','火飞行'),1.5);

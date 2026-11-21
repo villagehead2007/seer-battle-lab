@@ -10,7 +10,29 @@ test('4898已答最终量：完整技能多段共享抵挡资格，盾和减伤�
  const low=make({move:20276,index:-1,soul:true,hp:1});timer(low,1,'必定暴击');turn(low,20276,10127);const blocked=low.fighters[0].soulState.pope4898.uses[0].blocked;assert.ok(blocked>1);assert.equal(low.fighters[0].hp,1);assert.equal(sum(low,'percent'),blocked);
 });
 test('4898已答整次技能：真实星皇额外攻击另开一次，首次归信后后续暴击正常承伤；抵挡统计不并入下一次技能',()=>{
- const emperor=require('../local-species.cjs').species(3291),ids=[30376,25294,25295,30380,30381],seen=new Set();for(let seed=1;seed<=16;seed++){const s=make({move:20276,index:-1,soul:true,enemySource:emperor,enemyLoadout:ids,enemySoul:true,seed:Math.imul(seed,0x9e3779b1)>>>0});timer(s,1,'必定暴击');turn(s,20276,30380);const uses=s.fighters[0].soulState.pope4898.uses;assert.equal(uses.filter(e=>e.blocked>0).length,1);const received=s.damageEvents.filter(e=>e.type==='attack'&&e.targetSide===0);seen.add(received.length);if(received.length>1){assert.ok(sum(s,'attack',1)>0);assert.ok(uses.length>1);assert.equal(uses[1].eligibleAtStart,false);}assert.equal(new Set(uses.map(e=>e.key)).size,uses.length);}assert.deepEqual([...seen].sort(),[1,2]);
+ const emperor=require('../local-species.cjs').species(3291);
+ const ids=[30376,25294,25295,30380,30381],seen=new Set();
+ for(let seed=1;seed<=16;seed++){
+  const s=make({move:20276,index:-1,soul:true,enemySource:emperor,enemyLoadout:ids,enemySoul:true,seed:Math.imul(seed,0x9e3779b1)>>>0});
+  timer(s,1,'必定暴击');
+  turn(s,20276,30380);
+  const state=s.fighters[0].soulState.pope4898;
+  const received=s.damageEvents.filter(e=>e.type==='attack'&&e.targetSide===0);
+  const normal=received.filter(e=>!e.starRage622),rage=received.filter(e=>e.starRage622);
+  assert.equal(normal.length,1);
+  assert.equal(normal[0].settledDamage,0);
+  assert.equal(state.uses.length,1);
+  assert.equal(state.uses[0].eligibleAtStart,true);
+  assert.ok(state.uses[0].blocked>0);
+  assert.equal(s.fighters[1].statusState.faithSourceSide,0);
+  assert.deepEqual(state.events.filter(e=>e.event==='retaliation').map(e=>e.amount),[state.uses[0].blocked]);
+  seen.add(rage.length);
+  assert.equal(sum(s,'attack',1),rage.reduce((total,event)=>{
+   assert.ok(event.settledDamage>0);
+   return total+event.settledDamage;
+  },0));
+ }
+ assert.deepEqual([...seen].sort(),[0,1]);
 });
 test('4898已答1689：本次非暴击结束立即回全PP2并削敌全PP1，当前暴击不执行；零红仍执行、PP保护和回复封锁分别生效',()=>{
  for(const mode of['normal','crit','zero','protect','restore-blocked']){const s=make({move:38374,index:2});s.fighters[0].pp[key(38374)]=2;for(const k of s.fighters[0].moves.filter(k=>k!==key(38374)))s.fighters[0].pp[k]=Math.max(0,s.moveDefinitions[k].pp-2);for(const k of s.fighters[1].moves)s.fighters[1].pp[k]=5;if(mode==='crit')timer(s,0,'必定暴击');if(mode==='zero')timer(s,1,'攻击伤害免疫');if(mode==='protect')timer(s,1,'PP保护');if(mode==='restore-blocked'){timer(s,1,'机械领域',{fraction:.6});s.fighters[1].soulState.bedPartnerPP=true;}let checked=false;observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.t.pp[key(38374)],['crit','restore-blocked'].includes(mode)?1:3);for(const k of c.a.moves)assert.equal(c.a.pp[k],(['crit','protect'].includes(mode)?5:4)-(k===key(20117)?1:0));checked=true;}},()=>turn(s,38374,20117));assert.equal(checked,true);assert.equal(s.fighters[1].pp[key(20117)],['crit','protect'].includes(mode)?4:3);assert.ok(Number.isFinite(s.fighters[1].hp));}

@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn}=require('./helpers/3066-native.cjs');
+test('3066真实22招字段及416原版本绑定，唯一19417第五、逐招原生耗一PP且输入和真实源不改',()=>{
+ assert.equal(source.moves.length,22);for(const m of source.moves){const s=make(m.id),k='wiki:'+m.id,c=s.moveDefinitions[k];for(const p of['name','kind','power','pp','accuracy','priority','alwaysHit','fifth'])assert.equal(c[p],m[p],m.id+'/'+p);assert.equal(c.type,m.kind==='status'?'属性':m.type);const[n,d]=m.critical.split('/').map(Number);assert.equal(c.criticalChance,n/d);assert.equal(s.fighters[0].soulId,416);assert.equal(s.fighters[0].soulHash,'b4cc9a0');const fifth=s.fighters[0].moves.filter(k=>s.moveDefinitions[k].fifth);assert.equal(s.fighters[0].moves.length,5);assert.equal(fifth.length,1);assert.equal(s.moveDefinitions[fifth[0]].wikiId,19417);const before=structuredClone(s),o=turn(s,m.id);assert.equal(o.fighters[0].pp[k],m.pp-1);assert.deepEqual(s,before);}
+});
+test('3066全部原生零PP拒绝保持输入，疲惫未出招不耗PP不执行延迟绑定回血或能力变化',()=>{
+ for(const m of source.moves){let s=make(m.id),k='wiki:'+m.id;s.fighters[0].pp[k]=0;const before=structuredClone(s);assert.throws(()=>turn(s,m.id),/有 PP/);assert.deepEqual(s,before);s=make(m.id,{aAilments:{疲惫:2}});const o=turn(s,m.id);assert.equal(o.fighters[0].pp[k],m.pp);assert.equal(o.fighters[0].hp,4500);assert.equal(o.fighters[1].hp,9000);assert.ok(Object.values(o.fighters[0].stages).every(n=>n===0));assert.ok(!o.fighters[0].effects['延迟决胜']);}
+});
+test('3066对手未烧伤原物特红伤按面板攻防本系相性浮动，14089单挑仅一目标及先手40不误用',()=>{
+ for(const m of source.moves.filter(m=>m.kind!=='status')){const late=m.id===11167,s=make(m.id,{enemyMoves:[10086],bStats:{spe:late?9999:100}}),a=s.fighters[0],b=s.fighters[1],atk=m.kind==='physical'?a.stats.atk:a.stats.spa,def=m.kind==='physical'?b.stats.def:b.stats.spd,base=Math.floor(Math.floor(42*m.power*atk/def)/50)+2,factor=E.sameTypeBonus(m.type,a.type,s.typeChart)*E.typeEffectiveness(m.type,b.type,s.typeChart),o=turn(s,m.id,late?10086:'potion:pp'),hits=o.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===0);assert.equal(o.turns.at(-1).first,late?1:0);assert.equal(hits.length,1,m.id);assert.ok(hits[0].settledDamage>=Math.floor(base*factor*.85)&&hits[0].settledDamage<=Math.floor(base*factor),JSON.stringify({move:m.id,base,factor,hit:hits[0]}));}
+});

@@ -34,7 +34,7 @@ test('3577 吸强1044只有成功才获下两回合全伤翻倍、禁强和保�
   const e=pick(1044)[0],s=make(e);s.fighters[1].stages.atk=2;let o=turn(s);assert.equal(o.fighters[1].stages.atk,0);assert.equal(o.fighters[0].stages.atk,2);assert.deepEqual(o.fighters[0].effects['全伤害翻倍'],{start:2,end:3});
   for(let r=2;r<=3;r++){const c=structuredClone(o);delete c.fighters[0].effects['全伤害翻倍'];const b=turn(c,10361);o=turn(o,10361);assert.ok(Math.abs(o.fighters[0].lastAttackDamage-2*b.fighters[0].lastAttackDamage)<=1);}assert.equal(o.fighters[0].effects['全伤害翻倍'],undefined);
   assert.equal(turn(make(e)).fighters[0].effects['全伤害翻倍'],undefined);
-  for(const [side,name] of [[0,'禁强化'],[1,'hypnosBoostProtect']]){const b=make(e);b.fighters[1].stages.atk=2;timer(b,side,name);const x=turn(b);assert.equal(x.fighters[1].stages.atk,2);assert.equal(x.fighters[0].stages.atk,0);assert.equal(x.fighters[0].effects['全伤害翻倍'],undefined);}
+  for(const [side,name] of [[0,'禁强化'],[1,'hypnosBoostProtect']]){const b=make(e);b.fighters[1].stages.atk=2;timer(b,side,name);const x=turn(b);assert.equal(x.fighters[1].stages.atk,side===0?0:2);assert.equal(x.fighters[0].stages.atk,0);assert.equal(x.fighters[0].effects['全伤害翻倍'],undefined);}
 });
 test('3577 回复77三次用招250、满血截断、控制与技能禁疗',()=>{
   const e=pick(77)[0];let s=make(e,{hp:1000});for(let r=1;r<=4;r++){s=turn(s,r===1?e.moveId:IDLE);assert.equal(s.fighters[0].hp,1000+250*Math.min(r,3));}assert.equal(turn(make(e,{hp:8999})).fighters[0].hp,9000);
@@ -108,7 +108,7 @@ test('3577 魂印881形态全技能先制一、免弱和克制系数至少二',(
 });
 test('3577 魂印881伤害279、280、281严格分支与下回合封属必暴',()=>{
   for(const n of [279,280,281]){const s=make(base,{soul:true,hp:1000,aStats:{atk:2000},opponentBoost:true});timer(s,1,'伤害上限',{amount:n},1);const o=turn(s);assert.equal(o.fighters[0].lastAttackDamage,n);assert.equal(o.fighters[0].hp,n<280?4000:1000); // 目标限伤仍限制伤害，但不限制最大体力比例吸取的回复基数。
-    assert.equal(o.fighters[1].hp,9000-n-(n===280?0:n));assert.equal(!!o.fighters[0].effects['必定暴击'],n<280);assert.equal(!!o.fighters[1].effects.statusBlock,n>280);
+    assert.equal(o.fighters[1].hp,9000-n-(n===280?0:3000));assert.equal(!!o.fighters[0].effects['必定暴击'],n<280);assert.equal(!!o.fighters[1].effects.statusBlock,n>280);
     const b=turn(o,IDLE,900023);assert.equal(b.fighters[1].stages.atk,n>280?0:1);assert.equal(b.fighters[1].pp[key(900023)],39);assert.equal(b.fighters[1].effects.statusBlock,undefined);
   }
 });

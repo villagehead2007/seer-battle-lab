@@ -11,13 +11,18 @@ function sync(f){
 }
 function add(f,amount,source=null){
  if(!Number.isInteger(amount)||amount<0)throw new RangeError('护盾值必须为非负整数');
+ if(f.soulState?.spMars?.shieldFreezeUntil>=(f.soulState?.calculationRound??1))return 0;
  if(!f.suitState.shieldLayers)f.suitState.shieldLayers=f.suitState.shield>0?[{source:null,amount:f.suitState.shield}]:[];
  sync(f);if(amount>0)f.suitState.shieldLayers.push({source,amount});f.suitState.shield=(f.suitState.shield??0)+amount;return amount;
 }
-function refresh(f,amount,source){sync(f);const old=sourceValue(f,source);f.suitState.shield=(f.suitState.shield??0)-old;f.suitState.shieldLayers=(f.suitState.shieldLayers??[]).filter(x=>x.source!==source);return add(f,amount,source);}
+function refresh(f,amount,source){if(locked(f))return 0;sync(f);const old=sourceValue(f,source);f.suitState.shield=(f.suitState.shield??0)-old;f.suitState.shieldLayers=(f.suitState.shieldLayers??[]).filter(x=>x.source!==source);return add(f,amount,source);}
 function sourceValue(f,source){sync(f);return (f.suitState.shieldLayers??[]).filter(x=>x.source===source).reduce((n,x)=>n+x.amount,0);}
-function absorb(f,amount){sync(f);const blocked=Math.min(Math.max(0,amount),f.suitState.shield??0);f.suitState.shield-=blocked;sync(f);return blocked;}
-function consume(f){const amount=f.suitState.shield??0;f.suitState.shield=0;sync(f);return amount;}
+function locked(f){
+ const state=f.soulState;
+ return state?.spMars&&Math.max(state.spMars.shieldLockUntil??0,state.spMars.shieldFreezeUntil??0)>=(state.calculationRound??1);
+}
+function absorb(f,amount){sync(f);const blocked=Math.min(Math.max(0,amount),f.suitState.shield??0);if(!locked(f)){f.suitState.shield-=blocked;sync(f);}return blocked;}
+function consume(f){if(locked(f))return 0;const amount=f.suitState.shield??0;f.suitState.shield=0;sync(f);return amount;}
 // Barriers use a separate ledger. Existing aggregate-only barriers retain their
 // numeric behavior; only source-aware grants create layers. Q100 establishes
 // newest-first consumption for Moirai's barrier and coexisting barrier sources.

@@ -14,3 +14,10 @@ test('3512 帝皇之御：魂印与全部技能可从本地开局结算',()=>{
     assert.ok(t.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp),move.name);
   }
 });
+
+require('./deployed-3512-native-base.test.cjs');
+require('./deployed-3512-native-stats.test.cjs');
+require('./deployed-3512-native-timed.test.cjs');
+require('./deployed-3512-native-clear.test.cjs');
+require('./deployed-3512-native-sacrifice.test.cjs');
+require('./deployed-3512-display.test.cjs');

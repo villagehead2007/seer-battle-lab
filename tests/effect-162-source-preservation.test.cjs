@@ -17,7 +17,7 @@ test('162已答4854精确38205版本：运行态仅revision仍按异常附固定
   assert.equal(A.sum(s,'true'),0,mode);
   const packets=s.damageEvents.filter(e=>e.sourceSide===0&&e.targetSide===1&&e.type==='fixed');
   assert.equal(packets.reduce((n,e)=>n+e.hpLoss,0),expected,mode);
-  if(mode!=='poison')assert.equal(before-s.fighters[1].hp,A.sum(s)+expected,mode+' actual target HP');
+  if(mode!=='poison')assert.equal(before-s.fighters[1].hp,A.sum(s)+expected+(mode==='immune'?Math.floor(f.stats.maxHp/8):0),mode+' actual target HP');
   else assert.ok(before-s.fighters[1].hp>=A.sum(s)+expected,'poison retains its independent round-end damage');
  }
 });

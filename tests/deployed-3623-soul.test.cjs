@@ -28,5 +28,12 @@ test('3623 觉醒魂印1863失效次回合双类型收益、失误封招、过�
 test('3623 两版真实技能组、魂印来源、种族值及跨版拒绝',()=>{
  assert.deepEqual(E.WIKI.skillVersionIssues(source),[]);assert.deepEqual(source.moves.filter(m=>m.fifth).map(m=>m.id),[32102,37464]);assert.equal(source.moves.length,21);
  for(const soul of [917,1863]){const s={...structuredClone(source),selectedSoulId:soul},available=E.WIKI.availableMoves(s);assert.equal(available.length,soul===917?17:20);const ids=E.WIKI.defaultMoves(s);assert.ok(ids.includes(soul===917?32102:37464));const battle=E.createBattle({wikiSnapshots:[s,s]});assert.equal(battle.fighters[0].soulId,soul);assert.equal(battle.fighters[0].gender,2);for(const id of available.map(m=>m.id))assert.ok(s.moves.some(m=>m.id===id));const invalid=ids.map(id=>s.moves.find(m=>m.id===id).fifth?(soul===917?37464:32102):id);assert.equal(E.WIKI.assess(s,invalid).supported,false);assert.deepEqual(s.souls.find(x=>x.id===1863).base,{maxHp:167,atk:144,def:111,spa:70,spd:111,spe:137});}
- const opponent=require('../data/species/3592.json').snapshot,b=E.createBattle({wikiSnapshots:[source,opponent]});assert.equal(b.fighters[1].gender,source.targetGenderSources[3592].genderId);assert.equal(source.targetGenderSources[3592].revision,opponent.source.revision);
+ const legacyOpponent=require('../research/POST-V9-20261121/before-official/3592.json').snapshot;
+ const evidence=source.targetGenderSources[3592];
+ assert.equal(evidence.revision,legacyOpponent.source.revision);
+ const fallbackOpponent=structuredClone(legacyOpponent);
+ delete fallbackOpponent.gender;
+ assert.equal(E.createBattle({wikiSnapshots:[source,fallbackOpponent]}).fighters[1].gender,evidence.genderId);
+ const opponent=require('../data/species/3592.json').snapshot;
+ assert.equal(E.createBattle({wikiSnapshots:[source,opponent]}).fighters[1].gender,opponent.gender.id);
 });

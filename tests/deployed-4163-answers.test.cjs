@@ -9,7 +9,8 @@ test('4163 1690盾值70%为百分比且理论回复，低HP过量与伤害免疫
  }
 });
 test('4163 1690吸取不消费自身盾，理论回复不被输出翻倍扩大且回复倍率独立',()=>{
- const s=make({moveId:10223,index:null},{soul:1690,omit:true,hp:1000});s.fighters[0].suitState.shield=1000;timer(s,0,'全伤害翻倍');timer(s,0,'回复效果削减',{fraction:.5});const o=turn(s);assert.equal(o.fighters[0].suitState.shield,1000);assert.equal(o.fighters[0].hp,1350);assert.equal(current(o,'percent')[0].settledDamage,1400);
+ // 最新统一答：未注明类别的输出翻倍仅红伤，不放大这项百分比伤害。
+ const s=make({moveId:10223,index:null},{soul:1690,omit:true,hp:1000});s.fighters[0].suitState.shield=1000;timer(s,0,'全伤害翻倍');timer(s,0,'回复效果削减',{fraction:.5});const o=turn(s);assert.equal(o.fighters[0].suitState.shield,1000);assert.equal(o.fighters[0].hp,1350);assert.equal(current(o,'percent')[0].settledDamage,700);
 });
 test('4163 1690先吸取，再石化或失败全强，再按届时全部正强化段数附固定伤害',()=>{
  let yes=false,no=false;
@@ -27,9 +28,9 @@ test('4163 1690石化免疫才失败全强，寒月不压70%概率，护罩及�
   if(mode==='immune'){assert.equal(o.fighters[1].ailments['石化'],undefined);assert.equal(o.fighters[0].stages.atk,1);assert.equal(o.fighters[0].hp,1700);assert.equal(current(o,'fixed')[0].settledDamage,240);}else if(mode==='moon'){assert.ok(o.fighters[1].ailments['石化']);assert.equal(o.fighters[0].stages.atk,0);assert.equal(o.fighters[0].hp,1700);assert.equal(current(o,'fixed')[0].settledDamage,60);}else{assert.equal(o.fighters[0].hp,1000);assert.equal(current(o,'percent').length,0);}
  }
 });
-test('4163 Q038仅两魂印强化反转触发石化，失败清敌回合及盾，强化保护阻止反转则不触发',()=>{
+test('4163 Q038仅两魂印强化反转触发石化，失败清敌回合及盾，明确免反转保护阻止反转则不触发',()=>{
  for(const soul of [1389,1690])for(const mode of ['apply','immune','protected']){
-  const s=make({moveId:10223,index:null},{soul,omit:true});s.fighters[0].stages.atk=2;op(s,143,[]);timer(s,1,'测试回合');if(mode==='immune')timer(s,1,'免异常');if(mode==='protected')timer(s,0,'强化保护');
+  const s=make({moveId:10223,index:null},{soul,omit:true});s.fighters[0].stages.atk=2;op(s,143,[]);timer(s,1,'测试回合');if(mode==='immune')timer(s,1,'免异常');if(mode==='protected')timer(s,0,'幽蝶强化保护');
   const o=turn(s,undefined,930042);assert.equal(o.fighters[0].stages.atk,mode==='protected'?2:-2);assert.equal(!!o.fighters[1].ailments['石化'],mode==='apply');assert.equal(o.fighters[0].suitState.shield,mode==='immune'?3000:0);assert.equal(o.fighters[1].effects['测试回合']===undefined,mode==='immune');
  }
 });

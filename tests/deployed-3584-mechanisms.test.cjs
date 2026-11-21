@@ -15,8 +15,8 @@ test('3584 消回合797仅成功才禁技能回血、免断和两回合到期',(
 });
 test('3584 吸血1249攻击伤害一半、异常粉伤、禁疗及满血',()=>{
  const e=pick(1249)[0];for(const abnormal of [false,true]){const s=make(e,{hp:1000});if(abnormal)s.fighters[1].ailments['失明']=4;const o=turn(s),n=Math.floor(damage(o)/2);assert.equal(o.fighters[0].hp,1000+n);assert.equal(9000-o.fighters[1].hp,damage(o)+(abnormal?n:0));}
- const full=make(e);full.fighters[1].ailments['失明']=4;const f=turn(full);assert.equal(f.fighters[0].hp,9000);assert.equal(9000-f.fighters[1].hp-damage(f),Math.floor(damage(f)/2));
- const block=make(e,{hp:1000});timer(block,0,'技能禁疗');block.fighters[1].ailments['失明']=4;const b=turn(block);assert.equal(b.fighters[0].hp,1000);assert.equal(9000-b.fighters[1].hp-damage(b),Math.floor(damage(b)/2));timer(block,1,'当回合免伤');assert.deepEqual(hp(turn(block)),[1000,9000]);
+ const full=make(e);full.fighters[1].ailments['失明']=4;const f=turn(full);assert.equal(f.fighters[0].hp,9000);assert.equal(9000-f.fighters[1].hp-damage(f),0);
+ const block=make(e,{hp:1000});timer(block,0,'技能禁疗');block.fighters[1].ailments['失明']=4;const b=turn(block);assert.equal(b.fighters[0].hp,1000);assert.equal(9000-b.fighters[1].hp-damage(b),0);timer(block,1,'当回合免伤');assert.deepEqual(hp(turn(block)),[1000,9000]);
 });
 test('3584 双防676从下回合持续三回合、状态不触发、强化数值及免伤',()=>{
  const e=pick(676)[0];let s=turn(make(e));assert.equal(s.fighters[1].hp,9000);assert.equal(s.fighters[0].effects['攻击双防粉伤'].start,2);s.fighters[0].stages.def=2;

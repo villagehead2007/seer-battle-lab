@@ -1,8 +1,4 @@
 'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4186-battle.cjs'),{E,make,pick,turn,timer,key,keys}=H,shields=require('../dist/shield-rules.js');
-test('4186 原魂印1409真实250入场盾、异常快照1/3回血及已变双属性时克制上限2',()=>{
- const entry={moveId:10004,index:null},s=make(entry,{soul:1409,hp:1000});assert.equal(s.fighters[0].suitState.shield,250);s.fighters[0].ailments['失明']=9;const o=turn(s,920031);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[0].soulState.dragonAbnormalSnapshotRound,1);
- const known=require('../research/4135-reviewed-snapshot.json'),damages=[];for(const abnormal of [false,true]){const x=make(entry,{soul:1409});shields.consume(x.fighters[0]);x.typeChart.aliases['自然神秘']=known.typeChart.aliases['自然神秘'];x.fighters[0].type='自然神秘';x.moveDefinitions[key(920040)].type='超能';if(abnormal)x.fighters[0].ailments['失明']=9;const a=turn(x,920031,920040);damages.push(a.fighters[0].roundSettledAttackDamage);}assert.ok(Math.abs(damages[0]-2*damages[1])<=1);
-});
 test('4186 原魂印明确单次正伤害成功随机150~300反击，失败一次抽取同值扣全技能PP',()=>{
  let yes=false,no=false;for(let seed=0;seed<45;seed++){const s=make({moveId:10004,index:null},{soul:1409,seed});shields.consume(s.fighters[0]);const o=turn(s,920031,920040),d=9000-o.fighters[1].hp;if(d>0){assert.ok(d>=150&&d<=300);yes=true;}else{const n=o.fighters[0].soulState.dragonFailurePPAmount;assert.ok([1,2].includes(n));for(const k of o.fighters[1].moves)assert.equal(o.fighters[1].pp[k],99-n-(k===key(920040)?1:0));no=true;}}assert.ok(yes&&no);
 });

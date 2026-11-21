@@ -1,1 +1,3 @@
-'use strict';
+'use strict';const{test}=require('node:test'),assert=require('node:assert/strict'),{E,source,key,keys,make,pick,turn,timer,op,independentOperations}=require('./helpers/4147-battle.cjs');
+const ds=(s,type,side=1,round=s.round-1)=>(s.damageEvents??[]).filter(d=>d.type===type&&d.targetSide===side&&d.round===round),damage=(...a)=>ds(...a).reduce((n,d)=>n+d.settledDamage,0),moon=(s,name,side,end=99)=>{s.celestials??=[];s.celestials.push({name,side,start:1,end});};
+test('4147 1393本实例使用技能先降防速各1，免弱失败后附加百分比3000，不改伤害类型',()=>{for(const immune of [false,true]){const s=make(pick(1393)[0]);if(immune)timer(s,1,'免弱');let o=turn(s);assert.equal(o.fighters[1].stages.def,immune?0:-1);assert.equal(o.fighters[1].stages.spe,immune?0:-1);o=turn(o,920030);assert.equal(o.fighters[1].stages.def,immune?0:-2);assert.equal(o.fighters[1].stages.spe,immune?0:-2);assert.equal(damage(o,'percent'),immune?3000:0);}});

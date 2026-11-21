@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4208-battle.cjs'),{make,pick,turn,timer,key,keys,E}=H;
+test('4208 885严格高体强化翻倍，532原子实际回复附伤与禁疗/蛊',()=>{for(const hp of [8999,9000]){const s=make(pick(885)[0],{targetHp:hp}),o=turn(s);for(const k of keys)assert.equal(o.fighters[0].stages[k],hp<9000?2:1);}assert.equal(require('./helpers/assert-4208-public-rules.cjs')(4208,532).fighters[0].hp,8960);});

@@ -23,8 +23,8 @@
     storm: { id: 'storm', name: '飞叶风暴', type: '草', kind: 'special', category: '特殊', power: 140, accuracy: 90, pp: 5, description: '命中后，自身特攻降低 1 级。' },
     absorb: { id: 'absorb', name: '超级吸取', type: '草', kind: 'special', category: '特殊', power: 60, accuracy: 100, pp: 10, description: '回复实际造成伤害的 1/2。' },
     heal: { id: 'heal', name: '光合作用', type: '普通', kind: 'status', category: '属性', power: 0, accuracy: 100, pp: 5, description: '回复最大体力的 1/2。' },
-    'potion:hp': { id: 'potion:hp', name: '血药', kind: 'item', priority: 100, description: '消耗本回合行动，恢复当前出战精灵至多 250 点体力。' },
-    'potion:pp': { id: 'potion:pp', name: 'PP 药', kind: 'item', priority: 100, description: '消耗本回合行动，恢复当前出战精灵全部技能 PP 至各自上限。' },
+    'potion:hp': { id: 'potion:hp', name: '血药', kind: 'item', priority: -100, description: '消耗本回合行动，恢复当前出战精灵至多 250 点体力。' },
+    'potion:pp': { id: 'potion:pp', name: 'PP 药', kind: 'item', priority: -100, description: '消耗本回合行动，恢复当前出战精灵全部技能 PP 至各自上限。' },
     struggle: { id: 'struggle', name: '挣扎', type: '普通', kind: 'physical', category: '物理', power: 50, accuracy: 100, pp: null, description: '所有 PP 耗尽时可用；反伤为最大体力的 1/4（测试规则）。' }
   });
   const LOADOUT = ['crunch', 'storm', 'absorb', 'heal'];
@@ -73,6 +73,7 @@
       suitBonuses[key] = GEAR.suitBonus(build.suit, key, calculated[key]);
       calculated[key] += suitBonuses[key];
       if(key==='maxHp')calculated[key]=Math.floor(calculated[key]*(SPECIES[speciesId].maxHpMultiplier??1));
+      calculated[key] += SPECIES[speciesId].partnerPanelBonus?.[key] ?? 0;
       const override = input.overrides?.[key];
       if (override !== undefined && override !== null && override !== '') { integer(override, 1, 9999, '直接数值'); build.overrides[key] = override; }
       stats[key] = build.overrides[key] ?? calculated[key];
@@ -128,7 +129,8 @@
     const emit = (text, kind = 'info', detail = '') => events.push({ text, kind, detail });
     const speeds = state.fighters.map(f => effective(f, 'spe'));
     const priorities = choices.map(id => MOVES[id].priority ?? 0);
-    const first = priorities[0] !== priorities[1] ? (priorities[0] > priorities[1] ? 0 : 1) : speeds[0] === speeds[1] ? (random(state) < .5 ? 0 : 1) : (speeds[0] > speeds[1] ? 0 : 1);
+    const potions = choices.map(id=>MOVES[id].kind==='item');
+    const first = potions[0] !== potions[1] ? (potions[0] ? 1 : 0) : priorities[0] !== priorities[1] ? (priorities[0] > priorities[1] ? 0 : 1) : speeds[0] === speeds[1] ? (random(state) < .5 ? 0 : 1) : (speeds[0] > speeds[1] ? 0 : 1);
     emit(priorities[0] !== priorities[1] ? `${label(first)} 技能先制更高，先手行动（先制 ${priorities[0]} / ${priorities[1]}）。` : speeds[0] === speeds[1] ? `双方速度均为 ${speeds[0]}，本回合随机由 ${label(first)} 先手。` : `${label(first)} 速度更高，先手行动（${speeds[0]} / ${speeds[1]}）。`);
     function stage(f, key, delta) {
       const before = f.stages[key];
@@ -199,6 +201,7 @@
   let api = { CHARACTERISTICS, TYPES, typeLibraryVersion, checkTypeVersion, GEAR, VERSION, MOVES, LOADOUT, DEFAULT_STATS, STAT_LABELS, STAGE_LABELS, SPECIES, NATURES, calculateStats, createBattle, resolveTurn, availableMoves, effective, multiplier };
   const attach = typeof module === 'object' && module.exports ? require('./souls.js') : globalThis.BattleSouls;
   if (attach) { api = attach(api); MOVES = api.MOVES; }
+  api.SpMars=typeof module==='object'&&module.exports?require('./sp-mars-rules.js'):globalThis.SpMarsRules;
   api.WIKI=(typeof module==='object'&&module.exports?require('./wiki-support.js'):globalThis.WikiSupport)(api);
   return api;
 });

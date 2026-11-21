@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict');const {E,source,make,turn,pick,timer,key,keys}=require('./helpers/3945-battle.cjs');
+test('3945效果192自身当前体力百分比，低HP溢出保留完整量且百分免疫不造成实际损失',()=>{const e=pick(192)[0];let s=make(e,{hp:1000,targetHp:1});s.moveDefinitions[key(s.auditMoveId)].power=0;let o=turn(s);const d=o.damageEvents.find(e=>e.type==='percent');assert.equal(d.settledDamage,200);assert.equal(d.hpLoss,1);s=make(e,{hp:1000});s.moveDefinitions[key(s.auditMoveId)].power=0;s.fighters[1].soulId=1061;s.fighters[1].soulState.xinFusion=true;o=turn(s);assert.equal(o.fighters[1].hp,9000);assert.equal(o.damageEvents.filter(e=>e.type==='percent'&&e.hpLoss>0).length,0);});

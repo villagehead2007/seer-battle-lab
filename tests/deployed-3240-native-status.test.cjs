@@ -1,0 +1,13 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3240-native.cjs');
+test('3240不幸中毒30邪灵睡眠40妖祭疲惫50原概率自然成功失败，免异独立阻挡且攻击红伤保留',()=>{
+ for(const[move,ailment,chance,duration]of[[15877,'中毒',30],[15878,'睡眠',40],[23240,'疲惫',50,3]]){let yes,no=false;for(let seed=1;seed<=48&&(!yes||!no);seed++){const probabilities=[],old=H.E.WIKI.effectsEngine;H.E.WIKI.effectsEngine={...old,run(phase,ops,c){const original=c.statusProbability;if(phase==='afterHit'&&c.a.side===0)c.statusProbability=n=>{probabilities.push(n);return original?original(n):n;};try{return old.run(phase,ops,c);}finally{c.statusProbability=original;}}};let s;try{s=H.turn(H.make(move,{seed,aStages:{acc:6}}),move);}finally{H.E.WIKI.effectsEngine=old;}assert.ok(probabilities.includes(chance));assert.equal(H.damage(s,'attack')>0,move!==23240);if(s.fighters[1].ailments[ailment])yes??={seed,s};else no=true;}assert.ok(yes&&no,String(move));assert.ok(duration?yes.s.fighters[1].ailments[ailment]===duration:[2,3].includes(yes.s.fighters[1].ailments[ailment]));const immune=H.turn(H.make(move,{seed:yes.seed,aStages:{acc:6},bEffects:{免异常:{start:1,end:5}}}),move);assert.equal(immune.fighters[1].ailments[ailment],undefined);assert.equal(H.damage(immune,'attack')>0,move!==23240);}
+});
+test('3240邪恶狞笑扣尽对手所选最后一PP则当回合无法使用，PP保护保住技能且不阻原弱化',()=>{
+ for(const protect of[false,true]){const initial=H.make(23237,{aStages:{acc:6},aStats:{spe:4000},enemyMoves:[20889],bEffects:protect?{PP保护:{start:1,end:4}}:{}});initial.fighters[1].pp['wiki:20889']=1;const s=H.turn(initial,23237,20889);assert.equal(s.fighters[1].pp['wiki:20889'],0);assert.equal(s.fighters[1].stages.spe,protect?1:0);assert.equal(s.fighters[1].stages.def,-1);}
+});
+test('3240妖祭原三回疲惫控制对手当回合及后两回，第四回恢复原招且同时免反异常三回',()=>{
+ let found;for(let seed=1;seed<=24&&!found;seed++){const s=H.turn(H.make(23240,{seed,aStages:{acc:6},aStats:{spe:4000},enemyMoves:[20889]}),23240,20889);if(s.fighters[1].ailments.疲惫)found=s;}assert.ok(found);let s=found;assert.equal(s.fighters[1].stages.spe,0);assert.equal(s.fighters[0].effects.reflect.end,3);for(let r=2;r<=4;r++){s=H.turn(s,'potion:pp',20889);assert.equal(s.fighters[1].stages.spe,r<=3?0:1);}
+});
+test('3240邪恶狞笑原39扣对手全部技能一PP，PP保护阻挡但三轴弱化独立保留',()=>{
+ for(const protect of[false,true]){const initial=H.make(23237,{enemyMoves:[10086],bStats:{spe:9999},aStages:{acc:6},bEffects:protect?{PP保护:{start:1,end:4}}:{}}),before=structuredClone(initial.fighters[1].pp),s=H.turn(initial,23237,10086);for(const k of s.fighters[1].moves)assert.equal(s.fighters[1].pp[k],Math.max(0,before[k]-(protect?0:1)-(k==='wiki:10086'?1:0)));assert.equal(s.fighters[1].stages.def,-1);assert.equal(s.fighters[1].stages.spd,-1);assert.equal(s.fighters[1].stages.acc,-2);}
+});

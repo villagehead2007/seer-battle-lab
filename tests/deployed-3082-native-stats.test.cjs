@@ -1,0 +1,15 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,make,turn}=require('./helpers/3082-native.cjs'),pp='potion:pp',keys=['atk','def','spa','spd','spe','acc'];
+test('3082神秘沉默驱魂摄魂原生强化各项按原参数，六封顶禁强化，独立回血吸取仍执行',()=>{
+ for(const[id,values]of[[20077,{atk:1,spa:1}],[20521,{def:2,spd:2}],[24835,{spa:1,spe:1,acc:1}],[24837,Object.fromEntries(keys.map(k=>[k,1]))]])for(const mode of['normal','cap','blocked']){const s=turn(make(id,{aStages:mode==='cap'?Object.fromEntries(keys.map(k=>[k,6])):{},aEffects:mode==='blocked'?{禁强化:{start:1,end:3}}:{}}),id);for(const k of keys)assert.equal(s.fighters[0].stages[k],mode==='cap'?6:mode==='blocked'?0:values[k]??0);if(id===24835)assert.equal(s.fighters[0].hp,7500);if(id===24837){assert.equal(s.fighters[0].hp,6750);assert.equal(s.fighters[1].hp,6750);}}
+});
+test('3082扰乱与凝神先执行原定削弱，再有完整魂印两项随机削弱；负六封底且星皇免弱',()=>{
+ for(const id of[20154,19470,24836]){const s=turn(make(id),id),sum=Object.values(s.fighters[1].stages).reduce((a,b)=>a+b,0);assert.equal(sum,id===20154?-3:id===19470?-4:-8);assert.ok(s.fighters[1].stages.acc<=-1);if(id===19470)assert.ok(s.fighters[1].stages.spd<=-1);if(id===24836)assert.ok(keys.every(k=>s.fighters[1].stages[k]<=-1));const capped=turn(make(id,{bStages:Object.fromEntries(keys.map(k=>[k,-6]))}),id);assert.ok(Object.values(capped.fighters[1].stages).every(n=>n===-6));const immune=turn(make(id,{enemyId:3291}),id);assert.ok(Object.values(immune.fighters[1].stages).every(n=>n===0));}
+});
+test('3082幻妙33清实际第三轮敌原生强化，红伤按清前双防，朽梦905清强成功才三轮技能禁疗',()=>{
+ for(const id of[19471,19474]){let s=make(id,{enemyMoves:[24624,20889],aStages:{acc:6}});s=turn(s,pp);s=turn(s,pp);s=turn(s,pp,24624);assert.ok(s.fighters[1].stages.def>0||s.fighters[1].stages.spd>0);const def=Math.floor(s.fighters[1].stats.spd*E.multiplier(s.fighters[1].stages.spd));s=turn(s,id);assert.ok(s.fighters[1].stages.def<=0);assert.ok(s.fighters[1].stages.spd<=0);assert.ok(s.turns.at(-1).events.find(e=>e.damage?.sourceSide===0&&e.damage.type==='attack').detail.includes('防御 '+def));assert.equal(!!s.fighters[1].effects['技能禁疗'],id===19474);}
+ let s=make(19474,{enemyId:3549,enemyMoves:[29392]});s=turn(s,pp);s=turn(s,pp);s=turn(s,pp,29392);s=turn(s,19474);assert.ok(Object.values(s.fighters[1].stages).some(n=>n>0));assert.equal(s.fighters[1].effects['技能禁疗'],undefined);s=turn(make(19474),19474);assert.equal(s.fighters[1].effects['技能禁疗'],undefined);
+});
+test('3082万魄3清负级与第五907反负级只成功才清PP，正级保留，本体先按对应负攻600',()=>{
+ for(const id of[19472,19477]){const s=turn(make(id,{aStages:{atk:-2,spa:-2,def:2,acc:6},enemyMoves:[10086],bStats:{spe:9999}}),id,10086);assert.equal(s.damageEvents.find(e=>e.type==='attack'&&e.sourceSide===0).attackValue,600);assert.equal(s.fighters[0].stages.atk,id===19472?0:2);assert.equal(s.fighters[0].stages.spa,id===19472?0:2);assert.equal(s.fighters[0].stages.def,2);assert.equal(Object.values(s.fighters[1].pp).filter(n=>n===0).length,id===19477?1:0);}const s=turn(make(19477),19477);assert.equal(Object.values(s.fighters[1].pp).filter(n=>n===0).length,0);
+});

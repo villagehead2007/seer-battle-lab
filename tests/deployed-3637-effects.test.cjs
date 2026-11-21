@@ -29,7 +29,7 @@ test('3637 125两三回合攻击上限280及边界、固伤不受限',()=>{
 });
 test('3637 63负能力反馈与521反转、免弱禁强和六级边界',()=>{
  const s=make(entry(63));s.fighters[0].stages.atk=-6;s.fighters[0].stages.def=2;const o=turn(s);assert.equal(o.fighters[0].stages.atk,0);assert.equal(o.fighters[1].stages.atk,-6);assert.equal(o.fighters[0].stages.def,2);timer(s,1,'免弱');assert.equal(turn(s).fighters[1].stages.atk,0);assert.equal(turn(s).fighters[0].stages.atk,0);
- const r=make(entry(521));r.fighters[0].stages.atk=-6;r.fighters[0].stages.def=2;assert.equal(turn(r).fighters[0].stages.atk,6);assert.equal(turn(r).fighters[0].stages.def,2);timer(r,0,'禁强化');assert.equal(turn(r).fighters[0].stages.atk,-6);assert.deepEqual(turn(make(entry(521))).fighters[0].stages,make(entry(521)).fighters[0].stages);
+ const r=make(entry(521));r.fighters[0].stages.atk=-6;r.fighters[0].stages.def=2;assert.equal(turn(r).fighters[0].stages.atk,6);assert.equal(turn(r).fighters[0].stages.def,2);timer(r,0,'禁强化');assert.equal(turn(r).fighters[0].stages.atk,0);assert.deepEqual(turn(make(entry(521))).fighters[0].stages,make(entry(521)).fighters[0].stages);
 });
 test('3637 126三回合攻速各一、六级截断与禁强化',()=>{
  let s=turn(make(entry(126)));for(let n=1;n<=3;n++){assert.equal(s.fighters[0].stages.atk,n);assert.equal(s.fighters[0].stages.spe,n);assert.equal(s.fighters[0].stages.def,0);s=wait(s);}assert.equal(s.fighters[0].stages.atk,3);const cap=allStages(make(entry(126)),0,6);assert.equal(turn(cap).fighters[0].stages.atk,6);const ban=make(entry(126));timer(ban,0,'禁强化');assert.deepEqual(turn(ban).fighters[0].stages,ban.fighters[0].stages);

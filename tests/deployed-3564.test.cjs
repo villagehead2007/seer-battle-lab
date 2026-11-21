@@ -31,7 +31,7 @@ test('3564 七项效果专项验证：状态、概率分支与资源变化',()=>
   const actor={hp:100,maxHp:100,stats:{maxHp:100},stages:{atk:-2,def:0,spa:0,spd:0,spe:0},ailments:{},effects:{},counts:{}};
   const target={hp:80,maxHp:100,stats:{maxHp:100},stages:{atk:1,def:0,spa:0,spd:0,spe:0},ailments:{},effects:{},counts:{}};
   const base={a:actor,t:target,m:{kind:'physical',name:'专项'},round:1,dealt:20,crit:false,
-    random:()=>0.99,timed:(f,k,n)=>{f.effects[k]={start:1,end:n};},
+    on:(f,k)=>Boolean(f.effects[k]&&f.effects[k].start<=1&&f.effects[k].end>=1),random:()=>0.99,timed:(f,k,n)=>{f.effects[k]={start:1,end:n};},
     stage:(f,n)=>{for(const k of Object.keys(f.stages))f.stages[k]=Math.max(-6,Math.min(6,f.stages[k]+n));},
     ailment:(f,k)=>{f.ailments[k]=3;},heal:(f,n)=>{const before=f.hp;f.hp=Math.min(f.maxHp,f.hp+Math.floor(n));return f.hp-before;},
     hurt:(f,n)=>{f.hp=Math.max(0,f.hp-Math.floor(n));},emit:(x)=>calls.push(x)};

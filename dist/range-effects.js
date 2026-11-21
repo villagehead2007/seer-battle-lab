@@ -151,7 +151,7 @@ add(585,'afterHit',(c,p)=>p.forEach((n,i)=>c.stage(c.a,n,[stats[i]])),Array(6).f
 add(861,'afterHit',(c,p)=>c.timed(c.a,'属性招扣PP',p[0],{pp:p[1]}),[turns,[0,100]]);
 add(860,'afterHit',(c,p)=>c.energy(p[0]),[[0,6]]);
 add(866,'afterHit',(c,p)=>c.energy(c.crit?p[0]:p[1]),[[0,6],[0,6]]);
-for(const id of [867,868])add(id,'afterHit',(c,p)=>{if((id===867?c.clear(c.t):c.clearBoost(c.t)))c.timed(c.t,'id984',1,{amount:-p[0]},c.round+1);},[[0,10]]);
+for(const id of [867,868])add(id,'afterHit',(c,p)=>{if(!(id===867?c.clear(c.t):c.clearBoost(c.t)))return;const exact=(c.m.wikiId??c.m.id)===19100&&c.m.revision==='seerapi:91c7efaf'&&p[0]===2&&c.effectInstanceIndex===(id===867?0:1),prior=c.t.effects.id984,token=c.effectUseToken?.()??c.a.soulState.skillUses?.[c.m.id],same=exact&&prior?.silverPrioritySource?.round===c.round&&prior.silverPrioritySource.side===c.a.side&&prior.silverPrioritySource.token===token;const amount=(same?prior.amount:0)-p[0];c.timed(c.t,'id984',1,{amount,...(exact?{silverPrioritySource:{round:c.round,side:c.a.side,token}}:{})},c.round+1);},[[0,10]]);
 add(128,'afterHit',(c,p)=>c.timed(c.a,'攻击转治疗',p[0],{origin:'skill'}),[turns]);
 add(456,'afterHit',(c,p)=>{if(c.t.hp<p[0])c.defeat(c.t,'低体力直接秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});});
 add(58,'afterHit',(c,p)=>c.timed(c.a,'必定暴击',p[0],{},c.round+1),[turns]);
@@ -168,11 +168,12 @@ add(31,'beforeUse',(c,p)=>{c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));},[[
 add(47,'afterHit',(c,p)=>c.timed(c.a,'免弱',p[0],{}),[turns]);
 add(48,'afterHit',(c,p)=>c.timed(c.a,'免异常',p[0],{}),[turns]);
 add(77,'afterHit',(c,p)=>c.timed(c.a,'用招定额回血',p[0],{amount:p[1]}),[turns]);
-add(85,'afterHit',c=>c.steal(c.a,c.t,'技能'));
+add(85,'afterHit',c=>{if(c.on?.(c.a,'禁强化'))return c.clearBoost(c.t);return c.steal(c.a,c.t,'技能');});
 add(470,'afterHit',(c,p)=>c.timed(c.a,'攻击附加异常',p[0]+1,{chance:p[1],ailment:ailments[p[2]]}),[turns,pct,[0,20]]);
 add(499,'afterHit',(c,p)=>{if(c.a.side!==c.first)c.timed(c.a,'id984',1,{amount:p[0]},c.round+1);},[[0,10]]);
 add(507,'afterHit',(c,p)=>c.timed(c.a,'大伤回满',1,{threshold:p[0]},c.round+1));
-add(521,'afterHit',c=>{if(c.canRemoveNegative?.(c.a)===false)return;for(const k of stats)if(c.a.stages[k]<0)c.stage(c.a,-2*c.a.stages[k],[k]);});
+function reverseOwnNegative521(c){if(c.canRemoveNegative?.(c.a)===false)return;for(const k of stats)if(c.a.stages[k]<0){const n=-c.a.stages[k];c.a.stages[k]=0;c.stage(c.a,n,[k]);}}
+add(521,'afterHit',reverseOwnNegative521);
 add(693,'afterHit',(c,p)=>c.timed(c.a,'id913',p[0],{bonus:p[1]/100},c.round+1),[turns,[0,1000]]);
 add(700,'afterHit',(c,p)=>{if(c.a.side===c.first&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[0]);},[[0,100]]);
 add(870,'afterHit',(c,p)=>healthRules.drainFixed(c,p[0],c.m.name,c.m.name));
@@ -181,7 +182,15 @@ add(433,'afterHit',(c,p)=>c.timed(c.a,'每回合强化',p[0],{stages:p.slice(1)}
 add(622,'afterHit',(c,p)=>{const mult=roll(c,p[6])?2:1;p.slice(0,6).forEach((n,i)=>c.stage(c.a,n*mult,[stats[i]]));},[...Array(6).fill(stage),pct]);
 add(776,'afterHit',(c,p)=>c.timed(c.a,'doubleDamage',p[0],{},c.round+1),[turns]);
 add(843,'afterHit',(c,p)=>c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1),[turns,[0,10]]);
-add(180,'afterHit',c=>c.clear(c.t));
+add(180,'afterHit',c=>{
+  // 19141 grants a new seal immediately before clearing the target's old timed effects.
+  const mark=c.a.soulState.zeusSeal19141;
+  if(c.m.wikiId===19141&&c.m.revision==='seerapi:ac504c8'&&c.effectInstanceIndex===1){
+    delete c.a.soulState.zeusSeal19141;
+    if(mark?.round===c.round&&mark.targetSide===c.t.side&&mark.seal===c.t.effects.statusBlock)return c.clear(c.t,false,['statusBlock']);
+  }
+  return c.clear(c.t);
+});
 add(1332,'afterHit',(c,p)=>{
   if(c.t.hp<=0||!c.clear(c.t))return;
   c.randomAllPvpAilments(p[0],1332);
@@ -225,7 +234,7 @@ add(635,'afterHit',(c,p)=>{const before={...c.t.stages};c.steal(c.a,c.t,'技能'
 add(695,'afterHit',(c,p)=>c.timed(c.a,'对手属性失效',p[0],{chance:p[1]}),[turns,pct]);
 
 add(97,'beforeDamage',c=>{if(c.t.ailments['冻伤']>=c.round)c.power*=2;});
-add(534,'afterHit',c=>c.hurt(c.t,(c.effective(c.a,'def')+c.effective(c.a,'spd'))/10,c.m.name,'percent'),[[10,10]]);
+add(534,'afterHit',c=>c.hurt(c.t,(c.a.stats.def+c.a.stats.spd)/10,c.m.name,'percent'),[[10,10]]);
 add(797,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.t,'技能禁疗',p[0],{});},[turns]);
 
 add(650,'afterHit',(c,p)=>{if(c.t.hp<=0)p.forEach((n,i)=>c.stage(c.a,n,[stats[i]]));},Array(6).fill(stage));
@@ -241,7 +250,7 @@ add(619,'afterHit',(c,p)=>c.timed(c.t,'id984',p[0],{amount:-p[1]},c.round+1),[tu
 
 add(707,'afterHit',(c,p)=>c.timed(c.a,'用招条件回血',p[0],{fraction:1/p[1],threshold:1/p[2]}),[turns,[1,9999],[1,9999]]);
 add(724,'afterHit',(c,p)=>c.timed(c.a,'受击比例回血',p[0],{chance:p[1],fraction:1/p[2]}),[turns,pct,[1,9999]]);
-add(783,'afterHit',(c,p)=>c.timed(c.a,'强化被清追加',p[0],{fraction:1/p[1]}),[turns,[1,9999]]);
+add(783,'afterHit',(c,p)=>{const noReverse=Number(c.a.number)===3227&&(({24579:'seerapi:83532245',24632:'seerapi:b1b20e42'})[c.m.wikiId??c.m.id]===c.m.revision)&&c.effectInstanceIndex===2;c.timed(c.a,'强化被清追加',p[0],{fraction:1/p[1],...(noReverse?{ignorePureReverse783:true}:{})});},[turns,[1,9999]]);
 
 add(451,'afterHit',(c,p)=>{if(!statusRoll(c,p[0]))return;const pool=['烧伤','冻伤','中毒'];for(let i=0;i<p[1];i++){const k=pool.splice(Math.floor(c.random()*pool.length),1)[0];c.ailment(c.t,k,c.a);}},[pct,[1,3]]);
 
@@ -283,10 +292,17 @@ add(517,'afterHit',(c,p)=>{const chance=p[0]+Math.floor((c.a.stats.maxHp-c.a.hp)
 add(518,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0])c.stage(c.a,p[2],[stats[p[1]]]);},[[0,9999],[0,5],stage]);
 add(574,'afterHit',()=>{},[],'牺牲自身为下一只队友提供先手、必中和必暴；多精灵系统完成后实现，当前整条不执行');
 add(67,'afterHit',()=>{},[[1,9999]],'击败后减少下一只出战精灵最大体力；待多精灵对战实现');
-add(872,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){c.steal(c.a,c.t,'技能');c.timed(c.t,'statusBlock',p[0],{});}},[turns]);
+add(872,'afterHit',(c,p)=>{
+  const zeus=c.m.wikiId===19141&&c.m.revision==='seerapi:ac504c8'&&c.effectInstanceIndex===0;
+  if(zeus)delete c.a.soulState.zeusSeal19141;
+  if(c.steal(c.a,c.t,'技能')){
+    c.timed(c.t,'statusBlock',p[0],{});
+    if(zeus)c.a.soulState.zeusSeal19141={round:c.round,targetSide:c.t.side,seal:c.t.effects.statusBlock};
+  }
+},[turns]);
 add(165,'afterHit',(c,p)=>c.timed(c.a,'每回合强化',p[0],{stages:[0,p[1],0,p[1],0,0]}),[turns,stage]);
-add(874,'afterHit',(c,p)=>c.timed(c.a,'小额伤害免疫',p[0],{threshold:p[1]}),[turns]);
-{const old=registry[874];registry[874]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===36466&&c.m.revision==='seerapi:1a370171'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[3,500]')Object.assign(c.a.effects['小额伤害免疫'],{attackOnly:true,cumulativeRoundRedThreshold:true});}});}
+// User confirmation 2026-11-16: untyped small immunity is red only; 874 compares the whole skill.
+add(874,'afterHit',(c,p)=>c.timed(c.a,'小额伤害免疫',p[0],{threshold:p[1],attackOnly:true,wholeAttackThreshold:true}),[turns]);
 add(873,'afterHit',()=>{},[],'牺牲自身并为下一只己方精灵消除对手强化/回合效果和赋予增益；当前整条延期');
 add(716,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后清PP',p[0],{count:p[1]}),[turns,[1,5]]);
 add(523,'afterAttack',(c,p)=>p.forEach((n,i)=>c.stage(c.a,n,[stats[i]])),Array(6).fill(stage));
@@ -308,9 +324,9 @@ add(164,'afterHit',(c,p)=>c.timed(c.a,'受击异常',p[0],{chance:p[1],ailment:a
 add(553,'afterAttack',(c,p)=>{if(c.crit&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[6,7]]);
 add(692,'afterHit',(c,p)=>c.timed(c.a,'致命伤害反射',p[0],{}),[turns]);
 add(718,'afterHit',(c,p)=>c.timed(c.a,'对手属性后必暴',p[0],{duration:p[1]}),[turns,turns]);
-add(34,'afterHit',(c,p)=>{if(c.a.soulState.kubesaPartner)c.timed(c.a,'符文咒印',3,{});else c.hurt(c.t,((c.a.roundSettledAttackDamage??c.a.roundAttackDamage)??0)*p[0],c.m.name,'fixed');},[[1,10]]);
+add(34,'afterHit',(c,p)=>{if(c.a.soulState.kubesaPartner)c.timed(c.a,'符文咒印',3,{});else c.hurt(c.t,((c.a.roundSettledAttackDamage??c.a.roundAttackDamage)??0)*p[0],c.m.name,'true');},[[1,10]]);
 add(136,'onMiss',(c,p)=>c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name),[[1,9999]]);
-add(452,'afterHit',(c,p)=>c.timed(c.a,'攻击吸血',p[0],{fraction:1}),[turns]);
+add(452,'afterHit',(c,p)=>c.timed(c.a,'攻击吸血',p[0],{fraction:1,basis:'settled-attack'}),[turns]);
 add(775,'afterHit',(c,p)=>c.timed(c.a,'大伤回满',p[0],{threshold:p[1]}),[turns]);
 add(808,'afterHit',(c,p)=>c.hurt(c.t,Object.values(c.a.stages).filter(n=>n>0).length*p[0],c.m.name,'fixed'));
 add(542,'afterHit',(c,p)=>c.hurt(c.t,Object.values(c.t.stages).filter(n=>n<0).length*p[0],c.m.name,'fixed'));
@@ -320,7 +336,7 @@ add(132,'beforeDamage',c=>{if(c.a.hp<c.t.hp)c.power*=2;});
 add(484,'beforeUse',(c,p)=>{c.a.soulState.hitGrowth??={};const n=c.a.soulState.hitGrowth[c.m.id]??0;c.hits=Math.min(p[2],p[0]+n*p[1]);c.a.soulState.hitGrowth[c.m.id]=n+1;},[[1,10],[0,10],[1,10]]);
 add(535,'afterHit',(c,p)=>c.timed(c.a,'受击双防强化',p[0],{}),[turns]);
 add(530,'afterHit',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0])c.heal(c.a,c.a.stats.maxHp,c.m.name);},[[1,9999]]);
-add(143,'afterHit',c=>{const pos=stats.filter(k=>c.t.stages[k]>0);if(!pos.length)return;const values=Object.fromEntries(pos.map(k=>[k,c.t.stages[k]]));if(c.clearBoost(c.t,'reverse'))for(const k of pos)c.stage(c.t,-values[k],[k]);});
+add(143,'afterHit',c=>{const pos=stats.filter(k=>c.t.stages[k]>0);if(!pos.length)return;const values=Object.fromEntries(pos.map(k=>[k,c.t.stages[k]]));if(c.clearBoost(c.t,'reverse',true))for(const k of pos)c.stage(c.t,-values[k],[k]);});
 add(473,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])c.stage(c.a,p[2],[stats[p[1]]]);},[[0,9999],[0,5],stage]);
 add(877,'afterHit',(c,p)=>{if(c.a.side===c.first)c.stage(c.a,p[0]);},[stage]);
 add(876,'afterHit',(c,p)=>c.hurt(c.t,(c.a.stats.def+c.a.stats.spd+c.a.stats.spe)*p[0]/100,c.m.name,'percent'),[[0,1000]]);
@@ -347,7 +363,7 @@ add(708,'afterHit',(c,p)=>c.heal(c.a,p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.
 add(491,'afterHit',(c,p)=>c.timed(c.t,'伤害输出降低',p[0],{fraction:p[1]/100}),[turns,pct]);
 add(429,'afterHit',(c,p)=>c.hurt(c.t,Math.min(p[2],p[0]+Math.max(0,(c.effectConsecutiveCount?.()??c.a.consecutiveUses??1)-1)*p[1]),c.m.name,'fixed'));
 add(447,'beforeDamage',(c,p)=>{c.minimumDamage=Math.max(c.minimumDamage??0,p[0]);});
-add(773,'afterHit',c=>{if(c.a.hp>0&&c.t.hp>c.a.hp){const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit('双方互换当前体力（不超过各自体力上限）。');}});
+add(773,'afterHit',c=>{if(c.a.hp>0&&c.t.hp>c.a.hp){if(c.teamMode)return c.swapCurrentHP();const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit('双方互换当前体力（不超过各自体力上限）。');}});
 add(405,'afterHit',(c,p)=>{if(c.a.side===c.first)c.hurt(c.t,p[0],c.m.name,'fixed');});
 add(478,'afterHit',(c,p)=>c.timed(c.t,'statusBlock',p[0],{}),[turns]);
 add(481,'afterHit',(c,p)=>c.timed(c.a,'攻击先制',p[0],{amount:p[1]},c.round+1),[turns,[0,10]]);
@@ -372,7 +388,7 @@ add(726,'afterHit',(c,p)=>c.timed(c.a,'对手先手攻击无效',p[0],{},c.round
 add(795,'beforeUse',(c,p)=>{c.a.soulState.damageGrowth??={};const n=(c.effectUseCount?.()??c.a.soulState.skillUses?.[c.m.id])??((c.a.soulState.damageGrowth[c.m.id]??0)+1);c.a.soulState.damageGrowth[c.m.id]=n;c.timed(c.a,'当回合成长增伤',1,{bonus:Math.min(p[1],n*p[0])/100});},[[0,1000],[0,1000]]);
 add(728,'afterHit',(c,p)=>{if(Object.values(c.a.stages).some(n=>n>0))c.timed(c.a,'回合末削血',1,{fraction:1/p[0]});},[[1,9999]]);
 add(771,'afterHit',(c,p)=>c.timed(c.a,'攻击随机异常',p[0],{chance:p[1]}),[turns,pct],undefined,'异常池待核实：当前从麻痹、害怕、睡眠、烧伤、冻伤、中毒六种中等概率抽取。');
-add(800,'afterHit',(c,p)=>c.timed(c.a,'对手属性后限伤',p[0],{duration:p[1],amount:p[2]}),[turns,turns]);
+add(800,'afterHit',(c,p)=>c.timed(c.a,'对手属性后限伤',p[0],{duration:p[1],amount:p[2],attackOnly:true}),[turns,turns]);
 {const old=registry[800];registry[800]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28246&&c.m.revision==='seerapi:56ee6c45'&&c.effectInstanceIndex===3&&JSON.stringify(p)==='[3,3,500]')Object.assign(c.a.effects['对手属性后限伤'],{attackOnly:true,cumulativeRoundRed:true});}});}
 add(840,'afterHit',()=>{},[[1,9999]],'击败后吸取下一只对手体力；多精灵对战完成后实现');
 
@@ -405,7 +421,7 @@ add(41,'afterHit',(c,p)=>c.timed(c.a,'火系攻击减半',p[0],{}),[turns,[5,5]]
 add(91,'afterHit',(c,p)=>c.timed(c.a,'同步能力变化',p[0],{}),[turns],undefined,'状态变化暂按六项能力等级的实际变化同步；异常及其他回合效果不复制，范围待实机核对。');
 add(127,'afterHit',(c,p)=>{if(roll(c,p[0]))c.timed(c.a,'全伤害减半',p[1],{});},[pct,turns]);
 
-function grantAttackReflection(c,kind,count,fraction=1){const st=c.a.soulState;const order=st.attackReflectionGrantOrder=(st.attackReflectionGrantOrder??0)+1;if(kind==='true'){c.a.counts.attackReflect=count;st.attackReflectOrder=order;}else st.nextPercentAttackReflect={count,fraction,order};}
+function grantAttackReflection(c,kind,count,fraction=1){const st=c.a.soulState;const order=st.attackReflectionGrantOrder=(st.attackReflectionGrantOrder??0)+1;if(kind==='true'){c.a.counts.attackReflect=count;st.attackReflectOrder=order;}else if(kind==='fixed'){c.a.counts.fixedAttackReflect=count;st.fixedAttackReflectOrder=order;}else st.nextPercentAttackReflect={count,fraction,order};}
 add(816,'afterHit',(c,p)=>grantAttackReflection(c,'true',p[0]),[[1,99]]);
 add(606,'beforeDamage',(c,p)=>{if(p[0]===1?c.a.hp<c.t.hp:c.a.hp>c.t.hp)c.power*=2;},[[0,1]]);
 add(888,'beforeUse',(c,p)=>{if(c.a.hp<c.t.hp)c.timed(c.a,'回合末削血',1,{fraction:1/p[0]});},[[1,9999]]);
@@ -420,7 +436,7 @@ add(709,'afterAttack',c=>{if(c.t.hp<=0)for(const [k,n]of Object.entries(c.a.stag
 
 add(46,'afterHit',(c,p)=>{if(c.grantAttackNullify)c.grantAttackNullify(c.a,p[0],'46',c.effectInstanceIndex??0);else c.a.counts.attackNullify=p[0];},[[1,99]]);
 add(658,'afterHit',(c,p)=>{c.a.counts.nextDamageReturn=p[0]/100;},[pct]);
-add(891,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){c.steal(c.a,c.t,'技能');c.timed(c.a,'全伤害翻倍',p[0],{},c.round+1);}},[turns]);
+add(891,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){if(c.steal(c.a,c.t,'技能')>0)c.timed(c.a,'全伤害翻倍',p[0],{},c.round+1);}},[turns]);
 add(813,'afterHit',c=>{if(c.canRemoveNegative?.(c.a)===false)return;for(const [k,n]of Object.entries(c.a.stages))if(n<0)c.stage(c.t,n*2,[k]);c.clearNegative(c.a);});
 add(894,'afterHit',(c,p)=>{const n=p[0]*(c.a.hp<c.t.hp?2:1);healthRules.drainFixed(c,n,c.m.name,c.m.name);});
 add(811,'afterAttack',c=>{c.a.counts.nextDamageReduction=(c.a.roundSettledDamageDealt??c.a.roundDamageDealt)??0;});
@@ -435,7 +451,7 @@ add(897,'afterAttack',(c,p)=>{if(c.t.hp>0){c.a.counts.attackReductionUses=p[0];c
 add(544,'afterHit',c=>{for(const k of ['烧伤','冻伤','中毒'])c.clearAilment(c.a,k);});
 add(402,'afterHit',(c,p)=>{if(c.a.side!==c.first)c.hurt(c.t,p[0],c.m.name,'fixed');});
 add(459,'afterHit',(c,p)=>c.hurt(c.t,c.t.stats.def*p[0]/100,c.m.name,'percent'),[pct]);
-add(859,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){c.steal(c.a,c.t,'技能');c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent');}},[[1,9999]]);
+add(859,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){if(c.steal(c.a,c.t,'技能')>0)c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name,'percent');}},[[1,9999]]);
 add(826,'afterAttack',(c,p)=>{(c.a.soulState.roundDefeatAilments??=[]).push({round:c.round,count:p[0],effectId:826,sourceSide:c.a.side});},[[1,6]],'Q-N20-4354-007：下回合随机异常由对手整队承接；当前被击败者复活在场分支已实现，真实其他队员（包括真实下一只）共享与换宠传递延期');
 add(901,'afterHit',(c,p)=>{if(c.clear(c.t))p.forEach((n,i)=>c.stage(c.a,n,[stats[i]]));},Array(6).fill(stage));
 add(422,'afterHit',(c,p)=>c.hurt(c.t,(c.settledDamage??c.dealt)*p[0]/100,c.m.name,'fixed'),[[0,1000]]);
@@ -448,10 +464,10 @@ add(469,'afterHit',(c,p)=>c.timed(c.a,'对手属性后指定异常',p[0],{chance
 add(601,'afterAttack',()=>{},Array(6).fill([0,6]),'击败后弱化下一只出场对手；等待多精灵对战');
 add(737,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'回合末削血',1,{fraction:1/p[2]});},[pct,[8,8],[1,9999]],undefined,'未触发按未成功施加异常处理，包括免疫、抗性抵抗。');
 add(903,'afterHit',(c,p)=>{if(c.a.hp>c.t.hp)c.hurt(c.t,c.a.stats.maxHp*p[0]/100,c.m.name,'percent');},[pct]);
-add(42,'afterHit',(c,p)=>c.timed(c.a,'电系伤害翻倍',p[0],{}),[turns,[1,1]]);
+add(42,'afterHit',(c,p)=>c.timed(c.a,'电系伤害翻倍',p[0],{},c.round+(p[0]===1?1:0)),[turns,[1,1]]);
 add(78,'afterHit',(c,p)=>c.timed(c.a,'物理攻击闪避',p[0],{}),[turns]);
 add(93,'afterHit',(c,p)=>{if(roll(c,p[0]))c.hurt(c.t,p[1],c.m.name,'fixed');},[pct,[0,99999]]);
-add(908,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')){c.steal(c.a,c.t,'技能');c.timed(c.t,'attackBlock',p[0],{},c.round+1);c.timed(c.t,'statusBlock',p[0],{},c.round+1);}},[turns]);
+add(908,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!c.on(c.a,'禁强化')&&c.steal(c.a,c.t,'技能')>0){c.timed(c.t,'attackBlock',p[0],{},c.round+1);c.timed(c.t,'statusBlock',p[0],{},c.round+1);}},[turns]);
 add(909,'afterHit',(c,p)=>{if(c.a.side===c.first&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.hurt(c.t,p[2],c.m.name,'fixed');},[pct,[0,6],[0,99999]],undefined,'先手前置成立后，未成功施加异常才追加固伤。');
 add(910,'afterAttack',()=>{},[turns],'击败后对下一只对手封属性技能；等待多精灵对战');
 add(904,'afterHit',()=>{},[turns,[0,99999],turns],'牺牲自身为下一只队友提供护盾、免异常和封属；整条等待多精灵对战');
@@ -462,20 +478,21 @@ add(912,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n<0))randomEmpty
 add(717,'afterHit',(c,p)=>c.timed(c.a,'用招低体吸取',p[0],{fraction:1/p[1],threshold:1/p[2]}),[turns,[1,9999],[1,9999]]);
 add(906,'afterHit',(c,p)=>{const n=(c.effectUseCount?.()??c.a.soulState.skillUses?.[c.m.id])??1;c.hurt(c.t,c.t.stats.maxHp*Math.min(p[2],p[0]+(n-1)*p[1])/100,c.m.name,'percent');},[pct,pct,pct]);
 add(907,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const target=-c.a.stages[k];c.stage(c.a,2*target,[k]);if(c.a.stages[k]===target)changed=true;}if(changed&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[0]);},[[1,5]]);
-add(928,'afterHit',(c,p)=>{if(c.clear(c.t))c.a.counts.immune=p[0];},[turns]);
+add(928,'afterHit',(c,p)=>{if(c.clear(c.t))c.grantOracleImmunity(c.a,p[0],'928:'+c.m.id,'generic');},[turns]);
+{const rule=registry[928];registry[928]=Object.freeze({...rule,onTeamEntry(f,grant,services){services.immunity(f,grant);}});}
 add(929,'afterHit',(c,p)=>c.heal(c.a,c.hurt(c.t,((c.a.roundSettledAttackDamage??c.a.roundAttackDamage)??0)*p[0],c.m.name,'fixed'),c.m.name),[[1,10]],undefined,'按本回合已实际承受的攻击伤害计算反馈，并按对手实际损失量回血。');
 add(940,'afterHit',(c,p)=>{c.stage(c.a,p[0]);if(c.statusBlocked(c.t))c.stage(c.a,p[1],['atk']);},[[0,6],[0,6]]);
 add(937,'afterHit',(c,p)=>{if(![6,7,19,23].includes(p[1]))throw Error('937 异常枚举尚未核对');if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.t,'id984',p[2],{amount:-p[3]},c.round+1);},[pct,[6,23],turns,[0,10]]);
 add(978,'afterHit',c=>{const pos=Object.entries(c.t.stages).filter(([,n])=>n>0),removed=!c.on(c.a,'禁强化')?c.steal(c.a,c.t,'技能'):c.clearBoost(c.t,'reverse');if(removed)for(const [k,n]of pos)c.stage(c.t,-n,[k]);});
 add(611,'afterHit',(c,p)=>c.timed(c.a,'攻击附加固伤',p[0],{amount:p[1]},c.round+1),[turns,[0,99999]]);
-add(181,'afterHit',(c,p)=>{if(![0,2,5,6].includes(p[1]))throw Error('181 异常枚举尚未核对');if(statusRoll(c,Math.min(p[3],p[0]+Math.max(0,(c.effectConsecutiveCount?.()??c.a.consecutiveUses??1)-1)*p[2])))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,6],pct,pct]);
+add(181,'afterHit',(c,p)=>{if(![0,2,5,6].includes(p[1]))throw Error('181 异常枚举尚未核对');const growth=Math.max(0,(c.effectConsecutiveCount?.()??c.a.consecutiveUses??1)-1)*p[2],confirmed16602=(c.m?.wikiId??c.m?.id)===16602&&(c.m.hash==='9e93d082'||c.m.revision==='seerapi:9e93d082')&&JSON.stringify(p)==='[20,6,10,50]',chance=confirmed16602?Math.min(100,p[0]+Math.min(p[3],growth)):Math.min(p[3],p[0]+growth);if(statusRoll(c,chance))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,6],pct,pct]);
 add(36,'afterHit',(c,p)=>{if(roll(c,p[0]))c.defeat(c.t,c.m.name+'直接秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});},[pct]);
 add(793,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])c.timed(c.t,'持续固定伤害',p[1],{amount:p[2]},c.round+1);},[[0,99999],turns,[0,99999]]);
 add(689,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0])c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name);},[[0,99999],[1,9999]]);
 add(514,'afterHit',(c,p)=>c.hurt(c.t,(c.t.stats.maxHp-c.t.hp)*p[0]/100,c.m.name,'percent'),[pct]);
 add(532,'afterHit',(c,p)=>c.timed(c.a,'用招回血粉伤',p[0],{fraction:1/p[1]}),[turns,[1,9999]],undefined,'等量粉伤使用公共用招回复结算后的实际回复量，满血溢出与技能禁疗不产生对应粉伤。');
 add(472,'afterHit',(c,p)=>{if(c.t.ailments[ailments[p[0]]]>=c.round)c.heal(c.a,c.dealt,c.m.name);},[[6,6]]);
-function reversePositive(c,multiple=1){const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length)return false;c.clearBoost(c.t);for(const [k,n]of pos)c.stage(c.t,-n*multiple,[k]);return pos.some(([k])=>c.t.stages[k]<0);}
+function reversePositive(c,multiple=1){const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length)return false;if(!c.clearBoost(c.t,'reverse',true))return false;for(const [k,n]of pos)c.stage(c.t,-n*multiple,[k]);return pos.some(([k])=>c.t.stages[k]<0);}
 add(743,'afterHit',(c,p)=>{if(reversePositive(c))c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);},[turns,[0,10]]);
 add(681,'afterHit',(c,p)=>{c.timed(c.a,'必定暴击',p[0],{},c.round+1);c.timed(c.a,'攻击必中',p[0],{},c.round+1);},[turns]);
 add(747,'beforeOrder',(c,p)=>{if(Object.values(c.a.stages).some(n=>n<0))c.priority+=p[0];},[[1,1]]);
@@ -487,10 +504,11 @@ add(195,'beforeDamage',c=>{c.ignoreDefenseBoost=true;});
 add(823,'afterAttack',(c,p)=>{if(c.t.hp>0)c.timed(c.a,'所有技能必定先手',p[0],{},c.round+1);},[turns]);
 add(980,'afterHit',c=>{if(c.a.side===c.first)c.timed(c.t,'statusBlock',1,{});});
 add(570,'afterHit',(c,p)=>{if(c.grantAttackNullify)c.grantAttackNullify(c.a,p[0],'570',c.effectInstanceIndex??0);else c.a.counts.attackNullify=p[0];},[turns]);
-add(981,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length;c.hurt(c.t,p[0]*(1+n*p[1]/100)*c.affinity('电',c.t.type),c.m.name+'电系伤害','elemental');},[[0,99999],pct],undefined,'电系定额伤害按属性克制与强化项数计算，不计算攻防、暴击和随机浮动；不属于固定/百分比伤害抗性。');
+add(981,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length;c.typedAttack(p[0]*(1+n*p[1]/100),'电');},[[0,99999],pct],undefined,'电系定额伤害按属性克制与强化项数计算，不计算攻防、暴击和随机浮动；不属于固定/百分比伤害抗性。');
 add(982,'afterHit',(c,p)=>{if(statusRoll(c,p[0]+Object.values(c.a.stages).filter(x=>x>0).length*p[2]))c.ailment(c.t,ailments[p[1]],c.a);},[pct,[0,7],pct]);
 add(603,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a,false,false,p[2]);},[pct,[0,29],turns]);
-const darkElderNumbers=new Set([3162]);
+// Target identities confirmed by SeerAPI encyclopedia entries; historical/evolved candidates are tracked separately.
+const darkElderNumbers=new Set([3162,3194,3592,3673,3575,3665,4762,3667,3679]);
 
 // 3150 格劳瑞：同一效果 ID 可在其它精灵技能中复用。
 add(994,'afterHit',(c,p)=>{if(c.clearBoost(c.t)){c.grantSkillPriority(c.a,p[0],p[1],994,c.effectInstanceIndex);c.emit(c.name(c.a)+' 消强成功：下 '+p[0]+' 次技能先制 +'+p[1]+'。');}},[[1,99],[0,10]]);
@@ -522,7 +540,8 @@ add(1193,'beforeOrder',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0])c.priority+=p[1];}
 add(1035,'afterHit',(c,p)=>{if(!([7,8,15,23].includes(p[1])&&[6,7,8,28].includes(p[4])))throw Error('1035 异常枚举尚未核对');if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.timed(c.a,'攻击概率异常',p[2],{chance:p[3],ailment:ailments[p[4]]},c.round+1);},[pct,[7,23],turns,pct,[6,28]]);
 add(786,'afterHit',(c,p)=>c.randomFromSharedPool(p[0],false,786),[[1,7]]);
 add(1001,'afterHit',(c,p)=>c.stage(c.a,p[0]*(conditionStatusRules.conditionPresent(c.t,c.round)?2:1)),[[1,6]]);
-add(933,'afterAttack',(c,p)=>{if(c.t.hp>0)c.a.counts.nextCrit=(c.a.counts.nextCrit??0)+p[0];},[[1,99]]);
+function teamCritKey933(c){return 'skill:933:'+(c.m.wikiId??c.m.id)+':'+c.m.revision+':'+c.effectInstanceIndex;}
+add(933,'afterAttack',(c,p)=>{if(c.t.hp>0){if(c.teamMode)refreshCounter4599(c,'nextCrit',p[0],teamCritKey933(c));else c.a.counts.nextCrit=(c.a.counts.nextCrit??0)+p[0];}},[[1,99]]);
 add(1063,'beforeDamage',(c,p)=>{if(/^王·(雷伊|盖亚|卡修斯|布莱克|缪斯)$/.test(c.t.name))c.modifier*=1+p[0]/100;},[pct]);
 add(1036,'afterHit',(c,p)=>{if(c.clear(c.t)){c.a.counts.nextAttackFixed=(c.a.counts.nextAttackFixed??0)+p[0];c.a.soulState.nextAttackFixedAmount=p[1];}},[[1,99],[0,99999]]);
 
@@ -562,11 +581,11 @@ add(1249,'afterAttack',(c,p)=>{const n=c.dealt*p[0]/100;if(n<=0)return;c.heal(c.
 const confirmedAdditionalHealSources=[{speciesId:3541,skillId:'wiki:31538',revision:'seerapi:790b284d',args:[30,3],evidence:'research/3541-user-confirmed-rules.json'},{speciesId:3532,skillId:'wiki:31616',revision:'seerapi:c6062a04',args:[30,3],evidence:'research/3532-user-confirmed-rules.json'}];
 add(852,'afterAttack',(c,p)=>{if(c.a.hp<=0)return;const n=c.a.stats.maxHp*p[0]/100*(c.a.hp<c.a.stats.maxHp/p[1]?2:1);c.hurt(c.t,n,c.m.name+'体力追加','percent');c.heal(c.a,n,c.m.name+'等量回复');},[pct,[1,9999]]);
 add(1399,'afterHit',(c,p)=>{if(![0,5,15].includes(p[0]))throw Error('1399 异常枚举尚未核对');if(c.clear(c.t)&&!c.ailment(c.t,ailments[p[0]],c.a))c.a.counts.immune=(c.a.counts.immune??0)+p[1];},[[0,15],[1,10]]);
-add(778,'afterHit',c=>{let reversed=false;for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(reversed)c.heal(c.a,c.a.stats.maxHp,c.m.name+'反转回满');},[]);
+add(778,'afterHit',c=>{let reversed=false;if(!c.pureReverseBlocked?.(c.t))for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(reversed)c.heal(c.a,c.a.stats.maxHp,c.m.name+'反转回满');},[]);
 add(595,'afterHit',(c,p)=>{if(p[1]!==6)throw Error('595 异常枚举尚未核对');if(statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a))return;p.slice(2).forEach((n,i)=>{if(n)c.stage(c.t,n,[stats[i]]);});},[pct,[6,6],...Array(6).fill(stage)]);
 add(1755,'afterHit',(c,p)=>{c.a.suitState.shield+=p[0];c.a.soulState.xShieldBlockCount=p[1];c.emit(c.name(c.a)+' 获得 '+p[0]+' 点护盾。');},[[0,99999],[1,10]]);
 add(1263,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const divisor=c.a.hp<c.t.hp?p[1]:p[0];healthRules.drainPercent(c,c.t.stats.maxHp/divisor,c.m.name+'比例吸取',c.m.name+'比例吸取');},[[1,9999],[1,9999]]);
-add(1261,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)){c.steal(c.a,c.t,'技能');if(c.t.hp>0)c.hurt(c.t,p[0],c.m.name+'吸强追加','fixed');}},[[0,99999]]);
+add(1261,'afterHit',(c,p)=>{if(c.steal(c.a,c.t,'技能')>0&&c.t.hp>0)c.hurt(c.t,p[0],c.m.name+'吸强追加','fixed');},[[0,99999]]);
 add(1179,'afterHit',(c,p)=>{if(c.clear(c.t)){grantBoost4714(c,p[0],p[1]/100);}},[[1,10],[0,1000]]);
 add(764,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后最大体力削血',p[0],{fraction:1/p[1]}),[turns,[1,9999]]);
 add(1043,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const target=-c.a.stages[k];c.stage(c.a,2*target,[k]);if(c.a.stages[k]===target)changed=true;}if(changed)c.timed(c.a,'攻击转治疗',p[0],{origin:'skill'});},[turns]);
@@ -599,12 +618,12 @@ add(828,'beforeOrder',c=>{if(Object.values(c.a.stages).some(x=>x>0))c.priority+=
 add(20,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.a,'疲惫',c.a,false,false,p[1]);},[pct,turns]);
 add(657,'afterHit',(c,p)=>{if(p[0]!==0)throw Error('657 状态枚举尚未核对');if(c.clearBoost(c.t))c.hurt(c.t,p[1],c.m.name+'追加','fixed');},[[0,0],[0,99999]]);
 add(677,'afterHit',(c,p)=>c.timed(c.a,'用招吸强',p[0],{}),[turns]);
-add(1062,'afterHit',(c,p)=>{const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length||c.on(c.a,'禁强化'))return;c.steal(c.a,c.t,'技能');if(!pos.some(([k,n])=>c.t.stages[k]<n))return;const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');},[[1,9999]]);
+add(1062,'afterHit',(c,p)=>{const pos=Object.entries(c.t.stages).filter(([,n])=>n>0);if(!pos.length)return;if(c.on(c.a,'禁强化')){c.clearBoost(c.t);return;}c.steal(c.a,c.t,'技能');if(!pos.some(([k,n])=>c.t.stages[k]<n))return;const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');},[[1,9999]]);
 
 // 3237 大威势明王。
 add(500,'beforeDamage',c=>{if(c.t.ailments['害怕']>=c.round)c.modifier*=2;});
 add(430,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.stage(c.a,p[1],[stats[p[0]]]);},[[0,5],[1,6]]);
-add(705,'afterHit',c=>{const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换当前体力。');});
+add(705,'afterHit',c=>{if(c.teamMode)return c.swapCurrentHP();const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换当前体力。');});
 add(714,'beforeOrder',(c,p)=>{if(Object.values(c.t.stages).some(x=>x>0)){c.priority+=p[0];c.clearBoost(c.t);}},[[0,10]]);
 add(706,'afterHit',(c,p)=>{for(const [k,n] of Object.entries(c.a.stages))if(n<0){c.stage(c.t,n*p[0],[k]);if(c.canRemoveNegative?.(c.a)!==false)c.a.stages[k]=0;}},[[1,6]]);
 add(1065,'afterHit',(c,p)=>c.timed(c.a,'用招低体双倍回血粉伤',p[0],{fraction:1/p[1],threshold:1/p[2]}),[turns,[1,9999],[1,9999]]);
@@ -626,8 +645,37 @@ add(1069,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;if(!Obj
 
 // 3242 王·盖亚。
 // 3289 天苍玄魂·青龙。
-// 3291 瀚宇星皇复用已核对的星皇之怒流程，具体效果在 souls.js。
-for(const id of [1094,1095,1096,1097,1098])add(id,'afterHit',()=>{});
+// 3291: original SeerAPI instances. Normal hit payloads execute through the registry;
+// their independent skill-end rage window is dispatched by soul 622 in souls.js.
+add(1094,'afterHit',c=>{
+ if(c.t.hp<=0)return;
+ if(c.clear(c.t)){
+  const pool=c.t.moves.filter(key=>c.t.pp[key]>0);
+  for(let n=0;n<2&&pool.length;n++)clearPp2125(c,c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0]);
+ }
+ if(c.clearBoost(c.t))c.timed(c.a,'rageBonus',2,{},c.round+1);
+});
+add(1095,'afterHit',c=>{
+ c.timed(c.a,'gate',3+(c.a.side!==c.first?1:0),{});
+ c.grantOracleImmunity(c.a,2,'1095:25294:d58319e9:0','star1095');
+});
+add(1096,'afterHit',c=>{
+ c.stage(c.a,c.a.hp<c.a.stats.maxHp/2?2:1);
+ c.timed(c.a,'drain',4,{});c.a.counts.rageDouble=2;
+});
+add(1097,'afterHit',c=>{
+ if(c.t.hp<=0)return;
+ if((c.settledDamage??c.dealt)<280)c.ailment(c.t,'疲惫',c.a);
+ c.timed(c.t,'attackBlock',1,{},c.round+1);
+});
+add(1098,'afterHit',c=>{if(c.crit)c.a.counts.rageFull=2;});
+for(const [id,moveId,hash]of [[1094,30376,'903b088c'],[1095,25294,'d58319e9'],[1096,25295,'56518f90'],[1097,30380,'b938ecc5'],[1098,30381,'d0ccb293']]){
+ const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,index){
+  old.validate(p,m,index);
+  if((m?.wikiId??m?.id)!==moveId||m.revision!=='seerapi:'+hash||index!==0||p.length!==0)
+   throw Error('3291/'+id+' source mismatch');
+ }});
+}
 // 3301 圣尊啸傲·白虎。
 // 3308 万世北溟·玄武。
 // 3311 圣光灵神。
@@ -660,7 +708,7 @@ add(2485,'afterHit',(c,p)=>{if(p[0]!==0||p[1]!==22)throw Error('2485 异常枚�
 add(2486,'beforeDamage',(c,p)=>{const count=Object.values(c.t.ailments).filter(end=>end>=c.round).length;c.modifier*=1+Math.floor(count/p[0])*p[1]/100;},[[1,10],[0,1000]]);
 add(2483,'afterHit',(c,p)=>{const count=Object.values(c.t.ailments).filter(end=>end>=c.round).length;if(count&&c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp*Math.floor(count/p[0])*p[1]/100,c.m.name+'异常追加','percent');},[[1,10],[0,1000]]);
 add(2480,'afterHit',(c,p)=>{if(!conditionStatusRules.conditionPresent(c.t,c.round))c.restorePP(c.a,p[0]);},[[0,99]]);
-add(2487,'afterHit',c=>{if(c.t.hp<=0)return;const s=c.a.soulState,n=Math.floor(((s.nineScars??0)+(s.hundredFires??0))/2);s.nineScars=n;s.hundredFires=n;});
+add(2487,'afterHit',c=>{if(c.t.hp<=0)return;const s=c.a.soulState,nine=s.nineScars??0,fire=s.hundredFires??0,transfer=Math.trunc((nine-fire)/2);s.nineScars=nine-transfer;s.hundredFires=fire+transfer;});
 add(2481,'afterHit',()=>{},[],'击败后依照九劫之痕与百炼之炎层数作用于下一只出场精灵；等待多精灵换宠流程');
 add(794,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.timed(c.a,'攻击伤害免疫',p[0],{});},[turns]);
 add(1209,'afterHit',(c,p)=>{let sum=0;for(const f of [c.a,c.t]){const positives=stats.reduce((n,k)=>n+Math.max(0,f.stages[k]),0);if(c.clearBoost(f))sum+=positives;if(c.canRemoveNegative?.(f)!==false)for(const k of stats)if(f.stages[k]<0){sum-=f.stages[k];f.stages[k]=0;}}if(sum&&c.t.hp>0)c.hurt(c.t,sum*p[0],c.m.name+'清能力追加','fixed');},[[0,9999]]);
@@ -689,7 +737,7 @@ add(1931,'afterHit',(c,p)=>{if(p[2]!==6)throw Error('1931 异常枚举尚未核�
 add(1843,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,0]]);
 add(541,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])c.heal(c.a,p[1],c.m.name+'低伤回复');},[[0,99999],[0,99999]]);
 add(1089,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后随机异常',p[0],{count:p[1],effectId:1089,clearOnFailure:false}),[turns,[1,6]]);
-add(1182,'afterHit',(c,p)=>{c.t.hp=Math.min(c.t.hp,p[0]);c.a.hp=0;c.emit(c.name(c.a)+' 终末之光：自爆，对手体力降为 '+p[0]+'。');},[[1,9999],[1,10]],'为下一只出场精灵赋予奇迹之力次数；等待多精灵换宠流程');
+add(1182,'afterHit',(c,p)=>{c.t.hp=Math.min(c.t.hp,p[0]);c.a.hp=c.teamMode&&c.t.hp<=0?1:0;c.emit(c.name(c.a)+' 终末之光：自爆，对手体力降为 '+p[0]+'。');},[[1,9999],[1,10]],'为下一只出场精灵赋予奇迹之力次数；等待多精灵换宠流程');
 add(1183,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.a.stages[k]=0;changed=true;}if(changed)c.timed(c.a,'id913',p[0],{bonus:p[1]/100});},[turns,[0,1000]]);
 add(1184,'afterHit',(c,p)=>c.timed(c.a,'奇迹之力',p[0],{},c.round+1),[turns]);
 add(1055,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.timed(c.t,'attackBlock',p[0],{},c.round+1);},[turns]);
@@ -718,7 +766,8 @@ add(1144,'afterHit',(c,p)=>{const n=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.
 add(1024,'afterHit',(c,p)=>c.timed(c.a,'概率攻击免疫',p[0],{chance:p[1],reflect:p[2]/100}),[turns,pct,[0,1000]]);
 add(1145,'afterHit',(c,p)=>{c.stage(c.a,p[0]);c.stage(c.t,p[0]);},[[0,6]]);
 add(1057,'afterHit',(c,p)=>c.timed(c.a,'强化消失清回合',p[0],{}),[turns]);
-add(951,'afterHit',(c,p)=>{let changed=false;for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]=-c.t.stages[k];changed=true;}if(changed)c.a.counts.immune=(c.a.counts.immune??0)+p[0];},[[1,10]]);
+add(951,'afterHit',(c,p)=>{let changed=false;if(!c.pureReverseBlocked?.(c.t))for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]=-c.t.stages[k];changed=true;}if(changed)c.grantOracleImmunity(c.a,p[0],'951:'+c.m.id+':'+c.effectInstanceIndex,'generic');},[[1,10]]);
+for(const id of [951,1095]){const rule=registry[id];registry[id]=Object.freeze({...rule,onTeamEntry(f,grant,services){services.immunity(f,grant);}});}
 add(1146,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length+Object.values(c.t.stages).filter(x=>x>0).length;if(c.t.hp>0)c.hurt(c.t,Math.floor(n/p[0])*p[1],c.m.name+'强化追加','fixed');},[[1,6],[0,9999]]);
 add(1147,'afterHit',c=>{if(c.t.hp>0)c.clearBoost(c.t);});
 add(784,'afterHit',c=>{if(c.t.hp<=0)for(const k of stats)if(c.t.stages[k]>0){c.a.stages[k]=Math.min(6,c.a.stages[k]+c.t.stages[k]);c.t.stages[k]=0;}});
@@ -740,14 +789,14 @@ add(1138,'afterHit',(c,p)=>{if(![0,6,7,8,19,20,22].includes(p[1]))throw Error('1
 add(1139,'afterHit',(c,p)=>{if(!([2,32].includes(p[1])&&p[1]===p[2]))throw Error('1139 异常枚举尚未核对');const k=p[1]===32?'凝滞':'烧伤';c.clear(c.a);c.clear(c.t);c.ailment(c.a,k,c.t,false,false,p[0]);c.ailment(c.t,k,c.a,false,false,p[0]);if(k==='烧伤')c.a.soulState.phoenixBurnHeal=true;else c.a.soulState.removedAilmentFullHeal=k;},[turns,[2,32],[2,32]]);
 add(1130,'afterHit',(c,p)=>c.stage(c.t,-p[0]*(c.a.hp<c.t.hp?2:1)),[[1,6]]);
 add(1140,'afterHit',(c,p)=>{if(![0,19,22].includes(p[1]))throw Error('1140 异常枚举尚未核对');c.timed(c.a,p[1]===19?'赛伯攻击后瘫痪':p[1]===22?'对手攻击后焚烬':'对手攻击后异常',p[0],p[1]===0?{ailment:ailments[p[1]]}:{});},[turns,[0,22]]);
-add(1141,'beforeUse',(c,p)=>{if(p[3]!==22||p[6]!==22)throw Error('1141 异常枚举尚未核对');c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.a.soulState.phoenixHitChance=c.hits<p[4]?p[5]:p[2];},[[1,10],[1,10],pct,[22,22],[1,10],pct,[22,22]]);
+add(1141,'beforeUse',(c,p)=>{if(p[3]!==22||p[6]!==22)throw Error('1141 异常枚举尚未核对');c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));c.a.soulState.phoenixHitChance=c.hits<p[4]?p[5]:p[2];c.a.soulState.eye1141={round:c.round,move:c.m.id,chance:c.a.soulState.phoenixHitChance,ailment:'焚烬'};},[[1,10],[1,10],pct,[22,22],[1,10],pct,[22,22]]);
 add(1150,'afterHit',(c,p)=>{if(c.clearBoost(c.t))p.forEach((n,i)=>{if(n)c.stage(c.t,n,[stats[i]]);});},Array(6).fill(stage));
 add(955,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const target=-c.a.stages[k];c.stage(c.a,2*target,[k]);if(c.a.stages[k]===target)changed=true;}if(changed&&c.t.hp>0)healthRules.drainFixed(c,p[0],c.m.name+'反转吸取',c.m.name+'反转吸取');},[[0,99999]]);
 add(508,'afterHit',(c,p)=>c.timed(c.a,'下回合伤害减免',1,{amount:p[0]},c.round+1),[[0,99999]]);
 add(438,'afterHit',(c,p)=>{if(roll(c,p[0]))c.heal(c.a,c.a.hp/p[1],c.m.name+'概率回复');},[pct,[1,9999]]);
 add(439,'afterHit',(c,p)=>c.timed(c.a,'异常弱化回合固伤',p[0],{amount:p[1]}),[turns,[0,99999]]);
 add(1134,'afterHit',(c,p)=>{let changed=false;for(const k of stats)if(c.canFeedbackNegative?.(c.a)!==false&&c.a.stages[k]<0){c.stage(c.t,c.a.stages[k],[k]);if(c.canRemoveNegative?.(c.a)!==false)c.a.stages[k]=0;changed=true;}if(!changed)c.stage(c.a,p[0]);},[[0,6]]);
-add(1116,'afterHit',(c,p)=>{const kinds=['麻痹','烧伤','害怕','疲惫','睡眠','冰封'];let success=false;for(let i=0;i<p[0]&&kinds.length;i++){const k=kinds.splice(Math.floor(c.random()*kinds.length),1)[0];success=c.ailment(c.t,k,c.a)||success;}if(!success)c.clear(c.t);},[[1,6]]);
+add(1116,'afterHit',(c,p)=>{const applied=c.randomFromSharedPool(p[0],false,1116);if(!applied.some(result=>result.applied))c.clear(c.t);},[[1,6]]);
 add(1135,'afterHit',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0]){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp,c.m.name+'回满');if(c.t.hp>0)c.hurt(c.t,c.a.hp-before,c.m.name+'等量追加','fixed');}},[[1,9999]]);
 add(1132,'afterHit',(c,p)=>{const high=Object.values(c.a.stages).some(n=>n>0),lo=high?p[0]:p[2],hi=high?p[1]:p[3];c.heal(c.a,lo+Math.floor(c.random()*(hi-lo+1)),c.m.name+'随机回复');},[[0,9999],[0,9999],[0,9999],[0,9999]]);
 add(1136,'afterHit',(c,p)=>{if(c.a.hp>c.a.stats.maxHp/p[0]&&c.t.hp>0)c.hurt(c.t,c.a.hp/p[1],c.m.name+'高体追加','percent');},[[1,9999],[1,9999]]);
@@ -781,19 +830,19 @@ add(1105,'afterHit',(c,p)=>c.timed(c.a,'攻击附加较高攻击粉伤',p[0],{fr
 add(1106,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[0,99999],pct,[0,20]]);
 add(1086,'beforeDamage',(c,p)=>{if(c.a.hp<c.t.hp)c.modifier*=1+p[0]/100;},[pct]);
 add(1107,'afterHit',(c,p)=>{if(c.t.hp<=0)return;if(roll(c,p[0]))c.stage(c.a,p[1]);if(roll(c,p[2]))c.stage(c.t,-p[3]);},[pct,[0,6],pct,[0,6]]);
-add(80,'afterHit',c=>{const n=Math.floor(c.a.hp/2);c.a.hp-=n;if(c.t.hp>0)c.hurt(c.t,n,c.m.name+'敌我同伤','fixed');});
-add(533,'afterHit',c=>{for(const f of [c.a,c.t])for(const k of stats)if(f.stages[k]>=0||c.canRemoveNegative?.(f)!==false)f.stages[k]=0;});
+add(80,'afterHit',c=>{const n=Math.floor(c.a.hp/2);c.a.hp-=n;if(c.t.hp>0)c.hurt(c.t,n,c.m.name+'敌我同伤','percent');});
+add(533,'afterHit',c=>{c.clearBoost(c.a);c.clearBoost(c.t);for(const f of [c.a,c.t])if(c.canRemoveNegative(f)!==false)for(const k of stats)if(f.stages[k]<0)f.stages[k]=0;});
 add(856,'afterHit',(c,p)=>{if(c.clear(c.t))c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'清回合回复');},[[1,9999]]);
 add(992,'afterHit',(c,p)=>c.timed(c.a,'攻击附加当前体力粉伤',p[0],{fraction:p[1]/100}),[turns,pct]);
 add(836,'beforeOrder',(c,p)=>{if(c.a.hp>c.t.hp)c.priority+=p[0];},[[0,10]]);
 add(1092,'afterAttack',(c,p)=>{if(c.a.side===c.first||c.t.hp<=0)return;if(!c.ailment(c.t,ailments[p[0]],c.a))c.hurt(c.t,c.a.hp/p[1],c.m.name+'未触发追加','percent');},[[15,15],[1,9999]]);
 add(1091,'afterHit',(c,p)=>{if(c.t.hp>0)c.timed(c.a,'reflect',p[0],{},c.round+1);},[turns]);
 add(780,'afterHit',(c,p)=>c.timed(c.a,'受击随机清PP',p[0],{chance:p[1],count:p[2]}),[turns,pct,[1,5]]);
-add(690,'afterHit',(c,p)=>c.timed(c.a,'强化消失封属',p[0],{}),[turns]);
+add(690,'afterHit',(c,p)=>c.timed(c.a,'强化消失封属',p[0],{triggered:false},c.round+1),[turns]);
 add(855,'afterHit',(c,p)=>{c.a.counts.nextDamageReturn=p[0]/100;},[[0,1000]]);
 add(1070,'beforeOrder',c=>{if(Object.values(c.t.stages).some(x=>x<0))c.priority+=1;});
 add(858,'beforeDamage',(c,p)=>{const levels=Object.values(c.t.stages).reduce((sum,n)=>sum+Math.max(0,-n),0);c.modifier*=1+levels*p[0]/100;},[pct]);
-add(1022,'afterHit',(c,p)=>{if(!Object.values(c.t.stages).some(x=>x>0)||c.on(c.a,'禁强化'))return;c.steal(c.a,c.t,'技能');healthRules.drainFixed(c,p[0],c.m.name+'吸取',c.m.name+'吸取');},[[0,99999]]);
+add(1022,'afterHit',(c,p)=>{if(c.steal(c.a,c.t,'技能')>0)healthRules.drainFixed(c,p[0],c.m.name+'吸取',c.m.name+'吸取');},[[0,99999]]);
 add(1012,'afterHit',(c,p)=>{if(c.steal(c.a,c.t,'技能')){c.refreshShield(c.a,p[0],'1012:'+c.m.id+':'+c.m.revision+':'+c.effectInstanceIndex);c.emit(c.name(c.a)+' 吸强成功，获得 '+p[0]+' 点护盾。');}},[[0,99999]]);
 add(1013,'afterHit',(c,p)=>{const n=Object.values(c.a.stages).filter(x=>x>0).length,shield=Math.floor(n/p[0])*p[1];if(shield){c.a.suitState.shield+=shield;c.emit(c.name(c.a)+' 获得 '+shield+' 点护盾。');}},[[1,6],[0,99999]]);
 add(1014,'afterHit',(c,p)=>c.stage(c.a,p[0]*(c.a.hp>c.a.stats.maxHp/p[1]?2:1)),[[1,6],[1,9999]]);
@@ -811,14 +860,15 @@ add(1008,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&c.a.hp>0){c.a
 add(969,'afterHit',(c,p)=>{if(c.a.side!==c.first)c.timed(c.a,'伤害定额减免',1,{amount:p[0]},c.round+1);},[[0,99999]]);
 add(781,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.t,'statusBlock',p[0],{});},[turns]);
 add(942,'afterHit',(c,p)=>{if(c.clear(c.t)){const dealt=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');}},[[1,9999]]);
-add(1064,'beforeDamage',(c,p)=>{if(darkElderNumbers.has(Number(c.t.number)))c.modifier*=1+p[0]/100;},[pct],undefined,'长老身份已核对天邪龙皇3162；本地现有对手均不触发。今后接入其他长老时需补充并核对阵营名单。');
+add(1064,'beforeDamage',(c,p)=>{if(darkElderNumbers.has(Number(c.t.number)))c.modifier*=1+p[0]/100;},[pct],undefined,'长老增伤只计本招红伤。');
+registry[1064]=Object.freeze({...registry[1064],eligibleTargetNumbers:Object.freeze([...darkElderNumbers])});
 add(561,'afterHit',c=>{if(c.a.side===c.first)c.a.soulState.reviveAfterEnemyUseRound=c.round;});
 add(28,'afterHit',(c,p)=>{if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'比例伤害','percent');},[[1,9999]]);
 add(1129,'beforeDamage',(c,p)=>{if(roll(c,Math.min(100,p[0]*(Object.values(c.a.stages).some(n=>n>0)?2:1))))c.modifier*=p[1];},[pct,[1,99]]);
 add(1131,'afterHit',(c,p)=>{if(c.t.hp<=0)return;const high=Object.values(c.a.stages).some(n=>n>0),lo=high?p[2]:p[0],hi=high?p[3]:p[1];c.hurt(c.t,lo+Math.floor(c.random()*(hi-lo+1)),c.m.name+'随机追加','fixed');},[[0,9999],[0,9999],[0,9999],[0,9999]]);
 add(926,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const target=-c.a.stages[k];c.stage(c.a,2*target,[k]);if(c.a.stages[k]===target)changed=true;}if(changed)c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);},[turns,[0,10]]);
 add(1215,'afterHit',(c,p)=>{if(c.consumeShields(c.t,c.a)>0)c.stage(c.t,-p[0]*(c.a.hp<c.t.hp?2:1));},[[1,6]]);
-add(1005,'afterHit',(c,p)=>{const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复');if(c.t.hp>0)c.hurt(c.t,c.a.hp-before,c.m.name+'等量追加','percent');},[[1,9999]]);
+add(1005,'afterHit',(c,p)=>{const healed=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,c.m.name+'等量追加','percent');},[[1,9999]]);
 add(1216,'afterHit',c=>{const before={...c.t.stages};if(c.t.soulState.wildClearCap&&stats.some(k=>before[k]>0))throw Error('Q-A60-4163-038：反转是否触发2286被消除上限反制');registry[143].execute(c,[]);if(c.a.hp>0&&stats.some(k=>before[k]>0&&c.t.stages[k]===-before[k])){c.heal(c.a,c.a.stats.maxHp,c.m.name+'反转回满');c.restorePP(c.a,999);}},[]);
 add(1217,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+p[0];},[[1,10]]);
 add(1218,'afterHit',(c,p)=>{if(c.t.hp>0)c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);},[turns,[0,10]]);
@@ -828,7 +878,7 @@ add(1049,'afterHit',(c,p)=>{if(c.t.hp<=0)c.stage(c.a,p[0]);},[[1,6]]);
 add(663,'afterHit',(c,p)=>{if(![2,7,27].includes(p[2]))throw Error('663 异常枚举尚未核对');c.timed(c.a,p[2]===27?'茉蕊用攻感染':p[2]===2?'对手攻击概率烧伤':'对手攻击概率疲惫',p[0],{chance:p[1]});},[turns,pct,[2,27]]);
 add(411,'afterHit',(c,p)=>{if(c.t.hp>0){const n=Math.min(p[2],p[0]+p[1]*((c.effectConsecutiveCount?.()??c.a.consecutiveUses??1)-1));c.hurt(c.t,c.t.hp*n/100,c.m.name+'连续使用追加','percent');}},[pct,pct,pct]);
 add(1226,'afterHit',(c,p)=>c.timed(c.a,'未受攻定额吸取',p[0],{amount:p[1],drain:p[2]}),[turns,[0,99999],[0,99999]]);
-add(1164,'afterHit',c=>{let reversed=false;for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(!reversed){c.clearBoost(c.t);c.clear(c.t);}},[]);
+add(1164,'afterHit',c=>{let reversed=false;if(!c.pureReverseBlocked?.(c.t))for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(!reversed){c.clearBoost(c.t);c.clear(c.t);}},[]);
 add(2125,'afterHit',()=>{},[]);
 add(1241,'afterHit',(c,p)=>{if(c.t.hp>0){healthRules.drainFixed(c,p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.name+'定额吸取',c.m.name+'定额吸取');}},[[0,99999],[1,9999]]);
 add(2556,'afterHit',()=>{},[]);
@@ -839,9 +889,9 @@ add(1082,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0]&&c.t.hp>0)c.hu
 add(1189,'afterHit',(c,p)=>{if(c.a.side!==c.first)healthRules.drainFixed(c,p[0],c.m.name+'后手吸取',c.m.name+'后手吸取');},[[0,99999]]);
 add(1228,'afterHit',(c,p)=>c.timed(c.a,'对手攻击后随机异常',p[0],{count:p[1],effectId:1228,clearOnFailure:true}),[turns,[1,6]]);
 add(1230,'afterHit',(c,p)=>{if(c.a.hp<c.t.hp){c.grantSkillPriority(c.a,p[0],p[1],1230,c.effectInstanceIndex);}},[[1,10],[0,10]]);
-add(2562,'afterHit',(c,p)=>{if(p[0]!==39)throw Error('2562 异常枚举尚未核对');if(c.a.soulState.noAilmentLastEnd&&c.clear(c.t))c.ailment(c.t,'神游',c.a);},[[39,39]]);
+add(2562,'afterHit',(c,p)=>{if(p[0]!==39)throw Error('2562 异常枚举尚未核对');if(c.a.soulState.noAilmentLastEnd){c.clear(c.t);c.ailment(c.t,'神游',c.a);}},[[39,39]]);
 add(1932,'afterHit',(c,p)=>{if(p[1]!==34)throw Error('1932 异常枚举尚未核对');c.timed(c.a,'免异常反弹除星哲',p[0],{});},[turns,[34,34]]);
-add(2563,'afterHit',(c,p)=>{if(p[1]!==34)throw Error('2563 异常枚举尚未核对');if(!c.ailment(c.a,'星哲',c.a,false,false,p[0]))c.timed(c.t,'statusBlock',p[2],{});},[turns,[34,34],turns],undefined,'未触发时按属性技能无效近似属性技能命中效果失效。');
+add(2563,'afterHit',(c,p)=>{if(p[1]!==34)throw Error('2563 异常枚举尚未核对');if(!c.ailment(c.a,'星哲',c.a,false,false,p[0]))c.timed(c.t,'属性技能命中效果失效',p[2],{});},[turns,[34,34],turns],undefined,'失败仅封属性技能命中载荷，保实际用招和PP。');
 add(853,'afterHit',(c,p)=>{if(c.t.hp>0){const n=Math.min(p[2],p[0]+p[1]*(((c.effectUseCount?.()??c.a.soulState.skillUses?.[c.m.id])??1)-1));c.hurt(c.t,(c.a.stats.maxHp+panel(c,c.a,'spe'))*n/100,c.m.name+'递增追加','percent');}},[pct,pct,pct]);
 add(135,'beforeDamage',(c,p)=>{c.minimumDamage=Math.max(c.minimumDamage??0,p[0]);},[[0,99999]]);
 add(925,'beforeDamage',(c,p)=>{if(c.a.hp===c.a.stats.maxHp)c.power*=1+p[0]/100;},[pct]);
@@ -854,9 +904,9 @@ add(1311,'afterHit',(c,p)=>c.timed(c.a,'chaosStatusDrop',p[0],{amount:p[1]}),[tu
 add(1269,'afterHit',(c,p)=>c.timed(c.a,'poseidonAttackDrain',p[0],{denominator:p[1]}),[turns,[1,9999]]);
 add(684,'afterHit',(c,p)=>{if([...Object.values(c.a.stages),...Object.values(c.t.stages)].some(n=>n<0)&&c.t.hp>0)c.hurt(c.t,p[0],c.m.name+'弱化追加','fixed');c.clearNegative(c.a);},[[0,99999]]);
 add(1283,'afterHit',(c,p)=>c.stage(c.a,p[0]*(c.a.side===c.first?2:1)),[[1,6]]);
-add(1159,'afterHit',(c,p)=>{const before={...c.t.stages};c.steal(c.a,c.t,'技能');if(stats.some(k=>before[k]>0&&c.t.stages[k]<before[k]))c.a.counts.immune=(c.a.counts.immune??0)+p[0];},[[1,99]]);
+add(1159,'afterHit',(c,p)=>{const before={...c.t.stages};c.steal(c.a,c.t,'技能');if(stats.some(k=>before[k]>0&&c.t.stages[k]<before[k]))c.grantOracleImmunity(c.a,p[0],'1159:'+(c.m.wikiId??c.m.id)+':'+(c.m.revision??c.m.hash??'legacy')+':'+(c.effectInstanceIndex??0),'1159');},[[1,99]]);
 add(1926,'afterHit',(c,p)=>{c.a.counts.nextAttackIgnoreImmunity=(c.a.counts.nextAttackIgnoreImmunity??0)+p[0];},[[1,99]]);
-add(1929,'afterHit',(c,p)=>{if(p[1]!==15)throw Error('1929 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'冰封',c.a)){const pool=['烧伤','冻伤','麻痹','害怕','睡眠','疲惫'];for(let i=0;i<p[2]&&pool.length;i++)c.ailment(c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0],c.a);}},[pct,[15,15],[1,6]]);
+add(1929,'afterHit',(c,p)=>{if(p[1]!==15)throw Error('1929 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'冰封',c.a))c.randomFromSharedPool(p[2],false,1929);},[pct,[15,15],[1,6]]);
 add(1232,'afterHit',c=>{if(c.canRemoveNegative?.(c.a)===false)return;for(const k of stats)if(c.a.stages[k]<0){const n=-c.a.stages[k];c.a.stages[k]=n;c.stage(c.t,-n,[k]);}},[]);
 add(1233,'afterHit',(c,p)=>{const confirmed=c.a.number==='3875'&&c.m.id==='wiki:38234';if(confirmed)c.a.soulState.darkWarDrainHits=(c.a.soulState.darkWarDrainHits??0)+1;const uses=confirmed?c.a.soulState.darkWarDrainHits:((c.effectUseCount?.()??c.a.soulState.skillUses?.[c.m.id])??1),n=Math.min(p[2],p[0]+(uses-1)*p[1]);if(c.t.hp>0){const dealt=healthRules.drainPercent(c,c.t.stats.maxHp*n/100,c.m.name+'递增吸取',c.m.name+'递增吸取');}},[pct,pct,pct]);
 add(1118,'afterHit',(c,p)=>{c.timed(c.a,'hathawayReaction',p[0],{chance:p[1],ailment:ailments[p[2]],drop:p[3]});},[turns,pct,[0,8],[1,6],[1,1]]);
@@ -869,7 +919,7 @@ add(1276,'afterHit',(c,p)=>{const n=c.hurt(c.a,c.a.hp,c.m.name+'自身体力消�
 add(1277,'afterHit',c=>{const n=c.a.hp;if(n>c.t.hp){c.hurt(c.a,n-1,c.m.name+'保留1点消耗','true',true);if(c.t.hp>0)c.hurt(c.t,350+Math.floor(c.random()*201),c.m.name+'随机固定伤害','fixed');}else if(n<c.t.hp){c.hurt(c.a,n,c.m.name+'全部体力消耗','true',true);if(c.t.hp>0){c.hurtWithHpFloor(c.t,n,c.m.name+'体力消耗反馈','fixed',1);c.ailment(c.t,'瘫痪',c.a,false,false,2);}}},[]);
 add(995,'afterHit',(c,p)=>{if(c.clearBoost(c.t)&&c.t.hp>0){const n=healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'消强吸取',c.m.name+'消强吸取');}},[[1,9999]]);
 add(155,'afterHit',(c,p)=>{c.heal(c.a,c.a.stats.maxHp,c.m.name+'回满');c.clearNegative(c.a);c.ailment(c.a,'睡眠',c.a,false,false,p[0]);},[turns]);
-add(1278,'afterHit',(c,p)=>{if(p[1]!==6)throw Error('1278 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'害怕',c.a)){c.a.counts.attackNullify=(c.a.counts.attackNullify??0)+p[2];c.a.soulState.hunterReflect=(c.a.soulState.hunterReflect??0)+p[2];}},[pct,[6,6],[1,99]]);
+add(1278,'afterHit',(c,p)=>{if(p[1]!==6)throw Error('1278 异常枚举尚未核对');if(!statusRoll(c,p[0])||!c.ailment(c.t,'害怕',c.a)){grantAttackReflection(c,'fixed',p[2]);}},[pct,[6,6],[1,99]]);
 add(1872,'afterHit',(c,p)=>{if(c.a.side===c.first){c.t.soulState.hunterAttackBlockRound=c.round;c.t.soulState.hunterAttackBlockPower=p[0]+Math.floor((c.a.soulState.hunterArrows??0)/p[1])*p[2];}},[[0,9999],[1,9999],[0,9999]],'击败后延续到对手下只精灵的分支待多精灵对战');
 add(1873,'afterHit',(c,p)=>c.stage(c.a,p[0]*((c.a.soulState.hunterArrows??0)>=p[1]?2:1)),[[1,6],[1,99]]);
 add(1874,'beforeOrder',c=>{c.a.soulState.hunterReverseNegativeThis=true;},[]);
@@ -891,7 +941,13 @@ add(1305,'afterHit',()=>{},[[0,9999],[0,9999]],'己方队伍存活及死亡精�
 
 add(1376,'afterHit',(c,p)=>c.timed(c.a,'自身用攻异常或吸取',p[0],{chance:p[1],ailment:ailments[p[2]],denominator:p[3]}),[turns,pct,[6,6],[1,9999]]);
 add(1539,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&!(statusRoll(c,p[1])&&c.ailment(c.t,ailments[p[2]],c.a)))c.clear(c.t);},[[0,9999],pct,[0,0]]);
-add(1934,'beforeDamage',()=>{},[[0,1000]],'己方场下死亡精灵数量对应攻击增伤，第二阶段实现');
+function fallenReserves(c, fighter) {
+  if (!c.teamMode) return 0;
+  return c.teamMembers(fighter).slice(1).filter(member => member.hp <= 0).length;
+}
+add(1934,'beforeDamage',(c,p)=>{
+  if(c.teamMode)c.modifier *= 1 + fallenReserves(c,c.a) * p[0] / 100;
+},[[0,1000]],'己方场下死亡精灵数量对应攻击增伤，第二阶段实现');
 
 metadata[1425]={info:'造成的伤害低于{0}则自身{1}',args_num:7};
 add(1425,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])p.slice(1).forEach((n,i)=>{if(n)c.stage(c.a,n,[stats[i]]);});},[[0,99999],stage,stage,stage,stage,stage,stage]);
@@ -910,7 +966,7 @@ add(2510,'beforeOrder',c=>{if(Object.values(c.t.stages).some(n=>n>0))c.priority+
 
 add(1683,'afterHit',(c,p)=>c.timed(c.a,'强化保护',p[0],{}),[[1,10]]);
 
-add(1602,'afterHit',(c,p)=>c.timed(c.a,'id57',p[0],{fraction:1/p[1]}),[turns,[1,9999],[0,9999]],'恢复体力时自身满体力则回复己方所有不在场精灵；当前仅实现自身用招恢复，场下回复等待队伍机制');
+add(1602,'afterHit',(c,p)=>c.timed(c.a,'id57',p[0],{fraction:1/p[1],...(c.teamMode?{fullHealBench:p[2]}:{})}),[turns,[1,9999],[0,9999]],'恢复体力时自身满体力则回复己方所有不在场精灵；当前仅实现自身用招恢复，场下回复等待队伍机制');
 add(1708,'afterHit',(c,p)=>{if(c.a.soulState.effect1708Unhurt)c.timed(c.t,'id984',p[0],{amount:-p[1]},c.round+1);},[[1,10],[0,10]],undefined,undefined,{beforeUse(c){c.a.soulState.effect1708Unhurt=(c.a.roundSettledDamageTaken??c.a.roundDamageTaken)===0;}});
 
 add(140,'afterHit',(c,p)=>{const lo=Math.min(p[0],p[1]),hi=Math.max(p[0],p[1]);const n=Math.floor(c.t.hp*(1/lo-(1/lo-1/hi)*c.random()));c.hurt(c.t,n,c.m.name,'percent');},[[1,9999],[1,9999]]);
@@ -1009,7 +1065,7 @@ add(1505,'afterHit',c=>{if(c.t.soulState.darkSeed)c.hurt(c.t,c.t.soulState.darkS
 add(1774,'beforeOrder',c=>{const m=c.selectedMove(c.t);if(m.kind!=='status'&&m.kind!=='item')c.priority++;});
 add(2138,'afterHit',c=>{const seed=c.t.soulState.darkCause;if(seed&&seed.level>=5){delete c.t.soulState.darkCause;c.a.soulState.darkRoots=Math.min(5,(c.a.soulState.darkRoots??0)+1);}else if(seed){/* 用户确认：未成熟重复种植保留原等级。 */}else if(c.t.hp>0)c.t.soulState.darkCause={level:1,plantedRound:c.round,sourceSide:c.a.side};});
 add(2139,'afterHit',c=>c.ailment(c.t,c.t.soulState.darkCause?'诅咒':'害怕',c.a),[pct],undefined,undefined,{beforeDamage(c,p){c.modifier*=1+(c.a.soulState.darkRoots??0)*p[0]/100;}});
-add(2140,'afterHit',(c,p)=>{const hp=c.t.hp,n=c.t.stats.maxHp*(p[0]+(c.t.soulState.darkCause?.level??0)*p[1])/100;healthRules.drainPercent(c,n,c.m.name+'晦暗吸取');if(c.t.hp===hp)c.timed(c.t,'不能主动切换',p[2],{},c.round+1);},[pct,pct,turns],'吸取后无法主动切换的真正换宠强制流程延期；当前限制标记及其在场魂印联动已实现');
+add(2140,'afterHit',(c,p)=>{const hp=c.t.hp,n=c.t.stats.maxHp*(p[0]+(c.t.soulState.darkCause?.level??0)*p[1])/100;healthRules.drainPercent(c,n,c.m.name+'晦暗吸取');if(c.t.hp===hp)c.timed(c.t,'不能主动切换',p[2],c.teamMode?{noSwitch:true}:{},c.round+1);},[pct,pct,turns],'吸取后无法主动切换的真正换宠强制流程延期；当前限制标记及其在场魂印联动已实现');
 add(2141,'afterAttack',c=>{if(c.t.hp<=0&&c.t.soulState.darkCause)c.a.soulState.darkRoots=Math.min(5,(c.a.soulState.darkRoots??0)+1);});
 
 
@@ -1099,7 +1155,12 @@ add(61,'beforeDamage',c=>{c.power=50+Math.floor(c.random()*101);});
 add(157,'afterHit',(c,p)=>c.timed(c.a,'辰坤受攻三弱',p[0],{}),[turns]);
 add(1537,'afterHit',(c,p)=>{const n=c.consumeBarrier(c.a);c.hurt(c.t,n*(n<p[0]?2:1),c.m.name+'护罩消耗','fixed');},[[0,99999]]);
 add(2369,'afterHit',(c,p)=>{if(c.a.side===c.first)return;const a=c.clear(c.a),t=c.clear(c.t);if(a||t)c.timed(c.t,'statusBlock',p[0],{},c.round+1);},[turns]);
-add(2367,'afterHit',(c,p)=>{const own=conditionStatusRules.conditionPresent(c.a,c.round),enemy=conditionStatusRules.conditionPresent(c.t,c.round);c.stage(c.a,p[0]*(own&&enemy?2:1));if(enemy){c.clearAilments(c.t);c.timed(c.t,'不能主动切换',p[1],{});}if(own){c.clearAilments(c.a);c.heal(c.a,c.a.stats.maxHp/p[2],c.m.name+'当前精灵回复');}},[[1,6],turns,[1,9999]],'对手不能主动切换的实际换宠拦截及己方其他精灵回复；当前双方解除/自身强化与当前自身回复已实现');
+add(2367,'afterHit',(c,p)=>{const own=conditionStatusRules.conditionPresent(c.a,c.round),enemy=conditionStatusRules.conditionPresent(c.t,c.round);c.stage(c.a,p[0]*(own&&enemy?2:1));if(enemy){c.clearAilments(c.t);c.timed(c.t,'不能主动切换',p[1],{});}if(own){
+  c.clearAilments(c.a);
+  const amount=Math.floor(c.a.stats.maxHp/p[2]);
+  c.heal(c.a,amount,c.m.name+'当前精灵回复');
+  if(c.teamMode)c.healLivingBench(c.a,amount,c.m.name+'场下回复');
+}},[[1,6],turns,[1,9999]],'对手不能主动切换的实际换宠拦截及己方其他精灵回复；当前双方解除/自身强化与当前自身回复已实现');
 add(2370,'afterHit',(c,p)=>c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复'),[[1,9999]],undefined,undefined,{onInvalid(c){c.heal(c.a,c.a.stats.maxHp/3,c.m.name+'无效回复');c.ailment(c.t,'石化',c.a);}});
 add(1538,'beforeDamage',c=>{c.attackOverride=Math.max(c.panelStat(c.t,'atk'),c.panelStat(c.t,'spa'));});
 // Q-N50-4509-001: continuously read the opponent's panel, then apply the
@@ -1136,7 +1197,7 @@ add(600,'beforeDamage',(c,p)=>{if(c.t.gender===p[0])c.modifier*=1+p[1]/100;},[[1
 add(1531,'afterHit',(c,p)=>c.timed(c.a,'启灵固真追加',p[0],{amount:p[1]}),[turns,[0,99999],[0,0]]);
 add(1536,'afterHit',(c,p)=>c.stage(c.a,p[0]*((c.t.soulState.holyMarks??0)>0?2:1)),[[1,6]]);
 add(1532,'beforeCrit',c=>{if(!(c.t.soulState.holyMarks>0))c.forceCrit=true;},[],undefined,undefined,{afterHit(c){if(c.ppReductionBlocked(c.t))return;const pool=c.t.moves.slice();for(let i=0;i<(c.t.soulState.holyMarks??0)&&pool.length;i++)clearPp2125(c,c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0]);}});
-add(1534,'afterHit',c=>{if(c.ppReductionBlocked(c.t))return;for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-1);},[],'对手存在被放逐精灵时，随机一个场下被放逐目标扣所有PP；当前不存在被放逐精灵的在场目标分支已实现');
+add(1534,'afterHit',c=>{const exiles=c.teamMode?c.exiledMembers(c.t.side):[];const target=exiles.length?exiles[Math.floor(c.random()*exiles.length)]:c.t;if(c.ppReductionBlocked(target))return;for(const k of target.moves)target.pp[k]=Math.max(0,target.pp[k]-1);},[],'对手存在被放逐精灵时，随机一个场下被放逐目标扣所有PP；当前不存在被放逐精灵的在场目标分支已实现');
 
 
 metadata[1542]={"info":"吸取对手能力提升状态，吸取成功则令对手{0}，若对手不处于能力提升状态则令对手全属性-{1}","args_num":2};
@@ -1179,7 +1240,35 @@ add(2549,'afterHit',(c,p)=>{if(c.a.side===c.first&&!(statusRoll(c,p[0])&&c.ailme
 add(2548,'afterHit',(c,p)=>{const foePresent=conditionStatusRules.conditionPresent(c.t,c.round),base=c.t.stats.def+c.t.stats.spd;const own=c.clearAilments(c.a),foe=c.clearAilments(c.t);if(own?.length||foe?.length)c.hurt(c.t,base*p[0]/100,c.m.name+'解除成功真实追加','true');if(!foePresent)healthRules.drainPercent(c,base*p[1]/100,c.m.name+'无异常百分比吸取');},[pct,pct]);
 registry[2548]=Object.freeze({...registry[2548],partial:true,unimplemented:['Q-R3940-4004-005']});
 add(2551,'afterAttack',c=>{if(c.t.hp<=0){const st=c.a.soulState,gain=1+(st.holyThunderGainBonus??0);if(c.a.soulId===2121)st.holyThunderKillGain=(st.holyThunderKillGain??0)+gain;else st.holyThunder=Math.min(6,(st.holyThunder??0)+gain);}},[],'对方下只精灵属性技能命中失效直到自身神圣之霆减少，等待下一只出场；当前击败增加神圣之霆按已确认上限/增长奖励实现');
-add(2553,'afterHit',c=>{if(c.a.soulState.kingPrayerUsed)return;c.a.soulState.kingPrayerUsed=true;c.a.hp=0;c.t.counts.nextSkillInvalid=(c.t.counts.nextSkillInvalid??0)+1;},[],'恢复己方不在场精灵王全部HP和PP；队伍未加入战斗精灵王总数达到5时赋予所有精灵王专属特性首标记，超过5时自身体力只消耗至1；当前纯单精灵队伍少于5的自身100%消耗、对手下次技能无效及每战一次已实现');
+// The reserve bag count is selected in the loadout. Only actual combatants receive recovery and marks.
+const prayerKings2553=new Set([2988,2996,2997,3022,3036,3046,3082,3142,3150,3170,3174,3190,3200,3205,3211,3223,3240,3242,3322,3340,3355,3372,3393,3406,3407,3432,3456,3465,3467,3481,3516,3524,3529,3539,3561,3568,3613,3627,3697,3711,3740,3807,3809,3886,3941,3994,4004,4125,4182,4186,4287,4327,4467,4676]);
+const prayerMarks2553={
+  987:['natureBlessings',4],1508:['lastWhisperLayers',6],1825:['jasmineCore',3],1834:['darkRoots',5],
+  1932:['eternalWater',8],1971:['coldEssence',3],1985:['sealLayers',4],
+  2005:['inverseMight',5],2051:['leonOldDialLayers',5],2072:['ningjie',5],2121:['holyThunder',6],2150:['mirrors',4]
+};
+function grantPrayerMark2553(f,round){
+ if(f.soulId===1204){f.soulState.darkSeed={plantedRound:round,sourceSide:f.side,phase:'mature',level:5};return;}
+ if(f.soulId===1878){f.soulState.chiyong1878={layers:3,sourceSide:f.side,sourceHash:'41007a05'};return;}
+ if(f.soulId===2093){f.soulState.nineScars=(f.soulState.nineScars??0)+1;return;}
+ const mark=prayerMarks2553[f.soulId];if(!mark)return;
+ const [field,max]=mark,st=f.soulState,before=st[field]??0;
+ if(f.soulId===2051){st.leonOldDialUses=(st.leonOldDialUses??0)+Math.max(0,max-before);st.leonOldDialObtained=true;}
+ st[field]=max;
+}
+add(2553,'afterHit',c=>{
+ const st=c.a.soulState;
+ if(st.kingPrayerUsed)return;
+ st.kingPrayerUsed=true;
+ const count=c.m.prayerCount??0;
+ c.a.hp=count===6?Math.min(1,c.a.hp):0;
+ c.t.counts.nextSkillInvalid=(c.t.counts.nextSkillInvalid??0)+1;
+ for(const king of c.teamMode?c.teamMembers(c.a):[c.a]){
+   if(!prayerKings2553.has(Number(king.number)))continue;
+   if(king!==c.a&&king.hp>0){c.heal(king,king.stats.maxHp,c.m.name+'精灵王回复','skill');c.restorePP(king,Infinity,'skill');}
+   if(count>=5&&(king===c.a||king.hp>0))grantPrayerMark2553(king,c.round);
+ }
+},[]);
 
 metadata[1285]={info:'当回合未击败对手则减少对方所有技能PP{0}点',args_num:1};
 metadata[1156]={info:'击败对手则恢复自身全部体力和所有技能PP值',args_num:0};
@@ -1275,7 +1364,7 @@ metadata[801]={info:'消除对手能力提升，消除成功则下{0}回合必�
 metadata[1353]={info:'{0}回合内若自身先出手则{1}%令对手{2}，未触发则消除对手回合类效果',args_num:3};
 metadata[604]={info:'威力随机，随机范围{0}-{1}，连续使用每次威力提升{2}，最高提升至{3}',args_num:4};
 metadata[1247]={info:'先出手时使对手当回合内无法通过技能恢复自身体力',args_num:0};
-add(115,'afterHit',(c,p)=>{if(roll(c,p[0])&&c.t.hp>0)c.hurt(c.t,c.effective(c.a,'spe')/p[1],c.m.name+'速度追加','fixed');},[pct,[1,9999]]);
+add(115,'afterHit',(c,p)=>{if(roll(c,p[0])&&c.t.hp>0)c.hurt(c.t,c.a.stats.spe/p[1],c.m.name+'速度追加','percent');},[pct,[1,9999]]);
 add(116,'afterHit',c=>c.timed(c.a,'托鲁克先手吸血',3,{fraction:.2}),[]);
 add(117,'afterHit',c=>c.timed(c.a,'托鲁克先手害怕',5,{chance:50}),[]);
 add(118,'beforeDamage',(c,p)=>{if(p[0]>p[1])throw Error('随机威力区间颠倒');c.power=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));});
@@ -1382,11 +1471,12 @@ metadata[2496]={"info":"造成的攻击伤害为0时，若自身体力低于对�
 metadata[1257]={"info":"对手不处于异常状态则吸取对手最大体力的1/{0}","args_num":1};
 add(1123,'afterHit',(c,p)=>{const before={...c.t.stages};c.steal(c.a,c.t,'技能');if(Object.keys(before).some(k=>before[k]>0&&c.t.stages[k]<before[k]))c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);},[turns,[0,10]]);
 add(1038,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){c.a.stages[k]=Math.min(6,-2*c.a.stages[k]);changed=true;}if(changed)c.a.suitState.shield+=p[0];},[[0,99999]]);
-add(1367,'afterHit',(c,p)=>{const result=c.randomFromSharedPool(p[0],false,1367);if(!result.some(x=>x.applied))c.timed(c.t,'statusBlock',p[1],{});},[[1,30],turns]);
+add(1367,'afterHit',(c,p)=>{const result=c.teamMode&&c.m.wikiId===28351&&c.m.revision==='seerapi:f40483a9'?c.randomAllPvpAilments(p[0],1367):c.randomFromSharedPool(p[0],false,1367);if(!result.some(x=>x.applied))c.timed(c.t,'statusBlock',p[1],{});},[[1,30],turns]);
 add(2352,'beforeDamage',(c,p)=>{c.modifier*=1+p[0]/100*(conditionStatusRules.conditionPresent(c.t,c.round)?2:1);},[[0,1000]]);
 add(1257,'afterHit',(c,p)=>{if(!conditionStatusRules.conditionPresent(c.t,c.round))healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'吸取',c.m.name+'吸取');},[[1,9999]]);
 add(2561,'battleStart',c=>{const parts=c.typeParts(c.a.type).filter(x=>x!=='混沌');if(parts.length===0)throw Error('剥离混沌后没有有效属性');c.a.type=parts.join('');c.a.soulState.entryStatusBlockUnlessControlled=true;c.a.soulState.fallenOracle=true;},[],['再次登场时判断控制异常并封锁属性技能']);
-add(2496,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)!==0||c.a.hp<=0||c.t.hp<=0||c.a.hp>=c.t.hp)return;const chance=p[0]/100;if(chance!==1&&c.random()>=chance)return;const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力。');},[[100,100]]);
+registry[2561]=Object.freeze({...registry[2561],preEntry:true});
+add(2496,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)!==0||c.a.hp<=0||c.t.hp<=0||c.a.hp>=c.t.hp)return;const chance=p[0]/100;if(chance!==1&&c.random()>=chance)return;if(c.teamMode)return c.swapCurrentHP();const hp=c.a.hp;c.a.hp=Math.min(c.a.stats.maxHp,c.t.hp);c.t.hp=Math.min(c.t.stats.maxHp,hp);c.emit(c.name(c.a)+' 与 '+c.name(c.t)+' 交换体力。');},[[100,100]]);
 
 metadata[740]={"info":"{0}回合内每回合自身的能力下降状态都会反馈到对手身上","args_num":1};
 metadata[729]={"info":"{0}回合内若造成伤害大于{1}则{2}%概率使对手{3}","args_num":4};
@@ -1406,8 +1496,8 @@ metadata[1909]={"info":"令自身体力等于最大体力的{0}%，若自身当�
 metadata[2426]={"info":"击败对手时消耗自身一半的宁界之律，然后自身每剩余1道对方1回合内无法造成伤害、附加异常状态","args_num":0};
 metadata[2427]={"info":"消耗自身一半的宁界之律，然后自身每剩余1道，令对手1回合内令对手属性技能命中效果失效","args_num":0};
 add(1909,'afterHit',(c,p)=>{if(c.a.hp<=0)return;const repeat=c.a.hp>c.a.stats.maxHp*p[1]/100;c.a.hp=Math.min(c.a.stats.maxHp,Math.floor(c.a.stats.maxHp*p[0]/100));if(repeat)c.timed(c.a,'回合末设定体力',1,{fraction:p[0]/100});},[pct,pct]);
-add(2427,'afterHit',c=>{const n=c.a.soulState.ningjie??0;const remaining=n-Math.floor(n/2);c.a.soulState.ningjie=remaining;if(remaining)c.timed(c.t,'statusBlock',remaining,{});});
-add(2426,'afterAttack',c=>{if(c.t.hp<=0&&c.dealt>0){const n=c.a.soulState.ningjie??0;c.a.soulState.ningjie=n-Math.floor(n/2);}},[],'击败后的对方后续精灵无法造成伤害、附加异常状态；自身层数消耗已实现');
+add(2427,'afterHit',c=>{const n=c.a.soulState.ningjie??0;const remaining=c.teamMode&&n===5?5:n-Math.floor(n/2);c.a.soulState.ningjie=remaining;if(remaining)c.timed(c.t,'statusBlock',remaining,{});});
+add(2426,'afterAttack',c=>{if(c.t.hp<=0&&c.dealt>0){const n=c.a.soulState.ningjie??0;c.a.soulState.ningjie=c.teamMode&&n===5?5:n-Math.floor(n/2);if(c.teamMode)c.a.soulState.teamOutputGrant2426={round:c.round,move:c.m.id,turns:c.a.soulState.ningjie};}},[],'击败后的对方后续精灵无法造成伤害、附加异常状态；自身层数消耗已实现');
 
 metadata[1382]={"info":"命中后获得{0}层自然祝福，若造成的伤害高于{1}则额外获得{2}层自然祝福","args_num":3};
 metadata[1383]={"info":"全属性+{0}，自身处于自然祝福状态下则强化效果翻倍","args_num":1};
@@ -1429,14 +1519,18 @@ add(1383,'afterHit',(c,p)=>c.stage(c.a,p[0]*((c.a.soulState.natureBlessings??0)>
 add(1384,'afterHit',(c,p)=>natureBlessing(c,p[0]),[[0,4]]);
 add(1385,'afterHit',c=>{const n=c.a.soulState.natureBlessings??0;natureBlessing(c,-n);if(c.on(c.t,'PP保护')||c.on(c.t,'免疫PP削减'))return;const pool=c.t.moves.filter(id=>c.t.pp[id]>0);for(let i=0;i<n&&pool.length;i++)clearPp2125(c,c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0]);});
 add(1386,'afterAttack',(c,p)=>{if(c.t.hp<=0&&c.dealt>0)c.a.soulState.natureBlessingEndLoss=(c.a.soulState.natureBlessingEndLoss??0)+p[0];},[[0,4]]);
-add(2428,'afterHit',()=>{},[],'宁界之律与己方琼华之庇队伍共享层数比较及获得');
+add(2428,'afterHit',c=>{
+ if(!c.teamMode)return;
+ const blessings=c.teamMembers(c.a).reduce((total,member)=>total+(member.soulState.qionghua??0),0);
+ c.a.soulState.ningjie=Math.max(c.a.soulState.ningjie??0,Math.min(5,blessings));
+},[],'宁界之律与己方琼华之庇队伍共享层数比较及获得');
 add(1558,'afterHit',(c,p)=>c.timed(c.a,'暴击攻击增伤',p[0],{fraction:p[1]/100},c.round+1),[turns,[0,1000]]);
 add(2380,'afterHit',(c,p)=>{c.a.counts.criticalForceHit=(c.a.counts.criticalForceHit??0)+p[0];},[[1,99]]);
 add(1485,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0)&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a))&&statusRoll(c,p[2]))c.ailment(c.t,ailments[p[3]],c.a);},[pct,[8,8],pct,[40,40]]);
 add(2429,'afterHit',(c,p)=>{if(!Object.values(c.t.effects).some(e=>conditionStatusRules.timedActive(e,c.round))||c.on(c.t,'PP保护')||c.on(c.t,'免疫PP削减'))return;const pool=c.t.moves.slice();for(let i=0;i<p[0]&&pool.length;i++)clearPp2125(c,c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0]);},[[1,5]]);
 add(1054,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const before=c.a.stages[k];c.stage(c.a,-2*before,[k]);changed ||=c.a.stages[k]>before;}if(changed)c.ailment(c.t,ailments[p[0]],c.a);},[[40,40]]);
 add(2425,'beforeDamage',(c,p)=>{const n=[c.a,c.t].reduce((sum,f)=>sum+f.moves.filter(id=>(f===c.a?(f.soulState.ppBeforeUse?.[id]??f.pp[id]):f.pp[id])<=p[2]).length,0);c.modifier*=1+(p[0]+Math.floor(n/p[1])*p[3])/100;},[[0,1000],[1,99],[0,99],[0,1000]]);
-add(2432,'afterAttack',()=>{},[[1,99],[0,99]],'己方下只精灵出战时恢复PP');
+add(2432,'afterAttack',(c,p)=>{if(c.teamMode&&(c.settledDamage??c.dealt)>0){const hits=c.damageHits??1;const amount=Math.floor(hits/p[0])*p[1];if(amount)c.queueEntry(c.a,{effectId:2432,amount});}},[[1,99],[0,99]],'己方下只精灵出战时恢复PP');
 add(2430,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)===0&&c.t.hp>0){c.clear(c.t);c.ailment(c.t,ailments[p[0]],c.a);}},[[40,40]]);
 
 metadata[721]={"info":"后出手时使对手下{0}回合攻击技能MISS","args_num":1};
@@ -1458,7 +1552,7 @@ metadata[1662]={"info":"消耗自身所有护盾值并附加等量固定伤害�
 metadata[727]={"info":"后出手时将自身能力等级返回至上一回合结束时","args_num":0};
 add(2079,'beforeOrder',c=>{if(c.shieldValue(c.t)>0)c.priority++;},[],undefined,undefined,{beforeDamage(c){if(c.shieldValue(c.t)>0)c.ignoreShield=true;}});
 add(2080,'beforeDamage',(c,p)=>{if(c.shieldValue(c.a)>0)c.power*=1+p[0]/100;},[[0,1000]]);
-add(1110,'afterHit',(c,p)=>{let reversed=false;for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(reversed)c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+p[0];else c.clearBoost(c.t);},[[1,99]]);
+add(1110,'afterHit',(c,p)=>{let reversed=false;if(!c.pureReverseBlocked?.(c.t))for(const k of stats)if(c.t.stages[k]>0){c.t.stages[k]*=-1;reversed=true;}if(reversed)c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+p[0];else c.clearBoost(c.t);},[[1,99]]);
 add(1368,'afterHit',(c,p)=>{if(c.consumeShields(c.t,c.a)>0)c.timed(c.t,'skillBlock',p[0],{},c.round+1);},[turns]);
 add(1662,'afterHit',c=>{const n=c.consumeShields(c.a,c.t);if(n>0&&c.t.hp>0&&c.hurt(c.t,n,c.m.name+'护盾转伤','fixed')===0)c.heal(c.a,n,c.m.name+'护盾转伤失败');});
 add(727,'afterHit',c=>{if(c.a.side!==c.first&&c.a.soulState.previousRoundStages)Object.assign(c.a.stages,c.a.soulState.previousRoundStages);});
@@ -1470,7 +1564,7 @@ metadata[2028]={"info":"若自身为对手天敌则必定命中","args_num":0};
 metadata[2055]={"info":"若对手为自身天敌则消除对手回合类效果","args_num":0};
 metadata[1605]={"info":"{0}%令对手{1}","args_num":2};
 metadata[1225]={"info":"对手处于能力下降时吸取对手最大体力的1/{0}","args_num":1};
-add(1394,'afterHit',(c,p)=>c.timed(c.a,'对手属性随机异常',p[0],{count:p[1]}),[turns,[1,6]]);
+add(1394,'afterHit',(c,p)=>c.timed(c.a,'对手属性随机异常',p[0],{count:p[1],fullPvpPool:(c.m.wikiId??c.m.id)===27696&&c.m.revision==='seerapi:78b45b92'||c.teamMode&&c.m.wikiId===36688&&c.m.revision==='seerapi:fea07a61'}),[turns,[1,6]]);
 add(1839,'afterHit',(c,p)=>{c.timed(c.a,'id57',p[0],{fraction:1/p[1]});c.timed(c.a,'回合末最大体力吸取',p[0],{fraction:1/p[2]});},[turns,[1,9999],[1,9999]]);
 add(2054,'afterHit',(c,p)=>c.timed(c.a,'暴击后异常免疫次数',p[0],{count:p[1],sourceKey:'2054:'+c.a.side+':'+(c.m.wikiId??c.m.id)+':'+c.m.revision+':'+c.effectInstanceIndex},c.round+1),[turns,[1,99]]);
 add(2028,'beforeAccuracy',c=>{if(c.typeAffinity(c.a.type,c.t.type)>1)c.alwaysHit=true;});
@@ -1544,7 +1638,7 @@ metadata[1400]={"info":"{0}回合内若自身回合类效果被消除则{1}%令�
 metadata[1412]={"info":"自身体力低于300时必定先手","args_num":0};
 add(479,'afterHit',(c,p)=>{const cost=c.a.hp<p[2]?Math.max(0,c.a.hp-p[3]):p[0];c.hurt(c.a,cost,c.m.name+'自身体力损失','direct',true);c.hurt(c.t,p[1],c.m.name+'自损追加','fixed');},[[0,99999],[0,99999],[0,99999],[1,99999]]);
 add(1400,'afterHit',(c,p)=>c.timed(c.a,'回合被清追加异常',p[0],{chance:p[1],ailment:ailments[p[2]]}),[turns,pct,[6,28]]);
-add(1412,'beforeOrder',c=>{if(c.a.hp<300)c.forceFirst=true;},[]);
+add(1412,'beforeOrder',c=>{if(c.a.hp<300){c.forceFirst=true;(c.firstOrderSourceEffects??=[]).push(1412);}},[]);
 
 metadata[2395]={"info":"每次登场时移除自身专属特性中的“回合开始时”，之后自身的符文锁链效果改为符文咒印","args_num":0};
 metadata[2394]={"info":"技能无效时，触发1次符文锁链","args_num":0};
@@ -1642,7 +1736,7 @@ add(1360,'beforeDamage',(c,p)=>{if(c.a.hp>c.t.hp)c.modifier*=1+p[0]/100;},[pct])
 add(957,'afterHit',(c,p)=>{if(![6,9,29].includes(p[1]))throw Error('957异常枚举未核对');c.stage(c.t,-p[0]);if(c.t.ailments[ailments[p[1]]]>=c.round)c.stage(c.a,p[2]);},[[1,6],[6,29],[1,6]]);
 add(1454,'beforeUse',(c,p)=>{c.hits=p[0]+Math.floor(c.random()*(p[1]-p[0]+1));},[[1,60],[1,60],pct,[0,99999]],undefined,undefined,{afterHit(c,p){if(c.t.hp>0&&roll(c,p[2]))c.hurt(c.t,p[3],c.m.name+'逐段追加','fixed');}});
 add(2038,'afterHit',(c,p)=>{const had=Object.entries(c.t.effects).some(([k,e])=>conditionStatusRules.timedPresent(e,c.round));if(c.clear(c.t))c.ailment(c.t,'诅咒',c.a);else if(!had&&c.ailment(c.a,'致命诅咒',c.a))c.a.soulState.curseRemovalHeal='致命诅咒';},[[23,23],[25,25],[25,25]]);
-add(2335,'afterHit',(c,p)=>{const low=c.a.hp<c.a.stats.maxHp/p[1],before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复');if(low&&c.t.hp>0)c.hurt(c.t,(c.a.hp-before)*p[2]/100,c.m.name+'低体追加','percent');},[[1,9999],[1,9999],pct]);
+add(2335,'afterHit',(c,p)=>{const low=c.a.hp<c.a.stats.maxHp/p[1],healed=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复')??0;if(low&&c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed*p[2]/100,c.m.name+'低体追加','percent');},[[1,9999],[1,9999],pct]);
 add(2019,'afterHit',(c,p)=>c.timed(c.a,'回复效果削减',p[0],{fraction:p[1]/100}),[turns,pct]);
 
 metadata[761]={"info":"{0}回合内对手恢复体力时恢复效果减少{1}%","args_num":2};
@@ -1678,7 +1772,7 @@ add(2456,'beforeUse',(c,p)=>{c.a.counts.defeatFullRestore=p[0];},[[1,99]]);
 metadata[1427]={"info":"{0}回合内每回合{1}%闪避对手攻击，未触发则受到的伤害减少{2}%","args_num":3};
 metadata[2526]={"info":"战斗开始时，为自身召唤1具咽咎尸骸，自身登场时，令双方1只阵亡精灵消逝以召唤1具咽咎尸骸","args_num":0};
 add(1427,'afterHit',(c,p)=>{const old=c.a.effects['回合闪避失败减伤'];c.timed(c.a,'回合闪避失败减伤',p[0],{chance:p[1],fraction:p[2]/100,rolledRound:c.round,dodge:old?.rolledRound===c.round?old.dodge:c.random()<p[1]/100});},[turns,pct,pct]);
-add(2526,'battleStart',c=>{c.a.soulState.corpseCount=(c.a.soulState.corpseCount??0)+1;},[],['重新登场令双方阵亡精灵消逝并召唤尸骸；下场保留尸骸和累计收益']);
+add(2526,'battleStart',c=>{if(c.a.soulState.teamEntry)return;c.a.soulState.corpseCount=(c.a.soulState.corpseCount??0)+1;},[],['重新登场令双方阵亡精灵消逝并召唤尸骸；下场保留尸骸和累计收益']);
 
 // 3550: exact SeerAPI templates and user-confirmed1300 semantics.
 metadata[1298]={"info":"消除对手能力提升状态，消除成功则直接扣除对方场下随机一只精灵最大体力的1/4，致死时令其残留1点体力","args_num":0};
@@ -1700,7 +1794,7 @@ add(1316,'afterHit',(c,p)=>{if(c.a.side!==c.first)return;const pool=[...stats];f
 add(1302,'afterHit',(c,p)=>{const doubled=c.random()<p[1]/100;c.stage(c.a,p[0]*(doubled?2:1));if(!doubled)c.steal(c.a,c.t,c.m.name);},[[1,6],pct]);
 add(1303,'afterHit',c=>c.timed(c.a,'用招低体双吸',4,{fraction:1/3,threshold:1/2}),[],'吸取时自身满体力则为己方所有不在场精灵恢复100点体力');
 
-add(1306,'afterAttack',()=>{},[],'低于350伤害时扣对手未出场精灵100体力，致死保留1点');
+add(1306,'afterAttack',c=>{if(c.teamMode&&(c.settledDamage??c.dealt)<350)for(const f of c.teamReserves(c.t.side))c.benchHpLoss(f,100,c.m.name);},[],'低于350伤害时扣对手未出场精灵100体力，致死保留1点');
 add(1307,'afterAttack',()=>{},[],'未击败对手时回复己方场下精灵100体力');
 add(1308,'afterAttack',()=>{},[],'击败对手后下次登场不削弱帝君之罚与帝君之赐');
 
@@ -1719,10 +1813,10 @@ metadata[1469]={info:'{0}回合内自身造成的固定伤害、百分比伤害�
 metadata[1470]={info:'自身天赋值越高则技能威力越大',args_num:0};
 metadata[2312]={info:'恢复自身最大体力的1/{0}，恢复成功则{1}回合内自身技能额外附加恢复量{2}%的百分比伤害，对手未受到百分比伤害时随机附加{3}种非限制类异常状态',args_num:4};
 add(844,'afterAttack',(c,p)=>{if(!c.crit)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'未暴击吸取');},[[1,9999]]);
-add(1251,'beforeOrder',c=>{if(c.a.hp<200)c.forceFirst=true;},[]);
+add(1251,'beforeOrder',c=>{if(c.a.hp<200){c.forceFirst=true;(c.firstOrderSourceEffects??=[]).push(1251);}},[]);
 add(1469,'afterHit',(c,p)=>c.timed(c.a,'固定百分比增伤',p[0],{fraction:p[1]/100}),[turns,pct]);
 add(1470,'beforeDamage',c=>{const iv=c.a.build.iv;c.power=iv<=10?100:iv<=20?120:iv<=25?140:iv<=30?160:180;},[]);
-add(2312,'afterHit',(c,p)=>{const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复');const recovered=c.a.hp-before;if(recovered>0)c.timed(c.a,'技能回复量追加',p[1],{amount:recovered*p[2]/100,count:p[3],confirmedMissSource:Number(c.a.number)===3866&&(c.m.wikiId??c.m.id)===29170&&c.m.revision==='seerapi:aca5730d'?'Q-3866-effect2312':null});},[[1,9999],turns,pct,[1,30]]);
+add(2312,'afterHit',(c,p)=>{const recovered=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复')??0;if(recovered>0&&c.a.hp>0)c.timed(c.a,'技能回复量追加',p[1],{amount:recovered*p[2]/100,count:p[3],confirmedMissSource:Number(c.a.number)===3866&&(c.m.wikiId??c.m.id)===29170&&c.m.revision==='seerapi:aca5730d'?'Q-3866-effect2312':null});},[[1,9999],turns,pct,[1,30]]);
 
 metadata[1252]={info:'自身体力低于1/{0}时造成的伤害为{1}倍，低于1/{2}时伤害为{3}倍',args_num:4};
 add(1252,'beforeDamage',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[2])c.modifier*=p[3];else if(c.a.hp<c.a.stats.maxHp/p[0])c.modifier*=p[1];},[[1,9999],[1,100],[1,9999],[1,100]]);
@@ -1822,7 +1916,7 @@ metadata[1803]={"info":"技能无效时，恢复自身最大体力的1/3且对�
 metadata[2320]={"info":"{0}回合内每回合使用技能令对手{1}，未触发则对手下{7}回合攻击技能无效","args_num":8};
 add(605,'afterHit',(c,p)=>{if(c.a.hp<c.t.hp)c.hurt(c.t,(c.a.stats.maxHp-c.a.hp)*p[2]/100,c.m.name,'percent');},[[1,1],[0,0],pct]);
 add(1280,'afterHit',(c,p)=>{const key='currentHpPercent:'+c.m.id,n=c.a.soulState[key]??p[0];c.hurt(c.t,c.a.hp*n/100,c.m.name,'percent');c.a.soulState[key]=Math.min(p[2],n+p[1]);},[pct,pct,pct]);
-add(1281,'afterHit',c=>{const n=c.consumeShields(c.a,c.t);if(n>0)c.hurt(c.t,n,c.m.name+'护盾消耗','fixed');if(n>300)c.hurt(c.t,c.a.stats.maxHp/3,c.m.name+'高盾附加','percent');else if(n>0&&n<300){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/3,c.m.name);c.hurt(c.t,c.a.hp-before,c.m.name+'回复附加','percent');}});
+add(1281,'afterHit',c=>{const n=c.consumeShields(c.a,c.t);if(n>0)c.hurt(c.t,n,c.m.name+'护盾消耗','fixed');if(n>300)c.hurt(c.t,c.a.stats.maxHp/3,c.m.name+'高盾附加','percent');else if(n>0&&n<300){const healed=c.heal(c.a,c.a.stats.maxHp/3,c.m.name)??0;if(c.a.hp>0&&c.t.hp>0&&healed>0)c.hurt(c.t,healed,c.m.name+'回复附加','percent');}});
 add(1626,'afterHit',(c,p)=>{if(c.a.side!==c.first)c.hurt(c.t,(c.a.roundShieldDamage??0)*p[0]/100,c.m.name,'percent');},[pct]);
 add(1803,'onInvalid',c=>{const hp=c.a.hp,max=c.a.stats.maxHp;c.heal(c.a,max/3*(hp<max/2?2:1),c.m.name);c.timed(c.t,'属性技能命中效果失效',2+(hp>max/2?1:0),{},c.round+1);});
 add(1752,'afterHit',(c,p)=>{const source='1752:'+c.a.side+':'+(c.m.wikiId??c.m.id)+':'+(c.m.revision??c.m.hash??'')+':'+(c.effectInstanceIndex??0);c.refreshShield(c.a,p[0],source);c.a.soulState.shieldGoneDrain={amount:p[1],count:p[2],source};c.a.soulState.sourceShieldReactions??={};c.a.soulState.sourceShieldReactions[source]={kind:'drain',amount:p[1],count:p[2]};},[[0,99999],[0,99999],[1,99]]);
@@ -1845,7 +1939,7 @@ metadata[1837]={"info":"{0}%令对手{1}，未触发则令自身全属性-{2}","
 metadata[2334]={"info":"打出致命一击时下{0}回合免疫对手的攻击","args_num":1};
 metadata[2333]={"info":"击败对手时对手每有1层荒古之慑增加{0}点体力上限并恢复全部体力，未击败对手则恢复自身已损失体力值的{1}%","args_num":2};
 add(1289,'afterHit',(c,p)=>{if(c.canFeedbackNegative?.(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const before=c.t.stages[k];c.stage(c.t,c.a.stages[k]*2,[k]);changed ||=c.t.stages[k]<before;if(c.canRemoveNegative?.(c.a)!==false)c.a.stages[k]=0;}if(changed)c.t.counts.nextSkillInvalid=(c.t.counts.nextSkillInvalid??0)+p[0];},[[1,99]]);
-add(2332,'afterHit',c=>c.clearAilments(c.a),[turns],'解除自身异常成功后禁止对手主动切换精灵，依赖换宠流程');
+add(2332,'afterHit',(c,p)=>{const active=c.teamMode&&Object.values(c.a.ailments).some(end=>end>=c.round);const removed=c.clearAilments(c.a);if(c.teamMode&&active&&removed.length)c.timed(c.t,'不能主动切换',p[0],{noSwitch:true},c.round+1);},[turns],'解除自身异常成功后禁止对手主动切换精灵，依赖换宠流程');
 add(2330,'afterHit',(c,p)=>c.hurt(c.t,(((c.a.previousSettledFixedDamageTaken??c.a.previousFixedDamageTaken)??0)+((c.t.previousSettledFixedDamageTaken??c.t.previousFixedDamageTaken)??0))*p[0]/100,c.m.name,'percent'),[[0,1000]]);
 add(1568,'beforeDamage',c=>{c.ignoreShield=true;});
 add(1930,'beforeUse',(c,p)=>{c.hits=Math.min(p[2],1+Math.floor(Math.max(0,c.priorityValue())/p[0])*p[1]);},[[1,99],[1,99],[1,60]]);
@@ -1914,7 +2008,7 @@ metadata[1396]={"info":"{0}回合内每回合吸取对手最大体力的1/{1}，
 metadata[1479]={"info":"牺牲自己，消除对手能力提升状态、回合类效果、护盾、护罩、神耀能量、自然祝福，同时令对手{0}回合内属性技能无效","args_num":1};
 metadata[1478]={"info":"下{0}回合令对手无法主动切换精灵","args_num":1};
 add(1396,'afterHit',(c,p)=>c.timed(c.a,'回合末最大体力吸取',p[0],{fraction:1/p[1],threshold:1/p[2],lowFraction:1/p[3]}),[turns,[1,9999],[1,9999],[1,9999]]);
-add(1479,'afterHit',(c,p)=>{c.hurt(c.a,c.a.hp,c.m.name+'牺牲','direct');c.clearBoost(c.t);c.clear(c.t);c.consumeShields(c.t,c.a,false);c.t.suitState.barrier=0;c.t.soulState.energy=0;c.t.soulState.natureBlessings=0;c.timed(c.t,'statusBlock',p[0],{});},[turns]);
+add(1479,'afterHit',(c,p)=>{(c.teamMode&&c.t.hp<=0?c.hurtWithHpFloor(c.a,c.a.hp,c.m.name+'牺牲','direct',1,false):c.hurt(c.a,c.a.hp,c.m.name+'牺牲','direct'));c.clearBoost(c.t);c.clear(c.t);c.consumeShields(c.t,c.a,false);c.t.suitState.barrier=0;c.t.soulState.energy=0;c.t.soulState.natureBlessings=0;c.timed(c.t,'statusBlock',p[0],{});},[turns]);
 add(1478,'afterHit',(c,p)=>c.timed(c.t,'不能主动切换',p[0],{},c.round+1),[turns],'下若干回合禁止对手主动切换精灵，需第二阶段换宠流程');
 
 metadata[2143]={"info":"无视自身负先制等级","args_num":0};
@@ -1944,7 +2038,7 @@ add(2455,'afterHit',(c,p)=>{if(Object.values(c.t.stages).some(n=>n>0))c.timed(c.
 metadata[1483]={"info":"本回合打出致命一击则令对手{0}回合属性技能无效","args_num":1};
 metadata[1493]={"info":"消耗自身全部体力，令自身下只登场精灵3回合内免疫异常状态，若自身下只登场精灵为月照星魂则转变为5回合","args_num":0};
 add(1483,'afterHit',(c,p)=>{if(c.crit)c.timed(c.t,'statusBlock',p[0],{});},[turns]);
-add(1493,'afterHit',c=>c.hurt(c.a,c.a.hp,c.m.name+'牺牲','direct'),[],'自身下只登场精灵3回合异常免疫，若月照星魂则5回合；自身牺牲本阶段执行');
+add(1493,'afterHit',c=>(c.teamMode&&c.t.hp<=0?c.hurtWithHpFloor(c.a,c.a.hp,c.m.name+'牺牲','direct',1,false):c.hurt(c.a,c.a.hp,c.m.name+'牺牲','direct')),[],'自身下只登场精灵3回合异常免疫，若月照星魂则5回合；自身牺牲本阶段执行');
 
 // Source and independent user confirmations: research/SIX-DEPLOY-USER-CONFIRMATIONS.json.
 metadata[2265]={info:'自身拥有1道寂杀之魄时无视自身能力下降状态，拥有2道时无视护盾效果，拥有3道时无视伤害限制效果',args_num:0};
@@ -2001,7 +2095,7 @@ metadata[1794]={"info":"技能无效时，恢复自身最大体力的1/2且下1�
 add(1495,'afterHit',(c,p)=>{const before={...c.t.stages};registry[143].execute(c,[]);const changed=Object.keys(before).some(k=>before[k]>0&&c.t.stages[k]===-before[k]);if(changed&&roll(c,p[0])&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[1]);},[pct,[1,5]]);
 add(1575,'afterHit',(c,p)=>c.timed(c.a,'后手附加异常',p[0],{ailment:ailments[p[1]]},c.round+1),[[1,1],[29,29]]);
 add(1875,'afterHit',(c,p)=>c.timed(c.a,'天玄回复待确认附伤',p[0],{fraction:1/p[1],threshold:1/p[2]}),[turns,[1,9999],[1,9999]]);
-// Q-R3940-4037-001: low-HP damage uses the un-doubled nominal healing basis.
+// Latest global actual-treatment ruling supersedes the old nominal low-HP exception; original source text is retained.
 metadata[489]={info:'若自身处于能力提升状态，则每次攻击恢复自身体力的1/{0}',args_num:1};
 add(489,'afterAttack',(c,p)=>{if(c.a.hp>0&&Object.values(c.a.stages).some(n=>n>0))c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'强化命中回复');},[[1,9999]]);
 add(1819,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.a.counts.immune=(c.a.counts.immune??0)+p[2];},[[100,100],[10,15],[1,2]]);
@@ -2147,8 +2241,8 @@ add(2020,'beforeOrder',c=>{if(conditionStatusRules.conditionPresent(c.a,c.round)
 add(1622,'afterHit',(c,p)=>c.timed(c.a,'逐回合属性失效或减伤',p[0],{chance:p[1],attacks:p[2],reduction:p[3]}),[turns,pct,[1,10],pct]);
 // Q-A60-4125-025: the shared use pipeline rolls only on an actual status-skill use;
 // no attempted status skill means no compensation. A failed roll grants the next-hit reduction.
-add(2396,'afterUse',c=>{c.a.soulState.attackBonus2396=Math.min(1.2,Math.round(((c.a.soulState.attackBonus2396??0)+.3)*10)/10);});
-add(2398,'afterHit',(c,p)=>{c.stage(c.a,p[0]);if(!conditionStatusRules.conditionPresent(c.a,c.round))c.addCosmic(c.t,1);},[[1,6],[1,9999]],'自身有异常时回复己方上只在场精灵；仅该上只精灵回复分支等待真实队伍/换宠');
+add(2396,'afterUse',c=>{if(c.didSkillHit&&!c.didSkillHit())return;c.a.soulState.attackBonus2396=Math.min(1.2,Math.round(((c.a.soulState.attackBonus2396??0)+.3)*10)/10);});
+add(2398,'afterHit',(c,p)=>{c.stage(c.a,p[0]);if(!conditionStatusRules.conditionPresent(c.a,c.round))c.addCosmic(c.t,1);else if(c.teamMode){const ally=c.previousTeammate();if(ally?.hp>0)c.heal(ally,c.a.stats.maxHp/p[1],c.m.name+'上只在场精灵回复');}},[[1,6],[1,9999]],'自身有异常时回复己方上只在场精灵；仅该上只精灵回复分支等待真实队伍/换宠');
 add(2399,'afterHit',c=>{if(!c.anyStatusInvalid())return;
  if(c.t.ailments['衰弱']>=c.round)c.t.ailments['衰弱']=c.round+(c.a.soulState.leonOldDialLayers??0);
  if(!conditionStatusRules.conditionPresent(c.t,c.round))c.addCosmic(c.t,1);
@@ -2206,7 +2300,7 @@ ailments[43]='渐冻';{const old=registry[1040];registry[1040]=Object.freeze({..
 metadata[1034]={info:'消除对手回合类效果，消除成功则免疫下{0}回合受到的攻击伤害',args_num:1};
 metadata[1641]={info:'自身处于能力提升状态时造成伤害的{0}%恢复自身体力值，当前体力低于最大体力的1/{1}时附加等量百分比伤害',args_num:2};
 add(1034,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.a,'攻击伤害免疫',p[0],{},c.round+1);},[turns]);
-add(1641,'afterAttack',(c,p)=>{if(!Object.values(c.a.stages).some(n=>n>0))return;const healed=c.heal(c.a,c.hpLoss*p[0]/100,c.m.name+'强化吸血')??0;if(c.a.hp>0&&c.a.hp<c.a.stats.maxHp/p[1]&&healed>0)c.hurt(c.t,healed,c.m.name+'低体等量百分比','percent');},[pct,[1,9999]]);
+add(1641,'afterAttack',(c,p)=>{if(!Object.values(c.a.stages).some(n=>n>0))return;const healed=c.heal(c.a,(c.settledDamage??c.dealt??0)*p[0]/100,c.m.name+'强化吸血')??0;if(c.a.hp>0&&c.a.hp<c.a.stats.maxHp/p[1]&&healed>0)c.hurt(c.t,healed,c.m.name+'低体等量百分比','percent');},[pct,[1,9999]]);
 {const old=registry[1617];registry[1617]=Object.freeze({...old,validate(p,m,i){if(m?.id===27437&&m.provider==='seerapi'&&m.hash==='c4d14645'&&i===1&&JSON.stringify(p)==='[4,100,9,1]')return;old.validate(p,m,i);}});}
 
 metadata[1428]={"info":"{0}%使对手全属性-1，{1}回合内每回合对手{2}","args_num":8};
@@ -2258,7 +2352,7 @@ add(1666,'beforeUse',(c,p)=>{const upper=c.hasBedDomain(c.a)?p[2]:p[1];c.hits=p[
 {const old=registry[1666];registry[1666]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(!(p[0]<=p[1]&&p[1]<=p[2]))throw Error('领域连击区间颠倒');}});}
 add(2229,'afterHit',(c,p)=>c.timed(c.a,'用招强化登场反应',p[0],{}),[turns]);
 add(2539,'battleStart',c=>{c.a.soulState.bedPartnerPP=true;},[]);
-add(1667,'afterHit',c=>c.ailment(c.t,'束缚',c.a),[],'仅下2回合对手无法主动切换的真实换宠分支延期；当前束缚已实现；043确认时空漩涡仅为束缚与切换限制的统称');
+add(1667,'afterHit',c=>{c.ailment(c.t,'束缚',c.a);if(c.teamMode)c.timed(c.t,'不能主动切换',2,{noSwitch:true},c.round+1);},[],'仅下2回合对手无法主动切换的真实换宠分支延期；当前束缚已实现；043确认时空漩涡仅为束缚与切换限制的统称');
 add(1668,'afterHit',(c,p)=>{const n=c.missingPP(c.t)*p[0];if(n<=0)return;const before=c.damageTotal(c.t,'fixed');if(c.t.hp>0)c.hurt(c.t,n,c.m.name+'PP已损固定','fixed');if(c.a.hp>0&&c.t.hp>0&&c.damageTotal(c.t,'fixed')===before)c.hurt(c.t,n,c.m.name+'未受固定补真','true');},[[0,99999]]);
 
 metadata[1635]={"info":"立刻恢复自身{0}点体力，{1}回合后恢复自身全部体力","args_num":2};
@@ -2533,7 +2627,7 @@ metadata[1763]={"info":"对手当前被处决精灵体力高于最大体力的1/
 metadata[1764]={"info":"对手当前不存在被处决精灵或被处决精灵体力低于最大体力的1/{0}则下回合重新发动处决","args_num":1};
 metadata[1765]={"info":"附加自身最大体力{0}%的百分比伤害并恢复等量体力值，若对手存在处决印记则转变为等量的真实伤害","args_num":1};
 
-add(1634,'beforeOrder',c=>{if(c.a.hp<250)c.forceFirst=true;},[]);
+add(1634,'beforeOrder',c=>{if(c.a.hp<250){c.forceFirst=true;(c.firstOrderSourceEffects??=[]).push(1634);}},[]);
 add(1756,'afterHit',(c,p)=>{const eligible=Object.values(c.t.effects).some(e=>conditionStatusRules.timedPresent(e,c.round)),cleared=c.clear(c.t);if(c.a.hp<=0||c.t.hp<=0)return;let failed=false;if(cleared)failed=!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]}));else failed=eligible;if(failed)c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+p[2];},[pct,[7,23],[1,99]]);
 {const old=registry[1756];registry[1756]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(![7,23].includes(p[1]))throw Error('1756异常参数尚未审核');}});}
 metadata[1700]={info:'解除自身能力下降状态，解除成功则自身免疫下{0}次受到的异常状态',args_num:1};
@@ -2543,13 +2637,13 @@ add(1833,'afterHit',(c,p)=>c.timed(c.a,'对手攻击触发封攻',p[0],{duration
 add(1273,'afterHit',(c,p)=>{if(c.a.hp===c.a.stats.maxHp)c.hurt(c.t,c.a.stats.maxHp/p[0],c.m.name+'满体百分比追加','percent');},[[1,9999]]);
 add(1757,'afterHit',(c,p)=>{c.a.counts.immune=(c.a.counts.immune??0)+p[0];c.a.soulState.immunity1757Charges??=[];for(let i=0;i<p[0];i++)c.a.soulState.immunity1757Charges.push(p[1]);},[[1,99],[0,99999]]);
 add(1758,'afterHit',(c,p)=>c.timed(c.a,'对手用攻削PP1758',p[0],{count:p[1],swords:p[2]}),[turns,[1,5],[1,3]],'死亡后己方圣剑重铸、真实队友/后继精灵消费属于第二阶段；当前对手用攻削PP与双方在场场地圣剑生成已实现');
-add(1759,'afterHit',()=>{},[turns,[0,99]],'对手真实场下被处决精灵的技能PP削减；来自1547入场寻找场下对象的处决系统，不作用当前对手');
+add(1759,'afterHit',(c,p)=>{if(c.teamMode)c.timed(c.a,'处决削减PP',p[0],{amount:p[1]});},[turns,[0,99]],'对手真实场下被处决精灵的技能PP削减；来自1547入场寻找场下对象的处决系统，不作用当前对手');
 add(1476,'afterHit',(c,p)=>c.stage(c.t,-p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1)),[[1,6],[1,9999]]);
 add(1760,'afterHit',(c,p)=>c.stage(c.a,p[0]*(c.executionMarks(c.t)>0?2:1)),[[1,6]],'1547场下或重新登场生成处决印记分支延期；当前1617首次登场可合法给在场对手印记，条件翻倍已实现');
 add(1279,'afterHit',(c,p)=>{if(c.canRemoveNegative(c.a)===false||c.on(c.a,'禁强化'))return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const n=c.a.stages[k];c.stage(c.a,-2*n,[k]);changed ||=c.a.stages[k]>n;}if(changed)c.t.counts.nextSkillInvalid=(c.t.counts.nextSkillInvalid??0)+p[0];},[[1,99]]);
 add(1762,'beforeUse',c=>{c.a.soulState.lowAtUse1762=c.a.hp<c.t.hp;},[pct,[7,7],[0,10]]);registry[1762]=Object.freeze({...registry[1762],hooks:{afterHit(c,p){if(c.a.soulState.lowAtUse1762&&!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]})))c.timed(c.a,'id984',1,{amount:p[2]},c.round+1);}}});
-add(1763,'afterHit',()=>{},[],'当前被处决精灵为真实场下目标；其体力>1/2为己方共享场地添加圣剑，真实处决对象/共享场地机制延期');
-add(1764,'afterHit',()=>{},[[1,9999]],'下回合重新发动1547处决，须寻找真实场下最高体力随机对象；无真实场下目标不创建假处决');
+add(1763,'afterHit',c=>{if(c.teamMode){const f=c.executedReserve();if(f&&f.hp>f.stats.maxHp/2)c.addHolySword();}},[],'当前被处决精灵为真实场下目标；其体力>1/2为己方共享场地添加圣剑，真实处决对象/共享场地机制延期');
+add(1764,'afterHit',c=>{if(c.teamMode){const f=c.executedReserve();if(!f||f.hp<f.stats.maxHp/2)c.a.soulState.repeatExecutionRound=c.round+1;}},[[1,9999]],'下回合重新发动1547处决，须寻找真实场下最高体力随机对象；无真实场下目标不创建假处决');
 add(1765,'afterHit',(c,p)=>{const amount=c.a.stats.maxHp*p[0]/100;c.hurt(c.t,amount,c.m.name+'自身最大HP附伤',c.executionMarks(c.t)>0?'true':'percent');c.heal(c.a,amount,c.m.name+'理论等量回复');},[pct],'仅1547场下/重新登场生成印记的来源分支延期；当前1617在场印记条件转真实伤害和理论等量回复已实现');
 
 metadata[1770]={info:'开启战魂附体：免疫对手下1次攻击技能造成的伤害，若对手使用的攻击技能PP值为满则自身额外免疫下1次受到的固定伤害和百分比伤害',args_num:0};add(1770,'afterHit',c=>c.activateWar1770(c.a),[]);
@@ -2615,7 +2709,7 @@ metadata[134]={"info":"若造成的伤害低于{0}，则所有技能的PP值恢�
 add(1781,'afterHit',(c,p)=>{if(c.shieldValue(c.a)>p[0])c.timed(c.a,'protect',p[1],{},c.round+1);},[[0,99999],turns]);
 add(1497,'afterHit',c=>c.heal(c.a,c.shieldValue(c.a)+c.shieldValue(c.t),c.m.name+'双方护盾回复'),[]);
 add(1782,'beforeOrder',c=>{if(c.shieldValue(c.a)>0)c.priority+=2;},[]);
-add(1783,'afterHit',(c,p)=>{let removed=false,blocked=false;for(const f of [c.a,c.t]){const before=Object.entries(f.effects).filter(([,e])=>conditionStatusRules.timedPresent(e,c.round));removed=c.clear(f)||removed;blocked ||= before.some(([k,e])=>f.effects[k]===e&&conditionStatusRules.timedPresent(e,c.round));}if(removed){c.ailment(c.a,ailments[p[0]],c.a);c.ailment(c.t,ailments[p[0]],c.a);}if(blocked)c.a.soulState.switchLock1783={round:c.round+1,turns:p[1]};},[[9,9],turns],'任意一方回合类效果无法被消除时令对手下指定回合无法主动切换精灵；清双方回合与任意清除成功双方石化当前实现');
+add(1783,'afterHit',(c,p)=>{let removed=false,blocked=false;for(const f of [c.a,c.t]){const before=Object.entries(f.effects).filter(([,e])=>conditionStatusRules.timedPresent(e,c.round));removed=c.clear(f)||removed;blocked ||= before.some(([k,e])=>f.effects[k]===e&&conditionStatusRules.timedPresent(e,c.round));}if(removed){c.ailment(c.a,ailments[p[0]],c.a);c.ailment(c.t,ailments[p[0]],c.a);}if(blocked&&c.teamMode)c.timed(c.t,'不能主动切换',p[1],{noSwitch:true},c.round+1);else if(blocked)c.a.soulState.switchLock1783={round:c.round+1,turns:p[1]};},[[9,9],turns],'任意一方回合类效果无法被消除时令对手下指定回合无法主动切换精灵；清双方回合与任意清除成功双方石化当前实现');
 add(1075,'afterHit',(c,p)=>c.heal(c.a,c.a.hp<c.a.stats.maxHp/p[1]?c.a.stats.maxHp:c.a.stats.maxHp/p[0],c.m.name+'低体回复'),[[1,9999],[1,9999]]);
 add(134,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])c.restorePP(c.a,p[1]);},[[0,99999],[0,99]]);
 
@@ -2645,7 +2739,12 @@ metadata[2439]={info:'获得黯穹之尘',args_num:0};
 add(2439,'afterHit',c=>c.soulAbility(2079,'dust','skill'));
 
 metadata[2440]={info:'未击败对手时恢复当回合所造成攻击伤害的{0}%的体力，若未造成攻击伤害则对手{1}回合内无法主动切换精灵',args_num:2};
-add(2440,'afterAttack',(c,p)=>{if(c.t.hp>0)c.heal(c.a,c.outgoingSettledDamage('attack')*p[0]/100,c.m.name+'回合攻击回复');},[pct,turns],'若未造成攻击伤害则对手无法真实主动切换精灵，等待主动换宠机制');
+add(2440,'afterAttack',(c,p)=>{
+ if(c.t.hp<=0)return;
+ const damage=c.outgoingSettledDamage('attack');
+ if(damage>0)c.heal(c.a,damage*p[0]/100,c.m.name+'回合攻击回复');
+ else if(c.teamMode)c.timed(c.t,'不能主动切换',p[1],{noSwitch:true},c.round+1);
+},[pct,turns],'若未造成攻击伤害则对手无法真实主动切换精灵，等待主动换宠机制');
 
 metadata[1788]={info:'{0}%令对手{1}，未触发则附加自身最大体力{2}%的百分比伤害，若对手免疫百分比伤害则转变为真实伤害',args_num:3};
 add(1788,'afterHit',(c,p)=>{if(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a))return;const n=c.a.stats.maxHp*p[2]/100,result={};c.hurtResolved(c.t,n,c.m.name+'异常未触发','percent',result);if(result.immune&&c.t.hp>0)c.hurt(c.t,n,c.m.name+'免疫转真实','true');},[pct,[28,28],pct]);
@@ -2687,7 +2786,17 @@ add(1798,'afterHit',(c,p)=>{(c.a.soulState.delayedNoAttackAilments??=[]).push({r
 metadata[1381]={info:'消除对手回合类效果，消除成功则自身{0}回合内免疫并反弹异常状态',args_num:1};
 add(1381,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.a,'reflect',p[0],{});},[turns]);
 metadata[1800]={info:'己方场下每存活1只精灵，自身下1次受到的固定伤害、百分比伤害减少{0}%，自身每有1层群芳加护提升{1}%，己方场下每阵亡1只精灵，吸取对手{2}点体力，自身每有1层群芳加护提升{3}点',args_num:4};
-add(1800,'afterHit',(c,p)=>{const layers=c.a.soulState.yuliFangLayers??0;if(layers>0){c.a.counts.nextPinkReduction=(c.a.counts.nextPinkReduction??0)+1;c.a.soulState.nextPinkReductionFraction=Math.min(1,layers*p[1]/100);healthRules.drainFixed(c,layers*p[3],c.m.name+'加护吸取');}},[pct,pct,[0,99999],[0,99999]],'己方真实场下存活精灵对下一次固定/百分比减伤的贡献及场下阵亡精灵对吸取的贡献；自身加护层数的当前贡献已实现');
+add(1800,'afterHit',(c,p)=>{
+ const layers=c.a.soulState.yuliFangLayers??0;
+ const population=c.teamMode?c.teamPopulation(c.a.side):{live:1,dead:0};
+ const reduction=Math.max(0,population.live-1)*p[0]+layers*p[1];
+ if(reduction>0){
+   c.a.counts.nextPinkReduction=(c.a.counts.nextPinkReduction??0)+1;
+   c.a.soulState.nextPinkReductionFraction=Math.min(1,reduction/100);
+ }
+ const amount=population.dead*p[2]+layers*p[3];
+ if(amount>0)healthRules.drainFixed(c,amount,c.m.name+'加护吸取');
+},[pct,pct,[0,99999],[0,99999]],'己方真实场下存活精灵对下一次固定/百分比减伤的贡献及场下阵亡精灵对吸取的贡献；自身加护层数的当前贡献已实现');
 metadata[1801]={info:'若上回合自身未受到攻击伤害则附加对手最大体力1/{0}的百分比伤害',args_num:1};
 add(1801,'afterHit',(c,p)=>{if(!c.a.soulState.previousAttackRoundKnown)return;if(c.a.soulState.previousRoundSettledAttackDamage===0)c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'上回合未受攻附伤','percent');},[[1,9999]]);
 metadata[1802]={info:'若上回合自身受到了攻击伤害则下{0}次受到的攻击伤害不会超过上回合所受攻击伤害的数额',args_num:1};
@@ -2809,7 +2918,7 @@ metadata[1737]={info:'附加自身已损失PP值总和x{0}的固定伤害，对�
 metadata[1178]={info:'自身不处于能力提升状态则造成的伤害翻倍',args_num:0};add(1178,'beforeDamage',c=>{if(!Object.values(c.a.stages).some(n=>n>0))c.modifier*=2;});
 
 metadata[1177]={info:'自身处于能力提升状态则使自身能力提升状态翻倍',args_num:0};add(1177,'afterHit',c=>{for(const k of stats){const n=c.a.stages[k];if(n>0)c.stage(c.a,n,[k]);}});
-metadata[1871]={info:'若自身当前体力低于对手则为自身附加等同于双方最大体力差值的护盾',args_num:0};add(1871,'afterHit',c=>{if(c.a.hp<c.t.hp)c.addShield(c.a,Math.abs(c.a.stats.maxHp-c.t.stats.maxHp),'aurora-maxhp-difference');});
+metadata[1871]={info:'若自身当前体力低于对手则为自身附加等同于双方最大体力差值的护盾',args_num:0};add(1871,'afterHit',c=>{if(c.a.hp<c.t.hp)c.refreshShield(c.a,Math.abs(c.a.stats.maxHp-c.t.stats.maxHp),'aurora-maxhp-difference');});
 
 {const old=registry[1333];registry[1333]=Object.freeze({...old,validate(p,m,i){if(m?.id===28111&&m.hash==='4907d482'&&m.provider==='seerapi'&&i===3&&JSON.stringify(p)==='[100,28]')return;old.validate(p,m,i);}});}
 
@@ -2836,12 +2945,30 @@ metadata[819]={info:'出手时本回合若未受到攻击伤害，则附加自�
 {const old=registry[547],bindings=[{"id":36249,"hash":"ff336635","index":0,"args":[0,3]},{"id":36249,"hash":"ff336635","index":1,"args":[8,3]}];registry[547]=Object.freeze({...old,validate(p,m,i){if(m.provider==='seerapi'&&bindings.some(b=>b.id===m.id&&b.hash===m.hash&&b.index===i&&JSON.stringify(b.args)===JSON.stringify(p)))return;old.validate(p,m,i);}});}
 // Q-N20-4354-006 now confirms the public 692 HP-loss semantics; the exact 36246 pending marker is historical.
 
-metadata[2473]={info:'己方每阵亡1只精灵，每次在场限1次，获得1种鬼祰',args_num:0};add(2473,'deferred',()=>{},[],'己方真实队伍每阵亡一只精灵且本次在场未领取对应次数时获得1种鬼祰；第一阶段不伪造队伍阵亡数');
+metadata[2473]={info:'己方每阵亡1只精灵，每次在场限1次，获得1种鬼祰',args_num:0};add(2473,'afterHit',c=>{
+ if(!c.teamMode)return;
+ const st=c.a.soulState,visit=st.teamEntry?.number??1;
+ if(st.ghostGrant2473?.visit!==visit)st.ghostGrant2473={visit,claimed:0};
+ const grant=st.ghostGrant2473,dead=c.teamPopulation(c.a.side).dead;
+ while(grant.claimed<dead){
+   const missing=c.ghostKinds.filter(kind=>!c.a.effects['鬼祰·'+kind]||c.a.effects['鬼祰·'+kind].end<c.round);
+   if(!missing.length)break;
+   c.gainGhost(c.a,missing[Math.floor(c.random()*missing.length)]);
+   grant.claimed++;
+ }
+},[],'己方真实队伍每阵亡一只精灵且本次在场未领取对应次数时获得1种鬼祰；第一阶段不伪造队伍阵亡数');
 metadata[2470]={info:'解除自身能力下降状态，自身不处于能力下降状态则改为消除对手能力提升状态',args_num:0};add(2470,'afterHit',c=>{if(Object.values(c.a.stages).some(n=>n<0))c.clearNegative(c.a);else c.clearBoost(c.t);});
 metadata[2471]={info:'{0}%令对手{1}，未触发则消除对手回合类效果并令自身{2}',args_num:3};add(2471,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a))){c.clear(c.t);c.ailment(c.a,ailments[p[2]],c.a);}},[pct,[31,31],[14,14]]);
 metadata[2377]={info:'对手每处于1种能力下降威力提升{0}点',args_num:1};add(2377,'beforeDamage',(c,p)=>{c.power+=Object.values(c.t.stages).filter(n=>n<0).length*p[0];},[[0,9999]]);
 metadata[2469]={info:'消耗自身的鬼祰，每消耗1道自身恢复最大体力的1/4与所有技能1点PP值，达到4道时为双方进入四杀鬼囹',args_num:0};add(2469,'afterHit',c=>{const n=c.ghostCount(c.a);c.consumeGhosts(c.a);for(let j=0;j<n;j++){c.heal(c.a,c.a.stats.maxHp/4,c.m.name+'鬼祰消费回复');c.restorePP(c.a,1);}if(n===4)c.a.soulState.pendingFourKillDomain={round:c.round,duration:4};},[],'四杀鬼囹中双方4回合无法主动切换精灵的真实换宠分支；当前禁回复/禁附加异常/技能命中失效单独实施');
-metadata[2472]={info:'对对方所有精灵附加4点固定伤害，然后对手每有一只精灵未受到此伤害，本场战斗此伤害额外乘4，最高不超过自身的最大体力',args_num:0};add(2472,'afterHit',c=>{const st=c.a.soulState,n=Math.min(c.a.stats.maxHp,st.ghostFixedAmount??4),before=c.outgoingSettledDamage('fixed');c.hurt(c.t,n,c.m.name+'当前对手固定伤害','fixed');const settled=c.outgoingSettledDamage('fixed')-before;if(settled<=0)st.ghostFixedAmount=Math.min(c.a.stats.maxHp,n*4);else st.ghostFixedAmount=n;},[],'对方真实其他队伍精灵受到固定伤害及每只未受该伤害后的累计乘4；当前在场对手4点起、未受正固定则后续乘4及自身maxHP封顶已实现');
+metadata[2472]={info:'对对方所有精灵附加4点固定伤害，然后对手每有一只精灵未受到此伤害，本场战斗此伤害额外乘4，最高不超过自身的最大体力',args_num:0};add(2472,'afterHit',c=>{const st=c.a.soulState,n=Math.min(c.a.stats.maxHp,st.ghostFixedAmount??4),targets=c.teamMode?c.teamMembers(c.t).filter(f=>f.hp>0):[c.t];
+ let next=n;
+ for(const target of targets){
+   const before=c.outgoingSettledDamage('fixed');
+   c.hurt(target,n,c.m.name+'固定伤害','fixed');
+   if(c.outgoingSettledDamage('fixed')===before)next=Math.min(c.a.stats.maxHp,next*4);
+ }
+ st.ghostFixedAmount=next;},[],'对方真实其他队伍精灵受到固定伤害及每只未受该伤害后的累计乘4；当前在场对手4点起、未受正固定则后续乘4及自身maxHP封顶已实现');
 {const old=registry[800],bindings=[{"id":24701,"hash":"327b8005","index":1,"args":[3,2,250]},{"id":29345,"hash":"d919435b","index":1,"args":[4,2,250]}];registry[800]=Object.freeze({...old,execute(c,p){if(bindings.some(b=>b.id===(c.m.wikiId??c.m.id)&&(c.m.hash===b.hash||c.m.revision==='seerapi:'+b.hash)&&b.index===c.effectInstanceIndex&&JSON.stringify(b.args)===JSON.stringify(p))){c.timed(c.a,'对手属性后限伤',p[0],{duration:p[1],amount:p[2],cumulativeRoundRed:true,attackOnly:true});return;}old.execute(c,p);}});}
 
 {const old=registry[1843];registry[1843]=Object.freeze({...old,validate(p,m,i){if(m?.id===38384&&m.provider==='seerapi'&&m.hash==='861ebb39'&&i===3&&JSON.stringify(p)==='[250,100,6]')return;old.validate(p,m,i);}});}
@@ -2864,7 +2991,7 @@ metadata[1893]={"info":"伤害计算时克制倍数至少为1，若自身拥有1
 metadata[1894]={"info":"再现本次登场所解析的技能（当回合触发的先制修改效果无法再现），若本次登场尚未解析技能或解析的技能与本技能同名，则附加300点真实伤害并恢复等量体力，若再现的技能为攻击技能，则造成的攻击伤害提升50%，若再现的技能为属性技能，则恢复自身所有其他技能1点PP值","args_num":0};
 metadata[1896]={"info":"清除对手被解析技能的PP值，若对手不存在技能被解析则解析对手当回合选择的技能（覆盖原本被解析的技能）","args_num":0};
 metadata[1908]={"info":"{0}%概率受到自身最大体力1/{1}的百分比伤害，剩下{2}%概率附加自身最大体力1/{3}的百分比伤害","args_num":4};
-add(1887,'beforeOrder',c=>{if((c.a.soulState.futureSingularity??0)>0)c.priority++;});
+add(1887,'beforeOrder',c=>{if((c.a.soulState.futureSingularity??0)+(c.a.soulState.futureLink??0)>0)c.priority++;});
 add(1888,'afterHit',(c,p)=>c.soulAbility(1664,'gainFutureSingularity',p[0]),[[1,3]]);
 add(1889,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.hurt(c.t,p[2],c.m.name+'疲惫未触发','true');},[pct,[7,7],[0,99999]],undefined,undefined,{onInvalid(c){c.ailment(c.t,'疲惫',c.a);c.hurt(c.t,400,c.m.name+'无效补偿','true');}});
 // Explicit Q-N20-4333-003 skill-invalid exception, bound only to the audited4450 source.
@@ -2876,7 +3003,7 @@ registry[1889]=Object.freeze({...old,validate(p,m,i){old.validate(p,m,i);if(m?.i
 add(1890,'afterHit',(c,p)=>c.timed(c.a,'对手属性后免粉',p[0],{count:p[1],fraction:p[2]/100}),[turns,[1,99],pct]);
 add(1891,'afterHit',(c,p)=>c.stage(c.a,p[0]*(Object.keys(c.t.soulState.parsedSkills??{}).length?2:1)),[[1,6]]);
 add(1892,'afterHit',(c,p)=>c.timed(c.a,'低体固定吸取失败真伤',p[0],{amount:p[1],threshold:1/p[2],failureDamage:p[3]}),[turns,[0,99999],[1,9999],[0,99999]]);
-add(1893,'beforeDamage',c=>{const n=Math.min(3,c.a.soulState.futureSingularity??0);c.affinity=Math.max(c.affinity,[1,1.25,1.5,2][n]);});
+add(1893,'beforeDamage',c=>{const n=Math.min(3,(c.a.soulState.futureSingularity??0)+(c.a.soulState.futureLink??0));c.affinity=Math.max(c.affinity,[1,1.25,1.5,2][n]);});
 add(1896,'afterHit',c=>{const keys=Object.keys(c.t.soulState.parsedSkills??{});if(keys.length){if(!c.ppReductionBlocked(c.t))for(const k of keys)clearPp2125(c,c.t,k);return;}const m=c.selectedMove(c.t);if(m.kind==='item'||m.id==='struggle')return;(c.t.soulState.parsedSkills??={})[m.id]={sourceSide:c.a.side,soulId:1664,round:c.round};c.a.soulState.futureParsedMove={id:m.id,name:m.name,kind:m.kind};});
 add(1908,'afterHit',(c,p)=>{const x=c.random()*100;if(x<p[0])c.hurt(c.a,c.a.stats.maxHp/p[1],c.m.name+'自身百分比','percent');else if(x<p[0]+p[2])c.hurt(c.t,c.a.stats.maxHp/p[3],c.m.name+'对手百分比','percent');},[pct,[1,9999],pct,[1,9999]]);
 add(1894,'beforeUse',c=>{const parsed=c.a.soulState.futureParsedMove,m=parsed?c.moveDefinition(parsed.id):null;if(!m||m.name===c.m.name){c.hurt(c.t,300,c.m.name+'未解析追加','true');c.heal(c.a,300,c.m.name+'理论等量回复','skill');return;}if(typeof c.reproduceSkillComponent!=='function')throw Error('1894缺少整招内部组件执行器');c.reproduceSkillComponent(m);});registry[1894]=Object.freeze({...registry[1894],validate(p,m,i){if(m.id!==36303||m.hash!=='9ce8cd45'||m.revision!=='seerapi:9ce8cd45'||i!==0||JSON.stringify(p)!=='[]')throw Error('1894精确来源未审核');},hooks:{...registry[1894].hooks,beforeOrder(c){const p=c.a.soulState.futureParsedMove,m=p?c.moveDefinition(p.id):null;if(m&&m.name!==c.m.name){c.runReplayOrder(m);c.priority+=m.priority??0;}}}});
@@ -3053,7 +3180,11 @@ metadata[1965]={"info":"附加己方存活精灵共计已损失体力{0}%的百�
 add(1521,'afterHit',(c,p)=>{if(c.t.gender===undefined)throw Error('1521缺少真实对手性别');if(c.t.gender===2){c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'雌性回复');c.timed(c.a,'属性技能先制',1,{amount:p[1]},c.round+1);}},[[1,9999],[-20,20]]);
 add(1520,'afterHit',(c,p)=>{if(c.t.gender===undefined)throw Error('1520缺少真实对手性别');if(c.t.gender===1){c.hurt(c.t,c.a.stats.maxHp/p[0],c.m.name+'雄性百分比','percent');c.timed(c.a,'攻击先制',1,{amount:p[1]},c.round+1);}},[[1,9999],[-20,20]]);
 add(1964,'beforeOrder',c=>{if(c.a.soulState.prophecies?.triumph)c.priority++;});
-add(1965,'afterHit',(c,p)=>{if(c.a.hp>0)c.hurt(c.t,Math.max(0,c.a.stats.maxHp-c.a.hp)*p[0]/100,c.m.name+'当前自身已损体力',c.a.soulState.prophecies?.triumph?'true':'percent');},[pct],'其它己方存活精灵已损体力加入总和；凯旋且当回合KO后恢复场下体力最低首位全部HP和PP，当前自身贡献已实现');
+add(1965,'afterHit',(c,p)=>{if(c.a.hp<=0)return;const live=c.teamMode?c.teamMembers(c.a).filter(f=>f.hp>0):[c.a];
+ const lost=live.reduce((sum,f)=>sum+Math.max(0,f.stats.maxHp-f.hp),0),triumph=c.a.soulState.prophecies?.triumph;
+ if(c.teamMode&&(triumph||c.a.soulState.triumphRestorationRound===c.round))c.a.soulState.triumphRestorationPayloadRound=c.round;
+ if(c.teamMode&&triumph)c.a.soulState.triumphRestorationRound=c.round;
+ c.hurt(c.t,lost*p[0]/100,c.m.name+(c.teamMode?'存活队友已损体力':'当前自身已损体力'),triumph?'true':'percent');},[pct],'其它己方存活精灵已损体力加入总和；凯旋且当回合KO后恢复场下体力最低首位全部HP和PP，当前自身贡献已实现');
 {const old=registry[1305];registry[1305]=Object.freeze({...old,deferred:'己方其它队伍成员存活/死亡计数对应回复与固定伤害；当前自身存活贡献已实现',execute(c,p){if(c.a.hp>0)c.heal(c.a,p[0],c.m.name+'当前自身存活一只');}});}
 for(const [id,index,value]of [[1952,1,8],[878,1,31],[968,1,31],[1798,1,8]]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(p[index]===value){const q=p.slice();q[index]=id===1952?6:id===878?6:id===968?6:23;return old.validate(q,m,i);}return old.validate(p,m,i);}});}
 {const old=registry[1952],exact=(c,p)=>(c.m.wikiId??c.m.id)===36554&&(c.m.hash==='302aad3e'||c.m.revision==='seerapi:302aad3e')&&c.effectInstanceIndex===1&&JSON.stringify(p)==='[100,8]'||((c.m.wikiId??c.m.id)===38453&&(c.m.hash==='ad75b4ba'||c.m.revision==='seerapi:ad75b4ba')&&c.effectInstanceIndex===3&&JSON.stringify(p)==='[100,6]');registry[1952]=Object.freeze({...old,execute(c,p){old.execute(c,p);if(exact(c,p))c.a.soulState.confirmed1952Order={round:c.round,move:c.m.id,speed:c.t.stages.spe>0};},hooks:{...old.hooks,beforeDamage(c,p){if(!exact(c,p))return old.hooks.beforeDamage(c);const order=c.a.soulState.confirmed1952Order,defense=c.m.kind==='physical'?'def':'spd';c.a.soulState.corolinaIgnoreSuccess={round:c.round,move:c.m.id,had:!!(order?.round===c.round&&order.move===c.m.id&&order.speed)||!c.crit&&c.t.stages[defense]>0};}}});}
@@ -3065,7 +3196,7 @@ metadata[1966]={"info":"消除对手能力提升状态，若消除成功且自�
 metadata[1967]={"info":"若自身持有回体标记则{0}回合内自身回合类效果无法被消除（后出手则延续1回合）","args_num":1};
 metadata[1968]={"info":"若对手未持有失体Ⅰ则为对手附加持续{0}回合的失体Ⅰ，若对手已持有失体Ⅰ则将回合数刷新至{1}回合","args_num":2};
 metadata[1969]={"info":"若对手持有失体标记则{0}回合内自身的能力提升状态无法被消除或吸取（后出手则延续1回合）","args_num":1};
-metadata[1971]={info:"未击败对手则解放自身当前持有的回体Ⅰ和对手当前持有的失体Ⅰ，解放成功任意一项则令对手下回合无法主动切换精灵且先制效果失效",args_num:0};add(1971,'afterAttack',c=>{if(c.t.hp<=0)return;let n=0;for(const [f,name]of [[c.a,'回体Ⅰ'],[c.t,'失体Ⅰ']])if(c.healthState(f,name)&&healthRules.removeState(f,name))n++;if(n){c.timed(c.t,'先制效果失效',1,{},c.round+1);c.a.soulState.liberation1971={round:c.round,removed:n,switchBlockRound:c.round+1,deferredSwitch:true};}},[], '解放成功任意一项则下回合对手无法真实主动换宠；当前立即删除两标记与先制失效实现');
+metadata[1971]={info:"未击败对手则解放自身当前持有的回体Ⅰ和对手当前持有的失体Ⅰ，解放成功任意一项则令对手下回合无法主动切换精灵且先制效果失效",args_num:0};add(1971,'afterAttack',c=>{if(c.t.hp<=0)return;let n=0;for(const [f,name]of [[c.a,'回体Ⅰ'],[c.t,'失体Ⅰ']])if(c.healthState(f,name)&&healthRules.removeState(f,name))n++;if(n){if(c.teamMode)c.timed(c.t,'不能主动切换',1,{},c.round+1);c.timed(c.t,'先制效果失效',1,{},c.round+1);c.a.soulState.liberation1971={round:c.round,removed:n,switchBlockRound:c.round+1,deferredSwitch:true};}},[], '解放成功任意一项则下回合对手无法真实主动换宠；当前立即删除两标记与先制失效实现');
 metadata[1970]={"info":"若自身未持有回体Ⅰ则为自身附加持续{0}回合的回体Ⅰ，若自身已持有回体Ⅰ则将回合数刷新至{1}回合","args_num":2};
 metadata[1972]={"info":"对方场下每死亡一只精灵则附加给对手{0}点固定伤害","args_num":1};
 metadata[1237]={"info":"使双方精灵所有技能PP值归零；消除双方能力提升、下降状态以及回合类效果","args_num":0};
@@ -3077,7 +3208,10 @@ add(1967,'afterHit',(c,p)=>{if(c.healthState(c.a,'回体Ⅰ'))c.timed(c.a,'prote
 add(1968,'afterHit',(c,p)=>c.grantHealthState(c.t,'失体Ⅰ',c.healthState(c.t,'失体Ⅰ')?p[1]:p[0],healthMarkSource(c)),[turns,turns]);
 add(1969,'afterHit',(c,p)=>{if(c.healthState(c.t,'失体Ⅰ'))c.timed(c.a,'强化保护',p[0]+(c.a.side===c.first?0:1),{});},[turns]);
 add(1970,'afterHit',(c,p)=>c.grantHealthState(c.a,'回体Ⅰ',c.healthState(c.a,'回体Ⅰ')?p[1]:p[0],healthMarkSource(c)),[turns,turns]);
-add(1972,'afterHit',()=>{},[[0,99999]],'对方真实场下阵亡精灵每只对应固定伤害，零场下无贡献，等待队伍体系');
+add(1972,'afterHit',(c,p)=>{
+  const damage = fallenReserves(c,c.t) * p[0];
+  if (damage) c.hurt(c.t,damage,c.m.name+'场下阵亡附加','fixed');
+},[[0,99999]],'对方真实场下阵亡精灵每只对应固定伤害，零场下无贡献，等待队伍体系');
 add(1237,'afterHit',c=>{for(const f of [c.a,c.t]){if(!c.ppReductionBlocked(f))for(const id of f.moves)clearPp2125(c,f,id);c.clearBoost(f);c.clearNegative(f);c.clear(f);}});
 add(2132,'beforeDamage',c=>{const st=c.a.soulState;st.healthDamage2132={round:c.round,move:c.m.id,had:!!c.healthState(c.t,'失体Ⅰ')};if(st.healthDamage2132.had)c.modifier*=2;},[],undefined,undefined,{afterHit(c){const x=c.a.soulState.healthDamage2132;if(x?.round===c.round&&x.move===c.m.id&&x.had){return;}c.grantHealthState(c.t,'失体Ⅰ',3,healthMarkSource(c));c.ailment(c.t,'害怕',c.a);}});
 add(2133,'beforeOrder',c=>{if(c.healthState(c.a,'回体Ⅰ'))c.priority++;},[],undefined,undefined,{afterHit(c){if(!c.healthState(c.a,'回体Ⅰ')){c.grantHealthState(c.a,'回体Ⅰ',3,healthMarkSource(c));c.ailment(c.t,'疲惫',c.a);}}});
@@ -3119,7 +3253,7 @@ add(1990,'afterHit',(c,p)=>c.stage(c.t,-p[0]*(royalHas(c,'blue','white')?2:1)),[
 add(1991,'afterHit',(c,p)=>c.stage(c.a,p[0]*(royalHas(c,'red','yellow','blue','white')?2:1)),[[0,6]]);
 add(1992,'afterHit',c=>{if(!royalHas(c,'red','yellow','blue','white'))for(const k of ['red','yellow','blue'])royalGuardRules.grant(c.a,k,c.round,royalSource(c));});
 add(1993,'afterHit',(c,p)=>c.timed(c.a,'用招额外真伤',p[0],{amount:p[1]}),[turns,[0,99999]]);
-add(1994,'afterHit',(c,p)=>{const n=['red','yellow','blue'].filter(k=>royalHas(c,k)).length;if(n)c.timed(c.a,'id984',p[0],{amount:n*p[1]},c.round+1);if(royalHas(c,'white'))c.timed(c.t,'先制效果失效',p[2],{},c.round+1);},[turns,[-20,20],turns],'持有白鳞时真实下2回合禁止对方主动切换精灵；当前先制失效已实现');
+add(1994,'afterHit',(c,p)=>{const n=['red','yellow','blue'].filter(k=>royalHas(c,k)).length;if(n)c.timed(c.a,'id984',p[0],{amount:n*p[1]},c.round+1);if(royalHas(c,'white')){c.timed(c.t,'先制效果失效',p[2],{},c.round+1);if(c.teamMode)c.timed(c.t,'不能主动切换',p[2],{},c.round+1);}},[turns,[-20,20],turns],'持有白鳞时真实下2回合禁止对方主动切换精灵；当前先制失效已实现');
 add(1995,'afterHit',c=>{let n=0;for(const color of ['red','yellow','blue'])if(royalGuardRules.state(c.a,color,c.round)&&royalGuardRules.remove(c.a,color))n++;if(n){c.timed(c.a,'protect',n,{});c.timed(c.a,'强化保护',n,{});c.timed(c.t,'弱化不可解除反转',n,{});}if(royalGuardRules.state(c.a,'white',c.round)&&royalGuardRules.disappearWhite(c)){c.a.soulState.guardAttackRewards=(c.a.soulState.guardAttackRewards??0)+1;if(c.t.hp>0)c.hurt(c.t,300,c.m.name+'解放白鳞固定','fixed');if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp*.3,c.m.name+'解放白鳞百分比','percent');if(c.t.hp>0)c.randomFromSharedPool(2,true,1995);if(c.t.hp>0)c.stage(c.t,-2);}});
 {const old=registry[1995];registry[1995]=Object.freeze({...old,selectable:f=>!!f.soulState.royalScaleContract?.unlocked});}
 {const old=registry[613];registry[613]=Object.freeze({...old,validate(p,m,i){if([221,223,224].includes(p[1])){const q=p.slice();q[1]=3;return old.validate(q,m,i);}return old.validate(p,m,i);},execute(c,p){const name=({221:'王',223:'神灵',224:'轮回'})[p[1]];if(name)c.timed(c.a,'指定系别攻击无效',p[0],{type:name});else old.execute(c,p);}});}
@@ -3240,7 +3374,7 @@ metadata[2011]={info:'自身持有北冥狂刃时造成的攻击伤害提升{0}%
 metadata[2016]={info:'{0}回合内使用技能{1}%随机附加{2}种控制类异常状态',args_num:3};add(2016,'afterHit',(c,p)=>c.timed(c.a,'北冥用招随机控制',p[0],{chance:p[1],count:p[2]}),[turns,pct,[1,30]]);
 const exact4515=(m,i,id,hash,index,args,p)=>(m.wikiId??m.id)===id&&(m.hash===hash||m.hash===undefined&&typeof m.id==='string'&&m.id.startsWith('wiki:'))&&m.revision==='seerapi:'+hash&&i===index&&JSON.stringify(args)===JSON.stringify(p);
 {const old=registry[1878],is=(m,i,p)=>exact4515(m,i,36655,'e4ff3a5b',0,[4],p);registry[1878]=Object.freeze({...old,validate(p,m,i){if((m.wikiId??m.id)===36655&&!is(m,i,p))throw Error('4515 1878 source mismatch');old.validate(p,m,i);},qualifiedClear4515:c=>c.clear(c.t),execute(c,p){if((c.m.wikiId??c.m.id)!==36655)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4515 1878 source mismatch');const had=Object.values(c.t.effects).some(e=>conditionStatusRules.timedPresent(e,c.round));c.clear(c.t);if(!had)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'无回合吸取');}});}
-for(const [id,kind]of [[2012,'attack'],[2013,'status']]){metadata[id]={info:'击败对手则令对手下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效',args_num:0};add(id,'afterAttack',c=>{if(c.t.hp>0||!c.t.soulState.deathResolved)return;(c.a.soulState.huoguangNextOpponentRestrictions??={})[id]={sourceMove:c.m.wikiId??c.m.id,revision:c.m.revision,kind,defeatRound:c.round,startRound:c.round+1,duration:1,confirmation:'Q-N50-4515-002'};},[], '真实击败后对方下一只出场精灵在下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效；当前对手复活不算击败，队伍及后继出场第二阶段实现');const old=registry[id];registry[id]=Object.freeze({...old,qualifiedPayload4515(c){c.timed(c.t,kind==='attack'?'attackBlock':'statusBlock',1,{},c.round+1);}});}
+for(const [id,kind]of [[2012,'attack'],[2013,'status']]){metadata[id]={info:'击败对手则令对手下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效',args_num:0};add(id,'afterAttack',c=>{if(c.t.hp>0||!c.t.soulState.deathResolved)return;(c.a.soulState.huoguangNextOpponentRestrictions??={})[id]={sourceMove:c.m.wikiId??c.m.id,revision:c.m.revision,kind,defeatRound:c.round,startRound:c.round+1,duration:1,confirmation:'Q-N50-4515-002'};},[], '真实击败后对方下一只出场精灵在下回合使用的'+(kind==='attack'?'攻击':'属性')+'技能无效；当前对手复活不算击败，队伍及后继出场第二阶段实现');const old=registry[id];registry[id]=Object.freeze({...old,onTeamKnockout:(p,m,round)=>({effectId:id,start:round+1,end:round+1}),onTeamEntry(member,grant){member.effects[kind==='attack'?'attackBlock':'statusBlock']={start:grant.start,end:grant.end};},qualifiedPayload4515(c){c.timed(c.t,kind==='attack'?'attackBlock':'statusBlock',1,{},c.round+1);}});}
 
 
 const exact4516=(m,i,id,hash,index,args,p)=>(m.wikiId??m.id)===id&&(m.hash===hash||m.hash===undefined&&typeof m.id==='string'&&m.id.startsWith('wiki:'))&&m.revision==='seerapi:'+hash&&i===index&&JSON.stringify(args)===JSON.stringify(p);
@@ -3273,7 +3407,7 @@ metadata[1489]={info:'若对手为自身天敌则{0}%令对手{1}，未触发则
 metadata[1490]={info:'若对手为自身天敌则{0}%令对手{1}，未触发则对手{2}回合内属性技能命中效果失效',args_num:3};add(1490,'afterHit',(c,p)=>{if(c.typeAffinity(c.t.type,c.a.type)<=1)return;if(!(statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a)))c.timed(c.t,'属性技能命中效果失效',p[2],{});},[pct,[6,6],turns]);
 const exact4532=(m,i,id,hash,index,args,p)=>(m.wikiId??m.id)===id&&(m.hash===hash||m.hash===undefined&&typeof m.id==='string'&&m.id.startsWith('wiki:'))&&m.revision==='seerapi:'+hash&&i===index&&JSON.stringify(args)===JSON.stringify(p);
 {const old=registry[579],is=(m,i,p)=>exact4532(m,i,36570,'6559eebe',0,[3],p);registry[579]=Object.freeze({...old,validate(p,m,i){if((m.wikiId??m.id)!==36570)return old.validate(p,m,i);if(!is(m,i,p))throw Error('4532 579 source mismatch');},qualifiedReply4532(c,p){if(c.t.hp>0)return c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name);},execute(c,p){if((c.m.wikiId??c.m.id)!==36570)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4532 579 source mismatch');(c.a.soulState.ji579Replies??=[]).push({round:c.round,denominator:p[0],label:c.m.name,moveId:c.m.wikiId??c.m.id,sourceRevision:c.m.revision});}});}
-{const old=registry[690],is=(m,i,p)=>exact4532(m,i,28294,'bbc49c22',0,[3],p);registry[690]=Object.freeze({...old,validate(p,m,i){if((m.wikiId??m.id)!==28294)return old.validate(p,m,i);if(!is(m,i,p))throw Error('4532 690 source mismatch');},qualifiedBlock4532(c,start,duration){c.timed(c.t,'statusBlock',duration,{},start);},execute(c,p){if((c.m.wikiId??c.m.id)!==28294)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4532 690 source mismatch');c.a.soulState.ji690Pending={round:c.round,duration:p[0]};}});}
+{const old=registry[690],is=(m,i,p)=>exact4532(m,i,28294,'bbc49c22',0,[3],p);registry[690]=Object.freeze({...old,validate(p,m,i){if((m.wikiId??m.id)!==28294)return old.validate(p,m,i);if(!is(m,i,p))throw Error('4532 690 source mismatch');},qualifiedBlock4532(c,start,duration){c.timed(c.t,'statusBlock',duration,{},start);},execute(c,p){if((c.m.wikiId??c.m.id)!==28294)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4532 690 source mismatch');return old.execute(c,p);}});}
 metadata[2050]={info:'下{0}次对手使用的先制等级为{1}或{2}的技能无效',args_num:3};add(2050,'afterHit',(c,p)=>{c.t.soulState.ji2050={count:p[0],levels:p.slice(1)};},[[1,99],[-10,10],[-10,10]]);
 metadata[2051]={info:'若未命中则为自身附加刻，为对手附加痕',args_num:0};add(2051,'onMiss',c=>{c.soulAbility(1745,'grantKe');c.soulAbility(1745,'grantHen');},[],undefined,undefined,{onInvalid(c){if(c.invalidReason?.blocked){c.soulAbility(1745,'grantKe');c.soulAbility(1745,'grantHen');}}});
 {const old=registry[574],is=(m,i,p)=>exact4532(m,i,28384,'70b97509',1,[],p);registry[574]=Object.freeze({...old,deferred:'当前自身消耗与其复活后的下一技能必先/必中、下一命中攻击必暴已实现；真正后继己方精灵继承同一队伍收益待第二阶段',validate(p,m,i){if((m.wikiId??m.id)!==28384)return old.validate(p,m,i);if(!is(m,i,p))throw Error('4532 574 source mismatch');},execute(c,p){if((c.m.wikiId??c.m.id)!==28384)return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4532 574 source mismatch');c.a.soulState.ji574NextSkill=true;c.a.soulState.ji574NextLandedCrit=true;c.a.hp=0;}});}
@@ -3300,9 +3434,9 @@ add(2044,'afterHit',(c,p)=>{if(!conditionStatusRules.conditionPresent(c.t,c.roun
 add(2045,'afterAttack',(c,p)=>{const n=c.t.soulState.guiFu1747??0;if(!c.crit&&n>0){c.grantAttackPriority(c.a,1,n*p[1],'2045',true);}},[[1,1],[1,1]]);
 add(2046,'afterAttack',(c,p)=>{if(c.crit)c.heal(c.a,c.a.stats.maxHp/p[1]*Math.floor((c.t.soulState.guiFu1747??0)/p[0]),c.m.name);},[[1,1],[4,4]]);
 add(2047,'afterHit',(c,p)=>{if(c.steal(c.a,c.t,c.m.name))c.timed(c.t,'属性技能命中效果失效',p[0],{});},[turns]);
-add(2048,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>=p[0])return;let n=p[1];if((c.t.soulState.guiFu1747??0)>=p[2]){c.soulAbility(1747,'releaseGuiFu');n+=p[3];}c.a.counts.immune=(c.a.counts.immune??0)+n;},[[300,300],[1,1],[4,4],[1,1]]);
+add(2048,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>=p[0])return;let n=p[1];if((c.t.soulState.guiFu1747??0)>=p[2]){c.soulAbility(1747,'releaseGuiFu');n+=p[3];}c.grantOracleImmunity(c.a,n,'2048:'+c.m.id+':'+c.effectInstanceIndex,'generic');},[[300,300],[1,1],[4,4],[1,1]]);
 add(2049,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<=p[0])return;let type='fixed';if((c.t.soulState.guiFu1747??0)>=p[2]){c.soulAbility(1747,'releaseGuiFu');type='true';}c.hurt(c.t,p[1],c.m.name,type);},[[300,300],[300,300],[4,4]]);
-{const old=registry[521],specs=[{"moveId":31293,"hash":"5d69284b","index":0,"args":[]}],is=(m,i,p)=>specs.some(x=>exact4535(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m?.wikiId??m?.id));registry[521]=Object.freeze({...old,deferred:undefined,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4535 521 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4535 521 source mismatch');const values=Object.fromEntries(Object.entries(c.a.stages).filter(([,v])=>v<0).map(([k,v])=>[k,-v]));if(c.canRemoveNegative?.(c.a)===false)return;const result=c.rewriteStageValues(c.a,values,'reverse');}});}
+{const old=registry[521],specs=[{"moveId":31293,"hash":"5d69284b","index":0,"args":[]}],is=(m,i,p)=>specs.some(x=>exact4535(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m?.wikiId??m?.id));registry[521]=Object.freeze({...old,deferred:undefined,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4535 521 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4535 521 source mismatch');return reverseOwnNegative521(c);}});}
 {const old=registry[1232],specs=[{"moveId":36760,"hash":"5263be85","index":0,"args":[]}],is=(m,i,p)=>specs.some(x=>exact4535(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[1232]=Object.freeze({...old,deferred:undefined,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4535 1232 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4535 1232 source mismatch');const values=Object.fromEntries(Object.entries(c.a.stages).filter(([,v])=>v<0).map(([k,v])=>[k,-v]));if(c.canRemoveNegative?.(c.a)===false)return;const result=c.rewriteStageValues(c.a,values,'reverse');for(const k of result.removedNegative)c.stage(c.t,-result.after[k],[k]);}});}
 {const old=registry[1090],specs=[{"moveId":36762,"hash":"7803bd47","index":3,"args":[2]}],is=(m,i,p)=>specs.some(x=>exact4535(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[1090]=Object.freeze({...old,deferred:old.deferred,deferredFor(p,m,i){return is(m,i,p)?'击败后真实下一只对手，自击败下回合起两回合攻击无伤且全部技能词条封锁':old.deferred;},validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4535 1090 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4535 1090 source mismatch');if(c.t.hp<=0&&c.t.soulState.deathResolved)c.a.soulState.youmei1090NextOpponent={duration:p[0],startRound:c.round+1,move:c.m.wikiId??c.m.id,sourceRevision:c.m.revision,status:'deferred-next-opponent'};}});}
 
@@ -3323,8 +3457,8 @@ metadata[531]={"info":"造成的伤害低于280时每相差2点有1%的概率使
 metadata[1910]={"info":"全属性+{0}，自身拥有护罩时强化效果翻倍","args_num":1};
 add(531,'afterAttack',c=>{const gap=280-(c.settledDamage??c.dealt);if(gap<=0)return;if(statusRoll(c,Math.min(100,Math.floor(gap/2))))c.ailment(c.t,'害怕',c.a);});
 add(1910,'afterHit',(c,p)=>c.stage(c.a,p[0]*((c.a.suitState.barrier??0)>0?2:1)),[[1,6]]);
-{const old=registry[521],specs=[{"moveId":18195,"hash":"fc642ea5","index":1,"args":[]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m?.wikiId??m?.id));registry[521]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 521 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 521 source mismatch');if(c.canRemoveNegative?.(c.a)===false)return;const values=Object.fromEntries(Object.entries(c.a.stages).filter(([,v])=>v<0).map(([k,v])=>[k,-v]));c.rewriteStageValues(c.a,values,'reverse');}});}
-{const old=registry[951],specs=[{"moveId":36791,"hash":"224bb94d","index":0,"args":[1]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[951]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 951 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 951 source mismatch');const values=Object.fromEntries(Object.entries(c.t.stages).filter(([,v])=>v>0).map(([k,v])=>[k,-v]));if(c.rewriteStageValues(c.t,values,'reverse').removedPositive.length)c.a.counts.immune=(c.a.counts.immune??0)+p[0];}});}
+{const old=registry[521],specs=[{"moveId":18195,"hash":"fc642ea5","index":1,"args":[]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m?.wikiId??m?.id));registry[521]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 521 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 521 source mismatch');return reverseOwnNegative521(c);}});}
+{const old=registry[951],specs=[{"moveId":36791,"hash":"224bb94d","index":0,"args":[1]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[951]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 951 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 951 source mismatch');const values=Object.fromEntries(Object.entries(c.t.stages).filter(([,v])=>v>0).map(([k,v])=>[k,-v]));if(c.rewriteStageValues(c.t,values,'reverse').removedPositive.length)c.grantOracleImmunity(c.a,p[0],'951:'+c.m.id+':'+c.effectInstanceIndex,'generic');}});}
 {const old=registry[744],specs=[{"moveId":36787,"hash":"96be43d6","index":0,"args":[300]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[744]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 744 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 744 source mismatch');if(c.a.soulState.mota744High&&c.t.hp>0)c.hurt(c.t,p[0],c.m.name,'fixed');},hooks:{...old.hooks,beforeDamage(c,p){if(target(c.m)){if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 744 source mismatch');c.a.soulState.mota744High=c.a.hp>c.t.hp;}else old.hooks?.beforeDamage?.(c,p);}}});}
 {const old=registry[602],specs=[{"moveId":28407,"hash":"92386b3f","index":3,"args":[3,1,0,0,0,0,-1,-1,0]}],is=(m,i,p)=>specs.some(x=>exact4541(m,i,x,p)),target=m=>specs.some(x=>x.moveId===(m.wikiId??m.id));registry[602]=Object.freeze({...old,validate(p,m,i){if(!target(m))return old.validate(p,m,i);if(!is(m,i,p))throw Error('4541 602 source mismatch');},execute(c,p){if(!target(c.m))return old.execute(c,p);if(!is(c.m,c.effectInstanceIndex,p))throw Error('4541 602 source mismatch');c.timed(c.a,'莫塔自身用攻弱化',p[0],{stages:p.slice(3)});}});}
 
@@ -3461,7 +3595,8 @@ const poemReady4586=c=>{if(c.poem1791!==true||c.a.hp<=0)return false;if(c.t.hp<=
 const typedPoem4586=(c,n)=>{if(n<=0)return;if(c.qualifiedTypedPoem1791){if(c.qualifiedTypedPoem1791==='attack')return c.typedAttack(n,'次元龙');if(['fixed','percent','true'].includes(c.qualifiedTypedPoem1791))return c.hurt(c.t,n,'明确诗附伤载荷',c.qualifiedTypedPoem1791);throw Error('invalid qualified poem type');}return c.typedDirect1791(n,'次元龙');};
 add(2086,'poem1791',c=>{if(!poemReady4586(c)||!registry[2086].poemCondition(c))return;const a=c.clear(c.t),b=c.clearBoost(c.t);if(a||b)c.ailment(c.t,'诅咒',c.a);});
 add(2087,'poem1791',c=>{if(!poemReady4586(c)||!registry[2087].poemCondition(c))return;c.grantOracleImmunity(c.a,2,'2087:'+c.m.id,'2087');});
-add(2088,'poem1791',c=>{if(!poemReady4586(c)||!registry[2088].poemCondition(c))return;typedPoem4586(c,c.t.moves.filter(k=>c.t.pp[k]<c.maxPP(k)).length*50);c.timed(c.t,'禁止主动切换',1,{},c.round+1);},[],'诗柱下回合无法主动切换精灵：真实换宠拦截延期，当前附加次元龙伤害已实现');
+for(const id of [2048,2087]){const rule=registry[id];registry[id]=Object.freeze({...rule,onTeamEntry(f,grant,services){services.immunity(f,grant);}});}
+add(2088,'poem1791',c=>{if(!poemReady4586(c)||!registry[2088].poemCondition(c))return;typedPoem4586(c,c.t.moves.filter(k=>c.t.pp[k]<c.maxPP(k)).length*50);c.timed(c.t,'禁止主动切换',1,{noSwitch:true},c.round+1);},[],'诗柱下回合无法主动切换精灵：真实换宠拦截延期，当前附加次元龙伤害已实现');
 add(2089,'poem1791',c=>{if(!poemReady4586(c)||!registry[2089].poemCondition(c))return;typedPoem4586(c,(c.a.pp[c.m.id]??0)*50);c.a.counts.emptyPoemDefeatRestore1791=1;});
 add(2090,'poem1791',c=>{if(!poemReady4586(c))return;const diff=c.a.stats.maxHp-c.t.stats.maxHp;if(diff>0)c.absorbFifthPP(c.a,c.t);typedPoem4586(c,Math.abs(diff)*.5*(diff<0?2:1));});
 for(const [id,condition]of [[2086,c=>{const o=c.poemOutcome1791;if(!o||o.invalid===undefined)throw Error('Q-N50-4514-001：诗渍技能无效判定待确认');return o.invalid===true;}],[2087,c=>Object.keys(c.t.ailments).some(k=>c.t.ailments[k]>=c.round&&c.isControlAilment(k))],[2088,timedEnemy4586],[2089,c=>c.first===c.a.side],[2090,()=>true]])registry[id]=Object.freeze({...registry[id],poemCondition:condition});
@@ -3556,16 +3691,16 @@ metadata[2108]={"info":"交换命起、魂落的层数，未击败对手自身�
 
 add(1581,'beforeDamage',(c,p)=>{const e=c.a.soulState.lowHP1581This;if(e?.round===c.round&&e.move===c.m.id&&e.low)c.modifier*=1+p[1]/100;},[[2,2],[200,200]],undefined,undefined,{beforeAccuracy(c,p){c.a.soulState.lowHP1581This={round:c.round,move:c.m.id,low:c.t.hp<c.t.stats.maxHp/p[0]};}});
 add(712,'afterHit',(c,p)=>{if(c.weaknessBlocked(c.t))throw Error('Q-N50-4511-002：712面板归零与能力下降免疫待确认');const values={};for(let i=0;i<6;i++)if(p[i+1])values[stats[i]]=0;c.timed(c.t,'面板数值设定',p[0],{values});},[[3,3],[1,1],[0,0],[1,1],[0,0],[0,0],[0,0]]);
-const payload21064599=(c,p,basis=null)=>{const l=c.soulAbility(1805,'transferLayer','fall',1);if(l.ming<=l.fall)return;const nominal=c.a.stats.maxHp/p[0],healed=c.heal(c.a,nominal,c.m.name+'命起回复','skill')??0;if(c.t.hp<=0)return; const n=basis==='theoretical'?nominal:healed;if(n>0)c.hurt(c.t,n,c.m.name+'等量百分比伤害','percent');};
+const payload21064599=(c,p,basis=null)=>{const l=c.soulAbility(1805,'transferLayer','fall',1);if(l.ming<=l.fall)return;const nominal=c.a.stats.maxHp/p[0],healed=c.heal(c.a,nominal,c.m.name+'命起回复','skill')??0;if(c.a.hp<=0||c.t.hp<=0)return; const n=basis==='theoretical'?nominal:healed;if(n>0)c.hurt(c.t,n,c.m.name+'等量百分比伤害','percent');};
 add(2106,'afterHit',(c,p)=>payload21064599(c,p),[[1,1]]);
 {const old=registry[2106];registry[2106]=Object.freeze({...old,qualifiedPayload4599:payload21064599});}
 const qualifiedFallDamage4599=(c,hasDead,damageType)=>{if(hasDead)return {deferred:true};if(!damageType)throw Error('Q-N50-4586-006：2107轮回系伤害结算通道待确认');if(damageType==='typed')return c.typedAttack(200,'轮回');return c.hurt(c.t,200,'明确轮回附伤载荷',damageType);};
-add(2107,'afterHit',(c,p)=>{const l=c.soulAbility(1805,'transferLayer','ming',1);if(l.fall>l.ming&&c.t.hp>0)c.typedDirect1805(200,'轮回');},[[200,200]]);
+add(2107,'afterHit',(c,p)=>{const l=c.soulAbility(1805,'transferLayer','ming',1);if(l.fall>l.ming){const fallen=c.teamMode?c.teamReserves(c.t.side).filter(f=>f.hp<=0):[];if(fallen.length){for(const f of fallen)c.vanishTeamFallen(f);}else if(c.t.hp>0)c.typedDirect1805(200,'轮回');}},[[200,200]]);
 {const old=registry[2107];registry[2107]=Object.freeze({...old,qualifiedDamage4599:qualifiedFallDamage4599});}
 const grantNext4599=(c,l,p)=>{c.a.soulState.nextAttack2108={power:l.ming*p[0],priority:l.fall*p[1]};};
 add(2108,'afterAttack',(c,p)=>{c.soulAbility(1805,'swapLayers');c.a.soulState.pendingNext2108={round:c.round,move:c.m.wikiId??c.m.id,use:c.effectUseCount?.(),args:p.slice()};},[[40,40],[1,1]]);
 {const old=registry[1686];registry[1686]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37083)return old.execute(c,p);if(c.a.side===c.first)c.modifier*=1+p[0]/100+(c.t.hp>c.a.hp?p[1]/100:0);},qualifiedModifier4599(c,factor){c.modifier*=factor;}});}
-for(const id of [143,521,1056,1164]){const old=registry[id],moves=sourceRows4599.filter(x=>x.id===id).map(x=>x.moveId);registry[id]=Object.freeze({...old,execute(c,p){if(!moves.includes(c.m?.wikiId??c.m?.id))return old.execute(c,p);const self=[521,1056].includes(id),t=self?c.a:c.t;if(self&&c.canRemoveNegative?.(t)===false)return;const values=Object.fromEntries(Object.entries(t.stages).filter(([,n])=>self?n<0:n>0).map(([k,n])=>[k,-n])),r=c.rewriteStageValues(t,values,'reverse');if(id===1056&&r.removedNegative.length)c.timed(c.t,'statusBlock',p[0],{});if(id===1164&&!r.removedPositive.length){c.clearBoost(c.t);c.clear(c.t);}}});}
+for(const id of [143,521,1056,1164]){const old=registry[id],moves=sourceRows4599.filter(x=>x.id===id).map(x=>x.moveId);registry[id]=Object.freeze({...old,execute(c,p){if(!moves.includes(c.m?.wikiId??c.m?.id))return old.execute(c,p);if(id===521)return reverseOwnNegative521(c);const self=[521,1056].includes(id),t=self?c.a:c.t;if(self&&c.canRemoveNegative?.(t)===false)return;const values=Object.fromEntries(Object.entries(t.stages).filter(([,n])=>self?n<0:n>0).map(([k,n])=>[k,-n])),r=c.rewriteStageValues(t,values,'reverse');if(id===1056&&r.removedNegative.length)c.timed(c.t,'statusBlock',p[0],{});if(id===1164&&!r.removedPositive.length){c.clearBoost(c.t);c.clear(c.t);}}});}
 {const old=registry[191];registry[191]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==28583)return old.execute(c,p);old.execute(c,p);c.a.effects.reflect.suojieReflect4599=true;}});}
 {const old=registry[2006];registry[2006]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m?.wikiId??c.m?.id)===37087)c.a.soulState.suojie2006=true;}});}
 function syncCounter4599(f,field){let records=f.soulState[field+'Sources4599']??[],actual=f.counts[field]??0,known=records.reduce((v,e)=>v+e.count,0);if(actual>known)records.push({key:'legacy:'+records.length,count:actual-known});else for(let left=known-actual;left>0&&records.length;){const last=records.at(-1),used=Math.min(left,last.count);left-=used;last.count-=used;if(!last.count)records.pop();}records=records.filter(e=>e.count>0);f.soulState[field+'Sources4599']=records;return records;}
@@ -3573,7 +3708,7 @@ function grantBoost4714(c,n,fraction,key){const field='nextAttackBoost',records=
 function grantReduction4712(c,n,fraction,key){const field='nextAttackReductionUses',records=syncCounter4599(c.a,field);for(const e of records)if(e.fraction===undefined)e.fraction=c.a.soulState.nextAttackReductionFraction??0;key??='reduction:'+c.effectId+':'+(c.m.wikiId??c.m.id)+':'+c.m.revision+':'+c.effectInstanceIndex;const next=records.filter(e=>e.key!==key);next.push({key,count:n,fraction});c.a.soulState[field+'Sources4599']=next;c.a.soulState.reductionSources4712=true;c.a.counts[field]=next.reduce((a,e)=>a+e.count,0);c.a.soulState.nextAttackReductionFraction=fraction;}
 function refreshCounter4599(c,field,n,key){const records=syncCounter4599(c.a,field).filter(e=>e.key!==key);records.push({key,count:n});c.a.soulState[field+'Sources4599']=records;c.a.counts[field]=records.reduce((v,e)=>v+e.count,0);}
 
-{const old=registry[933];registry[933]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37089)return old.execute(c,p);const ko=c.a.soulState.actualKO2108;if(ko?.round===c.round&&ko.move===37089&&ko.use===c.effectUseCount?.())return;refreshCounter4599(c,'nextCrit',p[0],'933:'+c.m.id+':'+c.m.revision);}});}
+{const old=registry[933];registry[933]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37089)return old.execute(c,p);const ko=c.a.soulState.actualKO2108;if(ko?.round===c.round&&ko.move===37089&&ko.use===c.effectUseCount?.())return;refreshCounter4599(c,'nextCrit',p[0],c.teamMode?teamCritKey933(c):'933:'+c.m.id+':'+c.m.revision);}});}
 {const old=registry[1926];registry[1926]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37087)return old.execute(c,p);refreshCounter4599(c,'nextAttackIgnoreImmunity',p[0],'1926:'+c.m.id+':'+c.m.revision);}});}
 {const old=registry[452];registry[452]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m?.wikiId??c.m?.id)===37085)c.a.effects['攻击吸血'].basis='settled-attack';}});}
 {const old=registry[1952];registry[1952]=Object.freeze({...old,validate(p,m,i){if(sourceRows4599.some(x=>x.id===1952&&exact4599(m,i,x,p)))return;old.validate(p,m,i);}});}
@@ -3619,7 +3754,9 @@ add(1211,'afterHit',(c,p)=>{let changed=false;for(const t of [c.a,c.t]){const be
 const feedback11924600=(c,policy=null)=>{const native=(c.m.wikiId??c.m.id)===37093;if(native&&c.canFeedbackNegative?.(c.a)===false)return;const negative=Object.entries(c.a.stages).filter(([,n])=>n<0);if(!negative.length)return;if(policy?.failed===true){c.clearNegative(c.a);return;}if(!policy&&(c.weaknessBlocked(c.t)||c.canFeedbackNegative?.(c.a)===false))throw Error('Q-N50-4511-002：1192反馈的保护/反制定义待确认');if(c.weaknessBlocked(c.t)){for(const [k,n]of negative)c.stage(c.t,n,[k]);c.clearNegative(c.a);return;}const targetPolicy=policy&&typeof policy==='object'?policy.target:'add';if(!policy&&negative.some(([k,n])=>c.t.stages[k]!==0))throw Error('Q-N50-4600-002：1192目标非零时叠加/设值/取低应用规则待确认');let success=false;for(const [k,n]of negative){const before=c.t.stages[k],desired=targetPolicy==='set'?n:targetPolicy==='lower'?Math.min(before,n):Math.max(-6,Math.min(6,before+n));if(native)c.rewriteStageValues(c.t,{[k]:desired},'feedback',c.a);else c.stage(c.t,desired-before,[k]);success ||=c.t.stages[k]!==before;}if(!success)c.clearNegative(c.a);else{if(!policy)throw Error('Q-N50-4600-002：1192反馈成功后的自身负等级处理待确认');if(policy==='transfer'||policy?.self==='transfer')c.clearNegative(c.a);}};
 add(1192,'afterHit',c=>feedback11924600(c,(c.m.wikiId??c.m.id)===37093?{target:'add',self:'transfer'}:null),[]);{const old=registry[1192];registry[1192]=Object.freeze({...old,qualifiedFeedback4600:feedback11924600});}
 add(1447,'afterHit',(c,p)=>{if(c.a.hp>c.a.stats.maxHp/p[0]&&statusRoll(c,p[1]))c.ailment(c.t,ailments[p[2]],c.a);},[[2,2],[100,100],[8,8]]);
-add(2110,'beforeDamage',()=>{},[],'只读取己方真实场下未来链接精灵及与对手相同系别，按其链接等级改变克制；无当前自身链接授予，不捏造场下成员');
+add(2110,'beforeDamage',c=>{
+ if(c.teamMode)for(const member of c.teamReserves(c.a.side))if(member.hp>0&&member.type===c.t.type)c.affinity+=(member.soulState.futureLink??0)*.5;
+},[],'只读取己方真实场下未来链接精灵及与对手相同系别，按其链接等级改变克制；无当前自身链接授予，不捏造场下成员');
 for(const id of [200,449]){const old=registry[id],moves=sourceRows4600.filter(x=>x.id===id).map(x=>x.moveId);registry[id]=Object.freeze({...old,execute(c,p){if(!moves.includes(c.m?.wikiId??c.m?.id))return old.execute(c,p);if(Object.values(c.t.stages).some(n=>id===200?n>0:n<0)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);}});}
 for(const id of [1538,464]){const old=registry[id],moves=sourceRows4600.filter(x=>x.id===id).map(x=>x.moveId);registry[id]=Object.freeze({...old,execute(c,p){if(!moves.includes(c.m?.wikiId??c.m?.id))return old.execute(c,p);return registry[id].qualifiedPayload4600(c,p);},qualifiedPayload4600(c,p){if(id===1538)c.attackOverride=Math.max(c.panelStat(c.t,'atk'),c.panelStat(c.t,'spa'));else if(c.typeAffinity(c.t.type,c.a.type)>1&&statusRoll(c,p[0]))c.ailment(c.t,'烧伤',c.a);}});}
 {const old=registry[1305];registry[1305]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37122)return old.execute(c,p);if(c.a.hp>0)c.heal(c.a,p[0],c.m.name+'当前自身存活贡献','skill');}});}
@@ -3711,7 +3848,7 @@ const exact4605=(m,i,x,p)=>!!m&&(m.wikiId?(m.provider===undefined||m.provider===
 metadata[2060]={"info":"{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害","args_num":4};
 
 add(2060,'afterHit',(c,p)=>c.timed(c.a,'无限对手用属性睡眠',p[0],{chance:p[1],ailment:'睡眠',denominator:p[3],move:37135,hash:'7cf31912'}),[[1,99],[0,100],[8,8],[1,9999]]);
-registry[2060]=Object.freeze({...registry[2060],qualifiedPayload4605(c,p){if(statusRoll(c,p[1])&&c.ailment(c.t,'睡眠',c.a,false,false,null,{probabilityPercent:p[1]}))return {slept:true,healed:0};const healed=c.heal(c.a,c.a.stats.maxHp/p[3],'无限属性睡眠失败回复','skill')??0;if(healed>0&&c.t.hp>0)c.hurt(c.t,healed,'无限睡眠失败等量百分伤','percent');return {slept:false,healed};}});
+registry[2060]=Object.freeze({...registry[2060],qualifiedPayload4605(c,p){if(statusRoll(c,p[1])&&c.ailment(c.t,'睡眠',c.a,false,false,null,{probabilityPercent:p[1]}))return {slept:true,healed:0};const healed=c.heal(c.a,c.a.stats.maxHp/p[3],'无限属性睡眠失败回复','skill')??0;if(healed>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,healed,'无限睡眠失败等量百分伤','percent');return {slept:false,healed};}});
 for(const id of [35,931,33]){const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){const matched=(id===35&&(c.m?.wikiId??c.m?.id)===10032)||(id===931&&(c.m?.wikiId??c.m?.id)===37132)||(id===33&&(c.m?.wikiId??c.m?.id)===28609);if(!matched)return old.execute(c,p);const actual=k=>c.actualStage(c.t,k);if(id===35){c.power+=stats.reduce((n,k)=>n+Math.max(0,actual(k)),0);return;}if(id===33)return old.execute(c,p);const before=Object.fromEntries(stats.map(k=>[k,actual(k)]));if(!Object.values(before).some(n=>n>0)||c.on(c.a,'禁强化')||c.on(c.t,'hypnosBoostProtect'))return;c.steal(c.a,c.t,'技能');if(!stats.some(k=>before[k]>0&&actual(k)<before[k])||c.ppReductionBlocked(c.t))return;const pool=c.t.moves.filter(id=>c.t.pp[id]>0);for(let i=0;i<p[0]&&pool.length;i++)clearPp2125(c,c.t,pool.splice(Math.floor(c.random()*pool.length),1)[0]);}});}
 {const old=registry[1088];registry[1088]=Object.freeze({...old,execute(c,p){if((c.m?.wikiId??c.m?.id)!==37132)return old.execute(c,p);if((c.settledDamage??c.dealt)>p[0])healthRules.drainPercent(c,c.t.stats.maxHp/p[1],c.m.name+'高伤比例吸取',c.m.name+'理论比例回复');}});}
 {const old=registry[125];registry[125]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m?.wikiId??c.m?.id)===28610)c.a.effects['攻击伤害上限'].cumulativeRoundRed=true;}});}
@@ -4008,7 +4145,7 @@ metadata[2137]={"info":"自身每有1回合异常状态造成伤害提升{0}%，
 {const old=registry[1187];registry[1187]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,1187))return old.execute(c,p);if(!(statusRoll(c,p[0])&&c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:p[0]})))c.clear(c.t);}});}
 {const old=registry[1836];registry[1836]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,1836))return old.execute(c,p);c.timed(c.a,'裂岩低半用招粉伤',p[0],{fraction:1/p[1],threshold:1/p[2]});}});}
 {const old=registry[960];registry[960]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,960))return old.execute(c,p);c.timed(c.a,'裂岩强化用招石化',p[0],{chance:p[1]});}});}
-{const old=registry[799];registry[799]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,799))return old.execute(c,p);const n=c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),healed=c.heal(c.a,n,c.m.name,'skill')??0;if(healed>0)c.hurt(c.t,healed,c.m.name+'实际回复等量百分伤','percent');}});}
+{const old=registry[799];registry[799]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,799))return old.execute(c,p);const n=c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),healed=c.heal(c.a,n,c.m.name,'skill')??0;if(healed>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,healed,c.m.name+'实际回复等量百分伤','percent');}});}
 {const old=registry[939];registry[939]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,939))return old.execute(c,p);if(c.a.side!==c.first){const n=c.a.stats.maxHp/p[0];c.hurt(c.t,n,'裂岩后手百分附伤','percent');c.heal(c.a,n,'裂岩后手理论等量回复','skill');}}});}
 {const old=registry[1659];registry[1659]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,1659))return old.execute(c,p);const low=c.crit?p[2]:p[0],high=c.crit?p[3]:p[1],n=low+Math.floor(c.random()*(high-low+1));if(!c.crit)c.hurt(c.t,n,'裂岩非暴随机固定附伤','fixed');else{const type=c.a.soulState.qualified1659Type4623??'fixed';if(c.t.hp>0&&!['fixed','percent','true'].includes(type))throw Error('Q-BATCH-004：1659随机固定数值吸取的类型未答');if(c.t.hp>0)c.hurt(c.t,n,'裂岩暴击随机吸取',type);c.heal(c.a,n,'裂岩暴击随机理论回复','skill');}}});}
 {const old=registry[1719];registry[1719]=Object.freeze({...old,execute(c,p){if(!sourced4623(c,1719))return old.execute(c,p);const ko=c.a.soulState.rift1719KO;if(ko?.round===c.round&&ko.use===c.effectUseCount())c.timed(c.a,'id913',p[0],{bonus:(p[1]+(c.a.soulState.rift1719RedKO?.round===c.round&&c.a.soulState.rift1719RedKO.use===c.effectUseCount()&&c.a.soulState.rift1719RedKO.crit?p[2]:0))/100},c.round+1);else c.a.soulState.rift1719Pending={round:c.round,use:c.effectUseCount()};}});}
@@ -4207,7 +4344,7 @@ add(757,'afterAttack',()=>{},[[16,16],[100,100],[6,6]],'对手处于流血且当
 {const old=registry[2080],b=bindings4628.filter(x=>x.id===2080);registry[2080]=Object.freeze({...old,validate(p,m,i){if(b.some(x=>exact4628(m,i,x,p)))return;if(b.some(x=>x.moveId===(m?.wikiId??m?.id)))throw Error('4628 source mismatch');return old.validate?.(p,m,i);}});}
 {const old=registry[757],b=bindings4628.filter(x=>x.id===757);registry[757]=Object.freeze({...old,validate(p,m,i){if(b.some(x=>exact4628(m,i,x,p)))return;if(b.some(x=>x.moveId===(m?.wikiId??m?.id)))throw Error('4628 source mismatch');return old.validate?.(p,m,i);}});}
 
-{const old=registry[101];registry[101]=Object.freeze({...old,execute(c,p){if(!sourced4628(c,101)||Number(c.a.number)!==4628)return old.execute(c,p);const settled=c.settledDamage??c.dealt,actual=c.dealt,basis=c.a.soulState.qualified101Basis4628??"settled";if(settled!==actual&&!['settled','hp-loss'].includes(basis))throw Error('Q-N50-4628-001：101造成伤害值回复的完整结算/实际HP损失基数待确认，不能由伤害记录全局规则推定');return c.heal(c.a,(basis==='settled'?settled:actual)*p.fraction,c.m.name);}});}
+{const old=registry[101];registry[101]=Object.freeze({...old,execute(c,p){if(!sourced4628(c,101)||Number(c.a.number)!==4628)return old.execute(c,p);return c.heal(c.a,(c.settledDamage??c.dealt)*p.fraction,c.m.name);}});}
 {const old=registry[1842];registry[1842]=Object.freeze({...old,execute(c,p){if(!sourced4628(c,1842))return old.execute(c,p);c.timed(c.a,'赫布用招低体吸取',p[0],{amount:p[1],lowAmount:p[2],grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount()});}});}
 
 {const old=registry[576];registry[576]=Object.freeze({...old,execute(c,p){if(!sourced4628(c,576))return old.execute(c,p);c.timed(c.a,'小额攻击免疫',p[0],{threshold:p[1],sanguine576:true});}});}
@@ -4459,7 +4596,7 @@ add4642(2103,'afterHit',(c,p)=>{if(reverse2103_4642(c)&&statusRoll(c,p[0]))c.ail
 {const old=registry[469];registry[469]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,469))return old.execute(c,p);c.timed(c.a,'哀目对手用属性失神',p[0],{chance:p[1]});}});}
 {const old=registry[2040];registry[2040]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,2040))return old.execute(c,p);},deferredFor(p,m,i){if(bindings4642.some(b=>b.id===2040&&exact4642(m,i,b,p)))return '3回合内对手真实主动换宠出战100%失神，依赖换宠时点/新目标';return old.deferredFor?old.deferredFor(p,m,i):old.deferred;}});}
 {const old=registry[1135];registry[1135]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,1135))return old.execute(c,p);if(c.a.hp>=c.a.stats.maxHp/p[0])return;const before=c.a.hp,actual=c.heal(c.a,c.a.stats.maxHp,c.m.name+'低体回满','skill')??0,basis=c.a.soulState.qualified1135Basis4642??'actual';if(!['actual','missing','maximum'].includes(basis)&&actual!==c.a.stats.maxHp-before)throw Error('Q-N50-4599-005：1135全回复后等量固定基数待确认');if(!basis)throw Error('Q-N50-4599-005：1135全回复理论量缺失量还是上限待确认');const n=basis==='actual'?actual:basis==='missing'?c.a.stats.maxHp-before:c.a.stats.maxHp;if(n>0)c.hurt(c.t,n,c.m.name+'明确回复基数附固','fixed');}});}
-{const old=registry[1239];registry[1239]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,1239))return old.execute(c,p);const lowBefore=c.a.hp<c.a.stats.maxHp/p[1],amount=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复','skill')??0,lowAfter=c.a.hp<c.a.stats.maxHp/p[1],policy=c.a.soulState.qualified1239Policy4642??{condition:"before",type:"percent"};if(!amount)return;if(!lowBefore&&!lowAfter)return;if(lowBefore!==lowAfter&&!['before','after'].includes(policy?.condition))throw Error('Q-N50-4642-011：1239低体条件取回复前还是后待确认');const low=policy?.condition==='after'?lowAfter:lowBefore;if(!low)return;if(!['fixed','percent'].includes(policy?.type))throw Error('Q-N50-4642-011：1239 API固定/百分伤字段矛盾待确认');c.hurt(c.t,amount,c.m.name+'明确条件和伤害类型附伤',policy.type);}});}
+{const old=registry[1239];registry[1239]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,1239))return old.execute(c,p);const lowBefore=c.a.hp<c.a.stats.maxHp/p[1],amount=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复','skill')??0,lowAfter=c.a.hp<c.a.stats.maxHp/p[1],policy=c.a.soulState.qualified1239Policy4642??{condition:"before",type:"percent"};if(!amount||c.a.hp<=0||c.t.hp<=0)return;if(!lowBefore&&!lowAfter)return;if(lowBefore!==lowAfter&&!['before','after'].includes(policy?.condition))throw Error('Q-N50-4642-011：1239低体条件取回复前还是后待确认');const low=policy?.condition==='after'?lowAfter:lowBefore;if(!low)return;if(!['fixed','percent'].includes(policy?.type))throw Error('Q-N50-4642-011：1239 API固定/百分伤字段矛盾待确认');c.hurt(c.t,amount,c.m.name+'明确条件和伤害类型附伤',policy.type);}});}
 {const old=registry[1695];registry[1695]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,1695))return old.execute(c,p);c.timed(c.a,'哀目用招回复或满体粉',p[0],{fraction:1/p[1],fullFraction:1/p[2],grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount()});}});}
 {const old=registry[1030];registry[1030]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,1030))return old.execute(c,p);const negatives=stats.filter(k=>c.a.stages[k]<0);if(!negatives.length)return;const policy=c.a.soulState.qualified1030Policy4642??{apply:'add',success:'clear'};if(c.canFeedbackNegative?.(c.a)===false||c.canRemoveNegative?.(c.a)===false)return;if(negatives.some(k=>c.t.stages[k]!==0)&&!['add','set','minimum'].includes(policy?.apply))throw Error('Q-N50-4600-002：1030非零目标反馈算法待确认');if(!['clear','retain'].includes(policy?.success))throw Error('Q-N50-4600-002：1030反馈成功自身是否清负待确认');let changed=false;for(const k of negatives){const old=c.t.stages[k],n=policy.apply==='set'?c.a.stages[k]:policy.apply==='minimum'?Math.min(old,c.a.stages[k]):old+c.a.stages[k];c.stage(c.t,n-old,[k]);const moved=c.t.stages[k]<old;changed||=moved;if(moved&&policy.success==='clear')c.a.stages[k]=0;}if(changed)c.ailment(c.t,'失神',c.a);}});}
 for(const id of [783,1109]){const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){if(!sourced4642(c,id))return old.execute(c,p);old.execute(c,p);c.a.effects[id===783?'强化被清追加':'强化被清吸取'].ayami4642=true;}});}
@@ -4693,7 +4830,7 @@ add4647(849,'beforeUse',()=>{},[[3,3],[3,3]],undefined,{afterHit(c,p){c.timed(c.
 function steal8494647(c){const e=c.a.effects['星光伤前吸能力'];if(!e||c.a.soulState.star849Round===c.round)return;const policy=c.a.soulState.qualified849Coupling4647??'independent',pool=[...stats],selected=[];for(let i=0;i<e.count&&pool.length;i++)selected.push(pool.splice(Math.floor(c.random()*pool.length),1)[0]);for(const k of selected){const before=c.actualStage?.(c.t,k)??c.t.stages[k],allowed=before>0?c.boostOperationAllowed4647(c.t):true,guarded=!allowed||before>0&&(c.on(c.t,'强化保护')||c.on(c.t,'幽蝶强化保护'))||c.weaknessBlocked(c.t)||c.on(c.a,'禁强化')||before<=-6||c.a.stages[k]>=6;if(guarded&&!['independent','actual-paired'].includes(policy))throw Error('Q-N50-4589-002：4647/849两端保护与上下限联动待确认');if(allowed)c.stage(c.t,-1,[k]);if(policy!=='actual-paired'||(c.actualStage?.(c.t,k)??c.t.stages[k])<before)c.stage(c.a,1,[k]);}c.a.soulState.star849Round=c.round;c.a.soulState.star849Draw=selected;}
 {const old=registry[849];registry[849]=Object.freeze({...old,qualifiedPayload4647:steal8494647});}
 add4647(497,'afterHit',(c,p)=>{const use=c.effectUseCount(),n=Math.min(p[2],p[0]+Math.max(0,use-1)*p[1]);c.hurt(c.t,n*(c.typeAffinity(c.t.type,c.a.type)>1?2:1),c.m.name+'使用次数固定附伤','fixed');},[[200,200],[100,100],[400,400]]);
-add4647(1249,'afterAttack',(c,p)=>{const full=c.settledDamage??c.dealt,loss=c.hpLoss??c.dealt,e=c.a.soulState.star1249Use,total=e?.round===c.round&&e.move===c.m.id?c.outgoingSettledDamage()-e.before:full,scope=c.a.soulState.qualified1249Basis4647??'attack';if((full!==loss||full!==total)&&!['attack','hp-loss','all-this-use'].includes(scope))throw Error('Q-N50-4628-001：4647/1249本体完整红伤或实际HP减少量或本次总伤害的回复基数待确认');const amount=(scope==='hp-loss'?loss:scope==='all-this-use'?total:full)*p[0]/100,actual=c.heal(c.a,amount,c.m.name+'伤害比例回复','skill')??0;if(c.t.hp<=0||!conditionStatusRules.conditionPresent(c.t,c.round))return;const mode=c.a.soulState.qualified1249Additional4647??'actual-heal';if(actual!==amount&&!['nominal','actual-heal'].includes(mode))throw Error('Q-N20-4503-002：4647/1249等量百分附伤在溢出或禁疗时理论/实际回复基数待确认');c.hurt(c.t,mode==='actual-heal'?actual:amount,c.m.name+'异常等量百分附伤','percent');},[[100,100]],undefined,{beforeUse(c){c.a.soulState.star1249Use={round:c.round,move:c.m.id,use:c.effectUseCount(),before:c.outgoingSettledDamage()};}});
+add4647(1249,'afterAttack',(c,p)=>{const full=c.settledDamage??c.dealt,loss=c.hpLoss??c.dealt,e=c.a.soulState.star1249Use,total=e?.round===c.round&&e.move===c.m.id?c.outgoingSettledDamage()-e.before:full,scope=c.a.soulState.qualified1249Basis4647??'attack';if((full!==loss||full!==total)&&!['attack','hp-loss','all-this-use'].includes(scope))throw Error('Q-N50-4628-001：4647/1249本体完整红伤或实际HP减少量或本次总伤害的回复基数待确认');const amount=(scope==='hp-loss'?loss:scope==='all-this-use'?total:full)*p[0]/100,actual=c.heal(c.a,amount,c.m.name+'伤害比例回复','skill')??0;if(c.t.hp<=0||!conditionStatusRules.conditionPresent(c.t,c.round))return;c.hurt(c.t,actual,c.m.name+'异常等量百分附伤','percent');},[[100,100]],undefined,{beforeUse(c){c.a.soulState.star1249Use={round:c.round,move:c.m.id,use:c.effectUseCount(),before:c.outgoingSettledDamage()};}});
 for(const id of [...new Set(bindings4647.map(b=>b.id))]){const old=registry[id];if(!old){if([1,6].includes(id))continue;throw Error('4647 missing effect '+id);}registry[id]=Object.freeze({...old,validate(p,m,i){if(bindings4647.some(b=>b.id===id&&exact4647(m,i,b,p)))return;if(bindings4647.some(b=>b.id===id&&b.moveId===(m?.wikiId??m?.id)))throw Error('4647 source mismatch '+id);return old.validate?.(p,m,i);}});}
 
 
@@ -4719,7 +4856,7 @@ const custom4650={
 for(const id of new Set(bindings4650.map(b=>b.id))){const old=old4650[id],fresh=registry[id];if(!fresh)throw Error('4650 missing registry '+id);const hooks={...fresh.hooks};registry[id]=Object.freeze({...fresh,validate(p,m,i){const b=bindings4650.find(b=>b.id===id&&exact4650(m,i,b,p));if(b){if(!Array.isArray(p)||p.length!==fresh.argsNum||!p.every(Number.isInteger))throw Error('4650 original arity required');return;}if(legacyBindings4650.some(b=>b.id===id&&exact4650(m,i,b,p)))return old?.validate?.(p,m,i);if(bindings4650.some(b=>b.id===id&&b.moveId===(m?.wikiId??m?.id)))throw Error('4650 exact source/hash/index/params required');if(old)return old.validate?.(p,m,i);throw Error('4650 exact source required');},execute(c,p){if(!source4650(c,id)){if(old?.execute)return old.execute(c,p);throw Error('4650 exact source required');}return custom4650[id]?custom4650[id](c,p,old):fresh.execute(c,p);},hooks});}
 function consumeWind2035(c){const e=c.a.soulState.windPP2035;if(!e?.count||!['physical','special'].includes(c.m.kind))return;const immunity=c.a.soulState.qualified2035Immune4650??"include",blocked=c.a.soulState.qualified2035Blocked4650??'exclude';if(c.attackImmune&&!['include','exclude'].includes(immunity)||c.hitEffectsDisabled&&!['include','exclude'].includes(blocked)){const err=Error('Q-N50-4646-010：2035免攻0/命中效果封锁时是否消费待确认');err.wind2035={round:c.round,actor:structuredClone(c.a),target:structuredClone(c.t),attackImmune:!!c.attackImmune,hitEffectsDisabled:!!c.hitEffectsDisabled};throw err;}if(c.attackImmune&&immunity==='exclude'||c.hitEffectsDisabled&&blocked==='exclude')return;const pp=c.a.pp[c.m.id],base=c.a.soulState.basePPCostThisUse,baseCost=base?.round===c.round&&base.move===c.m.id?base.amount:0,policy=c.a.soulState.qualified2035Count4650??'total-use';if(baseCost>0&&!['additional-only','total-use'].includes(policy)){const err=Error('Q-N50-4646-010：2035耗尽PP是否计本次基础消费待确认');err.wind2035={round:c.round,actor:structuredClone(c.a),target:structuredClone(c.t),current:pp,baseCost};throw err;}const counted=pp+(policy==='total-use'?baseCost:0);c.consumeWindPP2035();if(c.t.hp>0)c.stage(c.t,-Math.floor(counted/e.unit)*e.amount);e.count--;c.a.soulState.windPP2035Last={round:c.round,move:c.m.id,additional:pp,base:baseCost,counted,policy:policy??'common-zero-base',count:e.count};if(e.count===0)delete c.a.soulState.windPP2035;}
 registry[2035]=Object.freeze({...registry[2035],consumeWind2035});
-function wind1875(c){const e=c.a.effects['风暴用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount(),first=c.a.soulState.qualified1875First4650??'immediate';if(same&&!['immediate','next-use'].includes(first)){const err=Error('Q-N50-4625-011：4650持续用招回复同招首触待确认');err.wind1875First={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],hp:c.a.hp,effect:{...e}};throw err;}if(same&&first==='next-use')return;const requested=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),before=c.a.hp,actual=c.heal(c.a,requested,'风暴用招低体回复','skill')??0,policy=c.a.soulState.qualified1875Basis4650??'actual';let amount=actual;if(Math.floor(requested)!==actual){if(policy==='requested')amount=requested;else if(policy!=='actual'){const err=Error('Q-N20-4503-002：4650恢复后等量百分伤的理论请求/实际恢复基数待确认');err.wind1875={round:c.round,move:c.m.id,requested,actual,hpBefore:before,hp:c.a.hp,targetHp:c.t.hp,pp:c.a.pp[c.m.id]};throw err;}}c.a.soulState.wind1875Resolving={round:c.round,move:c.m.id,use:c.effectUseCount()};try{if(amount>0)c.hurt(c.t,amount,'风暴用招等量百分比','percent');}finally{delete c.a.soulState.wind1875Resolving;}(c.a.soulState.wind1875Events??=[]).push({round:c.round,move:c.m.id,requested,actual,amount,policy:policy??'common-equal'});}
+function wind1875(c){const e=c.a.effects['风暴用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount(),first=c.a.soulState.qualified1875First4650??'immediate';if(same&&!['immediate','next-use'].includes(first)){const err=Error('Q-N50-4625-011：4650持续用招回复同招首触待确认');err.wind1875First={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],hp:c.a.hp,effect:{...e}};throw err;}if(same&&first==='next-use')return;const requested=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),before=c.a.hp,actual=c.heal(c.a,requested,'风暴用招低体回复','skill')??0,policy='actual';const amount=actual;c.a.soulState.wind1875Resolving={round:c.round,move:c.m.id,use:c.effectUseCount()};try{if(amount>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,amount,'风暴用招等量百分比','percent');}finally{delete c.a.soulState.wind1875Resolving;}(c.a.soulState.wind1875Events??=[]).push({round:c.round,move:c.m.id,requested,actual,amount,policy:policy??'common-equal'});}
 registry[1875]=Object.freeze({...registry[1875],wind1875});
 
 const bindings4648=[{"moveId":20003,"hash":"dc05c8fc","index":0,"id":41,"args":[5,5]},{"moveId":10020,"hash":"49fbc1ba","index":0,"id":34,"args":[2]},{"moveId":20011,"hash":"1a4905a9","index":0,"id":4,"args":[1,100,2]},{"moveId":37383,"hash":"478e3a20","index":0,"id":1897,"args":[2,200,2,50]},{"moveId":37383,"hash":"478e3a20","index":1,"id":48,"args":[2]},{"moveId":37383,"hash":"478e3a20","index":2,"id":47,"args":[2]},{"moveId":11010,"hash":"cf4bcd8a","index":0,"id":14,"args":[10]},{"moveId":20010,"hash":"192c113","index":0,"id":4,"args":[0,100,2]},{"moveId":37384,"hash":"e0cb0c4c","index":0,"id":14,"args":[100]},{"moveId":28736,"hash":"ee4dd0cc","index":0,"id":4,"args":[0,100,2]},{"moveId":28736,"hash":"ee4dd0cc","index":1,"id":4,"args":[4,100,2]},{"moveId":28736,"hash":"ee4dd0cc","index":2,"id":4,"args":[5,100,2]},{"moveId":37385,"hash":"5a751274","index":0,"id":929,"args":[2]},{"moveId":37385,"hash":"5a751274","index":1,"id":1202,"args":[200,1,300]},{"moveId":28737,"hash":"319d5efe","index":0,"id":191,"args":[4]},{"moveId":28737,"hash":"319d5efe","index":1,"id":1166,"args":[2,2]},{"moveId":28737,"hash":"319d5efe","index":2,"id":1239,"args":[1,2]},{"moveId":28737,"hash":"319d5efe","index":3,"id":817,"args":[3]},{"moveId":37386,"hash":"c11f2e0a","index":0,"id":2158,"args":[15]},{"moveId":28738,"hash":"da3d8da0","index":0,"id":1014,"args":[1,2]},{"moveId":28738,"hash":"da3d8da0","index":1,"id":776,"args":[2]},{"moveId":28738,"hash":"da3d8da0","index":2,"id":1304,"args":[2,25]},{"moveId":28738,"hash":"da3d8da0","index":3,"id":486,"args":[2]},{"moveId":37387,"hash":"11b32951","index":0,"id":699,"args":[]},{"moveId":37387,"hash":"11b32951","index":1,"id":1568,"args":[]},{"moveId":37387,"hash":"11b32951","index":2,"id":937,"args":[50,15,2,2]},{"moveId":37387,"hash":"11b32951","index":3,"id":101,"args":[50]},{"moveId":37381,"hash":"257493d8","index":0,"id":1172,"args":[1,5,10,20,1,0,0,0,1,1]},{"moveId":37381,"hash":"257493d8","index":1,"id":950,"args":[2]},{"moveId":37381,"hash":"257493d8","index":2,"id":2179,"args":[75]},{"moveId":37381,"hash":"257493d8","index":3,"id":1206,"args":[20,10,40]}];
@@ -4732,11 +4869,11 @@ metadata[34]={"info":"将所受的伤害{0}倍反馈给对手","args_num":1};
 
 add4648(2179,'beforeDamage',(c,p)=>{if(c.soulAbility(1849,'hasFlare',c.t))c.modifier*=1+p[0]/100*(c.a.hp<c.t.hp?2:1);},[[75,75]]);
 add4648(1172,'beforeUse',(c,p)=>{c.hits=p[1]+Math.floor(c.random()*(p[2]-p[1]+1));},[[1,1],[5,5],[10,10],[20,20],[1,1],[0,0],[0,0],[0,0],[1,1],[1,1]],undefined,{afterHit(c,p){if(roll(c,p[3]))for(let i=0;i<6;i++)if(p[i+4])c.stage(c.a,p[i+4],[stats[i]]);}});
-function reflection4648(c,multiplier,restore){if(!c.a.soulState.qualifiedReflection4648){const full=c.settledDamage??c.dealt,loss=c.hpLoss??c.dealt,nominal=c.incomingOpponentRedDamage()*multiplier;c.a.soulState.starReflection4648={round:c.round,move:c.m.id,nominal,settled:full,actual:loss,bodyRed:true};if(restore){const basis=c.a.soulState.qualified929Heal4648??'nominal';if((nominal!==full||full!==loss)&&!['nominal','settled','hp-loss'].includes(basis))throw Error('Q-N50-4608-002：4648/929本体红伤已确认，等量回复的名义/结算/实际HP基数仍待回答');c.heal(c.a,basis==='nominal'?nominal:basis==='hp-loss'?loss:full,c.m.name+'本体反馈等量回复','skill');}return;}const ever=['attack','fixed','percent','true','direct'].reduce((n,t)=>n+c.damageTotal(c.a,t),0);if(ever===0)return;const policy=c.a.soulState.qualifiedReflection4648;if(!policy||!['round-attack','round-all','battle-attack','battle-all'].includes(policy.basis)||!['true','fixed','percent'].includes(policy.type))throw Error('Q-N50-4608-002：4648/34与929反伤载荷的类型和统计窗口待确认');const bases={'round-attack':c.incomingSettledDamage('attack'),'round-all':c.incomingSettledDamage(),'battle-attack':c.damageTotal(c.a,'attack'),'battle-all':ever},n=bases[policy.basis]*multiplier,result=c.reflectDamage4648(c.t,n,policy.type,restore),actual=result.hpLoss;c.a.soulState.starReflection4648={round:c.round,move:c.m.id,nominal:n,settled:result.settledDamage,actual,policy:{...policy}};if(restore){const heal=policy.healBasis;if(n!==actual&&!['nominal','settled','hp-loss'].includes(heal))throw Error('Q-N50-4608-002：4648/929反弹后等量回复基数待确认');c.heal(c.a,heal==='hp-loss'?actual:heal==='settled'?result.settledDamage:n,c.m.name+'明确反弹等量回复','skill');}}
+function reflection4648(c,multiplier,restore){if(!restore){const nominal=c.incomingSettledDamage('attack')*multiplier,result=c.reflectDamage4648(c.t,nominal,'true',false);c.a.soulState.starReflection4648={round:c.round,move:c.m.id,nominal,settled:result.settledDamage,actual:result.hpLoss,bodyRed:false,policy:{basis:'round-attack',type:'true',confirmation:'human-effect34-2026-11-12'}};return;}if(!c.a.soulState.qualifiedReflection4648){const full=c.settledDamage??c.dealt,loss=c.hpLoss??c.dealt,nominal=c.incomingOpponentRedDamage()*multiplier;c.a.soulState.starReflection4648={round:c.round,move:c.m.id,nominal,settled:full,actual:loss,bodyRed:true};if(restore){const basis=c.a.soulState.qualified929Heal4648??'nominal';if((nominal!==full||full!==loss)&&!['nominal','settled','hp-loss'].includes(basis))throw Error('Q-N50-4608-002：4648/929本体红伤已确认，等量回复的名义/结算/实际HP基数仍待回答');c.heal(c.a,basis==='nominal'?nominal:basis==='hp-loss'?loss:full,c.m.name+'本体反馈等量回复','skill');}return;}const ever=['attack','fixed','percent','true','direct'].reduce((n,t)=>n+c.damageTotal(c.a,t),0);if(ever===0)return;const policy=c.a.soulState.qualifiedReflection4648;if(!policy||!['round-attack','round-all','battle-attack','battle-all'].includes(policy.basis)||!['true','fixed','percent'].includes(policy.type))throw Error('Q-N50-4608-002：4648/34与929反伤载荷的类型和统计窗口待确认');const bases={'round-attack':c.incomingSettledDamage('attack'),'round-all':c.incomingSettledDamage(),'battle-attack':c.damageTotal(c.a,'attack'),'battle-all':ever},n=bases[policy.basis]*multiplier,result=c.reflectDamage4648(c.t,n,policy.type,restore),actual=result.hpLoss;c.a.soulState.starReflection4648={round:c.round,move:c.m.id,nominal:n,settled:result.settledDamage,actual,policy:{...policy}};if(restore){const heal=policy.healBasis;if(n!==actual&&!['nominal','settled','hp-loss'].includes(heal))throw Error('Q-N50-4608-002：4648/929反弹后等量回复基数待确认');c.heal(c.a,heal==='hp-loss'?actual:heal==='settled'?result.settledDamage:n,c.m.name+'明确反弹等量回复','skill');}}
 add4648(34,'afterHit',(c,p)=>reflection4648(c,p[0],false),[[2,2]]);
 add4648(929,'afterHit',(c,p)=>reflection4648(c,p[0],true),[[2,2]]);
 add4648(1202,'afterAttack',(c,p)=>{const red=c.settledDamage??c.dealt,e=c.a.soulState.starReflection4648,reflected=e?.round===c.round&&e.move===c.m.id&&!e.bodyRed?e.settled:0,total=red+reflected,scope=c.a.soulState.qualified1202Basis4648;if((red<p[0])!==(total<p[0])&&!['attack','all-this-use'].includes(scope))throw Error('Q-N50-4643-011：4648/1202真实反弹与零红的低伤统计范围待确认');if((scope==='all-this-use'?total:red)<p[0]){c.a.counts.nextAttackFlatReductionUses=p[1];c.a.soulState.nextAttackFlatReductionAmount=p[2];}},[[200,200],[1,1],[300,300]]);
-add4648(1239,'afterHit',(c,p)=>{const low=c.a.hp<c.a.stats.maxHp/p[1],nominal=c.a.stats.maxHp/p[0],actual=c.heal(c.a,nominal,c.m.name+'恢复体力','skill')??0;if(low&&c.t.hp>0&&c.a.hp>0){const scope=c.a.soulState.qualified1239Equal4648??'actual-heal';if(nominal!==actual&&!['nominal','actual-heal'].includes(scope))throw Error('Q-N20-4503-002：4648/1239低体回复后等量百分比的实际/理论基数待确认');c.hurt(c.t,scope==='nominal'?nominal:actual,c.m.name+'低体等量百分比','percent');}},[[1,1],[2,2]]);
+add4648(1239,'afterHit',(c,p)=>{const low=c.a.hp<c.a.stats.maxHp/p[1],nominal=c.a.stats.maxHp/p[0],actual=c.heal(c.a,nominal,c.m.name+'恢复体力','skill')??0;if(low&&c.t.hp>0&&c.a.hp>0){c.hurt(c.t,actual,c.m.name+'低体等量百分比','percent');}},[[1,1],[2,2]]);
 add4648(1166,'afterHit',(c,p)=>{if(c.canRemoveNegative?.(c.a)===false)return;const had=stats.some(k=>c.a.stages[k]<0);if(had){c.clearNegative(c.a);if(!stats.some(k=>c.a.stages[k]<0))c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);}},[[2,2],[2,2]]);
 add4648(2158,'afterHit',(c,p)=>{if(c.clearAilments(c.a).length>0)c.ailment(c.t,'冰封',c.a);},[[15,15]]);
 add4648(937,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,'冰封',c.a)))c.timed(c.t,'id984',p[2],{amount:-p[3]},c.round+1);},[[50,50],[15,15],[2,2],[2,2]]);
@@ -4778,15 +4915,15 @@ add(2178,'beforeDamage',(c,p)=>{const e=c.t.soulState.starEntangle1847;if(e?.sou
 const custom4649={
  521(c,p,old){if(c.canRemoveNegative?.(c.a)===false)return;for(const k of stats)if(c.a.stages[k]<0){const n=-c.a.stages[k];c.a.stages[k]=0;c.stage(c.a,n,[k]);}},
  1035(c,p){if(!(statusRoll(c,p[0])&&c.ailment(c.t,'焚烬',c.a)))c.timed(c.a,'攻击概率异常',p[2],{chance:p[3],ailment:'害怕'},c.round+1);},
- 628(c,p){if(!Object.values(c.t.stages).some(n=>n<0)||c.a.hp>=c.a.stats.maxHp)return;const policy=c.a.soulState.qualified628Basis4649??'settled-red';if(!['actual-red','settled-red','whole-skill'].includes(policy)){const err=Error('Q-N50-4628-001：4649/628伤害回复的完整/实际与同招167后续300统计范围待确认');err.star628={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],actorHp:c.a.hp,targetHp:c.t.hp,actualRed:c.dealt,settledRed:c.settledDamage};throw err;}if(policy==='whole-skill'){c.a.soulState.star628Pending={round:c.round,move:c.m.id,use:c.effectUseCount(),fraction:p[0]/100,red:c.settledDamage??0,fixedBefore:c.damageTotal(c.t,'fixed')};return;}c.heal(c.a,(policy==='actual-red'?c.dealt:c.settledDamage)*p[0]/100,'星光负级伤害回复','skill');},
+ 628(c,p){if(!Object.values(c.t.stages).some(n=>n<0)||c.a.hp>=c.a.stats.maxHp)return;const policy='settled-red';if(!['actual-red','settled-red','whole-skill'].includes(policy)){const err=Error('Q-N50-4628-001：4649/628伤害回复的完整/实际与同招167后续300统计范围待确认');err.star628={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],actorHp:c.a.hp,targetHp:c.t.hp,actualRed:c.dealt,settledRed:c.settledDamage};throw err;}if(policy==='whole-skill'){c.a.soulState.star628Pending={round:c.round,move:c.m.id,use:c.effectUseCount(),fraction:p[0]/100,red:c.settledDamage??0,fixedBefore:c.damageTotal(c.t,'fixed')};return;}c.heal(c.a,(policy==='actual-red'?c.dealt:c.settledDamage)*p[0]/100,'星光负级伤害回复','skill');},
  167(c,p,old){const out=old.execute(c,p),e=c.a.soulState.star628Pending;if(e?.round===c.round&&e.move===c.m.id&&e.use===c.effectUseCount()){c.heal(c.a,(e.red+c.damageTotal(c.t,'fixed')-e.fixedBefore)*e.fraction,'星光明确整招统计回复','skill');delete c.a.soulState.star628Pending;}return out;},
  427(c,p){c.timed(c.a,'直接攻击降双防',p[0],{amount:p[1],star4274649:true,grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount()});},
  532(c,p){c.timed(c.a,'星光使用技能回复附伤',p[0],{fraction:1/p[1],grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount(),sourceHash:'72c16473'});},
- 933(c,p){const k=c.a.soulState.starKO4649;if(k?.round===c.round&&k.move===c.m.id&&k.use===c.effectUseCount()&&k.skillKO)return;if(c.t.hp<=0)return;c.a.counts.nextCrit=p[0];c.a.soulState.starReward4649={round:c.round,move:c.m.id,use:c.effectUseCount(),kind:933};},
+ 933(c,p){const k=c.a.soulState.starKO4649;if(k?.round===c.round&&k.move===c.m.id&&k.use===c.effectUseCount()&&k.skillKO)return;if(c.t.hp<=0)return;if(c.teamMode)refreshCounter4599(c,'nextCrit',p[0],teamCritKey933(c));else c.a.counts.nextCrit=p[0];c.a.soulState.starReward4649={round:c.round,move:c.m.id,use:c.effectUseCount(),kind:933};},
  191(c,p,old){const out=old.execute(c,p);if(c.a.effects.reflect)c.a.effects.reflect.star1914649=true;return out;}
 };
 for(const id of new Set(bindings4649.map(b=>b.id))){const old=old4649[id],fresh=registry[id];if(!fresh)throw Error('4649 missing registry '+id);registry[id]=Object.freeze({...fresh,validate(p,m,i){const b=bindings4649.find(b=>b.id===id&&exact4649(m,i,b,p));if(b){if(p.length!==fresh.argsNum||!p.every(Number.isInteger))throw Error('4649 original arity required');return;}if(legacyBindings4649.some(b=>b.id===id&&exact4649(m,i,b,p)))return old?.validate?.(p,m,i);if(bindings4649.some(b=>b.id===id&&b.moveId===(m?.wikiId??m?.id)))throw Error('4649 exact source/hash/index/params required');return old?.validate?.(p,m,i);},execute(c,p){if(!source4649(c,id)){if(old?.execute)return old.execute(c,p);throw Error('4649 exact source required');}return custom4649[id]?custom4649[id](c,p,old):fresh.execute(c,p);},deferredFor(p,m,i){if(id===2162&&bindings4649.some(b=>b.id===2162&&exact4649(m,i,b,p)))return '下次击败当前对手后，令敌方下只出战精灵焚烬；需未来击败归属、换宠与下一只出场异常承接';return fresh.deferredFor?fresh.deferredFor(p,m,i):fresh.deferred;}});}
-function star532(c){const e=c.a.effects['星光使用技能回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount(),first=c.a.soulState.qualified532First4649??'immediate';if(same&&!['immediate','next-use'].includes(first)){const err=Error('Q-N50-4625-011：4649/532持续状态同招首触待确认');err.star532First={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],hp:c.a.hp};throw err;}if(same&&first==='next-use')return;const requested=c.a.stats.maxHp*e.fraction,before=c.a.hp,actual=c.heal(c.a,requested,'星光使用技能回复','skill')??0,policy=c.a.soulState.qualified532Basis4649??'actual';let amount=actual;if(Math.floor(requested)!==actual){if(policy==='requested')amount=requested;else if(policy!=='actual'){const err=Error('Q-N20-4503-002：4649/532先恢复后等量百分伤基数待确认');err.star532={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],before,actual,requested};throw err;}}c.a.soulState.star532Resolving={round:c.round,move:c.m.id,use:c.effectUseCount()};try{if(amount>0)c.hurt(c.t,amount,'星光使用技能等量百分比','percent');}finally{delete c.a.soulState.star532Resolving;}(c.a.soulState.star532Events??=[]).push({round:c.round,requested,actual,amount});}
+function star532(c){const e=c.a.effects['星光使用技能回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount(),first=c.a.soulState.qualified532First4649??'immediate';if(same&&!['immediate','next-use'].includes(first)){const err=Error('Q-N50-4625-011：4649/532持续状态同招首触待确认');err.star532First={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],hp:c.a.hp};throw err;}if(same&&first==='next-use')return;const requested=c.a.stats.maxHp*e.fraction,before=c.a.hp,actual=c.heal(c.a,requested,'星光使用技能回复','skill')??0;const amount=actual;c.a.soulState.star532Resolving={round:c.round,move:c.m.id,use:c.effectUseCount()};try{if(amount>0)c.hurt(c.t,amount,'星光使用技能等量百分比','percent');}finally{delete c.a.soulState.star532Resolving;}(c.a.soulState.star532Events??=[]).push({round:c.round,requested,actual,amount});}
 registry[532]=Object.freeze({...registry[532],star532});
 
 function allowStar427(c){const e=c.a.effects['直接攻击降双防'];if(!e?.star4274649)return true;const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount();if(!same)return true;if(c.on(c.t,'免弱')||c.t.stages.def===-6&&c.t.stages.spd===-6)return false;const p=c.a.soulState.qualified427First4649??'immediate';if(p==='immediate')return true;if(p==='next-use')return false;const err=Error('Q-N50-4625-011：4649/427持续直接攻击降双防同招首触待确认');err.star427={round:c.round,move:c.m.id,pp:c.a.pp[c.m.id],targetHp:c.t.hp,stages:{...c.t.stages}};throw err;}
@@ -4974,7 +5111,7 @@ const custom4661={
  456(c,p){const cancelled=!!conditionGone4661(c,5);if(cancelled||c.t.hp<p[0]){c.a.soulState.fifthDefeat4564661={targetBefore:c.t.hp,threshold:p[0],cancelled};c.defeat(c.t,c.m.name+'低体力直接秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});}}
 };
 function conditionGone4661(c,index){return c.a.soulId===1862&&c.soulAbility(1862,'conditionCancelled',index);}
-function wuwei4661(c,p){const condition=p[0]===3?conditionStatusRules.conditionPresent(c.a,c.round):p[0]===4?!c.used[c.t.side]:p[0]===5?Object.values(c.t.stages).some(n=>n>0):p[0]===6?c.a.hp<c.a.stats.maxHp:false;if(!condition)return;const spent=c.consumeAllOwnPP4661();if(p[0]===3){(c.a.soulState.deferredWuwei1862??=[]).push({round:c.round,move:c.m.id,spent,targetSide:c.t.side,mechanism:'对手下回合无法主动切换'});return;}if(p[0]===4&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);if(p[0]===5)c.clear(c.t);if(p[0]===6)c.timed(c.t,'id984',1,{amount:-2},c.round+1);(c.a.soulState.wuwei1862Events??=[]).push({round:c.round,move:c.m.id,kind:p[0],spent});}
+function wuwei4661(c,p){const condition=p[0]===3?conditionStatusRules.conditionPresent(c.a,c.round):p[0]===4?!c.used[c.t.side]:p[0]===5?Object.values(c.t.stages).some(n=>n>0):p[0]===6?c.a.hp<c.a.stats.maxHp:false;if(!condition)return;const spent=c.consumeAllOwnPP4661();if(p[0]===3){if(c.teamMode){c.timed(c.t,'不能主动切换',1,{},c.round+1);return;}(c.a.soulState.deferredWuwei1862??=[]).push({round:c.round,move:c.m.id,spent,targetSide:c.t.side,mechanism:'对手下回合无法主动切换'});return;}if(p[0]===4&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-2);if(p[0]===5)c.clear(c.t);if(p[0]===6)c.timed(c.t,'id984',1,{amount:-2},c.round+1);(c.a.soulState.wuwei1862Events??=[]).push({round:c.round,move:c.m.id,kind:p[0],spent});}
 
 function reactAttack6634661(c,stage){const e=c.a.effects['源4661对手用攻束缚'];if(!e||e.sourceHash!=='7e604e80'||!c.on(c.a,'源4661对手用攻束缚')||!['physical','special'].includes(c.m?.kind))return;const policy=c.a.soulState.qualified663Timing1862??'use-end';if(!['before-use','use-end'].includes(policy)){const error=Error('Q-N50-4604-004：4661/663束缚的对手实际用攻击施加时点待确认');error.wuwei663={round:c.round,phase:stage,ownerHP:c.a.hp,enemyHP:c.t.hp,ownerPP:{...c.a.pp},enemyPP:{...c.t.pp},ailments:{...c.t.ailments}};throw error;}if(policy!==stage)return;c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:e.chance});}
 
@@ -5044,7 +5181,7 @@ function source4665(c,id){return bindings4665.some(b=>b.id===id&&exact4665(c.m,c
 const old4665=Object.fromEntries([...new Set(bindings4665.map(b=>b.id))].map(id=>[id,registry[id]]));
 metadata[550]={info:'若自身处于异常状态则恢复全部体力',args_num:1};add(550,'afterHit',c=>{if(conditionStatusRules.conditionPresent(c.a,c.round))c.heal(c.a,c.a.stats.maxHp,c.m.name,'skill');},[[1,1]]);
 metadata[997]={info:'自身体力低于1/{0}时，恢复自身最大体力的1/{1}并造成等量百分比伤害',args_num:2};add(997,'afterHit',(c,p)=>{if(c.a.hp<c.a.stats.maxHp/p[0])healEqual4665(c,c.a.stats.maxHp/p[1],997);},[[2,2],[2,2]]);
-function healEqual4665(c,requested,id){const actual=c.heal(c.a,requested,c.m.name+'回复','skill')??0,policy=c.a.soulState.qualifiedHealEqual4665?.[id]??'actual';let amount=actual;if(Math.floor(requested)!==actual){if(policy==='requested')amount=requested;else if(policy!=='actual'){const err=Error('Q-N20-4503-002：4665恢复后等量附伤的理论请求/实际恢复基数待确认');err.rebirthEqual={id,requested,actual,hp:c.a.hp,targetHp:c.t.hp};throw err;}}if(amount>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name+'回复等量','percent');}
+function healEqual4665(c,requested,id){const actual=c.heal(c.a,requested,c.m.name+'回复','skill')??0;const amount=actual;if(amount>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name+'回复等量','percent');}
 const custom4665={
 1280(c,p){const n=Math.min(p[2],p[0]+p[1]*Math.max(0,c.effectUseCount()-1));c.hurt(c.t,c.a.hp*n/100,c.m.name+'当前体力附加','percent');},
 1932(c,p){c.timed(c.a,'免异常反弹除狂暴',p[0],{rebirth1932:true});},
@@ -5077,7 +5214,7 @@ add4669(1472,'beforeDamage',(c,p)=>{if(Object.values(c.a.stages).some(n=>n>0))c.
 add4669(541,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)<p[0])c.heal(c.a,p[1],c.m.name+'低红伤回复','skill');},[[300,300],[400,400]]);
 add4669(1522,'afterAttack',(c,p)=>{const red=c.settledDamage??c.dealt,total=c.roundSettledAll4669(c.a),withSelf=total+p[0],q=c.a.soulState.qualified1522Basis4669??'round-red';const options={'round-red':c.whaleDamageRound4654(c.a,c.round),'current-red':red,'prior-round-all':total,'round-with-base':withSelf},answers=Object.values(options).map(n=>n>p[1]);if(new Set(answers).size>1&&!Object.hasOwn(options,q))throw Error('Q-N50-4669-011：1522当回合伤害范围及本条基础附伤是否先计入待确认');const n=q?options[q]:red;if(c.t.hp>0)c.hurt(c.t,p[0]*(n>p[1]?2:1),c.m.name+'阈值固定追加','fixed');},[[220,220],[300,300]]);
 add4669(1356,'afterHit',(c,p)=>{if(c.crit){const zero=c.a.soulState.qualifiedZeroCrit4669??(c.attackImmune?'not-critical':'critical');if((c.settledDamage??c.dealt??0)===0&&!['critical','not-critical'].includes(zero))throw Error('Q-N50-4618-002：4669/1356完整红0是否算打出致命一击待确认');if((c.settledDamage??c.dealt??0)>0||zero==='critical')c.hurt(c.t,c.t.stats.maxHp/p[0],c.m.name+'暴击百分比附伤','percent');}},[[3,3]]);
-add4669(933,'afterAttack',(c,p)=>{const ko=c.a.soulState.emberFifthKO4669;const body=ko?.round===c.round&&ko.move===c.m.id&&ko.use===c.effectUseCount()&&ko.skillKO;c.a.soulState.emberFifthReward4669={round:c.round,move:c.m.id,use:c.effectUseCount(),bodyKO:!!body,crit:!!c.crit,nonKOGranted:false};if(!body){c.a.counts.nextCrit=p[0];c.a.soulState.emberFifthReward4669.nonKOGranted=true;}},[[1,1]]);
+add4669(933,'afterAttack',(c,p)=>{const ko=c.a.soulState.emberFifthKO4669;const body=ko?.round===c.round&&ko.move===c.m.id&&ko.use===c.effectUseCount()&&ko.skillKO;c.a.soulState.emberFifthReward4669={round:c.round,move:c.m.id,use:c.effectUseCount(),bodyKO:!!body,crit:!!c.crit,nonKOGranted:false};if(!body){if(c.teamMode)refreshCounter4599(c,'nextCrit',p[0],teamCritKey933(c));else c.a.counts.nextCrit=p[0];c.a.soulState.emberFifthReward4669.nonKOGranted=true;}},[[1,1]]);
 add4669(1719,'afterAttack',(c,p)=>{const e=c.a.soulState.emberFifthReward4669;if(e?.round===c.round&&e.move===c.m.id&&e.use===c.effectUseCount()&&e.bodyKO)c.timed(c.a,'id913',p[0],{bonus:(p[1]+(e.crit?p[2]:0))/100},c.round+1);},[[1,1],[75,75],[75,75]]);
 function first4669(c,e,id){const same=e.grantRound===c.round&&e.grantMove===c.m.id&&e.grantUse===c.effectUseCount(),q=c.a.soulState.qualifiedFirst4669?.[id]??'immediate';if(same&&!['immediate','next-use'].includes(q))throw Error('Q-N50-4625-011：4669持续用招效果首授当次是否触发待确认');return !same||q==='immediate';}
 {const old=registry[1766];registry[1766]=Object.freeze({...old,useEmber4669(c){const e=c.a.effects['紫烬用招烧伤失败扣PP'];if(!first4669(c,e,1766))return;if(!(statusRoll(c,e.chance)&&c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:e.chance}))&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-e.amount);}});}
@@ -5266,7 +5403,11 @@ add(915,'afterHit',(c,p)=>{if(c.clear(c.t))c.timed(c.a,'攻击附加异常',p[0]
 {const old=registry[505];registry[505]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37561&&c.m.revision==='seerapi:e2ca8fc7'&&c.effectInstanceIndex===0&&c.crit){const settled=c.settledDamage??c.dealt;c.heal(c.a,settled*p[0]/100,c.m.name+'暴击回复');return;}return old.execute(c,p);}});}
 
 metadata[2227]={info:'消除对手能力提升状态，消除成功对手下{0}回合无法主动切换精灵',args_num:1};
-add(2227,'afterHit',(c,p)=>{if(c.clearBoost(c.t))c.a.soulState.deferred2227={sourceMove:c.m.wikiId,hash:c.m.revision,duration:p[0],round:c.round+1,status:'deferred-real-switch'};},[turns],'清强成功后对手真实下一回合主动切换禁止；当前清强单独实现');
+add(2227,'afterHit',(c,p)=>{
+  if (!c.clearBoost(c.t)) return;
+  if (c.teamMode) c.timed(c.t,'不能主动切换',p[0],{noSwitch:true},c.round+1);
+  else c.a.soulState.deferred2227={sourceMove:c.m.wikiId,hash:c.m.revision,duration:p[0],round:c.round+1,status:'deferred-real-switch'};
+},[turns],'清强成功后对手真实下一回合主动切换禁止；当前清强单独实现');
 metadata[2156]={info:'消除对手护盾效果，消除成功{0}%令对手{1}，未触发则自身获得{2}点护盾',args_num:3};
 add(2156,'afterHit',(c,p)=>{const removed=c.consumeShields(c.t);if(!(removed>0&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a)))c.refreshShield(c.a,p[2],'skill:'+c.m.wikiId+':'+c.m.revision+':'+c.effectInstanceIndex);},[pct,[0,0],[0,99999]]);
 metadata[1417]={info:'对手不处于能力下降状态则使对手随机{0}项能力值-{1}',args_num:2};
@@ -5444,7 +5585,13 @@ add(156,'afterHit',(c,p)=>{c.timed(c.t,'奥菲利娅能力增强失效',p[0],{})
 add(640,'afterHit',(c,p)=>{if(statusRoll(c,Math.min(100,p[0]*(c.typeAffinity(c.t.type,c.a.type)>1?2:1))))c.ailment(c.t,p[1]===7?'疲惫':ailments[p[1]],c.a,false,false,p[2]);},[pct,[7,7],turns]);
 add(2235,'afterHit',c=>c.stage(c.a,(c.a.soulState.ophelia4706?.stars??0)>0?2:1));
 for(const id of[2247,2272,2237])add(id,'beforeOrder',()=>{},id===2272?[pct]:id===2237?[[0,99999]]:[],id===2247?'己方最后唯一存活要求真实队伍存活数，不能从单一在场对象推定。':id===2272?'己方存在其他存活精灵的队伍条件分支。':'对方比己方多存活的精灵数量及威力增量，须真实双方队伍存活计数。');
-add(2245,'afterHit',()=>{},[[0,99999],[0,99999]],'己方真实阵亡精灵计数乘对应盾/罩量，不能以当前在场/假定队伍数量替代。');
+add(2245,'afterHit',(c,p)=>{
+  const fallen = fallenReserves(c,c.a);
+  if (!fallen || c.a.hp <= 0) return;
+  const source = [c.a.number,c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+  c.refreshShield(c.a,fallen*p[0],source);
+  c.refreshBarrier(c.a,fallen*p[1],source);
+},[[0,99999],[0,99999]],'己方真实阵亡精灵计数乘对应盾/罩量，不能以当前在场/假定队伍数量替代。');
 function opheliaAttackGrant4706(c,n,id,index=c.effectInstanceIndex,metadata={}){c.grantAttackNullify(c.a,n,String(id),index,metadata);}
 add(2270,'afterHit',(c,p)=>opheliaAttackGrant4706(c,p[0],2270,c.effectInstanceIndex,{ophelia2270:true,chance:p[1],ailment:'麻痹'}),[[1,99],pct,[0,0]]);
 for(const id of[2039,2271])add(id,'afterHit',(c,p)=>{const key='奥菲利娅强化被清:'+id+':'+(c.m.wikiId??c.m.id)+':'+c.effectInstanceIndex;c.timed(c.a,key,p[0],{opheliaBoostWatch4706:true,effectId:id,chance:p[1],ailment:ailments[p[2]],count:p[3],moveKey:c.m.id,index:c.effectInstanceIndex});},[turns,pct,[0,19],[1,99]]);
@@ -5457,7 +5604,7 @@ add(2236,'afterHit',(c,p)=>{const st=c.a.soulState.ophelia4706??(c.a.soulState.o
 {const old=registry[1211];registry[1211]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28886&&c.m.revision==='seerapi:45eec13c'&&c.effectInstanceIndex===1){let changed=false;for(const f of[c.a,c.t]){const before=JSON.stringify(f.stages);c.clearBoost(f);c.clearNegative(f);changed=before!==JSON.stringify(f.stages)||changed;}if(changed)c.refreshShield(c.a,p[0],'1211:28886:45eec13c:1');return;}return old.execute(c,p);}});}
 
 {const old=registry[724];registry[724]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28882&&c.m.revision==='seerapi:dd21bd48'&&c.effectInstanceIndex===0)c.a.effects['受击比例回血'].source4706=true;},heal4706(c,e,settled,use){if(e.seenUse4706===use)return;e.seenUse4706=use;if(c.random()>=e.chance/100)return;c.heal(c.a,c.a.stats.maxHp*e.fraction,'受击比例回血','skill');}});}
-{const old=registry[799];registry[799]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==37835||c.m.revision!=='seerapi:4594c5a0'||c.effectInstanceIndex!==4)return old.execute(c,p);const nominal=c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),before=c.a.hp;c.heal(c.a,nominal,c.m.name,'skill');const amount=Math.max(0,c.a.hp-before);if(amount>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name,'percent');}});}
+{const old=registry[799];registry[799]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==37835||c.m.revision!=='seerapi:4594c5a0'||c.effectInstanceIndex!==4)return old.execute(c,p);const nominal=c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),amount=c.heal(c.a,nominal,c.m.name,'skill')??0;if(amount>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name,'percent');}});}
 {const old=registry[1672],exact=c=>(c.m.wikiId??c.m.id)===37642&&c.m.revision==='seerapi:a7c2b700'&&c.effectInstanceIndex===0;registry[1672]=Object.freeze({...old,execute(c,p){if(!exact(c))return old.execute(c,p);},hooks:{...old.hooks,actualUse4706(c,p){if(exact(c))return old.execute(c,p);}}});}
 // Exact source instances preserve the shared reversal protections and success result.
 {const old=registry[957];registry[957]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==37643||c.m.revision!=='seerapi:70d616af'||c.effectInstanceIndex!==0)return old.execute(c,p);c.stage(c.t,-p[0]);if(c.t.ailments['疲惫']>=c.round)c.stage(c.a,p[2]);}});}
@@ -5468,7 +5615,7 @@ add(1937,'afterHit',()=>{},[[1,99999]],'真实主动切换下场后己方下只�
 add(2203,'onInvalid',c=>opheliaAttackGrant4706(c,1,2203));
 {const old=registry[1211];registry[1211]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===28886&&m.revision==='seerapi:45eec13c'&&i===1&&JSON.stringify(p)==='[300]')return;return old.validate(p,m,i);}});}
 
-{const old=registry[1303];registry[1303]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28885&&c.m.revision==='seerapi:11183315'&&c.effectInstanceIndex===1){c.timed(c.a,'奥菲利娅用招双吸',4,{fraction:1/3,threshold:1/2,sourceMove:28885,sourceHash:'11183315'});return;}return old.execute(c,p);},used4706(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'奥菲利娅用招双吸'))return;const e=c.a.effects['奥菲利娅用招双吸'],amount=c.t.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1);healthRules.drainPercent(c,amount,'奥菲利娅用招理论双吸');if(c.a.hp===c.a.stats.maxHp)c.a.soulState.opheliaBenchHeal1303={round:c.round,amount:100,status:'deferred-real-benched-allies',sourceHash:e.sourceHash};}});}
+{const old=registry[1303];registry[1303]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28885&&c.m.revision==='seerapi:11183315'&&c.effectInstanceIndex===1){c.timed(c.a,'奥菲利娅用招双吸',4,{fraction:1/3,threshold:1/2,sourceMove:28885,sourceHash:'11183315'});return;}return old.execute(c,p);},used4706(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'奥菲利娅用招双吸'))return;const e=c.a.effects['奥菲利娅用招双吸'],full=c.a.hp===c.a.stats.maxHp,amount=c.t.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1);healthRules.drainPercent(c,amount,'奥菲利娅用招理论双吸');if(full&&c.teamMode)c.healLivingBench(c.a,e.fullBeforeDrainBenchHeal,'满体吸取场下回复');else if(full&&!c.teamMode)c.a.soulState.opheliaBenchHeal1303={round:c.round,amount:100,status:'deferred-real-benched-allies',sourceHash:e.sourceHash};}});}
 
 {const old=registry[1472];registry[1472]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37719&&c.m.revision==='seerapi:5d8b5a4a')c.a.soulState.output14724683={round:c.round,move:c.m.id,bonus:Object.values(c.a.stages).some(v=>v>0)?p[0]/100*(c.a.side===c.first?2:1):0};return old.execute(c,p);}});}
 {const old=registry[1768];registry[1768]=Object.freeze({...old,execute(c,p){const exact=(c.m.wikiId??c.m.id)===28923&&c.m.revision==='seerapi:71ad2d48'&&c.effectInstanceIndex===3,st=c.a.soulState,key='skill:1768:'+(c.m.wikiId??c.m.id)+':'+c.m.revision.replace(/^seerapi:/,'')+':'+c.effectInstanceIndex,roundly=(c.m.wikiId??c.m.id)===36543&&c.m.revision==='seerapi:baf2b4d6'&&c.effectInstanceIndex===0;const history=st.shieldConversionHistory4707??=[];if(!exact&&!st.trackedConversion4707){const before=c.a.counts.nextAttackShieldConversion??0,prior=history.find(x=>x.key===key);old.execute(c,p);const delta=(c.a.counts.nextAttackShieldConversion??0)-before;st.shieldConversionHistory4707=history.filter(x=>x.key!==key);st.shieldConversionHistory4707.push({key,count:Math.max(0,(prior?.count??0)+delta),cap:p[1],roundly});return;}if(!st.trackedConversion4707){let remaining=c.a.counts.nextAttackShieldConversion??0;st.shieldConversionSources4707=[];for(const record of history.slice().reverse()){const count=Math.min(remaining,record.count);if(count>0||record.roundly&&record.activeRound===c.round)st.shieldConversionSources4707.unshift({...record,count});remaining-=count;}if(remaining>0)st.shieldConversionSources4707.unshift({key:'legacy-1768',count:remaining,cap:st.attackShieldConversionCap??0,roundly:!!st.attackShieldConversionPerRound});st.trackedConversion4707=true;delete st.nextAttackShieldConversionSources4599;}const list=st.shieldConversionSources4707,prior=list.find(e=>e.key===key);st.shieldConversionSources4707=list.filter(e=>e.key!==key);st.shieldConversionSources4707.push({key,count:exact||sourced4612(c,1768)?p[0]:(prior?.count??0)+p[0],cap:p[1],roundly});c.a.counts.nextAttackShieldConversion=st.shieldConversionSources4707.reduce((n,e)=>n+e.count,0);st.conversionSource4707=key;st.attackShieldConversionCap=p[1];}});}
@@ -5480,7 +5627,7 @@ add(1540,'afterHit',(c,p)=>{if(c.a.hp>c.a.stats.maxHp/p[0])healthRules.drainFixe
 
 {const old=registry[1142];registry[1142]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28928&&c.m.revision==='seerapi:8a3f14ff'&&c.effectInstanceIndex===1)Object.assign(c.a.effects['花开茶靡延迟'],{source4709:true,sourceName4709:c.m.name});}});}
 metadata[2196]={info:"{0}%令自身{1}",args_num:2};add(2196,'afterHit',(c,p)=>{if(statusRoll(c,p[0]))c.ailment(c.a,'狂暴',c.a);},[[100,100],[14,14]]);
-{const old=registry[997];registry[997]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37729&&m.revision==='seerapi:fca33021'&&i===0&&JSON.stringify(p)==='[2,2]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)!==37729||c.m.revision!=='seerapi:fca33021'||c.effectInstanceIndex!==0)return old.execute(c,p);if(c.a.hp<c.a.stats.maxHp/p[0]){const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复','skill');const actual=Math.max(0,c.a.hp-before);if(actual>0&&c.t.hp>0)c.hurt(c.t,actual,c.m.name+'实际回复等量附伤','percent');}}});}
+{const old=registry[997];registry[997]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37729&&m.revision==='seerapi:fca33021'&&i===0&&JSON.stringify(p)==='[2,2]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)!==37729||c.m.revision!=='seerapi:fca33021'||c.effectInstanceIndex!==0)return old.execute(c,p);if(c.a.hp<c.a.stats.maxHp/p[0]){const actual=c.heal(c.a,c.a.stats.maxHp/p[1],c.m.name+'回复','skill')??0;if(actual>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,actual,c.m.name+'实际回复等量附伤','percent');}}});}
 {const old=registry[935];registry[935]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37729&&m.revision==='seerapi:fca33021'&&i===1&&JSON.stringify(p)==='[0]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===37729&&c.m.revision==='seerapi:fca33021'&&c.effectInstanceIndex===1){if(c.a.hp>c.t.hp)c.ailment(c.t,'麻痹',c.a);return;}return old.execute(c,p);}});}
 {const old=registry[847];registry[847]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28927&&c.m.revision==='seerapi:51f5ebd1'&&c.effectInstanceIndex===1){c.refreshShield(c.a,p[0],'847:28927:51f5ebd1:1');return;}return old.execute(c,p);}});}
 {const old=registry[1258];registry[1258]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37730&&c.m.revision==='seerapi:eca97362'&&c.effectInstanceIndex===1){if((c.settledDamage??c.dealt)>p[0]&&c.a.hp>0)c.grantOracleImmunity(c.a,p[1],'1258:37730:eca97362:1','prophecy1258');return;}return old.execute(c,p);}});}
@@ -5489,7 +5636,7 @@ metadata[2196]={info:"{0}%令自身{1}",args_num:2};add(2196,'afterHit',(c,p)=>{
 {const old=registry[1836];registry[1836]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===37730&&c.m.revision==='seerapi:eca97362'&&c.effectInstanceIndex===2)c.a.effects['用招低体吸取改双倍粉伤'].source4709=true;},used4709(c){const e=c.a.effects['用招低体吸取改双倍粉伤'];if(!e?.source4709||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'用招低体吸取改双倍粉伤'))return;const n=c.t.stats.maxHp/e.denominator;if(c.a.hp<c.a.stats.maxHp*e.threshold){if(c.t.hp>0)c.hurt(c.t,n*2,'预言低体改双倍百分比伤害','percent');}else healthRules.drainPercent(c,n,'预言用招理论吸取');}});}
 
 
-metadata[1461]={info:"恢复自身最大体力的1/{0}，体力低于对手时附加等量百分比伤害",args_num:1};add(1461,'afterHit',(c,p)=>{const before=c.a.hp,enabled=before<c.t.hp;c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复','skill');const amount=Math.max(0,c.a.hp-before);if(enabled&&amount>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name+'回复等量百分比','percent');},[[1,9999]]);
+metadata[1461]={info:"恢复自身最大体力的1/{0}，体力低于对手时附加等量百分比伤害",args_num:1};add(1461,'afterHit',(c,p)=>{const before=c.a.hp,enabled=before<c.t.hp,amount=c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'回复','skill')??0;if(enabled&&amount>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,amount,c.m.name+'回复等量百分比','percent');},[[1,9999]]);
 {const old=registry[550];registry[550]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37735&&m.hash==='5175d9ad'&&m.revision==='seerapi:5175d9ad'&&i===1&&JSON.stringify(p)==='[1]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===37735&&c.m.revision==='seerapi:5175d9ad'&&c.effectInstanceIndex===1){if(Object.values(c.a.ailments).some(v=>v>=c.round))c.heal(c.a,c.a.stats.maxHp,c.m.name+'异常时回满','skill');return;}return old.execute(c,p);}});}
 {const old=registry[2148];registry[2148]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===28931&&m.revision==='seerapi:284e32ab'&&i===3&&JSON.stringify(p)==='[1]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===28931&&c.m.revision==='seerapi:284e32ab'&&c.effectInstanceIndex===3){c.grantOracleImmunity(c.a,p[0],'2148:28931:284e32ab:3','solver2148');return;}return old.execute(c,p);}});}
 {const old=registry[1454];registry[1454]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37738&&m.hash==='588a7a0f'&&m.revision==='seerapi:588a7a0f'&&i===1&&JSON.stringify(p)==='[100,200,100,2]')return;return old.validate(p,m,i);}});}
@@ -5520,7 +5667,7 @@ metadata[558]={info:"若自身不处于能力提升或下降状态时则恢复{0
 {const old=registry[1979];registry[1979]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37755&&m.hash==='cbbda92d'&&m.revision==='seerapi:cbbda92d'&&i===1&&JSON.stringify(p)==='[]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)!==37755||c.m.revision!=='seerapi:cbbda92d'||c.effectInstanceIndex!==1)return old.execute(c,p);const consume=c.t.hp<=0?Math.max(0,c.a.hp-1):c.a.hp;if(consume>0)c.hurt(c.a,consume,c.m.name+'全部自身消耗','direct',true);const restoreHp=c.clear(c.t),restorePP=c.clearBoost(c.t);c.a.soulState.successor1979={round:c.round,restoreHp,restorePP,hash:'cbbda92d',status:'deferred-real-next-ally'};}});}
 {const old=registry[2033];registry[2033]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37754&&c.m.revision==='seerapi:9795afc2'&&c.effectInstanceIndex===2){if(c.t.hp>0&&!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[0]);return;}return old.execute(c,p);}});}
 {const old=registry[796];registry[796]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28943&&c.m.revision==='seerapi:4d5de411'&&c.effectInstanceIndex===1)c.a.effects['回合末当前体力吸取'].source4713=true;}});}
-{const old=registry[1065];registry[1065]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28944&&c.m.revision==='seerapi:3d89632e'&&c.effectInstanceIndex===2)c.a.effects['用招低体双倍回血粉伤'].source4713=true;},used4713(c){const e=c.a.effects['用招低体双倍回血粉伤'];if(!e?.source4713||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'用招低体双倍回血粉伤'))return;const before=c.a.hp,nominal=c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1);c.heal(c.a,nominal,'钢熠身躯实际用招回复','skill');const n=Math.max(0,c.a.hp-before);if(c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'钢熠身躯用招等量百分比','percent');}});}
+{const old=registry[1065];registry[1065]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28944&&c.m.revision==='seerapi:3d89632e'&&c.effectInstanceIndex===2)c.a.effects['用招低体双倍回血粉伤'].source4713=true;},used4713(c){const e=c.a.effects['用招低体双倍回血粉伤'];if(!e?.source4713||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'用招低体双倍回血粉伤'))return;const before=c.a.hp,nominal=c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1);const n=c.heal(c.a,nominal,'钢熠身躯实际用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'钢熠身躯用招等量百分比','percent');}});}
 
 
 {const old=registry[1022];registry[1022]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37753&&c.m.revision==='seerapi:34d30426'&&c.effectInstanceIndex===0){if(c.steal(c.a,c.t,'技能'))healthRules.drainFixed(c,p[0],c.m.name+'真实吸强成功吸取');return;}return old.execute(c,p);}});}
@@ -5532,7 +5679,7 @@ metadata[2251]={info:"自身所有能力等级均为6级时，激活所有技能
 metadata[2252]={info:"击败对手后自身免疫下{0}次受到的异常状态",args_num:1};
 
 function robotKo4714(c){const e=c.a.soulState.robotKo4714;return e?.round===c.round&&e.move===c.m.id&&e.use===c.a.soulState.skillUses?.[c.m.id];}
-add(2247,'beforeOrder',c=>{if(c.a.soulState.qualifiedLast2247===true)c.priority++;},[],'真实己方最后一只存活的队伍条件；已明确满足条件时当前自身先制+1载荷已实现，不能以仅一个在场对象推断');
+add(2247,'beforeOrder',c=>{const last=c.teamMode?c.a.hp>0&&c.teamPopulation(c.a.side).live===1:c.a.soulState.qualifiedLast2247===true;if(last)c.priority++;},[],'真实己方最后一只存活的队伍条件；已明确满足条件时当前自身先制+1载荷已实现，不能以仅一个在场对象推断');
 add(2248,'afterHit',(c,p)=>{if(c.ppRestorationBlocked(c.a))return;const n=Math.round((c.a.pp[c.m.id]??0)*p[0]/100);const entries=[];for(const k of c.a.moves)if(k!==c.m.id){const before=c.a.pp[k];c.a.pp[k]=Math.min(c.maxPP(k),before+n);entries.push({key:k,before,after:c.a.pp[k]});}(c.a.soulState.ppRestore2248??=[]).push({round:c.round,selected:c.m.id,remaining:c.a.pp[c.m.id],amount:n,entries});},[[50,50]]);
 add(2249,'afterHit',c=>registry[1524].execute({...c,heal(f){return c.restorePP(f,Infinity,'skill');}},[]),[]);
 registry[933]=Object.freeze({...registry[933],grantBoost4714});
@@ -5571,7 +5718,7 @@ add(2256,'afterHit',(c,p)=>{if((c.a.ailments['超频']??0)>=c.round){const remai
 {const old=registry[2137];registry[2137]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37764&&m.hash==='2c01b0f3'&&m.revision==='seerapi:2c01b0f3'&&i===2&&JSON.stringify(p)==='[10,70]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===37764&&c.m.revision==='seerapi:2c01b0f3'&&c.effectInstanceIndex===2){const sum=Object.values(c.a.ailments).filter(n=>Number.isFinite(n)&&n>=c.round).reduce((n,end)=>n+end-c.round+1,0),bonus=Math.min(p[1],sum*p[0])/100;c.modifier*=1+bonus;c.a.soulState.output2137_4716={round:c.round,remainingSum:sum,bonus,scope:'red-only',confirmation:'Q-N50-4623-011'};return;}return old.execute(c,p);}});}
 {const old=registry[1809];registry[1809]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===28957&&m.hash==='6526f780'&&m.revision==='seerapi:6526f780'&&i===4&&JSON.stringify(p)==='[350,100,0]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===28957&&c.m.revision==='seerapi:6526f780'&&c.effectInstanceIndex===4){grantOrdinaryBarrier(c,p,1809,'ailment');const e=c.a.soulState.barrierAilmentTriggers.at(-1);if(e)e.ailment='麻痹';return;}return old.execute(c,p);}});}
 {const old=registry[1114];registry[1114]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37764&&c.m.revision==='seerapi:2c01b0f3'&&c.effectInstanceIndex===0){if(c.clear(c.t)&&!c.ppReductionBlocked(c.t))randomEmptyNext50(c,p[0]);return;}return old.execute(c,p);}});}
-{const old=registry[532];registry[532]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28958&&c.m.revision==='seerapi:1b106c86'&&c.effectInstanceIndex===1)c.a.effects['用招回血粉伤'].source4716=true;},used4716(c){const e=c.a.effects['用招回血粉伤'];if(!e?.source4716||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'用招回血粉伤'))return;const nominal=c.a.stats.maxHp*e.fraction,actual=c.heal(c.a,nominal,'崩坏圣堂实际用招回复','skill')??0;const n=actual;if(c.t.hp>0)c.hurt(c.t,n,'崩坏圣堂实际用招等量百分比','percent');}});}
+{const old=registry[532];registry[532]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===28958&&c.m.revision==='seerapi:1b106c86'&&c.effectInstanceIndex===1)c.a.effects['用招回血粉伤'].source4716=true;},used4716(c){const e=c.a.effects['用招回血粉伤'];if(!e?.source4716||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'用招回血粉伤'))return;const nominal=c.a.stats.maxHp*e.fraction,actual=c.heal(c.a,nominal,'崩坏圣堂实际用招回复','skill')??0;const n=actual;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'崩坏圣堂实际用招等量百分比','percent');}});}
 function priorityTimers4716(c){const entries=['长老技能先制843','长老技能先制984'].filter(k=>c.on(c.a,k)).map(k=>c.a.effects[k]);if(!entries.length)return 0;if(entries.length===1)return entries[0].amount;return entries.reduce((n,e)=>n+e.amount,0);}
 {const old=registry[843];registry[843]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28958&&c.m.revision==='seerapi:1b106c86'&&c.effectInstanceIndex===3){c.timed(c.a,'长老技能先制843',p[0],{amount:p[1],grantedRound:c.round},c.round+1);return;}return old.execute(c,p);},priority4716:priorityTimers4716});}
 {const old=registry[984];registry[984]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37779&&c.m.revision==='seerapi:42fe07de'&&c.effectInstanceIndex===1){if(c.t.hp>0)c.timed(c.a,'长老技能先制984',1,{amount:p.amount??p[0],grantedRound:c.round},c.round+1);return;}return old.execute(c,p);}});}
@@ -5585,7 +5732,7 @@ metadata[2034]={info:"消除对手回合类效果，消除成功则{0}%令对手
 metadata[2253]={info:"附加双方体力值之差{0}%的{1}系伤害",args_num:2};
 metadata[2254]={info:"消耗自身体力上限的{0}%，每消耗{1}点本场战斗自身造成的攻击伤害提升{2}%",args_num:3};
 
-add(2034,'afterHit',(c,p)=>{if(c.clear(c.t))c.ailment(c.t,'束缚',c.a);else c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});},[[100,100],[28,28],[2,2],[50,50]]);
+add(2034,'afterHit',(c,p)=>{if(c.clear(c.t)&&!c.ailment(c.t,'束缚',c.a))c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});},[[100,100],[28,28],[2,2],[50,50]]);
 add(2253,'afterHit',(c,p)=>{const q='direct';if(c.t.hp>0)c.typedSkill2253(Math.abs(c.a.hp-c.t.hp)*p[0]/100,'虚空',q);},[[100,100],[226,226]]);
 add(2254,'afterHit',(c,p)=>{const old=c.a.stats.maxHp,cost=c.soulAbility(1919,'changeMax',old*(1-p[0]/100),c.m.name+'上限消耗'),st=c.a.soulState.voidTax2254??={totalCost:0,bonus:0,grants:[]},q='per-use-floor';const before=st.totalCost;st.totalCost+=cost;const gain=q==='fractional'?cost/p[1]*p[2]:q==='cumulative-floor'?(Math.floor(st.totalCost/p[1])-Math.floor(before/p[1]))*p[2]:Math.floor(cost/p[1])*p[2];const stack='add';st.bonus=!st.grants.length||stack==='replace'?gain:stack==='maximum'?Math.max(st.bonus,gain):st.bonus+gain;st.grants.push({round:c.round,cost,gain,bonus:st.bonus,units:q,stack});},[[10,10],[10,10],[1,1]]);
 {const old=registry[1139];registry[1139]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===28941&&m.revision==='seerapi:9ef3b0a'&&m.hash==='9ef3b0a'&&i===0&&JSON.stringify(p)==='[3,30,30]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)!==28941||c.m.revision!=='seerapi:9ef3b0a')return old.execute(c,p);c.clear(c.a);c.clear(c.t);c.ailment(c.a,'沉默',c.a,false,false,p[0]);c.ailment(c.t,'沉默',c.a,false,false,p[0]);const present=c.a.ailments['沉默']>=c.round;if(present)c.a.soulState.removedAilmentFullHeal='沉默';}});}
@@ -5613,7 +5760,7 @@ function ko4717(c){const e=c.a.soulState.voidKo4717;return e?.round===c.round&&e
 
 
 {const old=registry[912];registry[912]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37788&&c.m.revision==='seerapi:1fdf9ba5'){if(Object.values(c.t.stages).some(n=>n<0)&&!c.ppReductionBlocked(c.t))randomEmptyNext50(c,p[0]);return;}return old.execute(c,p);}});}
-{const old=registry[521];registry[521]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===30522&&c.m.revision==='seerapi:4f511776'){if(c.canRemoveNegative(c.a)===false)return;const values=Object.fromEntries(stats.filter(k=>c.a.stages[k]<0).map(k=>[k,-c.a.stages[k]]));c.rewriteStageValues(c.a,values,'reverse');return;}return old.execute(c,p);}});}
+{const old=registry[521];registry[521]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===30522&&c.m.revision==='seerapi:4f511776')return reverseOwnNegative521(c);return old.execute(c,p);}});}
 function killed4725(c){const e=c.a.soulState.lanternKo4725;return e?.round===c.round&&e.move===c.m.id&&e.use===c.a.soulState.skillUses?.[c.m.id];}
 {const old=registry[1821];registry[1821]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37789&&c.m.revision==='seerapi:fa901d25'){if(c.t.hp>0&&!killed4725(c))c.restorePP(c.a,p[0]);return;}return old.execute(c,p);}});}
 {const old=registry[933];registry[933]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37790&&c.m.revision==='seerapi:4d2407f1'){if(!killed4725(c))return old.execute(c,p);return;}return old.execute(c,p);}});}
@@ -5640,7 +5787,7 @@ add(7,'beforeAccuracy',c=>{c.condition7={failed:c.t.hp<=c.a.hp,policy:'invalid'}
 {const old=registry[1314];registry[1314]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===28976&&m.hash==='c66aa3e0'&&m.revision==='seerapi:c66aa3e0'&&i===2&&JSON.stringify(p)==='[1]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===28976&&c.m.revision==='seerapi:c66aa3e0'&&c.effectInstanceIndex===2){const count=c.a.counts.nextAttackHealing??0,source=c.a.soulState.conversion1314Source;if(count>0&&(source?.moveId!==28976||source?.hash!=='c66aa3e0')||count>(c.a.soulState.belle1314??0))throw Error('Q-N50-4511-006：1314异源共存归属待确认');c.a.counts.nextAttackHealing=p[0];c.a.soulState.belle1314=p[0];c.a.soulState.conversion1314Source={moveId:28976,hash:'c66aa3e0',index:2};return;}return old.execute(c,p);}});}
 {const old=registry[820];registry[820]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===37813&&m.hash==='4979ab9f'&&m.revision==='seerapi:4979ab9f'&&i===3&&JSON.stringify(p)==='[1,2]')return;return old.validate(p,m,i);},execute(c,p){if((c.m.wikiId??c.m.id)===37813&&c.m.revision==='seerapi:4979ab9f'&&c.effectInstanceIndex===3){if(c.t.hp>0&&!ko4732(c))c.timed(c.a,'id984',p[0],{amount:p[1]},c.round+1);return;}return old.execute(c,p);}});}
 {const old=registry[1674];registry[1674]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28976&&c.m.revision==='seerapi:c66aa3e0'){c.timed(c.a,'皮神实际用招吸取补真',p[0],{fraction:1/p[1],extra:p[2]});return;}return old.execute(c,p);},used4732(c){const e=c.a.effects['皮神实际用招吸取补真'];if(!e||!c.on(c.a,'皮神实际用招吸取补真')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const n=c.t.stats.maxHp*e.fraction,before=c.damageTotal(c.t,'percent');if(c.t.hp>0)c.hurt(c.t,n,'神音实际用招吸取','percent');c.heal(c.a,n,'神音理论等量回复','skill');if(c.t.hp>0&&c.damageTotal(c.t,'percent')===before)c.hurt(c.t,e.extra,'神音未受粉伤追加真实','true');}});}
-{const old=registry[1065];registry[1065]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28977&&c.m.revision==='seerapi:b8e9318b'){c.timed(c.a,'皮神实际用招回复粉伤',p[0],{fraction:1/p[1],threshold:1/p[2]});return;}return old.execute(c,p);},used4732(c){const e=c.a.effects['皮神实际用招回复粉伤'];if(!e||!c.on(c.a,'皮神实际用招回复粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),beforeHp=c.a.hp;c.heal(c.a,nominal,'神辉实际用招回复','skill');const n=Math.max(0,c.a.hp-beforeHp);if(c.t.hp>0)c.hurt(c.t,n,'神辉实际用招等量粉伤','percent');}});}
+{const old=registry[1065];registry[1065]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===28977&&c.m.revision==='seerapi:b8e9318b'){c.timed(c.a,'皮神实际用招回复粉伤',p[0],{fraction:1/p[1],threshold:1/p[2]});return;}return old.execute(c,p);},used4732(c){const e=c.a.effects['皮神实际用招回复粉伤'];if(!e||!c.on(c.a,'皮神实际用招回复粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),n=c.heal(c.a,nominal,'神辉实际用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'神辉实际用招等量粉伤','percent');}});}
 {const old=registry[6];registry[6]=Object.freeze({...old,execute(c,p){const id=c.m.wikiId??c.m.id,match=id===10038&&c.m.revision==='seerapi:f2e4da55'||id===10039&&c.m.revision==='seerapi:502eed51';if(!match||Number(c.a.number)!==4732)return old.execute(c,p);const full=c.settledDamage??c.dealt,loss=c.hpLoss??c.dealt;if(!full&&!loss)return;c.hurt(c.a,full*p.fraction,c.m.name+'真实反伤','true');}});}
 function ko4732(c){const e=c.a.soulState.pipiKo4732;return e?.round===c.round&&e.move===c.m.id&&e.use===c.a.soulState.skillUses?.[c.m.id];}
 {const old=registry[933];registry[933]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)===37812&&c.m.revision==='seerapi:918de109'&&ko4732(c))return;return old.execute(c,p);}});}
@@ -5683,13 +5830,13 @@ const handlers4743={
 878(c,p){c.timed(c.a,'纳多雷先手石化',p[0],{},c.round+1);},
 1065(c,p){c.timed(c.a,'纳多雷实际用招回复粉伤',p[0],{fraction:1/p[1],threshold:1/p[2]});},
 1683(c,p){c.timed(c.a,'幽蝶强化保护',p[0],{});},
-951(c,p){const before=Object.fromEntries(Object.entries(c.t.stages).filter(([,n])=>n>0)),values=Object.fromEntries(Object.entries(before).map(([k,n])=>[k,-n])),r=c.rewriteStageValues(c.t,values,'reverse');if(r.removedPositive.length)c.grantOracleImmunity(c.a,p[0],'skill:951:37854:seerapi:2b4aab66:1','nadore951');},
+951(c,p){const before=Object.fromEntries(Object.entries(c.t.stages).filter(([,n])=>n>0)),values=Object.fromEntries(Object.entries(before).map(([k,n])=>[k,-n])),r=c.rewriteStageValues(c.t,values,'reverse');if(r.removedPositive.length)c.grantOracleImmunity(c.a,p[0],'skill:951:37854:seerapi:2b4aab66:1',c.teamMode?'team904':'nadore951');},
 1232(c,p){const values=Object.fromEntries(Object.entries(c.a.stages).filter(([,n])=>n<0).map(([k,n])=>[k,-n]));if(c.canRemoveNegative?.(c.a)===false)return;const r=c.rewriteStageValues(c.a,values,'reverse');for(const k of r.removedNegative)if(r.after[k]>0)c.stage(c.t,-r.after[k],[k]);},
 2033(c,p){if(c.a.soulState.actualKoFifth4743===c.round||c.t.hp<=0||c.ppReductionBlocked(c.t))return;for(const id of c.t.moves)c.t.pp[id]=Math.max(0,c.t.pp[id]-p[0]);}
 };
 for(const[id,fn]of Object.entries(handlers4743)){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){const rows=bindings4743.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>exact4743(p,m,i,x)))throw Error('4743 '+id+' source mismatch');return;}return old.validate(p,m,i);},execute(c,p){if(sourced4743(c,+id))return fn(c,p);return old.execute(c,p);}});}
 {const old=registry[878];registry[878]=Object.freeze({...old,before4743(c){const e=c.a.effects['纳多雷先手石化'];if(c.m.kind==='item'||!e||!c.on(c.a,'纳多雷先手石化')||c.first!==c.a.side)return;if(c.hitEffectsDisabled)return;c.ailment(c.t,'石化',c.a);}});}
-{const old=registry[1065];registry[1065]=Object.freeze({...old,used4743(c){const e=c.a.effects['纳多雷实际用招回复粉伤'];if(!e||!c.on(c.a,'纳多雷实际用招回复粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),beforeHp=c.a.hp;c.heal(c.a,nominal,'大地精能实际用招回复','skill');const n=Math.max(0,c.a.hp-beforeHp);if(c.t.hp>0&&n>0)c.hurt(c.t,n,'大地精能等量粉伤','percent');}});}
+{const old=registry[1065];registry[1065]=Object.freeze({...old,used4743(c){const e=c.a.effects['纳多雷实际用招回复粉伤'];if(!e||!c.on(c.a,'纳多雷实际用招回复粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),n=c.heal(c.a,nominal,'大地精能实际用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'大地精能等量粉伤','percent');}});}
 {const old=registry[951];registry[951]=Object.freeze({...old,deferredFor(p,m,i){if((m?.wikiId??m?.id)===37854&&m.revision==='seerapi:2b4aab66')return '己方真实其他精灵共享下次免异：当前自身已按同源刷新次数实现';return old.deferredFor?old.deferredFor(p,m,i):old.deferred;}});}
 
 metadata[2273]={info:"对手选择攻击技能时此技能先制+3且{0}%令对手{1}",args_num:2};
@@ -5703,11 +5850,20 @@ metadata[2279]={info:"自身击败狩杀之的时，对方下只精灵出战时�
 const bindings4745=[{"moveId":20369,"hash":"489bc3c","index":0,"id":4,"args":[5,100,1]},{"moveId":10474,"hash":"8ffec2c","index":0,"id":11,"args":[50]},{"moveId":20508,"hash":"f2414222","index":0,"id":4,"args":[4,100,2]},{"moveId":37860,"hash":"2ffa4e83","index":0,"id":1445,"args":[2,2,1]},{"moveId":37860,"hash":"2ffa4e83","index":1,"id":2273,"args":[100,10]},{"moveId":21326,"hash":"b283a086","index":0,"id":4,"args":[1,100,1]},{"moveId":21326,"hash":"b283a086","index":1,"id":4,"args":[3,100,1]},{"moveId":21996,"hash":"cb04377","index":0,"id":5,"args":[0,100,-1]},{"moveId":21996,"hash":"cb04377","index":1,"id":5,"args":[2,100,-1]},{"moveId":29004,"hash":"237d0bba","index":0,"id":2276,"args":[]},{"moveId":29004,"hash":"237d0bba","index":1,"id":433,"args":[3,1,1,1,1,1,1]},{"moveId":29004,"hash":"237d0bba","index":2,"id":2274,"args":[30]},{"moveId":29004,"hash":"237d0bba","index":3,"id":2009,"args":[2]},{"moveId":29004,"hash":"237d0bba","index":4,"id":481,"args":[2,2]},{"moveId":37861,"hash":"fed757f7","index":0,"id":1545,"args":[]},{"moveId":37861,"hash":"fed757f7","index":1,"id":2198,"args":[100,8]},{"moveId":29005,"hash":"9ceb5e2b","index":0,"id":191,"args":[4]},{"moveId":29005,"hash":"9ceb5e2b","index":1,"id":1293,"args":[1,1]},{"moveId":29005,"hash":"9ceb5e2b","index":2,"id":1647,"args":[4,3,2,300]},{"moveId":29005,"hash":"9ceb5e2b","index":3,"id":1655,"args":[4,0,1]},{"moveId":37862,"hash":"60496940","index":0,"id":405,"args":[300]},{"moveId":37862,"hash":"60496940","index":1,"id":721,"args":[2]},{"moveId":29006,"hash":"dcce7ece","index":0,"id":2277,"args":[]},{"moveId":29006,"hash":"dcce7ece","index":1,"id":433,"args":[3,1,1,1,1,1,1]},{"moveId":29006,"hash":"dcce7ece","index":2,"id":2274,"args":[30]},{"moveId":29006,"hash":"dcce7ece","index":3,"id":2009,"args":[2]},{"moveId":29006,"hash":"dcce7ece","index":4,"id":481,"args":[2,2]},{"moveId":37863,"hash":"d3c3e18","index":0,"id":881,"args":[]},{"moveId":37863,"hash":"d3c3e18","index":1,"id":1279,"args":[1]},{"moveId":37863,"hash":"d3c3e18","index":2,"id":2278,"args":[75,75,50]},{"moveId":37864,"hash":"d15e4e11","index":0,"id":1747,"args":[1]},{"moveId":37864,"hash":"d15e4e11","index":1,"id":1600,"args":[100,16,2,3,100,16]},{"moveId":37864,"hash":"d15e4e11","index":2,"id":2275,"args":[]},{"moveId":37864,"hash":"d15e4e11","index":3,"id":2279,"args":[60]}];
 const sourced4745=(c,id)=>bindings4745.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index);
 add(2273,'beforeOrder',(c,p)=>{if(['physical','special'].includes(c.selectedMove(c.t)?.kind))c.priority+=3;},[pct,[10,10]],undefined,undefined,{afterHit(c,p){if(['physical','special'].includes(c.selectedMove(c.t)?.kind)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);}});
-add(2276,'afterHit',()=>{},[],'真实对方场下存活非标记目标，按对自身克制最高选择并转移标记；当前无场下对象不得选当前对手代替');
-add(2277,'afterHit',()=>{},[],'真实对方场下存活非标记目标，按对自身克制最低选择并转移标记；当前无场下对象不得选当前对手代替');
+function selectBenchHunt(c,highest){
+  if(!c.teamMode)return;
+  const pool=c.teamReserves(c.t.side).filter(f=>f.hp>0&&f.soulState.mark1948?.owner!==c.a.side);
+  pool.sort((a,b)=>{
+    const diff=c.typeAffinity(a.type,c.a.type)-c.typeAffinity(b.type,c.a.type);
+    return (highest?-diff:diff)||a.teamPosition-b.teamPosition;
+  });
+  if(pool.length)c.soulAbility(1948,'mark',pool[0]);
+}
+add(2276,'afterHit',c=>selectBenchHunt(c,true),[],'真实对方场下存活非标记目标，按对自身克制最高选择并转移标记；当前无场下对象不得选当前对手代替');
+add(2277,'afterHit',c=>selectBenchHunt(c,false),[],'真实对方场下存活非标记目标，按对自身克制最低选择并转移标记；当前无场下对象不得选当前对手代替');
 add(2274,'afterHit',(c,p)=>{const before=c.a.moves.reduce((n,k)=>n+c.a.pp[k],0);c.restorePP(c.a,99);const restored=c.a.moves.reduce((n,k)=>n+c.a.pp[k],0)-before;if(!restored)return;const nominal=restored*p[0];if(c.t.hp>0)c.hurt(c.t,nominal,c.m.name+'恢复PP吸取','fixed');c.heal(c.a,nominal,c.m.name+'恢复PP理论吸取回复','skill');},[[30,30]]);
 add(2275,'afterAttack',c=>{if(c.t.hp>0&&c.a.soulState.actualKo4745!==c.round)c.soulAbility(1948,'mark');},[]);
-add(2278,'beforeDamage',(c,p)=>{const st=c.a.soulState.hunt1948,marked=st?.mark?.side===c.t.side,has=(st?.souls??0)>0;let bonus=p[0]/100;if(has)bonus+=p[2]/100;if(marked)c.modifier*=1+bonus;else{c.modifier=0;c.a.soulState.redForbidden1948=c.round;}},[[75,75],[75,75],[50,50]],'标记对象真正场下时对当前非标记者造成场下目标体力75%粉伤，需真实标记目标HP；当前无场下对象不能编造HP');
+add(2278,'beforeDamage',(c,p)=>{const st=c.a.soulState.hunt1948,marked=st?.mark?.side===c.t.side&&(st.mark.position==null||st.mark.position===c.t.teamPosition),has=(st?.souls??0)>0;let bonus=p[0]/100;if(has)bonus+=p[2]/100;if(marked)c.modifier*=1+bonus;else{c.modifier=0;c.a.soulState.redForbidden1948=c.round;}},[[75,75],[75,75],[50,50]],'标记对象真正场下时对当前非标记者造成场下目标体力75%粉伤，需真实标记目标HP；当前无场下对象不能编造HP');
 add(2279,'afterAttack',(c,p)=>{if(c.a.soulState.koMarked1948!==c.round)return;const n=c.a.soulState.hunt1948?.souls??0;if(n)c.a.soulState.nextHuntBonus1948={bonus:n*p[0]/100};},[[60,60]],'击败狩杀之的后对方真实下只出场被标记；自身下次攻击增伤当前实现');
 const handlers4745={
 2198(c,p){if(c.shieldValue(c.a)>0||c.shieldValue(c.t)>0)c.ailment(c.t,ailments[p[1]],c.a);},
@@ -5763,7 +5919,7 @@ const handlers4748={
 };
 for(const[id,fn]of Object.entries(handlers4748)){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){const rows=bindings4748.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4748 source mismatch '+id);return;}return old.validate(p,m,i);},execute(c,p){if(sourced4748(c,+id))return fn(c,p);return old.execute(c,p);}});}
 {const old=registry[1114];registry[1114]=Object.freeze({...old,soul1951(c){if(c.ppReductionBlocked(c.t))return;const before=c.a.soulState.ppZeroDrawsNext50?.length??0;randomEmptyNext50({...c,m:{id:null,revision:'soul:ee7dc14a'}},1);const e=c.a.soulState.ppZeroDrawsNext50?.[before];if(e){e.sourceKind='soul';e.soul=1951;e.sourceHash='ee7dc14a';}}});}
-{const old=registry[532];registry[532]=Object.freeze({...old,used4748(c){const e=c.a.effects['超算实际用招回血粉伤'];if(!e||!c.on(c.a,'超算实际用招回血粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction,beforeHp=c.a.hp;c.heal(c.a,nominal,'重组拆分实际用招回复','skill');const n=Math.max(0,c.a.hp-beforeHp);if(c.t.hp>0&&n>0)c.hurt(c.t,n,'重组拆分等量百分比','percent');}});}
+{const old=registry[532];registry[532]=Object.freeze({...old,used4748(c){const e=c.a.effects['超算实际用招回血粉伤'];if(!e||!c.on(c.a,'超算实际用招回血粉伤')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const nominal=c.a.stats.maxHp*e.fraction,n=c.heal(c.a,nominal,'重组拆分实际用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'重组拆分等量百分比','percent');}});}
 {const old=registry[2093];registry[2093]=Object.freeze({...old,used4748(c){const e=c.a.effects['超算实际用招吸取禁疗'];if(!e||!c.on(c.a,'超算实际用招吸取禁疗')||!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;const n=c.t.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1),before=c.t.hp;if(c.t.hp>0)c.hurt(c.t,n,'多彩宏光实际用招吸取','percent');c.heal(c.a,n,'多彩宏光理论吸取回复','skill');if(c.t.hp>0&&c.t.hp===before)c.timed(c.t,'超算全禁疗',e.blockDuration,{});}});}
 // Resolve 933 after the same move's ongoing 2093 drain, never before a late real KO.
 {const old=registry[2093];registry[2093]=Object.freeze({...old,used4748(c){old.used4748(c);const e=c.a.soulState.pending9334748;if(!e||e.round!==c.round||e.move!==c.m.id||e.use!==(c.a.soulState.skillUses?.[c.m.id]??0))return;delete c.a.soulState.pending9334748;if(c.actualUsed&&c.a.hp>0&&c.t.hp>0&&c.a.soulState.koFifth4748!==c.round)registry[933].refreshCounter4599(c,'nextCrit',e.count,'skill:933:37879:seerapi:cce0c12b:2');}});}
@@ -5788,7 +5944,7 @@ const handlers4749={
 1794(c,p){c.heal(c.a,c.a.stats.maxHp/p[0],c.m.name+'整招无效回复','skill');grantReduction4712(c,p[1],p[2]/100);}
 };
 for(const[id,fn]of Object.entries(handlers4749)){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){const rows=bindings4749.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4749 source mismatch '+id);return;}return old.validate(p,m,i);},execute(c,p){if(sourced4749(c,+id))return fn(c,p);return old.execute(c,p);}});}
-{const old=registry[1695];registry[1695]=Object.freeze({...old,used4749(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'肯扎特实际用招回复'))return;const e=c.a.effects['肯扎特实际用招回复'];if(c.a.hp===c.a.stats.maxHp){if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp*e.fullFraction,'肯扎特满体改粉伤','percent');return;}const nominal=c.a.stats.maxHp*e.fraction,beforeHp=c.a.hp;c.heal(c.a,nominal,'肯扎特实际用招回复','skill');const n=Math.max(0,c.a.hp-beforeHp);if(c.t.hp>0&&n>0)c.hurt(c.t,n,'肯扎特等量粉伤','percent');}});}
+{const old=registry[1695];registry[1695]=Object.freeze({...old,used4749(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'肯扎特实际用招回复'))return;const e=c.a.effects['肯扎特实际用招回复'];if(c.a.hp===c.a.stats.maxHp){if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp*e.fullFraction,'肯扎特满体改粉伤','percent');return;}const nominal=c.a.stats.maxHp*e.fraction,n=c.heal(c.a,nominal,'肯扎特实际用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'肯扎特等量粉伤','percent');}});}
 {const old=registry[1228];registry[1228]=Object.freeze({...old,opponent4749(c){if(!c.actualUsed||!['physical','special'].includes(c.m.kind)||!c.on(c.a,'肯扎特对手攻击随机异常'))return;const out=c.randomAllPvpAilments(c.a.effects['肯扎特对手攻击随机异常'].count,1228);const ok=out.every(x=>x.applied);if(!ok)c.clear(c.t);}});}
 
 
@@ -5798,7 +5954,7 @@ const sourced4750=(c,id)=>Number(c.a.number)===4750&&bindings4750.some(x=>x.id==
 const handlers4750={
 1268(c,p){if(c.a.soulState.koUse4750===c.round+':'+c.m.id)c.a.soulState.delayedAilments4750={round:c.round+1,count:p[0],sourceMove:37875,sourceHash:'4058d4f0'};},
 977(c,p){healthRules.drainPercent({...c,heal:(f,n,label)=>c.heal(f,n,label,"skill")},c.t.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1),c.m.name+"理论吸取回复");},
-105(c,p){c.heal(c.a,c.dealt/p[0],c.m.name+"实际HP损失比例回复","skill");},
+105(c,p){c.heal(c.a,c.dealt/p[0],c.m.name+"完整红伤比例回复","skill");},
 1159(c,p){const before={...c.t.stages};c.steal(c.a,c.t,"技能");if(stats.some(k=>before[k]>0&&c.actualStage(c.t,k)<before[k]))c.grantOracleImmunity(c.a,p[0],"skill:1159:37874:be7fe073:0","flower1159");},
 1605(c,p){if(statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a);},
 1072(c,p){const count=c.effectConsecutiveCount()??1,n=Math.min(p[2],p[0]+(count-1)*p[1]);if(c.t.hp>0)c.hurt(c.t,c.a.hp*n/100,c.m.name+'当前体力连续附伤','percent');},
@@ -5899,12 +6055,12 @@ const handlers4761={
 2302(c){c.priority+=c.t.moves.filter(k=>c.t.pp[k]<3).length;},
 2303(c,p){if(c.a.hp===c.a.stats.maxHp){c.hurt(c.a,c.a.stats.maxHp/p[0],c.m.name+'满体直接体力消耗','direct');c.ailment(c.t,'睡眠',c.a);}else{healthRules.drainPercent({...c,heal:(f,n,label)=>c.heal(f,n,label,'skill')},c.t.stats.maxHp/p[2],c.m.name+'非满理论吸取');if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[3]);}},
 2304(c){c.clear(c.t);const d=dream4761(c),results=c.randomFromSharedPool(d.crisis,true,2304),failed=results.filter(x=>!x.applied).length;if(failed){c.timed(c.t,'statusBlock',1,{});for(let i=0;i<failed;i++)c.dreamEntry1972();}},
-2305(c){if(c.a.hp<=0)return;const d=dream4761(c);if(d.used2305||c.t.soulState.dream1972?.used2305)return;d.used2305=true;if(d.flower!=null&&!d.destroyed&&!d.hope){d.selfCost2305={round:c.round,move:c.m.id};c.hurt(c.a,c.a.hp,c.m.name+'消耗自身全部体力','direct');d.crisis++;}else if(d.destroyed)c.a.soulState.magicCurse1973=(c.a.soulState.magicCurse1973??0)+10;},
+2305(c){if(c.a.hp<=0)return;const d=dream4761(c);if(d.used2305||c.t.soulState.dream1972?.used2305||(c.teamMode&&!c.claimDreamUse()))return;d.used2305=true;if(d.flower!=null&&!d.destroyed&&!d.hope){d.selfCost2305={round:c.round,move:c.m.id};c.hurt(c.a,c.a.hp,c.m.name+'消耗自身全部体力','direct');d.crisis++;}else if(d.destroyed)c.a.soulState.magicCurse1973=(c.a.soulState.magicCurse1973??0)+10;},
 1756(c,p){if(!costFollowups4761(c))return;const eligible=c.hasRoundEffects4661(c.t),cleared=c.clear(c.t);let failed=eligible&&!cleared;if(cleared)failed=!(statusRoll(c,p[0])&&c.ailment(c.t,'睡眠',c.a));if(failed)refreshCounter4599({...c,a:c.t},'nextStatusInvalid',p[2],'1756:37930:fb8289bb:1');},
 805(c,p){if(costFollowups4761(c)&&c.clearBoost(c.t))empty4761(c,p[0]);}
 };
 for(const[id,fn]of Object.entries(handlers4761)){const old=registry[id],meta=metadata[id],phase=+id===136?'onMiss':+id===2302?'beforeOrder':+id===2304?'onInvalid':'afterHit';registry[id]=Object.freeze({...old,id:+id,direct:old?.direct??true,effectId:+id,template:meta?.info??old.template,argsNum:meta?.args_num??old.argsNum,phase:old?.phase??phase,validate(p,m,i){const rows=bindings4761.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4761 source mismatch '+id);return;}if(!old)throw Error('4761 exact source required '+id);return old.validate?.(p,m,i);},execute(c,p){if(sourced4761(c,+id))return fn(c,p);return old.execute(c,p);}});}
-{const old=registry[1785];registry[1785]=Object.freeze({...old,used4761(c){if(c.actualUsed&&c.m.kind!=='item'&&c.a.hp>0&&c.on(c.a,'琉梦实际用招吸取'))healthRules.drainPercent({...c,heal:(f,n,label)=>c.heal(f,n,label,'skill')},c.t.stats.maxHp*c.a.effects['琉梦实际用招吸取'].fraction,'绝念之先驱理论吸取');}});}
+{const old=registry[1785];registry[1785]=Object.freeze({...old,used4761(c){if(c.actualUsed&&c.m.kind!=='item'&&c.a.hp>0&&c.on(c.a,'琉梦实际用招吸取')){const full=c.a.hp===c.a.stats.maxHp;healthRules.drainPercent({...c,heal:(f,n,label)=>c.heal(f,n,label,'skill')},c.t.stats.maxHp*c.a.effects['琉梦实际用招吸取'].fraction,'绝念之先驱理论吸取');if(c.teamMode&&full)c.healLivingBench(c.a,c.a.effects['琉梦实际用招吸取'].fullBeforeDrainBenchHeal,'满体吸取场下回复');}}});}
 
 
 metadata[2296]={"info":"令对方体力上限最低的存活精灵体力上限提升至与自身相等并恢复等量体力，然后此精灵所有非体力上限的能力值减少提升的数值，最多减少50点且最多减少至1","args_num":0};
@@ -5912,7 +6068,7 @@ metadata[2295]={"info":"废除此技能，恢复对方精灵的全部体力，�
 const bindings4762=[{"moveId":37912,"hash":"5059702f","index":0,"id":889,"args":[23],"description":"消除对手回合类效果，消除成功则令对手诅咒"},{"moveId":37912,"hash":"5059702f","index":1,"id":636,"args":[0,23],"description":"消除对手能力提升状态，消除成功则令对手诅咒"},{"moveId":37912,"hash":"5059702f","index":2,"id":478,"args":[2],"description":"2回合内令对手使用的属性技能无效"},{"moveId":29047,"hash":"b3487e5e","index":1,"id":803,"args":[100,23,2,3,200],"description":"命中后100%令对手诅咒，未触发则恢复自身最大体力的1/2体力且3回合内自身受到的伤害不超过200"},{"moveId":29047,"hash":"b3487e5e","index":2,"id":693,"args":[2,150],"description":"下2回合造成的攻击伤害额外提升150%"},{"moveId":29047,"hash":"b3487e5e","index":3,"id":584,"args":[3,15],"description":"3回合内自己的所有攻击技能都附有15%的秒杀概率"},{"moveId":29048,"hash":"898dbeba","index":1,"id":1647,"args":[4,3,2,250],"description":"4回合内每回合使用技能吸取对手最大体力的1/3，吸取体力时若自身体力低于最大体力的1/2则吸取效果翻倍，对手免疫百分比伤害时额外附加250点真实伤害"},{"moveId":29048,"hash":"898dbeba","index":2,"id":1304,"args":[2,24],"description":"下2回合攻击忽略对手24%的双防值"},{"moveId":37913,"hash":"3e7ed734","index":1,"id":1232,"args":[],"description":"反转自身能力下降状态，反转成功则附加给对手等同的能力下降状态"},{"moveId":37913,"hash":"3e7ed734","index":2,"id":2296,"args":[],"description":"令对方体力上限最低的存活精灵体力上限提升至与自身相等并恢复等量体力，然后此精灵所有非体力上限的能力值减少提升的数值，最多减少50点且最多减少至1"},{"moveId":37914,"hash":"dcb0a3a4","index":0,"id":2295,"args":[],"description":"废除此技能，恢复对方精灵的全部体力，消耗此技能的全部PP值并获得等量的魔王咒怨，然后若魔王咒怨层数高于5则秒杀对手且造成的攻击伤害不低于对方精灵体力上限之和"}],sourced4762=(c,id)=>bindings4762.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index);
 function plan2295(c){const ss=c.a.soulState,use=c.effectUseCount(),old=ss.fifth2295;if(old?.round===c.round&&old.use===use)return old;const amount=(c.a.pp[c.m.id]??0)+(ss.basePPCostThisUse?.amount??0);ss.abolishedMoves1973??={};ss.abolishedMoves1973[c.m.id]={round:c.round,sourceHash:'dcb0a3a4'};c.heal(c.t,c.t.stats.maxHp,c.m.name+'恢复对手全部体力','skill');c.a.pp[c.m.id]=0;ss.magicCurse1973=(ss.magicCurse1973??0)+amount;return ss.fifth2295={round:c.round,use,amount,layers:ss.magicCurse1973,qualified:ss.magicCurse1973>5,rootMove:c.m.id};}
 
-function damage2295(c){if(c.a.hp<=0||c.hitEffectsDisabled)return;const p=plan2295(c);if(!p.qualified)return;c.minimumDamage=Math.max(c.minimumDamage??0,c.t.stats.maxHp);if(!p.instantAttempted){p.instantAttempted=true;if(c.t.hp>0)c.defeat(c.t,c.m.name+'源2295秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});}}
+function damage2295(c){if(c.a.hp<=0||c.hitEffectsDisabled)return;const p=plan2295(c);if(!p.qualified)return;const minimum=c.t.stats.maxHp+(c.teamMode?c.teamReserves(c.t.side).reduce((n,f)=>n+f.stats.maxHp,0):0);c.minimumDamage=Math.max(c.minimumDamage??0,minimum);if(!p.instantAttempted){p.instantAttempted=true;if(c.t.hp>0)c.defeat(c.t,c.m.name+'源2295秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});}}
 
 const handlers4762={
 889(c){if(c.clear(c.t))c.ailment(c.t,'诅咒',c.a);},636(c){if(c.clearBoost(c.t))c.ailment(c.t,'诅咒',c.a);},478(c,p){c.timed(c.t,'statusBlock',p[0],{});},
@@ -5920,7 +6076,23 @@ const handlers4762={
 693(c,p){c.timed(c.a,'id913',p[0],{bonus:p[1]/100},c.round+1);},584(c,p){c.timed(c.a,'攻击附加秒杀概率',p[0],{chance:p[1]});},
 1647(c,p){c.timed(c.a,'湮灭实际用招低体吸取',p[0],{fraction:1/p[1],threshold:1/p[2],extraTrue:p[3]});},1304(c,p){c.timed(c.a,'咤克斯忽略双防',p[0],{fraction:p[1]/100},c.round+1);},
 1232(c){const old={...c.a.stages},negative=stats.filter(k=>old[k]<0);if(!negative.length||c.canRemoveNegative(c.a)===false)return;const values=Object.fromEntries(negative.map(k=>[k,-old[k]]));c.rewriteStageValues(c.a,values,'reverse');for(const k of negative)if(c.a.stages[k]===-old[k])c.stage(c.t,old[k],[k]);},
- 2296(c){if(c.a.hp<=0||c.t.hp<=0)return;const before=c.t.stats.maxHp,delta=c.a.stats.maxHp-before;if(delta<=0){c.t.stats.maxHp=c.a.stats.maxHp;c.t.hp=Math.min(c.t.hp,c.t.stats.maxHp);return;}c.t.stats.maxHp+=delta;c.heal(c.t,delta,c.m.name+'对方上限提升等量回复','skill');for(const k of ['atk','def','spa','spd','spe'])c.t.stats[k]=Math.max(1,c.t.stats[k]-Math.min(50,delta));},
+ 2296(c){
+   if(c.a.hp<=0)return;
+   const roster=c.teamMode?[c.t,...c.teamReserves(c.t.side)]:[c.t];
+   const target=roster.filter(f=>f.hp>0).sort((a,b)=>a.stats.maxHp-b.stats.maxHp||a.teamPosition-b.teamPosition)[0];
+   if(!target)return;
+   const before={...target.stats},delta=c.a.stats.maxHp-before.maxHp;
+   target.stats.maxHp=c.a.stats.maxHp;
+   if(delta<=0)target.hp=Math.min(target.hp,target.stats.maxHp);
+   else{
+     c.heal(target,delta,c.m.name+'对方上限提升等量回复','skill');
+     for(const key of ['atk','def','spa','spd','spe'])target.stats[key]=Math.max(1,target.stats[key]-Math.min(50,delta));
+   }
+   if(c.teamMode){
+     const total=target.soulState.teamPanel2296??={};
+     for(const key of ['maxHp','atk','def','spa','spd','spe'])total[key]=(total[key]??0)+target.stats[key]-before[key];
+   }
+ },
  2295:damage2295
 };
 for(const[id,fn]of Object.entries(handlers4762)){const old=registry[id],meta=metadata[id],phase=+id===2295?'beforeDamage':'afterHit';registry[id]=Object.freeze({...old,id:+id,direct:old?.direct??true,template:meta?.info??old.template,argsNum:meta?.args_num??old.argsNum,phase:+id===2295?phase:old?.phase??phase,...(+id===2295?{hooks:{}}:{}),validate(p,m,i){const rows=bindings4762.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4762 source mismatch '+id);return;}if(!old)throw Error('4762 exact source required '+id);return old.validate?.(p,m,i);},execute(c,p){if(sourced4762(c,+id))return fn(c,p);return old.execute(c,p);}});}
@@ -5955,7 +6127,7 @@ const handlers4765={
 2164(c,p){const n=Object.values(c.a.stages).reduce((n,v)=>n+Math.max(0,v),0)*p[0]*(conditionStatusRules.conditionPresent(c.a,c.round)||conditionStatusRules.conditionPresent(c.t,c.round)?2:1);if(n>0)healthRules.drainFixed(c,n,c.m.name+'正能力总等级理论吸取');},
 2060(c,p){c.timed(c.a,'雷伊对手用属性麻痹',p[0],{chance:p[1],denominator:p[3]});},
 2290(c){const n=c.a.soulState.lei1966?.stars.length??0;if(n)c.stage(c.a,n);},
-2289(c,p){const n=c.a.soulState.lei1966?.stars.length??0;if(n)c.power+=n*p[0];else c.minimumDamage=Math.max(c.minimumDamage??0,p[1]);},
+2289(c,p){const n=c.a.soulState.lei1966?.stars.length??0;if(n)c.power+=n*p[0];else c.minimumDamage=Math.max(c.minimumDamage??0,p[1]*(c.teamMode?c.teamPopulation(c.a.side).live:1));},
 978(c){c.stealReverseWhale978();},
 1647(c,p){c.timed(c.a,'湮灭实际用招低体吸取',p[0],{fraction:1/p[1],threshold:1/p[2],extraTrue:p[3]});},
 1221(c,p){if(c.canRemoveNegative(c.a)===false)return;let changed=false;for(const k of stats){const before=c.a.stages[k];if(before<0){if(c.a.hp<=0)return;c.stage(c.a,-2*before,[k]);if(c.a.stages[k]===-before)changed=true;}}if(changed&&c.a.hp>0)c.grantOracleImmunity(c.a,p[0],'1221:'+c.m.id,'generic');},
@@ -5964,7 +6136,7 @@ const handlers4765={
 1249(c,p){const n=(c.settledDamage??c.dealt)*p[0]/100;if(n<=0||c.a.hp<=0)return;const before=c.a.hp;c.heal(c.a,n,c.m.name+'1249完整技能红伤回复','skill');const gain=Math.max(0,c.a.hp-before);if(gain>0&&c.a.hp>0&&c.t.hp>0&&conditionStatusRules.conditionPresent(c.t,c.round))c.hurt(c.t,gain,c.m.name+'1249回复净增等量百分比','percent');}
 };
 for(const[id,fn]of Object.entries(handlers4765)){const old=registry[id],effect=[{"id":42,"argsNum":2,"template":"{0}回合自己使用电招式伤害×2","revision":"seerapi:3ef5781b"},{"id":5,"argsNum":3,"template":"技能使用成功时，{1}%改变对手{0}等级{2}","revision":"seerapi:6392cf41"},{"id":10,"argsNum":1,"template":"命中后{0}%令对方麻痹","revision":"seerapi:34c8ddf5"},{"id":37,"argsNum":2,"template":"自身HP小于1/{0}时威力为{1}倍","revision":"seerapi:d48e9a63"},{"id":191,"argsNum":1,"template":"{0}回合内免疫并反弹所有受到的异常状态","revision":"seerapi:ebdb8dc2"},{"id":532,"argsNum":2,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害","revision":"seerapi:72c16473"},{"id":792,"argsNum":0,"template":"先出手时对手当回合攻击技能无效","revision":"seerapi:99c06d76"},{"id":3,"argsNum":0,"template":"解除自身的能力下降状态","revision":"seerapi:de96e2f9"},{"id":29,"argsNum":1,"template":"额外附加{0}点固定伤害","revision":"seerapi:415f01ba"},{"id":1249,"argsNum":1,"template":"造成伤害的{0}%恢复自身体力，若对手处于异常状态则附加等量百分比伤害","revision":"seerapi:407be2fa"},{"id":1014,"argsNum":2,"template":"全属性+{0}，自身当前体力高于最大体力的1/{1}时强化效果翻倍","revision":"seerapi:d640f675"},{"id":58,"argsNum":1,"template":"下{0}回合自身攻击技能必定打出致命一击","revision":"seerapi:a88e6bf3"},{"id":702,"argsNum":1,"template":"下{0}回合若打出致命一击则必定恢复全部体力","revision":"seerapi:feb91209"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":1468,"argsNum":2,"template":"消除双方能力提升状态、能力下降状态和护盾效果，消除任意一项成功则附加{0}点固定伤害且令对手随机{1}个技能PP值归零","revision":"seerapi:9cc6144c"},{"id":501,"argsNum":3,"template":"若造成的伤害不足{0}，则对手{1}等级-{2}","revision":"seerapi:dd6cbf13"},{"id":494,"argsNum":0,"template":"无视对手能力提升状态","revision":"seerapi:5a4204cb"},{"id":1653,"argsNum":2,"template":"释放技能时对手每残留{0}%的体力值则此技能附加{1}点固定伤害","revision":"seerapi:35e90536"},{"id":180,"argsNum":0,"template":"消除对手回合类效果","revision":"seerapi:349932e1"},{"id":1252,"argsNum":4,"template":"自身体力低于1/{0}时造成的伤害为{1}倍，低于1/{2}时伤害为{3}倍","revision":"seerapi:3e5d3f06"},{"id":959,"argsNum":1,"template":"消除对手回合类效果，消除成功则自身全属性+{0}","revision":"seerapi:9a8686f9"},{"id":978,"argsNum":0,"template":"吸取并反转对手能力提升状态","revision":"seerapi:5a46e29d"},{"id":2164,"argsNum":1,"template":"自身每有1级能力提升吸取对手{0}点体力，双方任意一方处于异常状态时效果翻倍","revision":"seerapi:e883968f"},{"id":663,"argsNum":3,"template":"{0}回合内若对手使用攻击技能则{1}%使对手{2}","revision":"seerapi:dc977d23"},{"id":2060,"argsNum":4,"template":"{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害","revision":"seerapi:7cd0fb94"},{"id":716,"argsNum":2,"template":"{0}回合内对手使用攻击技能，则使对手随机{1}个技能的PP值归零","revision":"seerapi:b4624800"},{"id":1647,"argsNum":4,"template":"{0}回合内每回合使用技能吸取对手最大体力的1/{1}，吸取体力时若自身体力低于最大体力的1/{2}则吸取效果翻倍，对手免疫百分比伤害时额外附加{3}点真实伤害","revision":"seerapi:b306d102"},{"id":2290,"argsNum":0,"template":"自身每点亮1颗雷辰全属性+1","revision":"seerapi:9fb5f5f5"},{"id":924,"argsNum":2,"template":"下{0}回合攻击技能吸取对手1/{1}最大体力值","revision":"seerapi:a52f8a7d"},{"id":1683,"argsNum":1,"template":"{0}回合内自身的能力提升状态无法被消除或吸取","revision":"seerapi:7753da92"},{"id":881,"argsNum":0,"template":"若自身处于能力下降状态则技能先制+3","revision":"seerapi:897c0169"},{"id":980,"argsNum":0,"template":"先出手时对手当回合属性技能无效","revision":"seerapi:3a08f6c6"},{"id":863,"argsNum":1,"template":"后出手则下{0}回合令对手使用的攻击技能无效","revision":"seerapi:2ea3c25a"},{"id":1221,"argsNum":1,"template":"反转自身能力下降状态，反转成功则自身免疫下{0}次受到的异常状态","revision":"seerapi:ff7ec3df"},{"id":567,"argsNum":0,"template":"对手为自身天敌时造成的伤害翻倍","revision":"seerapi:ed32aeef"},{"id":1523,"argsNum":1,"template":"消除对手回合类效果，消除成功则吸取对手{0}点体力","revision":"seerapi:cd9e071a"},{"id":2289,"argsNum":2,"template":"自身每点亮1颗雷辰威力提升{0}点，若自身未点亮雷辰则己方每存活1只精灵造成的攻击伤害不低于{1}","revision":"seerapi:98a8b6bf"},{"id":964,"argsNum":0,"template":"未击败对手则自身能力提升状态翻倍","revision":"seerapi:47d8f843"},{"id":1960,"argsNum":1,"template":"击败对手则令自身{0}回合内的能力提升状态无法被消除或吸取","revision":"seerapi:c1b77df"}].find(x=>x.id===+id),phase=+id===2289?'beforeDamage':[1960,1249,964].includes(+id)?'afterAttack':'afterHit';registry[id]=Object.freeze({...old,id:+id,template:effect.template,argsNum:effect.argsNum,instanceArgsNum:effect.argsNum,direct:true,phase:old?.phase??phase,...(+id===1653?{hooks:{...old?.hooks,actualUse4706:prepare1653}}:{}),validate(p,m,i){const rows=bindings4765.filter(x=>x.id===+id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4765 exact source mismatch '+id);return;}if(!old)throw Error('4765 unreviewed effect source '+id);return old.validate(p,m,i);},execute(c,p){if(sourced4765(c,+id)){if(c.a.hp<=0)return;return fn(c,p);}if(!old)throw Error('4765 unsupported source '+id);return old.execute(c,p);}});}
-{const old=registry[2060];registry[2060]=Object.freeze({...old,payload4765(c,e){if(c.a.hp<=0)return;if(statusRoll(c,e.chance)&&c.ailment(c.t,'麻痹',c.a,false,false,null,{probabilityPercent:e.chance}))return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/e.denominator,'雷伊麻痹失败回复','skill');const n=Math.max(0,c.a.hp-before);if(n>0&&c.t.hp>0)c.hurt(c.t,n,'雷伊麻痹失败等量百分比','percent');}});}
+{const old=registry[2060];registry[2060]=Object.freeze({...old,payload4765(c,e){if(c.a.hp<=0)return;if(statusRoll(c,e.chance)&&c.ailment(c.t,'麻痹',c.a,false,false,null,{probabilityPercent:e.chance}))return;const n=c.heal(c.a,c.a.stats.maxHp/e.denominator,'雷伊麻痹失败回复','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'雷伊麻痹失败等量百分比','percent');}});}
 
 
 const extra4765=[{"moveId":37916,"hash":"2d01ca63","index":1,"id":501,"args":[300,1,2],"description":"若造成的伤害不足300，则对手防御等级-2"},{"moveId":37906,"hash":"4ed45779","index":3,"id":663,"args":[1,100,0],"description":"1回合内若对手使用攻击技能则100%使对手麻痹"},{"moveId":29043,"hash":"ff3faefa","index":2,"id":716,"args":[3,1],"description":"3回合内对手使用攻击技能，则使对手随机1个技能的PP值归零"}];for(const id of[501,663,716]){const old=registry[id],e=[{"id":42,"argsNum":2,"template":"{0}回合自己使用电招式伤害×2","revision":"seerapi:3ef5781b"},{"id":5,"argsNum":3,"template":"技能使用成功时，{1}%改变对手{0}等级{2}","revision":"seerapi:6392cf41"},{"id":10,"argsNum":1,"template":"命中后{0}%令对方麻痹","revision":"seerapi:34c8ddf5"},{"id":37,"argsNum":2,"template":"自身HP小于1/{0}时威力为{1}倍","revision":"seerapi:d48e9a63"},{"id":191,"argsNum":1,"template":"{0}回合内免疫并反弹所有受到的异常状态","revision":"seerapi:ebdb8dc2"},{"id":532,"argsNum":2,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害","revision":"seerapi:72c16473"},{"id":792,"argsNum":0,"template":"先出手时对手当回合攻击技能无效","revision":"seerapi:99c06d76"},{"id":3,"argsNum":0,"template":"解除自身的能力下降状态","revision":"seerapi:de96e2f9"},{"id":29,"argsNum":1,"template":"额外附加{0}点固定伤害","revision":"seerapi:415f01ba"},{"id":1249,"argsNum":1,"template":"造成伤害的{0}%恢复自身体力，若对手处于异常状态则附加等量百分比伤害","revision":"seerapi:407be2fa"},{"id":1014,"argsNum":2,"template":"全属性+{0}，自身当前体力高于最大体力的1/{1}时强化效果翻倍","revision":"seerapi:d640f675"},{"id":58,"argsNum":1,"template":"下{0}回合自身攻击技能必定打出致命一击","revision":"seerapi:a88e6bf3"},{"id":702,"argsNum":1,"template":"下{0}回合若打出致命一击则必定恢复全部体力","revision":"seerapi:feb91209"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":1468,"argsNum":2,"template":"消除双方能力提升状态、能力下降状态和护盾效果，消除任意一项成功则附加{0}点固定伤害且令对手随机{1}个技能PP值归零","revision":"seerapi:9cc6144c"},{"id":501,"argsNum":3,"template":"若造成的伤害不足{0}，则对手{1}等级-{2}","revision":"seerapi:dd6cbf13"},{"id":494,"argsNum":0,"template":"无视对手能力提升状态","revision":"seerapi:5a4204cb"},{"id":1653,"argsNum":2,"template":"释放技能时对手每残留{0}%的体力值则此技能附加{1}点固定伤害","revision":"seerapi:35e90536"},{"id":180,"argsNum":0,"template":"消除对手回合类效果","revision":"seerapi:349932e1"},{"id":1252,"argsNum":4,"template":"自身体力低于1/{0}时造成的伤害为{1}倍，低于1/{2}时伤害为{3}倍","revision":"seerapi:3e5d3f06"},{"id":959,"argsNum":1,"template":"消除对手回合类效果，消除成功则自身全属性+{0}","revision":"seerapi:9a8686f9"},{"id":978,"argsNum":0,"template":"吸取并反转对手能力提升状态","revision":"seerapi:5a46e29d"},{"id":2164,"argsNum":1,"template":"自身每有1级能力提升吸取对手{0}点体力，双方任意一方处于异常状态时效果翻倍","revision":"seerapi:e883968f"},{"id":663,"argsNum":3,"template":"{0}回合内若对手使用攻击技能则{1}%使对手{2}","revision":"seerapi:dc977d23"},{"id":2060,"argsNum":4,"template":"{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害","revision":"seerapi:7cd0fb94"},{"id":716,"argsNum":2,"template":"{0}回合内对手使用攻击技能，则使对手随机{1}个技能的PP值归零","revision":"seerapi:b4624800"},{"id":1647,"argsNum":4,"template":"{0}回合内每回合使用技能吸取对手最大体力的1/{1}，吸取体力时若自身体力低于最大体力的1/{2}则吸取效果翻倍，对手免疫百分比伤害时额外附加{3}点真实伤害","revision":"seerapi:b306d102"},{"id":2290,"argsNum":0,"template":"自身每点亮1颗雷辰全属性+1","revision":"seerapi:9fb5f5f5"},{"id":924,"argsNum":2,"template":"下{0}回合攻击技能吸取对手1/{1}最大体力值","revision":"seerapi:a52f8a7d"},{"id":1683,"argsNum":1,"template":"{0}回合内自身的能力提升状态无法被消除或吸取","revision":"seerapi:7753da92"},{"id":881,"argsNum":0,"template":"若自身处于能力下降状态则技能先制+3","revision":"seerapi:897c0169"},{"id":980,"argsNum":0,"template":"先出手时对手当回合属性技能无效","revision":"seerapi:3a08f6c6"},{"id":863,"argsNum":1,"template":"后出手则下{0}回合令对手使用的攻击技能无效","revision":"seerapi:2ea3c25a"},{"id":1221,"argsNum":1,"template":"反转自身能力下降状态，反转成功则自身免疫下{0}次受到的异常状态","revision":"seerapi:ff7ec3df"},{"id":567,"argsNum":0,"template":"对手为自身天敌时造成的伤害翻倍","revision":"seerapi:ed32aeef"},{"id":1523,"argsNum":1,"template":"消除对手回合类效果，消除成功则吸取对手{0}点体力","revision":"seerapi:cd9e071a"},{"id":2289,"argsNum":2,"template":"自身每点亮1颗雷辰威力提升{0}点，若自身未点亮雷辰则己方每存活1只精灵造成的攻击伤害不低于{1}","revision":"seerapi:98a8b6bf"},{"id":964,"argsNum":0,"template":"未击败对手则自身能力提升状态翻倍","revision":"seerapi:47d8f843"},{"id":1960,"argsNum":1,"template":"击败对手则令自身{0}回合内的能力提升状态无法被消除或吸取","revision":"seerapi:c1b77df"}].find(x=>x.id===id);registry[id]=Object.freeze({...old,id,template:e.template,argsNum:e.argsNum,instanceArgsNum:e.argsNum,direct:true,phase:id===501?'afterAttack':'afterHit',validate(p,m,i){const rows=extra4765.filter(x=>x.id===id&&(m.wikiId??m.id)===x.moveId);if(rows.length){if(!rows.some(x=>x.hash===m.hash&&m.revision==='seerapi:'+x.hash&&x.index===i&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4765 source mismatch '+id);return;}if(!old)throw Error('unreviewed 501 source');return old.validate(p,m,i);},execute(c,p){if(!extra4765.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index)){if(!old)throw Error('unreviewed501');return old.execute(c,p);}if(id===501){if((c.settledDamage??c.dealt)<p[0])c.stage(c.t,-p[2],[stats[p[1]]]);}else c.timed(c.a,id===663?'雷伊对手攻击麻痹':'雷伊对手攻击清PP',p[0],id===663?{chance:p[1]}:{count:p[1]});}});}
@@ -5992,7 +6164,7 @@ const handlers4766={
 };
 function Evolve4766(c){return c.evolveWudao1967();}
 for(const[id,fn]of Object.entries(handlers4766)){const old=registry[id],e=[{"id":4,"argsNum":3,"template":"技能使用成功时，{1}%改变自身{0}等级{2}","revision":"seerapi:cda7be9a"},{"id":29,"argsNum":1,"template":"额外附加{0}点固定伤害","revision":"seerapi:415f01ba"},{"id":5,"argsNum":3,"template":"技能使用成功时，{1}%改变对手{0}等级{2}","revision":"seerapi:6392cf41"},{"id":43,"argsNum":1,"template":"恢复自身最大体力的1/{0}","revision":"seerapi:b33246e"},{"id":38,"argsNum":1,"template":"降低对方{0}点战斗时的最高HP","revision":"seerapi:c102f8bc"},{"id":31,"argsNum":2,"template":"1回合做{0}次攻击","revision":"seerapi:3920f039"},{"id":46,"argsNum":1,"template":"抵挡下{0}次对手的攻击","revision":"seerapi:ab275865"},{"id":191,"argsNum":1,"template":"{0}回合内免疫并反弹所有受到的异常状态","revision":"seerapi:ebdb8dc2"},{"id":47,"argsNum":1,"template":"{0}回合内免疫能力下降状态","revision":"seerapi:2a09848d"},{"id":1664,"argsNum":1,"template":"当回合若自身先出手则令对手使用的威力值低于{0}的攻击技能无效，若击败对手则攻击无效效果延续至下回合","revision":"seerapi:97861a84"},{"id":1491,"argsNum":0,"template":"遇到天敌时先制+1","revision":"seerapi:41a9667d"},{"id":766,"argsNum":2,"template":"消除对手能力提升状态，消除成功则{0}回合内对手造成的攻击伤害不超过{1}点","revision":"seerapi:51b97af8"},{"id":871,"argsNum":2,"template":"下{0}回合，每回合攻击技能造成的伤害不少于{1}","revision":"seerapi:6ccdcbff"},{"id":2220,"argsNum":0,"template":"将自身攻击和特攻中最高的能力值作为自己的能力值进行攻击","revision":"seerapi:5a65ab30"},{"id":1219,"argsNum":0,"template":"消除对手回合类效果，消除成功则下回合受到的伤害转化为自身体力","revision":"seerapi:5ae478ac"},{"id":1105,"argsNum":2,"template":"{0}回合内每回合攻击附加自身攻击和特攻中最高一项{1}%的百分比伤害","revision":"seerapi:5af492b0"},{"id":885,"argsNum":1,"template":"全属性+{0}，自身当前体力高于对手时强化效果翻倍","revision":"seerapi:4dd64292"},{"id":532,"argsNum":2,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害","revision":"seerapi:72c16473"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":485,"argsNum":0,"template":"消除对手能力提升状态，消除成功则恢复自身全部体力","revision":"seerapi:9fcc1b55"},{"id":1748,"argsNum":1,"template":"本回合若未打出致命一击则下{0}回合自身攻击必定致命一击","revision":"seerapi:9b49db45"},{"id":2299,"argsNum":0,"template":"消除对手回合类效果，消除成功则令对手攻击技能PP值归0","revision":"seerapi:f949a767"},{"id":2294,"argsNum":0,"template":"衍化自身的武道","revision":"seerapi:cb88ffda"},{"id":693,"argsNum":2,"template":"下{0}回合造成的攻击伤害额外提升{1}%","revision":"seerapi:aca364fa"},{"id":2301,"argsNum":1,"template":"{0}回合内自身免疫对手的攻击","revision":"seerapi:d9b59ee1"},{"id":1693,"argsNum":3,"template":"{0}回合内每回合使用技能附加对手最大体力1/{1}的百分比伤害，对手免疫百分比伤害时额外附加{2}点真实伤害","revision":"seerapi:f03b3c9d"},{"id":2293,"argsNum":1,"template":"复原自身的武道衍化轨迹，下{0}次衍化时时全属性+1","revision":"seerapi:6457c0c0"},{"id":1065,"argsNum":3,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果和百分比伤害翻倍","revision":"seerapi:8a968e14"},{"id":881,"argsNum":0,"template":"若自身处于能力下降状态则技能先制+3","revision":"seerapi:897c0169"},{"id":699,"argsNum":0,"template":"无视攻击免疫效果","revision":"seerapi:b34cafd8"},{"id":733,"argsNum":1,"template":"反转自身能力下降状态，反转成功则对手{0}","revision":"seerapi:9a362883"},{"id":2292,"argsNum":1,"template":"将自身的武道衍化轨迹改为逆转并将武道正转期间抵挡的伤害以固定伤害的形式反馈给对手，最高不超过自身最大体力的{0}%","revision":"seerapi:49f17e2f"},{"id":567,"argsNum":0,"template":"对手为自身天敌时造成的伤害翻倍","revision":"seerapi:ed32aeef"},{"id":779,"argsNum":0,"template":"若对手处于能力提升状态则先制+2","revision":"seerapi:d51ed35f"},{"id":2298,"argsNum":0,"template":"自身不处于能力提升状态时先制+2","revision":"seerapi:42cb690a"},{"id":1568,"argsNum":0,"template":"无视护盾效果","revision":"seerapi:788b05bb"},{"id":2300,"argsNum":2,"template":"攻击伤害被限制时{0}%令对手{1}","revision":"seerapi:e5f570d"},{"id":985,"argsNum":1,"template":"吸取对手能力提升状态，吸取成功则下{0}回合对手属性技能无效","revision":"seerapi:27a93097"},{"id":2291,"argsNum":3,"template":"自身武道衍化轨迹为正转时{0}回合内对手无法通过技能恢复体力，为逆转时{1}回合内对手造成的攻击伤害减少{2}%","revision":"seerapi:5ad22c09"}].find(x=>x.id===+id),phase=+id===2298?'beforeOrder':[1748,2300].includes(+id)?'afterAttack':'afterHit';registry[id]=Object.freeze({...old,id:+id,template:e.template,argsNum:e.argsNum,instanceArgsNum:e.argsNum,direct:true,phase:old?.phase??phase,validate(p,m,i){const rows=bindings4766.filter(x=>x.id===+id&&(m.wikiId??m.id)===x.moveId);if(rows.length){if(!rows.some(x=>x.hash===m.hash&&m.revision==='seerapi:'+x.hash&&x.index===i&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4766 source mismatch '+id);return;}if(!old)throw Error('4766 unreviewed source '+id);return old.validate(p,m,i);},execute(c,p){if(sourced4766(c,+id))return fn(c,p);if(!old)throw Error('4766 unsupported source '+id);return old.execute(c,p);}});}
-{const old=registry[1693];registry[1693]=Object.freeze({...old,used4766(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;if(c.on(c.a,'盖亚实际用招粉伤')){const e=c.a.effects['盖亚实际用招粉伤'],immune=c.damageImmune(c.t,'percent');if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp*e.fraction,'盖亚实际用招百分比附伤','percent');if(immune&&c.t.hp>0)c.hurt(c.t,e.extra,'盖亚免粉补真实伤害','true');}if(c.a.hp>0&&c.on(c.a,'盖亚实际用招回复附伤')){const e=c.a.effects['盖亚实际用招回复附伤'],nominal=c.a.stats.maxHp*e.fraction*(e.threshold&&c.a.hp<c.a.stats.maxHp*e.threshold?2:1),before=c.a.hp;c.heal(c.a,nominal,'盖亚实际使用技能回复','skill');const n=Math.max(0,c.a.hp-before);if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'盖亚实际用招回复等量粉伤','percent');}}});}
+{const old=registry[1693];registry[1693]=Object.freeze({...old,used4766(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0)return;if(c.on(c.a,'盖亚实际用招粉伤')){const e=c.a.effects['盖亚实际用招粉伤'],immune=c.damageImmune(c.t,'percent');if(c.t.hp>0)c.hurt(c.t,c.t.stats.maxHp*e.fraction,'盖亚实际用招百分比附伤','percent');if(immune&&c.t.hp>0)c.hurt(c.t,e.extra,'盖亚免粉补真实伤害','true');}if(c.a.hp>0&&c.on(c.a,'盖亚实际用招回复附伤')){const e=c.a.effects['盖亚实际用招回复附伤'],nominal=c.a.stats.maxHp*e.fraction*(e.threshold&&c.a.hp<c.a.stats.maxHp*e.threshold?2:1),n=c.heal(c.a,nominal,'盖亚实际使用技能回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&n>0)c.hurt(c.t,n,'盖亚实际用招回复等量粉伤','percent');}}});}
 
 
 {const old=registry[1664];registry[1664]=Object.freeze({...old,execute(c,p){if((c.m.wikiId??c.m.id)!==29051||c.m.revision!=='seerapi:c5f3cc3f'||c.effectInstanceIndex!==2)return old.execute(c,p);if(c.a.side===c.first){c.timed(c.a,'低威力攻击无效',1,{power:p[0]});c.a.soulState.gaia1664Extension={round:c.round,power:p[0]};}}});}
@@ -6017,7 +6189,16 @@ metadata[2315]={info:"汲取对方场下损失PP值最多的精灵{0}点体力�
 metadata[2316]={info:"{0}回合内任意一方处于能力下降状态时自身免疫对手的攻击",args_num:1};
 add(1499,'beforeOrder',c=>{if(c.a.hp<c.a.stats.maxHp/3)c.priority+=3;});
 add(2316,'afterHit',(c,p)=>c.timed(c.a,'任一方弱化免攻',p[0],{}),[turns]);
-add(2315,'afterHit',()=>{},[[0,99999],[1,999],[0,99999]],'原文仅对方场下损失PP值最多目标；完整延期，不伪造当前对手');
+add(2315,'afterHit',(c,p)=>{
+  if(!c.teamMode)return;
+  let best=null,highest=-1;
+  for(const foe of c.teamReserves(c.t.side)){
+    if(foe.hp<=0)continue;
+    const lost=foe.moves.reduce((sum,key)=>sum+Math.max(0,foe.teamPPDefinitions[key].pp-foe.pp[key]),0);
+    if(lost>highest||lost===highest&&foe.teamPosition<best.teamPosition){highest=lost;best=foe;}
+  }
+  if(best)c.drainBenchTrue(best,p[0]+Math.floor(highest/p[1])*p[2],c.m.name+'场下汲取');
+},[[0,99999],[1,999],[0,99999]],'原文仅对方场下损失PP值最多目标；完整延期，不伪造当前对手');
 const handlers4785={1372(c,p){c.timed(c.a,'对手用攻异常或清回合',p[0],{chance:p[1],ailment:'感染'});},1777(c,p){const had=Object.values(c.t.effects).some(e=>conditionStatusRules.timedPresent(e,c.round));c.clear(c.t);if(!had&&statusRoll(c,p[0]))c.ailment(c.t,'寄生',c.a);},1868(c,p){if(statusRoll(c,p[2]))c.ailment(c.t,'疲惫',c.a);},1752(c,p){const source='effect1752:'+c.m.id+':'+c.effectInstanceIndex;c.refreshShield(c.a,p[0],source);(c.a.soulState.sourceShieldReactions??={})[source]={kind:'hunxianDrain',amount:p[1],count:p[2],hunxianShield4612:true};}};
 for(const id of[1372,1777,1791,1868,1752]){const old=registry[id],exact=bindings4785.filter(x=>x.id===id);registry[id]=Object.freeze({...old,validate(p,m,i){if(exact.some(x=>(m?.wikiId??m?.id)===x.moveId&&(m.hash===x.hash||m.revision==='seerapi:'+x.hash)&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))return;return old.validate(p,m,i);},execute(c,p){if(!sourced4785(c,id))return old.execute(c,p);return handlers4785[id]?handlers4785[id](c,p):old.execute(c,p);}});}
 {const old=registry[1868];registry[1868]=Object.freeze({...old,deferredFor(p,m,i){if((m?.wikiId??m?.id)===37985&&i===3)return '真实换宠分支睡眠延期，当前未换宠疲惫已实现';return old.deferredFor?old.deferredFor(p,m,i):old.deferred;}});}
@@ -6043,7 +6224,7 @@ metadata[2322]={info:"使用时解除自身所处的异常状态，若自身处�
 const handlers4797={2117(c,p){c.convertAilment(c.t,'流血','诅咒');},2303(c,p){if(c.a.hp===c.a.stats.maxHp){c.hurt(c.a,c.a.stats.maxHp/p[0],'极渊凋尸体力消耗','direct',true);c.ailment(c.t,'流血',c.a);}else{healthRules.drainPercent(c,c.t.stats.maxHp/p[2],c.m.name+'理论吸取');if(!c.ppReductionBlocked(c.t))for(const k of c.t.moves)c.t.pp[k]=Math.max(0,c.t.pp[k]-p[3]);}},1012(c,p){if(c.steal(c.a,c.t,c.m.name))c.refreshShield(c.a,p[0],'1012:38019:1');},1679(c,p){const eligible=(c.settledDamage??c.dealt)>p[0];if(!eligible)return;if(!(eligible&&statusRoll(c,p[1])&&c.ailment(c.t,'流血',c.a)))healthRules.drainPercent(c,c.t.stats.maxHp/p[3],c.m.name+'未触发理论吸取');},971(c,p){c.timed(c.a,'极渊实际用招低体双吸',p[0],{denominator:p[1],threshold:p[2],grantRound:c.round,grantMove:c.m.id,grantUse:c.a.soulState.skillUses?.[c.m.id]});},1814(c,p){c.timed(c.a,'极渊实际用招臣服吸取',p[0],{chance:p[1],denominator:p[3],grantRound:c.round,grantMove:c.m.id,grantUse:c.a.soulState.skillUses?.[c.m.id]});},2320(c,p){c.timed(c.a,'极渊实际用招弱化封攻',p[0],{stages:p.slice(1,7),duration:p[7],grantRound:c.round,grantMove:c.m.id,grantUse:c.a.soulState.skillUses?.[c.m.id]});}};
 for(const[id,fn]of Object.entries(handlers4797)){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4797(m,i,+id,p))return;if(bindings4797.some(b=>b.id===+id&&(m?.wikiId??m?.id)===b.moveId))throw Error('4797 source mismatch '+id);return old.validate?.(p,m,i);},execute(c,p){if(sourced4797(c,+id,p))return fn(c,p);return old.execute(c,p);}});}
 
-registry[2320]=Object.freeze({...registry[2320],used4797(c){if(!c.actualUsed||c.m.kind==='item')return;for(const key of ['极渊实际用招低体双吸','极渊实际用招臣服吸取','极渊实际用招弱化封攻']){if(!c.on(c.a,key))continue;const e=c.a.effects[key];if(c.a.hp<=0)return;if(key==='极渊实际用招低体双吸'){healthRules.drainPercent(c,c.t.stats.maxHp/e.denominator*(c.a.hp<c.a.stats.maxHp/e.threshold?2:1),'极渊实际用招低体双吸');}else if(key==='极渊实际用招臣服吸取'){const before=c.t.ailments['臣服']??0,ok=statusRoll(c,e.chance)&&c.ailment(c.t,'臣服',c.a);let success=ok;if(ok&&(c.t.ailments['臣服']??0)<=before)success=false;if(!success)healthRules.drainPercent(c,c.t.stats.maxHp/e.denominator,'极渊臣服未触发吸取');}else{const changed=[];for(let i=0;i<6;i++)if(e.stages[i]){const k=['atk','def','spa','spd','spe','acc'][i],before=c.t.stages[k];c.stage(c.t,e.stages[i],[k]);changed.push(c.t.stages[k]!==before);}const fail=changed.some(x=>!x);if(fail)c.timed(c.t,'封攻',e.duration);}}}});
+registry[2320]=Object.freeze({...registry[2320],used4797(c){if(!c.actualUsed||c.m.kind==='item')return;for(const key of ['极渊实际用招低体双吸','极渊实际用招臣服吸取','极渊实际用招弱化封攻']){if(!c.on(c.a,key))continue;const e=c.a.effects[key];if(c.a.hp<=0)return;if(key==='极渊实际用招低体双吸'){healthRules.drainPercent(c,c.t.stats.maxHp/e.denominator*(c.a.hp<c.a.stats.maxHp/e.threshold?2:1),'持续低体吸取');}else if(key==='极渊实际用招臣服吸取'){const before=c.t.ailments['臣服']??0,ok=statusRoll(c,e.chance)&&c.ailment(c.t,'臣服',c.a);let success=ok;if(ok&&(c.t.ailments['臣服']??0)<=before)success=false;if(!success)healthRules.drainPercent(c,c.t.stats.maxHp/e.denominator,'臣服未触发吸取');}else{const changed=[];for(let i=0;i<6;i++)if(e.stages[i]){const k=['atk','def','spa','spd','spe','acc'][i],before=c.t.stages[k];c.stage(c.t,e.stages[i],[k]);changed.push(c.t.stages[k]!==before);}const fail=changed.some(x=>!x);if(fail)c.timed(c.t,'封攻',e.duration);}}}});
 
 {const old=registry[2322];registry[2322]=Object.freeze({...old,allowUnderHitEffectsDisabled(c,p,i){return exact4797(c.m,i,2322,p);},execute(c,p){if(!c.hitEffectsDisabled)return old.execute(c,p);c.clearAilments(c.a);if(c.a.soulState.compute1987?.limited)c.a.soulState.damageBlock2322={round:c.round,move:c.m.id,use:c.a.soulState.skillUses?.[c.m.id]};}});}
 
@@ -6073,8 +6254,8 @@ metadata[2343]={info:"对手每处于1回合的威怯1回合内令对手技能�
 add(704,'afterHit',(c,p)=>c.heal(c.a,c.a.hp<p[1]?c.a.stats.maxHp:p[0],c.m.name+'回复','skill'),[[0,10000],[0,10000]]);
 add(2342,'afterHit',(c,p)=>{const n=Object.values(c.t.stages).reduce((n,v)=>n+Math.max(0,v),0);if(c.clearBoost(c.t))c.hurt(c.t,n*p[1],c.m.name+'清除等级固定','fixed');},[[1,6],[0,10000]]);
 add(2343,'afterHit',c=>{const n=Math.max(0,(c.t.soulState.awe2009??0)-c.round+1);if(n)c.timed(c.t,'skillBlock',n);});
-add(2344,'afterHit',c=>{c.hurt(c.a,c.a.hp,c.m.name+'消耗全部体力','direct',true);},[],'自身下场后消逝并为己方真实英雄圣殿队友附加英雄之诫；当前全部HP消耗立即执行');
-add(2345,'beforeOrder',c=>{if((c.a.soulState.heroGlory2009??0)>=3)throw Error('2345真实队伍英雄之耀层数与无PP使用属于多精灵延期');},[],'英雄之耀达到3层的条件依赖真实其他队员计数，第二阶段实现PP豁免和先制');
+add(2344,'afterHit',c=>{if(c.teamMode)c.a.soulState.heroOathOnExit=true;c.hurt(c.a,c.a.hp,c.m.name+'消耗全部体力','direct',true);},[],'自身下场后消逝并为己方真实英雄圣殿队友附加英雄之诫；当前全部HP消耗立即执行');
+add(2345,'beforeOrder',c=>{if((c.a.soulState.heroGlory2009??0)>=3)c.priority++;},[],'英雄之耀达到3层的条件依赖真实其他队员计数，第二阶段实现PP豁免和先制');
 for(const id of [2345,2342,704,2344,2343]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(!exact4800(m,i,id,p))throw Error('4800 exact source mismatch '+id);return old.validate?.(p,m,i);}});}
 
 // 1065 shares the verified grant-use/net-HP consumer used4743, without research-model overrides.
@@ -6084,7 +6265,7 @@ metadata[2346]={info:"英雄之耀达到3层时此技能不受PP值限制且使�
 metadata[2347]={info:"英雄之耀达到3层时此技能不受PP值限制且使用时消除自身回合类效果",args_num:0};
 metadata[2348]={info:"自身体力高于对手时令对手威怯3回合",args_num:0};
 
-for(const id of[2346,2347])add(id,'beforeUse',c=>{if((c.a.soulState.heroGlory2009??0)>=3)throw Error('英雄之耀3层依赖队伍计数，此分支多精灵延期');},[],'英雄之耀3层条件依赖真实其他队员计数，PP豁免及条件使用效果第二阶段实现');
+for(const id of[2346,2347])add(id,'beforeUse',c=>{if((c.a.soulState.heroGlory2009??0)<3)return;if(id===2346)c.clearAilments(c.a);else c.clear(c.a);},[],'英雄之耀3层条件依赖真实其他队员计数，PP豁免及条件使用效果第二阶段实现');
 add(2348,'afterHit',c=>{if(c.a.hp>c.t.hp)c.t.soulState.awe2009=c.round+2;});
 const handlers4800={2195(c,p){if(c.clear(c.t))c.timed(c.t,'id984',p[0],{amount:-p[1]},c.round+1);},1663(){},2148(c,p){if(c.a.hp>0)c.grantOracleImmunity(c.a,p[0],'2148:38087:1','wusheng2148');},2252(c,p){const ko=c.a.soulState.actualKo4800;if(ko?.round===c.round&&ko.move===c.m.id&&c.a.hp>0)c.grantOracleImmunity(c.a,p[0],'2252:38088:4','wusheng2252');},971(c,p){c.timed(c.a,'极渊实际用招低体双吸',p[0],{denominator:p[1],threshold:p[2],grantRound:c.round,grantMove:c.m.id,grantUse:c.a.soulState.skillUses?.[c.m.id]});}};
 for(const id of [2346,2347,2348,2195,1663,2148,2252,971]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4800(m,i,id,p))return;return old.validate?.(p,m,i);},execute(c,p){if(exact4800(c.m,c.effectInstanceIndex,id,p)&&handlers4800[id])return handlers4800[id](c,p);return old.execute(c,p);}});}
@@ -6103,7 +6284,7 @@ metadata[2326]={"info":"击败对手时为对方下只精灵附加入魅","args_
 add(2328,'beforeDamage',(c,p)=>{if(c.a.side!==c.first)c.power*=1+p[0]/100;},[[0,1000]]);
 add(2326,'afterAttack',()=>{},[],'击败对手后对敌方下一只出场精灵施加入魅，依赖下一只出场与替换技能生命周期');
 const handlers4808={978(c){c.stealReverseWhale978();},1065(c,p){c.timed(c.a,'纳多雷实际用招回复粉伤',p[0],{fraction:1/p[1],threshold:1/p[2],source4798:true,grantRound:c.round,grantMove:c.m.id,grantUse:c.a.soulState.skillUses?.[c.m.id]});},532(c,p){c.timed(c.a,'超算实际用招回血粉伤',p[0],{fraction:1/p[1]});},1011(c,p){c.timed(c.a,'幽美概率免攻直扣',p[0],{chance:p[1],order:c.nextDefensiveGrantOrder(c.a)});}};
-for(const id of [2327,2328,2326,1011,978,1065,532,817,874,545]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4808(m,i,id,p))return;return old.validate?.(p,m,i);},execute(c,p){if(exact4808(c.m,c.effectInstanceIndex,id,p)){if(handlers4808[id])return handlers4808[id](c,p);old.execute(c,p);if(id===817)c.a.effects['受击令对手易伤'].scope4682=true;if(id===874)Object.assign(c.a.effects['小额伤害免疫'],{pendingOtherTypesQuestion:'Q-4682-001',pendingMultihitQuestion:'Q-4685-003'});return;}return old.execute(c,p);}});}
+for(const id of [2327,2328,2326,1011,978,1065,532,817,874,545]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4808(m,i,id,p))return;return old.validate?.(p,m,i);},execute(c,p){if(exact4808(c.m,c.effectInstanceIndex,id,p)){if(handlers4808[id])return handlers4808[id](c,p);old.execute(c,p);if(id===817)c.a.effects['受击令对手易伤'].scope4682=true;return;}return old.execute(c,p);}});}
 
 
 const bindings4814=[{"moveId":20117,"hash":"8e1d4e2f","index":0,"id":4,"args":[0,100,1],"description":"技能使用成功时，100%改变自身攻击等级+1"},{"moveId":10550,"hash":"f4b742b4","index":0,"id":30,"args":[],"description":"后出手的话威力为2倍"},{"moveId":10636,"hash":"5673e564","index":0,"id":40,"args":[],"description":"先出手的话威力为2倍"},{"moveId":20164,"hash":"e1fe9847","index":0,"id":4,"args":[4,100,1],"description":"技能使用成功时，100%改变自身速度等级+1"},{"moveId":20164,"hash":"e1fe9847","index":1,"id":4,"args":[5,100,1],"description":"技能使用成功时，100%改变自身命中等级+1"},{"moveId":38077,"hash":"4723f756","index":0,"id":180,"args":[],"description":"消除对手回合类效果"},{"moveId":38077,"hash":"4723f756","index":1,"id":33,"args":[],"description":"消除对手能力提升状态"},{"moveId":38077,"hash":"4723f756","index":2,"id":741,"args":[2,300],"description":"2回合内免疫大于300的攻击伤害"},{"moveId":10650,"hash":"bb09625e","index":0,"id":15,"args":[5],"description":"命中后5%令对方害怕"},{"moveId":14132,"hash":"4d32c2d1","index":0,"id":33,"args":[],"description":"消除对手能力提升状态"},{"moveId":32110,"hash":"bf8968ab","index":0,"id":5,"args":[1,100,-2],"description":"技能使用成功时，100%改变对手防御等级-2"},{"moveId":32110,"hash":"bf8968ab","index":1,"id":5,"args":[3,100,-2],"description":"技能使用成功时，100%改变对手特防等级-2"},{"moveId":13357,"hash":"ce526aa9","index":0,"id":33,"args":[],"description":"消除对手能力提升状态"},{"moveId":25701,"hash":"4fc90ff1","index":0,"id":4,"args":[0,100,2],"description":"技能使用成功时，100%改变自身攻击等级+2"},{"moveId":25701,"hash":"4fc90ff1","index":1,"id":4,"args":[4,100,2],"description":"技能使用成功时，100%改变自身速度等级+2"},{"moveId":30068,"hash":"9fb0e72d","index":0,"id":983,"args":[1],"description":"未击败对手则自身全属性+1"},{"moveId":29143,"hash":"7dda3ae","index":0,"id":1932,"args":[4,16],"description":"4回合内免疫并反弹除流血外所有受到的异常状态"},{"moveId":29143,"hash":"7dda3ae","index":1,"id":2196,"args":[100,16],"description":"100%令自身流血"},{"moveId":29143,"hash":"7dda3ae","index":2,"id":522,"args":[3,400],"description":"3回合内若自身处于异常状态则受到伤害减少400点"},{"moveId":29143,"hash":"7dda3ae","index":3,"id":1125,"args":[3,2],"description":"3回合内对手所有攻击必定Miss，若对手命中则下2回合对手使用属性技能无效"},{"moveId":30282,"hash":"199c3446","index":0,"id":521,"args":[],"description":"反转自身能力下降状态"},{"moveId":29144,"hash":"c4e78bcb","index":0,"id":1669,"args":[1,50],"description":"全属性+1，己方出战阵容每有1只存活精灵50%效果翻倍"},{"moveId":29144,"hash":"c4e78bcb","index":1,"id":717,"args":[4,3,2],"description":"4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"},{"moveId":29144,"hash":"c4e78bcb","index":2,"id":2255,"args":[6],"description":"将对手的系别变为机械系，若对手的系别中带有机械系则对手下次使用的技能无效"},{"moveId":29144,"hash":"c4e78bcb","index":3,"id":843,"args":[2,2],"description":"下2回合令自身所有技能先制+2"},{"moveId":38078,"hash":"a7b9997c","index":0,"id":2340,"args":[],"description":"附加并解除自身所处的异常状态"},{"moveId":38078,"hash":"a7b9997c","index":1,"id":2338,"args":[120],"description":"后出手时附加自身当回合所受技能伤害120%的百分比伤害"},{"moveId":38078,"hash":"a7b9997c","index":2,"id":1530,"args":[300],"description":"遇到天敌时附加300点真实伤害"},{"moveId":38078,"hash":"a7b9997c","index":3,"id":2307,"args":[300,300],"description":"造成的攻击伤害低于300时附加300点固定伤害，若本次攻击微弱对手则附加的固定伤害除以克制倍数"},{"moveId":38079,"hash":"12e610f7","index":0,"id":2205,"args":[],"description":"自身处于异常状态时，克制倍数取自身对对手、对手对自身克制倍数中的最大值"},{"moveId":38079,"hash":"12e610f7","index":1,"id":1767,"args":[],"description":"攻击时将对手的能力提升状态视为相应的能力下降状态"},{"moveId":38079,"hash":"12e610f7","index":2,"id":1688,"args":[3,100,6],"description":"消除敌我双方能力提升状态和回合类效果，消除任意一项成功则吸取对手最大体力的1/3且100%令对手害怕"},{"moveId":38079,"hash":"12e610f7","index":3,"id":1111,"args":[100,16,2,100],"description":"100%令对手流血，未触发则2回合内自身造成的攻击伤害额外提升100%"}];
@@ -6170,8 +6351,8 @@ const handlers4826={
 2060(c,p){c.timed(c.a,'鲨鱼对手属性流血',p[0],{chance:p[1],ailment:ailments[p[2]],denominator:p[3]});}
 };
 for(const[idText,fn]of Object.entries(handlers4826)){const id=+idText,old=registry[id],meta=[{"id":879,"argsNum":0,"template":"消除对手回合类效果，消除成功则恢复自身全部体力","revision":"seerapi:1bed42ef"},{"id":1217,"argsNum":1,"template":"消除对手能力提升状态，消除成功则对手下{0}次攻击技能无效","revision":"seerapi:e15e591"},{"id":191,"argsNum":1,"template":"{0}回合内免疫并反弹所有受到的异常状态","revision":"seerapi:ebdb8dc2"},{"id":1875,"argsNum":3,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果翻倍","revision":"seerapi:73de7007"},{"id":1426,"argsNum":2,"template":"若对手不处于异常状态则{0}%令对手{1}","revision":"seerapi:db238a1a"},{"id":1397,"argsNum":2,"template":"全属性+{0}，自身体力低于1/{1}时强化效果翻倍","revision":"seerapi:b5d969f3"},{"id":776,"argsNum":1,"template":"下{0}回合自身造成的攻击伤害翻倍","revision":"seerapi:e9884fa3"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":1084,"argsNum":1,"template":"附加{0}点固定伤害，对手处于异常状态时固定伤害翻倍","revision":"seerapi:2ba56bd9"},{"id":2060,"argsNum":4,"template":"{0}回合内对手使用属性技能时{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}并造成等量百分比伤害","revision":"seerapi:7cd0fb94"},{"id":1352,"argsNum":1,"template":"解除自身能力下降状态，解除成功则自身全属性+{0}","revision":"seerapi:9ee766bc"},{"id":1289,"argsNum":1,"template":"将自身的能力下降状态双倍反馈给对手，反馈成功则对手下{0}次技能无效","revision":"seerapi:b0b0c81c"},{"id":2162,"argsNum":1,"template":"下次击败对手时，令对方下只出战精灵{0}","revision":"seerapi:a9b4ca48"}].find(x=>x.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',validate(p,m,i){const b=bindings4826.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4826 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(source4826(c,id))return fn(c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
-registry[1875]=Object.freeze({...registry[1875],used4826(c){const e=c.a.effects['鲨鱼用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'鲨鱼用招回血','skill');const n=Math.max(0,c.a.hp-before);if(n>0&&c.t.hp>0)c.hurt(c.t,n,'鲨鱼实际净回血等量附伤','percent');}});
-registry[2060]=Object.freeze({...registry[2060],used4826(c,e){if(statusRoll(c,e.chance)&&c.ailment(c.t,e.ailment,c.a,false,false,null,{probabilityPercent:e.chance}))return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp/e.denominator,'鲨鱼流血失败回血','skill');const n=Math.max(0,c.a.hp-before);if(n>0&&c.t.hp>0)c.hurt(c.t,n,'鲨鱼流血失败净回血等量附伤','percent');}});
+registry[1875]=Object.freeze({...registry[1875],used4826(c){const e=c.a.effects['鲨鱼用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp,n=c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'鲨鱼用招回血','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'鲨鱼实际净回血等量附伤','percent');}});
+registry[2060]=Object.freeze({...registry[2060],used4826(c,e){if(statusRoll(c,e.chance)&&c.ailment(c.t,e.ailment,c.a,false,false,null,{probabilityPercent:e.chance}))return;const n=c.heal(c.a,c.a.stats.maxHp/e.denominator,'鲨鱼流血失败回血','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'鲨鱼流血失败净回血等量附伤','percent');}});
 
 
 // 4829/2019 real nine-skill catalog, no partner/own upgrade deferral.
@@ -6188,7 +6369,7 @@ const handlers4829={
 1221(c,p){if(c.canRemoveNegative?.(c.a)===false)return;let changed=false;for(const k of stats){const before=c.a.stages[k];if(before<0){c.stage(c.a,-2*before,[k]);if(c.a.stages[k]===-before)changed=true;}}if(changed)c.grantOracleImmunity(c.a,p[0],'4829/38133/b3dcf45c/1221');}
 };
 for(const[idText,fn]of Object.entries(handlers4829)){const id=+idText,old=registry[id],meta=[{"id":1750,"argsNum":0,"template":"无视自身能力下降状态","revision":"seerapi:d0a6bc9e"},{"id":1060,"argsNum":1,"template":"吸取对手能力提升状态，吸取成功则下{0}回合对手攻击技能无效","revision":"seerapi:b9da1dbe"},{"id":1932,"argsNum":2,"template":"{0}回合内免疫并反弹除{1}外所有受到的异常状态","revision":"seerapi:b17912dc"},{"id":917,"argsNum":3,"template":"命中后{0}%使对手{1}，未触发则附加自身最大体力值1/{2}的百分比伤害","revision":"seerapi:6512b626"},{"id":1984,"argsNum":2,"template":"{0}回合内自身受到的攻击伤害额外减少{1}%","revision":"seerapi:77949f66"},{"id":1168,"argsNum":1,"template":"全属性+{0}，双方任意一方处于异常状态则强化效果翻倍","revision":"seerapi:eab088e8"},{"id":1065,"argsNum":3,"template":"{0}回合内每回合使用技能恢复自身最大体力的1/{1}并造成等量百分比伤害，恢复体力时若自身体力低于最大体力的1/{2}则恢复效果和百分比伤害翻倍","revision":"seerapi:8a968e14"},{"id":843,"argsNum":2,"template":"下{0}回合令自身所有技能先制+{1}","revision":"seerapi:fd9c78de"},{"id":1605,"argsNum":2,"template":"{0}%令对手{1}","revision":"seerapi:91c079b3"},{"id":1019,"argsNum":2,"template":"造成的攻击伤害若高于{0}则令对手{1}回合内使用的属性技能无效","revision":"seerapi:de0e9b23"},{"id":1874,"argsNum":0,"template":"攻击时将自身的能力下降状态视为相应的能力提升状态","revision":"seerapi:e4fda230"},{"id":693,"argsNum":2,"template":"下{0}回合造成的攻击伤害额外提升{1}%","revision":"seerapi:aca364fa"},{"id":1660,"argsNum":3,"template":"{0}%令对手{1}，未触发则降低对手所有技能{2}点PP值","revision":"seerapi:459971f7"},{"id":2145,"argsNum":1,"template":"解除并附加给对手自身所处的异常状态，解除成功则对手{0}回合内技能命中效果失效","revision":"seerapi:3919e992"},{"id":1265,"argsNum":2,"template":"下{0}次受到的攻击伤害减少{1}%","revision":"seerapi:553873eb"},{"id":1926,"argsNum":1,"template":"下{0}次攻击技能无视攻击免疫效果","revision":"seerapi:e4bff6b9"},{"id":881,"argsNum":0,"template":"若自身处于能力下降状态则技能先制+3","revision":"seerapi:897c0169"},{"id":1221,"argsNum":1,"template":"反转自身能力下降状态，反转成功则自身免疫下{0}次受到的异常状态","revision":"seerapi:ff7ec3df"},{"id":547,"argsNum":2,"template":"使敌我双方同时{0}{1}回合","revision":"seerapi:e185e1b5"},{"id":915,"argsNum":3,"template":"消除对手回合类效果，消除成功则自身下{0}回合攻击有{1}%使对手{2}","revision":"seerapi:b9b1d058"},{"id":1356,"argsNum":1,"template":"打出致命一击则附加对手最大体力1/{0}的百分比伤害","revision":"seerapi:4daf0872"},{"id":933,"argsNum":1,"template":"未击败对手则己方下{0}次攻击技能必定打出致命一击","revision":"seerapi:f2e9e9be"},{"id":1286,"argsNum":0,"template":"当回合击败对手则恢复自身所有技能PP值","revision":"seerapi:e53f7fae"}].find(x=>x.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',validate(p,m,i){const b=bindings4829.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4829 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(source4829(c,id))return fn(c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
-registry[1065]=Object.freeze({...registry[1065],used4829(c){const e=c.a.effects['卡布达用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'卡布达用招回血','skill');const n=Math.max(0,c.a.hp-before);if(n>0&&c.t.hp>0)c.hurt(c.t,n,'卡布达净回血等量附伤','percent');}});
+registry[1065]=Object.freeze({...registry[1065],used4829(c){const e=c.a.effects['卡布达用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp,n=c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'卡布达用招回血','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'卡布达净回血等量附伤','percent');}});
 
 {const old=registry[1060];registry[1060]=Object.freeze({...old,execute(c,p){if(!(((c.m.wikiId??c.m.id)===38120&&c.m.revision==='seerapi:394e0ef8')||((c.m.wikiId??c.m.id)===38132&&c.m.revision==='seerapi:3c215d72'))||c.effectInstanceIndex!==1)return old.execute(c,p);const before={...c.t.stages},prior=c.t.effects.attackBlock;c.steal(c.a,c.t,'技能');if(Object.keys(before).some(k=>before[k]>0&&c.t.stages[k]<before[k])){c.timed(c.t,'attackBlock',p[0],{},c.round+1);if(prior&&prior.start<=c.round&&prior.end>=c.round)c.t.effects.attackBlock.start=prior.start;}}});}
 
@@ -6236,7 +6417,7 @@ for(const[idText,fn]of Object.entries(handlers4840)){const id=+idText,old=regist
 
 {const old=registry[1092];registry[1092]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===38162&&m.revision==='seerapi:b119d022'&&i===3&&JSON.stringify(p)==='[28,2]')return;return old.validate(p,m,i);}});}
 
-registry[1065]=Object.freeze({...registry[1065],used4840(c){const e=c.a.effects['星礼用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'星礼用招回血','skill');const n=Math.max(0,c.a.hp-before);if(n>0&&c.t.hp>0)c.hurt(c.t,n,'星礼净回血等量附伤','percent');}});
+registry[1065]=Object.freeze({...registry[1065],used4840(c){const e=c.a.effects['星礼用招低体回复附伤'];if(!e||e.start>c.round||e.end<c.round||c.a.hp<=0)return;const before=c.a.hp,n=c.heal(c.a,c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1),'星礼用招回血','skill')??0;if(n>0&&c.a.hp>0&&c.t.hp>0)c.hurt(c.t,n,'星礼净回血等量附伤','percent');}});
 
 
 const bindings4850=[{"moveId":38196,"hash":"59171618","index":3,"id":1249,"args":[50],"description":"造成伤害的50%恢复自身体力，若对手处于异常状态则附加等量百分比伤害"},{"moveId":11190,"hash":"2915bcc5","index":0,"id":63,"args":[],"description":"将能力下降状态反馈给对手"},{"moveId":38194,"hash":"826b3c6e","index":2,"id":2196,"args":[100,16],"description":"100%令自身流血"},{"moveId":38194,"hash":"826b3c6e","index":0,"id":2072,"args":[],"description":"自身处于异常状态时先制+1且必定命中"},{"moveId":29221,"hash":"4784b625","index":0,"id":1932,"args":[4,16],"description":"4回合内免疫并反弹除流血外所有受到的异常状态"},{"moveId":29221,"hash":"4784b625","index":1,"id":1975,"args":[3,100,16,6],"description":"3回合内100%闪避对手攻击，对手攻击技能命中时随机附加流血、害怕中的1种异常状态"},{"moveId":29221,"hash":"4784b625","index":2,"id":573,"args":[2,100,6,2],"description":"2回合内若自身能力提升状态被消除或吸取则100%使对手害怕2回合"},{"moveId":38195,"hash":"13ff68fd","index":2,"id":2137,"args":[25,150],"description":"自身每有1回合异常状态造成伤害提升25%，最高150%"},{"moveId":38196,"hash":"59171618","index":2,"id":2205,"args":[],"description":"自身处于异常状态时，克制倍数取自身对对手、对手对自身克制倍数中的最大值"}],source4850=(c,id)=>bindings4850.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index);
@@ -6260,7 +6441,7 @@ function lyricForMove4853(m){return bindings4853.find(x=>lyricIds4853.includes(x
 function gainLyric4853(c,id){if(!lyricIds4853.includes(id))return null;const st=lyricState4853(c.a);st.list.push(id);st.gainedRound=c.round;c.emit?.('梅赫维特获得唱词 '+id);return id;}
 function passiveLyric4853(event,c){if(c.a.hp<=0)return;const n=id=>lyricCount4853(c.a,id);if(event==='afterUse'&&c.actualUsed&&c.m.kind!=='item'&&conditionStatusRules.conditionPresent(c.t,c.round))for(let i=0;i<n(2372);i++)c.stage(c.a,1);if(event==='combatEnd'&&c.a.hp<c.t.hp)for(let i=0;i<n(2373);i++)c.restorePP(c.a,1,'skill');if(event==='damageTaken'&&c.type==='attack'&&c.settledDamage>0&&Object.values(c.t.stages).some(x=>x>0)&&n(2374))c.timed(c.t,'id984',1,{amount:-n(2374)},c.round+1);if(event==='timedCleared'&&Object.values(c.t.effects).some(e=>conditionStatusRules.timedPresent(e,c.round)))for(let i=0;i<n(2375);i++)c.heal(c.a,c.a.stats.maxHp/6,'摇篮曲回合被清回复','skill');}
 const handlers4853={458(c,p){if(c.a.side!==c.first)return;const full=c.settledDamage??c.dealt;c.heal(c.a,full*p[0]/100,c.m.name+'比例回复','skill');},
-2034(c,p){const ok=c.clear(c.t)&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]});if(!ok)c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});},
+2034(c,p){const cleared=c.clear(c.t),ok=cleared&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]});if(cleared&&!ok)c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});},
 1372(c,p){c.timed(c.a,'对手用攻异常或清回合',p[0],{chance:p[1],ailment:ailments[p[2]]});},
 1347(c,p){const values=Object.fromEntries(stats.filter(k=>c.t.stages[k]>0).map(k=>[k,-c.t.stages[k]])),out=c.rewriteStageValues(c.t,values,'reverse');if(out.removedPositive.length)c.ailment(c.t,ailments[p[0]],c.a);else c.clearBoost(c.t);},
 2022(c,p){if(conditionStatusRules.active(c.t,ailments[p[0]],c.round))c.timed(c.t,'属性技能命中效果失效',p[1],{});},
@@ -6307,7 +6488,7 @@ change(c,side,color){const st=this.state(c);if(st.sides[side]==null||st.sides[si
 start(c){this.create(c,c.a.side);const name=c.firstMoveName2046(),color=name.includes('黄')?4:name.includes('蓝')?3:(name.includes('红')||name.includes('赤'))?2:name.includes('黑')?5:name.includes('白')?1:null;if(color!=null)this.change(c,c.a.side,color);},
 entry(c){this.create(c,c.t.side);this.state(c).pendingInitial=true;},
 finish(c){if(c.a.hp<=0)return;const changes=this.state(c).changes.filter(e=>e.round===c.round);if(changes.length>0){c.heal(c.a,c.a.stats.maxHp/3,'涂蝶变色回末回复','soul');c.restorePP(c.a,1,'soul');}},
-initial(c){const st=this.state(c),color=st.sides[c.a.side];if(color==null)return;const entry={side:c.a.side,color,round:c.round,origin:'soul',sourceSoul:2046};if(color===1){const n=c.a.hp*.01;entry.requestedDamage=n;entry.hpLoss=c.hurt(c.a,n,'涂蝶白幕当前体力1%真实伤害','true');}else if(color===2){const values=c.curtainBaseResistances2046(c.a),max=Math.max(0,...values.map(e=>e.chance)),best=values.filter(e=>e.chance===max);if(max>0&&best.length===1)c.a.soulState.curtainResistance2046={status:best[0].status,bonus:.2,untilSwitch:true,sourceSoul:2046};}else if(color===3)c.ailment(c.a,'砥砺',c.a,false,false,1);else if(color===4)c.timed(c.a,'黄幕抵挡致命',2,{sourceSoul:2046});/* 黑幕只可能在后续真实登场触发，按多精灵阶段登记。 */(st.initialEntries??=[]).push(entry);},
+initial(c){const st=this.state(c),color=st.sides[c.a.side];if(color==null)return;const entry={side:c.a.side,color,round:c.round,origin:'soul',sourceSoul:2046};if(color===1){const n=c.a.hp*.01;entry.requestedDamage=n;entry.hpLoss=c.hurt(c.a,n,'涂蝶白幕当前体力1%真实伤害','true');}else if(color===2){const values=c.curtainBaseResistances2046(c.a),max=Math.max(0,...values.map(e=>e.chance)),best=values.filter(e=>e.chance===max);if(max>0&&best.length===1)c.a.soulState.curtainResistance2046={status:best[0].status,bonus:.2,untilSwitch:true,sourceSoul:2046};}else if(color===3)c.ailment(c.a,'砥砺',c.a,false,false,1);else if(color===4)c.timed(c.a,'黄幕抵挡致命',2,{sourceSoul:2046});else if(color===5&&!c.ailment(c.a,'狂暴',c.a,false,false,1))c.timed(c.a,'黑幕输出减半',3,{sourceSoul:2046});(st.initialEntries??=[]).push(entry);},
 primaries(c){return [2,3,4].every(color=>this.state(c).history[c.a.side].includes(color));}
 };
 const bindings4861=[{"id":2391,"moveId":38225,"hash":"6d5b95dc","index":3,"args":[1,5]},{"id":803,"moveId":38226,"hash":"d16247ea","index":2,"args":[100,31,3,2,300]},{"id":2391,"moveId":38226,"hash":"d16247ea","index":4,"args":[0,4]},{"id":2230,"moveId":38227,"hash":"fd6b86f1","index":2,"args":[4,2,100,36]},{"id":2391,"moveId":38227,"hash":"fd6b86f1","index":4,"args":[0,3]},{"id":2068,"moveId":38228,"hash":"ab6ad943","index":1,"args":[100,16]},{"id":2391,"moveId":38228,"hash":"ab6ad943","index":4,"args":[0,2]},{"id":2392,"moveId":29242,"hash":"c0412b07","index":0,"args":[]}],metadata4861=[{"id":2391,"argsNum":2,"template":"将{0}幕的颜色改为{1}","revision":"seerapi:6f66ee97"},{"id":803,"argsNum":5,"template":"命中后{0}%令对手{1}，未触发则恢复自身最大体力的1/{2}体力且{3}回合内自身受到的伤害不超过{4}","revision":"seerapi:adcfdf4f"},{"id":2230,"argsNum":4,"template":"{0}回合内使用技能则恢复自身最大体力的1/{1}，若未恢复体力则{2}%令对手{3}","revision":"seerapi:1a2a74e5"},{"id":2068,"argsNum":2,"template":"{0}%令对手{1}，未触发则回合结束后消除对手回合类效果","revision":"seerapi:3ebe9afa"},{"id":2392,"argsNum":0,"template":"若本场战斗己方场上分别出现过红幕、黄幕、蓝幕，则在己方场上召唤1只虚之彩","revision":"seerapi:da62268b"}];
@@ -6316,7 +6497,7 @@ const handlers4861={
 2230(c,p){c.timed(c.a,'用招回复失败附沸涌',p[0],{denominator:p[1],chance:p[2],status:ailments[p[3]]});},
 2068(c,p){if(!(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]})))c.timed(c.t,'回合结束后消回合',1,{});},
 2391(c,p){curtains2046.change(c,p[0]===0?c.a.side:c.t.side,p[1]);},
-2392(c){const st=curtains2046.state(c);(st.deferredSummons??=[]).push({round:c.round,side:c.a.side,eligible:curtains2046.primaries(c),effectId:2392,moveId:c.m.wikiId??c.m.id,revision:c.m.revision});}
+2392(c){if(c.teamMode){if(curtains2046.primaries(c))c.addVoidColor();return;}const st=curtains2046.state(c);(st.deferredSummons??=[]).push({round:c.round,side:c.a.side,eligible:curtains2046.primaries(c),effectId:2392,moveId:c.m.wikiId??c.m.id,revision:c.m.revision});}
 };
 for(const id of [803,2230,2068,2391,2392]){const old=registry[id],meta=metadata4861.find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',...(id===2391?{abilities:curtains2046}:{}),...(id===2392?{deferred:'本场己方出现红黄蓝幕后召唤真实额外精灵虚之彩；额外单位独立行动、200真实伤害与主动下场/死亡消失需第二阶段，不以单次伤害占位。'}:{}),validate(p,m,i){const b=bindings4861.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4861 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,i);},execute(c,p){if(bindings4861.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index))return handlers4861[id](c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
 
@@ -6327,12 +6508,12 @@ for(const id of[2073,2175,1849]){const old=registry[id];registry[id]=Object.free
 
 const bindings4863=[{"id":1978,"moveId":38238,"hash":"a0b01f3e","index":0,"args":[100,30,3]},{"id":1441,"moveId":38238,"hash":"a0b01f3e","index":1,"args":[2]},{"id":1414,"moveId":29247,"hash":"79b3ed67","index":0,"args":[30]},{"id":1932,"moveId":29247,"hash":"79b3ed67","index":2,"args":[4,30]},{"id":973,"moveId":38240,"hash":"a086746c","index":0,"args":[100,30]},{"id":1370,"moveId":38261,"hash":"b2f69958","index":0,"args":[30,2]}],metadata4863=[{"id":1978,"argsNum":3,"template":"消除对手能力提升状态，消除成功则{0}%令对手{1}，未触发则附加自身最大体力1/{2}的百分比伤害","revision":"seerapi:447d6089"},{"id":1441,"argsNum":1,"template":"解除自身能力下降状态，解除成功则使对手随机{0}个技能PP值归零","revision":"seerapi:bbb8bebd"},{"id":1414,"argsNum":1,"template":"消除双方回合类效果，消除成功则双方{0}","revision":"seerapi:56f38fb8"},{"id":1932,"argsNum":2,"template":"{0}回合内免疫并反弹除{1}外所有受到的异常状态","revision":"seerapi:b17912dc"},{"id":973,"argsNum":2,"template":"消除对手回合类效果，消除成功则{0}%令对手{1}","revision":"seerapi:84689517"},{"id":1370,"argsNum":2,"template":"消除对手回合类效果，消除成功则对手{0}，未触发则{1}回合内对手无法通过自身技能恢复体力","revision":"seerapi:dcf3a4f1"}];
 const handlers4863={
-1978(c,p){const cleared=c.clearBoost(c.t),ok=cleared&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]});if(!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');},
+1978(c,p){const cleared=c.clearBoost(c.t),ok=cleared&&statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]});if(cleared&&!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');},
 1441(c,p){const before={...c.a.stages};c.clearNegative(c.a);if(stats.some(k=>before[k]<0&&c.a.stages[k]>before[k])&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[0]);},
 1414(c,p){const left=c.clear(c.a),right=c.clear(c.t);if(left||right){c.ailment(c.a,ailments[p[0]],c.a);c.ailment(c.t,ailments[p[0]],c.a);}},
 1932(c,p){c.timed(c.a,'免异常反弹除沉默',p[0],{});},
 973(c,p){if(c.clear(c.t)&&statusRoll(c,p[0]))c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]});},
-1370(c,p){if(!(c.clear(c.t)&&c.ailment(c.t,ailments[p[0]],c.a)))c.timed(c.t,'技能禁疗',p[1],{});}
+1370(c,p){if(c.clear(c.t)&&!c.ailment(c.t,ailments[p[0]],c.a))c.timed(c.t,'技能禁疗',p[1],{});}
 };
 for(const id of [1978,1441,1414,1932,973,1370]){const old=registry[id],meta=metadata4863.find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',validate(p,m,i){const b=bindings4863.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(b.length){if(!b.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(x.args)===JSON.stringify(p)))throw Error('4863 exact source mismatch '+id);return;}return old.validate(p,m,i);},execute(c,p){if(bindings4863.some(x=>x.id===id&&(c.m.wikiId??c.m.id)===x.moveId&&c.m.revision==='seerapi:'+x.hash&&c.effectInstanceIndex===x.index))return handlers4863[id](c,p);return old.execute(c,p);}});}
 
@@ -6342,7 +6523,7 @@ const bindings4865=[{"id":2327,"moveId":38244,"hash":"e009345b","index":1,"args"
 const handlers4865={
 2403(c,p){if(statusRoll(c,p[0])&&c.ailment(c.t,ailments[p[1]],c.a,false,false,null,{probabilityPercent:p[0]}))(c.a.soulState.deferred2403??=[]).push({round:c.round,moveId:c.m.wikiId??c.m.id,sourceRevision:c.m.revision,args:p.slice(),duration:p[2],targetSide:c.t.side,trigger:'对手真实下场',nextPetImplemented:false});},
 2404(c,p){if(c.t.hp>c.t.stats.maxHp*p[0]/100)c.power*=1+p[1]/100;},
-2405(c,p){const before={...c.t.stages};c.stage(c.t,-p[0]);(c.a.soulState.deferred2405??=[]).push({round:c.round,moveId:c.m.wikiId??c.m.id,revision:c.m.revision,args:p.slice(),before,after:{...c.t.stages},nextPetImplemented:false});},
+2405(c,p){const before={...c.t.stages};c.stage(c.t,-p[0]);if(c.teamMode){if(!stats.some(key=>c.t.stages[key]<before[key]))c.queueEntry(c.t,{effectId:2405,chance:p[1],statuses:[ailments[p[2]],ailments[p[3]]]});return;}(c.a.soulState.deferred2405??=[]).push({round:c.round,moveId:c.m.wikiId??c.m.id,revision:c.m.revision,args:p.slice(),before,after:{...c.t.stages},nextPetImplemented:false});},
 922(c,p){c.timed(c.a,'能力下降反馈',p[0],{source9224865:true});},
 54(c,p){c.timed(c.t,'伤害输出降低',p[0],{fraction:1-1/p[1],scopeRed4865:true});},
 579(c,p){(c.a.soulState.ji579Replies??=[]).push({round:c.round,denominator:p[0],label:c.m.name,moveId:c.m.wikiId??c.m.id,sourceRevision:c.m.revision});},
@@ -6381,7 +6562,7 @@ const handlers4872={
 2408(c){if(form4872(c)==='pale')c.grantDeathFloor4872();else if(form4872(c)==='wrath')c.timed(c.a,'id984',1,{amount:1},c.round+1);},
 2409(c){if(form4872(c)==='pale')c.ailment(c.t,'疲惫',c.a);else if(form4872(c)==='wrath')c.ailment(c.t,'害怕',c.a);},
 2410(c){const form=form4872(c);if(!['pale','wrath'].includes(form))return;const to=form==='pale'?'疲惫':'害怕';for(const from of Object.keys(c.t.ailments).filter(k=>conditionStatusRules.active(c.t,k,c.round)))c.convertAilment(c.t,from,to);if(form==='pale'){const n=Math.floor(c.shieldValue(c.t)*.99);c.refreshShield(c.a,n,'4872:38275:d3ec5c04:2410');}else c.timed(c.t,'回复效果削减',1,{fraction:.99});},
-2411(c){if(c.t.hp<=0)return;const form=form4872(c);if(form==='pale')c.timed(c.t,'statusBlock',2,{});else if(form==='wrath')c.timed(c.t,'attackBlock',2,{});if(['pale','wrath'].includes(form))(c.a.soulState.lotusDeferred2411??=[]).push({round:c.round,form,target:'opponent-next-entry',ailment:form==='pale'?'疲惫':'害怕',implemented:false,sourceHash:'ade745d4'});c.enterMesh2059();}
+2411(c){if(c.t.hp<=0)return;const form=form4872(c);if(form==='pale')c.timed(c.t,'statusBlock',2,{});else if(form==='wrath')c.timed(c.t,'attackBlock',2,{});if(c.teamMode&&['pale','wrath'].includes(form))c.queueEntry(c.t,{effectId:2411,status:form==='pale'?'疲惫':'害怕'});else if(['pale','wrath'].includes(form))(c.a.soulState.lotusDeferred2411??=[]).push({round:c.round,form,target:'opponent-next-entry',ailment:form==='pale'?'疲惫':'害怕',implemented:false,sourceHash:'ade745d4'});c.enterMesh2059();}
 };
 for(const id of [2273,2059,2413,2414,2415,2416,2408,2409,2410,2411]){const old=registry[id],meta=metadata4872.find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:id===2273?'beforeOrder':id===2414||id===2411?'afterAttack':'afterHit',...(id===2273?{hooks:{...old?.hooks,afterHit(c,p){if(source4872(c,id)){if(['physical','special'].includes(c.selectedMove(c.t)?.kind)&&statusRoll(c,p[0]))c.ailment(c.t,'沉默',c.a);return;}return old.hooks?.afterHit?.(c,p);}}}:{}),...(id===2411?{deferred:'解除怀生/拒赦时，对方真实下只精灵出战疲惫/害怕；当前形态解除、重新进入百天浮世络与当前封属性/攻击分支立即实现'}:{}),validate(p,m,index){const rows=bindings4872.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&index===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4872 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,index);},execute(c,p){if(source4872(c,id))return handlers4872[id](c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
 
@@ -6419,7 +6600,7 @@ const bindings4876=[{"id":822,"moveId":38285,"hash":"5acd2cb9","index":0,"args":
 for(const id of [822,1232,173]){const old=registry[id],meta=metadata4876.find(e=>e.id===id);registry[id]=Object.freeze({...old,id,template:meta.template,argsNum:meta.argsNum,instanceArgsNum:meta.argsNum,direct:true,phase:'afterHit',validate(p,m,index){const rows=bindings4876.filter(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId);if(rows.length){if(!rows.some(x=>m.hash===x.hash&&m.revision==='seerapi:'+x.hash&&index===x.index&&JSON.stringify(p)===JSON.stringify(x.args)))throw Error('4876 exact source mismatch '+id);return;}if(!old)throw Error('unreviewed effect '+id);return old.validate(p,m,index);},execute(c,p){if(source4876(c,id))return handlers4876[id](c,p);if(!old)throw Error('unreviewed effect '+id);return old.execute(c,p);}});}
 
 const metadata4885=[{"id":1978,"argsNum":3,"template":"消除对手能力提升状态，消除成功则{0}%令对手{1}，未触发则附加自身最大体力1/{2}的百分比伤害","revision":"seerapi:447d6089"},{"id":1240,"argsNum":2,"template":"当回合未击败对手则下{0}次自身技能附加自身最大体力1/{1}的百分比伤害","revision":"seerapi:19f04525"}],binding4885={moveId:38314,hash:'fa0a4cd9'},source4885=(c,id,index)=>c.m.wikiId===38314&&c.m.revision==='seerapi:fa0a4cd9'&&c.effectInstanceIndex===index;
-const old19784885=registry[1978],meta19784885=metadata4885.find(e=>e.id===1978);registry[1978]=Object.freeze({...old19784885,validate(p,m,i){if((m?.wikiId??m?.id)===38314){if(m.hash==='fa0a4cd9'&&m.revision==='seerapi:fa0a4cd9'&&i===1&&JSON.stringify(p)==='[100,6,3]')return;throw Error('4885 1978 source mismatch');}return old19784885.validate(p,m,i);},execute(c,p){if(source4885(c,1978,1)){const clear=c.clearBoost(c.t),applied=clear&&statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a);if(!applied)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');return;}return old19784885.execute(c,p);}});
+const old19784885=registry[1978],meta19784885=metadata4885.find(e=>e.id===1978);registry[1978]=Object.freeze({...old19784885,validate(p,m,i){if((m?.wikiId??m?.id)===38314){if(m.hash==='fa0a4cd9'&&m.revision==='seerapi:fa0a4cd9'&&i===1&&JSON.stringify(p)==='[100,6,3]')return;throw Error('4885 1978 source mismatch');}return old19784885.validate(p,m,i);},execute(c,p){if(source4885(c,1978,1)){const clear=c.clearBoost(c.t),applied=clear&&statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a);if(clear&&!applied)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');return;}return old19784885.execute(c,p);}});
 const meta12404885=metadata4885.find(e=>e.id===1240);registry[1240]=Object.freeze({id:1240,template:meta12404885.template,argsNum:meta12404885.argsNum,instanceArgsNum:meta12404885.argsNum,direct:true,phase:'afterHit',validate(p,m,i){if((m?.wikiId??m?.id)!==38314||m.hash!=='fa0a4cd9'||m.revision!=='seerapi:fa0a4cd9'||i!==2||JSON.stringify(p)!=='[1,3]')throw Error('4885 exact1240 source required');},execute(c,p){c.a.soulState.pending12404885={round:c.round,count:p[0],denominator:p[1],sourceMoveId:38314,sourceHash:'fa0a4cd9'};},
 begin4885(c){const e=c.a.soulState.next12404885;if(!e||c.m.kind==='item'||e.count<=0||c.round<e.start)return;const root=c.m.replayRootMoveId??c.m.id;e.count--;c.a.soulState.using12404885={round:c.round,root,use:c.a.soulState.skillUses?.[root],denominator:e.denominator,applied:false,sourceMoveId:e.sourceMoveId,sourceHash:e.sourceHash};if(e.count<=0)delete c.a.soulState.next12404885;},
 hit4885(c){const e=c.a.soulState.using12404885,root=c.m.replayRootMoveId??c.m.id;if(!e||e.round!==c.round||e.root!==root||e.use!==c.a.soulState.skillUses?.[root]||e.applied)return;e.applied=true;if(c.hitEffectsDisabled)return;const amount=c.a.stats.maxHp/e.denominator;c.hurt(c.t,amount,'残月钩下次技能最大体力附伤','percent');(c.a.soulState.applied12404885??=[]).push({round:c.round,root,amount,maxHp:c.a.stats.maxHp,denominator:e.denominator});},
@@ -6453,9 +6634,9 @@ add(1625,'afterAttack',(c,p)=>{if((c.settledDamage??c.dealt)>p[0]&&statusRoll(c,
 add(2436,'beforeOrder',c=>{const p=c.a.soulState.previousPriority4888;if(p===undefined||p<0)return;c.priority+=Math.min(3,p);});
 add(2437,'afterHit',c=>{const q=c.a.soulState.ignore2437;if(q?.round===c.round&&q.moveId===c.m.id&&q.expectedUse===(c.a.soulState.skillUses?.[c.m.id]??0)&&q.usedSpeed){q.clearAttempted=true;q.cleared=c.clear(c.t);}});
 {const old=registry[2437];registry[2437]=Object.freeze({...old,hooks:{...old.hooks,beforeOrder(c){if((c.m.wikiId??c.m.id)!==29303||c.m.revision!=='seerapi:6adc49f0')return;c.a.soulState.ignore2437={round:c.round,moveId:c.m.id,expectedUse:(c.a.soulState.skillUses?.[c.m.id]??0)+1,sourceHash:'6adc49f0',speedCandidate:false,usedSpeed:false};}}});}
-add(2433,'afterHit',(c,p)=>{const a=c.clear(c.a),t=c.clear(c.t);if(a||t)c.timed(c.t,'statusBlock',p[0],{});},[turns]);
-add(2434,'afterHit',(c,p)=>{const a=c.clearBoost(c.a),t=c.clearBoost(c.t);if(a||t)c.timed(c.t,'attackBlock',p[0],{});},[turns]);
-add(2435,'afterHit',(c,p)=>{const before=[c.a,c.t].reduce((n,f)=>n+Object.values(f.ailments).filter(end=>end>=c.round).length,0);c.clearAilments(c.a);c.clearAilments(c.t);const after=[c.a,c.t].reduce((n,f)=>n+Object.values(f.ailments).filter(end=>end>=c.round).length,0);if(after<before)c.timed(c.a,'免异常',p[0],{});},[turns]);
+add(2433,'afterHit',(c,p)=>{const a=c.clear(c.a),t=c.clear(c.t);if(a||t)c.timed(c.a,'己方属性无效2433',p[0],{sourceEffectId:2433,ownerSide:c.a.side});},[turns]);
+add(2434,'afterHit',(c,p)=>{const a=c.clearBoost(c.a),t=c.clearBoost(c.t);if(a||t)c.timed(c.a,'己方攻击无效2434',p[0],{sourceEffectId:2434,ownerSide:c.a.side});},[turns]);
+add(2435,'afterHit',(c,p)=>{const before=[c.a,c.t].reduce((n,f)=>n+Object.values(f.ailments).filter(end=>end>=c.round).length,0);c.clearAilments(c.a);c.clearAilments(c.t);const after=[c.a,c.t].reduce((n,f)=>n+Object.values(f.ailments).filter(end=>end>=c.round).length,0);if(after<before)c.timed(c.a,'己方免异常2435',p[0],{sourceEffectId:2435,ownerSide:c.a.side});},[turns]);
 for(const id of[1625,2436,2437,2433,2434,2435]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(!exact4888(p,m,i,id))throw Error('4888 exact source mismatch '+id);}});}
 
 const starRows4888=[{"moveId":29316,"hash":"7b2b5f14","index":1,"id":65,"args":[3,12,2]},{"moveId":29303,"hash":"6adc49f0","index":2,"id":2196,"args":[100,33]},{"moveId":29303,"hash":"6adc49f0","index":3,"id":2196,"args":[100,34]},{"moveId":29303,"hash":"6adc49f0","index":4,"id":2196,"args":[100,38]},{"moveId":38329,"hash":"94f622c1","index":1,"id":2218,"args":[1,33,1]},{"moveId":38329,"hash":"94f622c1","index":2,"id":2218,"args":[1,34,1]},{"moveId":38329,"hash":"94f622c1","index":3,"id":2218,"args":[1,38,1]}];
@@ -6466,8 +6647,8 @@ for(const id of[2436,2437]){const old=registry[id];registry[id]=Object.freeze({.
 const rows4894=[{"moveId":38349,"hash":"57338b37","index":2,"id":1897,"args":[3,300,2,50]},{"moveId":29322,"hash":"3149da51","index":0,"id":1380,"args":[1,2,2]},{"moveId":38350,"hash":"881f3ceb","index":0,"id":1195,"args":[3,100,6,300]},{"moveId":38351,"hash":"57f7210d","index":0,"id":1399,"args":[6,1]},{"moveId":38351,"hash":"57f7210d","index":2,"id":2081,"args":[1]}];
 const exact4894=(p,m,i,id)=>rows4894.some(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId&&(m.hash===x.hash||m.revision==='seerapi:'+x.hash)&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args));
 metadata[1380]={"info":"牺牲自身全部体力，使对手全属性-{0}且{1}回合内先制-{2}","args_num":3};
-add(1380,'afterHit',(c,p)=>{c.hurt(c.a,c.a.hp,c.m.name+'牺牲全部体力','direct',true);c.stage(c.t,-p[0]);c.timed(c.t,'次回合先制降低',p[1],{amount:p[2],source4894:true},c.round+1);},[[1,1],[2,2],[2,2]]);
-for(const id of[1380,1195,2081,1399,1897]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4894(p,m,i,id))return;if(id===1380)throw Error('1380 exact source mismatch');return old.validate(p,m,i);},execute(c,p){if(!exact4894(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1195){c.timed(c.a,'安瑟伦受击害怕或固伤',p[0],{chance:p[1],amount:p[3],sourceHash:'881f3ceb'});return;}if(id===2081){if(!conditionStatusRules.conditionPresent(c.t,c.round)&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[0]);return;}if(id===1399){if(!(c.clear(c.t)&&c.ailment(c.t,'害怕',c.a)))c.grantOracleImmunity(c.a,p[1],'1399:57f7210d:0:'+c.a.side,'1399');return;}if(id===1897){const had=Object.values(c.t.stages).some(n=>n>0);if(c.clearBoost(c.t))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],perRoundAttackOutput:true,source4894:true});else if(!had)c.timed(c.t,'回复效果削减',p[2],{fraction:p[3]/100});return;}return old.execute(c,p);}});}
+add(1380,'afterHit',(c,p)=>{(c.teamMode&&c.t.hp<=0?c.hurtWithHpFloor(c.a,c.a.hp,c.m.name+'牺牲全部体力','direct',1,true):c.hurt(c.a,c.a.hp,c.m.name+'牺牲全部体力','direct',true));c.stage(c.t,-p[0]);c.timed(c.t,'次回合先制降低',p[1],{amount:p[2],source4894:true},c.round+1);},[[1,1],[2,2],[2,2]]);
+for(const id of[1380,1195,2081,1399,1897]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4894(p,m,i,id))return;if(id===1380)throw Error('1380 exact source mismatch');return old.validate(p,m,i);},execute(c,p){if(!exact4894(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1195){c.timed(c.a,'安瑟伦受击害怕或固伤',p[0],{chance:p[1],amount:p[3],sourceHash:'881f3ceb'});return;}if(id===2081){if(!conditionStatusRules.conditionPresent(c.t,c.round)&&!c.ppReductionBlocked(c.t))randomEmpty(c,p[0]);return;}if(id===1399){if(c.clear(c.t)&&!c.ailment(c.t,'害怕',c.a))c.grantOracleImmunity(c.a,p[1],'1399:57f7210d:0:'+c.a.side,'1399');return;}if(id===1897){const had=Object.values(c.t.stages).some(n=>n>0);if(c.clearBoost(c.t))c.timed(c.t,'攻击输出上限',p[0],{amount:p[1],perRoundAttackOutput:true,source4894:true});else if(!had)c.timed(c.t,'回复效果削减',p[2],{fraction:p[3]/100});return;}return old.execute(c,p);}});}
 {const old=registry[1195];registry[1195]=Object.freeze({...old,received4894(c){if(c.a.hp<=0||c.t.hp<=0||!c.on(c.a,'安瑟伦受击害怕或固伤'))return;const e=c.a.effects['安瑟伦受击害怕或固伤'];if(!(statusRoll(c,e.chance)&&c.ailment(c.t,'害怕',c.a,false,false,null,{probabilityPercent:e.chance})))c.hurt(c.t,e.amount,'涤罪荆棘受击害怕失败固定','fixed');}});}
 
 {const old=registry[1069];registry[1069]=Object.freeze({...old,execute(c,p){if(c.m.wikiId!==35834||c.m.revision!=='seerapi:d473f3a9'||c.effectInstanceIndex!==0)return old.execute(c,p);if(JSON.stringify(p)!=='[2]')throw Error('4894 1069 exact source mismatch');if(c.canRemoveNegative?.(c.a)===false)return;const values=Object.fromEntries(Object.entries(c.a.stages).filter(([,n])=>n<0).map(([k,n])=>[k,-n])),out=c.rewriteStageValues(c.a,values,'reverse');if(out.removedNegative.some(k=>out.after[k]>0))c.timed(c.a,'概率闪避',p[0],{chance:100});}});}
@@ -6484,7 +6665,7 @@ metadata[614]={"info":"{0}回合内若对手使用攻击技能则对手{1}","arg
 add(2450,'afterHit',(c,p)=>c.noteAbilities4895.gain(c,p[0]),[[1,3]]);
 add(2448,'afterHit',c=>{if(conditionStatusRules.active(c.a,'烧伤',c.round))c.noteAbilities4895.deleteAll(c);},[],undefined,undefined,{afterUse(c){c.noteAbilities4895.afterUse(c);}});
 add(2449,'afterHit',c=>c.noteAbilities4895.consumeAll(c));
-add(2452,'afterHit',(c,p)=>{if(!(c.clear(c.t)&&c.ailment(c.t,'砥砺',c.a,false,false,null,{probabilityPercent:100})))c.stage(c.t,-p[1]);},[[37,37],[1,1]]);
+add(2452,'afterHit',(c,p)=>{if(c.clear(c.t)&&!c.ailment(c.t,'砥砺',c.a,false,false,null,{probabilityPercent:100}))c.stage(c.t,-p[1]);},[[37,37],[1,1]]);
 add(2453,'afterHit',(c,p)=>{const before=c.a.moves.map(k=>c.a.pp[k]),st=c.a.soulState.score4895??={notes:[],serial:0,heaven:0,heavenGains:0,events:[],weakDrains:[],ppRestoredTotal:0};c.restorePP(c.a,Infinity,'skill');const restored=c.a.moves.reduce((n,k,i)=>n+Math.max(0,c.a.pp[k]-before[i]),0);st.ppRestoredTotal+=restored;const tiers=Math.floor(restored/p[0]);(st.ppRestoreEvents??=[]).push({round:c.round,restored,perSlot:c.a.moves.map((k,i)=>Math.max(0,c.a.pp[k]-before[i])),tiers,discardedRemainder:restored%p[0]});if(tiers>0)c.stage(c.t,-tiers*p[1]);},[[7,7],[1,1]]);
 add(2454,'beforeDamage',(c,p)=>{if(c.crit)c.power*=1+p[0]/100;},[[100,100]]);
 add(614,'afterHit',(c,p)=>c.timed(c.a,'喧云敌用攻狂暴',p[0],{}),[turns,[14,14]]);
@@ -6509,10 +6690,30 @@ metadata[2464]={"info":"对手没有信仰对象时威力提升{0}%，若对手�
 metadata[2465]={"info":"对手拥有信仰对象时吸取对手最大体力的1/{0}，若对手为对方存活精灵中唯一拥有信仰对象的精灵则改为秒杀对手","args_num":1};
 metadata[2466]={"info":"打出致命一击时消除对手回合类效果、能力提升效果","args_num":0};
 metadata[2467]={"info":"对手不处于异常状态时对手{0}回合内属性技能无效","args_num":1};
-add(2474,'beforeUse',()=>{},[],'真实对方全部精灵均拥有信仰对象的队伍条件与强制命中协议；不从当前一个对手推断全队');
-add(2475,'afterHit',()=>{},[],'真实对方全部拥有信仰对象时逐个回复404/固定404，统计全队已损失体力众数并对非众数执行秒杀');
-add(2464,'beforeDamage',(c,p)=>{if(c.t.statusState?.faithSourceSide===undefined)c.power*=1+p[0]/100;},[[100,100]],'真实存活队伍中唯一没有信仰对象时改为秒杀；当前没有信仰对象的威力提升已实现');
-add(2465,'afterHit',(c,p)=>{if(c.t.statusState?.faithSourceSide!==undefined)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'拥有信仰对象吸取','教皇按理论比例等量回复');},[[3,3]],'真实存活队伍中唯一拥有信仰对象时改为秒杀；当前拥有信仰对象的比例吸取已实现');
+function wholeTeamFaith(c){
+  return c.teamMode&&c.teamMembers(c.t).every(foe=>foe.statusState?.faithSourceSide!=null);
+}
+add(2474,'beforeUse',c=>{
+  if(wholeTeamFaith(c))c.a.soulState.force2474={round:c.round,move:c.m.id,use:c.a.soulState.skillUses?.[c.m.id]};
+},[],'真实对方全部精灵均拥有信仰对象的队伍条件与强制命中协议；不从当前一个对手推断全队');
+add(2475,'afterHit',c=>{
+  if(!wholeTeamFaith(c))return;
+  const members=c.teamMembers(c.t);
+  for(const foe of members)if(foe.hp>0)c.heal(foe,404,'信仰裁决全队回复','skill');
+  for(const foe of members)if(foe.hp>0)c.hurt(foe,404,'信仰裁决全队固伤','fixed');
+  const losses=members.map(foe=>foe.stats.maxHp-foe.hp),freq=new Map();
+  for(const loss of losses)freq.set(loss,(freq.get(loss)??0)+1);
+  const max=Math.max(...freq.values());
+  for(const [i,foe] of members.entries())if(foe.hp>0&&freq.get(losses[i])<max)c.skillInstantDefeat(foe,'信仰裁决众数秒杀');
+},[],'真实对方全部拥有信仰对象时逐个回复404/固定404，统计全队已损失体力众数并对非众数执行秒杀');
+function uniqueLivingFaith4898(c,hasFaith){
+  return c.teamMode&&c.t.hp>0&&(c.t.statusState?.faithSourceSide!=null)===hasFaith&&
+    !c.teamReserves(c.t.side).some(f=>f.hp>0&&(f.statusState?.faithSourceSide!=null)===hasFaith);
+}
+add(2464,'beforeDamage',(c,p)=>{if(c.t.statusState?.faithSourceSide===undefined&&!uniqueLivingFaith4898(c,false))c.power*=1+p[0]/100;},[[100,100]],'真实存活队伍中唯一没有信仰对象时改为秒杀；当前没有信仰对象的威力提升已实现');
+add(2465,'afterHit',(c,p)=>{if(uniqueLivingFaith4898(c,true)){c.skillInstantDefeat(c.t,c.m.name+'唯一拥有信仰对象');return;}if(c.t.statusState?.faithSourceSide!==undefined)healthRules.drainPercent(c,c.t.stats.maxHp/p[0],c.m.name+'拥有信仰对象吸取','教皇按理论比例等量回复');},[[3,3]],'真实存活队伍中唯一拥有信仰对象时改为秒杀；当前拥有信仰对象的比例吸取已实现');
+const faith2464=registry[2464];
+registry[2464]=Object.freeze({...faith2464,afterHit4898(c){if(uniqueLivingFaith4898(c,false))c.skillInstantDefeat(c.t,c.m.name+'唯一没有信仰对象');}});
 add(2466,'afterAttack',c=>{if(c.crit){c.clear(c.t);c.clearBoost(c.t);}});
 add(2467,'afterHit',(c,p)=>{if(!Object.values(c.t.ailments).some(end=>end>=c.round))c.timed(c.t,'statusBlock',p[0],{});},[[2,2]]);
 for(const id of[2474,2475,2464,2465,2466,2467]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(!exact4898(p,m,i,id))throw Error('4898 exact source mismatch '+id);}});}
@@ -6570,7 +6771,7 @@ for(const [id,move,hash,index,args]of[[716,24169,'15958244',3,[3,2]],[1348,26555
 
 const rows4905=[{"moveId":38397,"hash":"2f05a99a","index":1,"id":1949,"args":[1]},{"moveId":38397,"hash":"2f05a99a","index":2,"id":970,"args":[1]},{"moveId":29355,"hash":"63a3254","index":1,"id":1875,"args":[4,3,2]},{"moveId":29355,"hash":"63a3254","index":2,"id":817,"args":[3]}],exact4905=(p,m,i,id)=>rows4905.some(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args));
 for(const id of[1949,970,817,1875]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4905(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4905(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1949){let changed=false;for(const k of stats){const n=c.actualStage(c.t,k);if(n>0){const before=c.a.stages[k];c.stage(c.a,n,[k]);changed||=c.a.stages[k]>before;}}if(changed)c.grantOracleImmunity(c.a,p[0],'1949:38397:2f05a99a:1:'+c.a.side,'copy-1949');return;}if(id===970){const values=Object.fromEntries(stats.filter(k=>c.actualStage(c.t,k)>0).map(k=>[k,-2*c.actualStage(c.t,k)])),out=c.rewriteStageValues(c.t,values,'reverse');if(out.removedPositive.length)c.timed(c.a,'id984',1,{amount:p[0]},c.round+1);else c.clearBoost(c.t);return;}if(id===817){old.execute(c,p);c.a.effects['受击令对手易伤'].scope4682=true;return;}c.timed(c.a,'西西弗用招回复附伤',p[0],{fraction:1/p[1],threshold:1/p[2],sourceHash:'63a3254',grantRound:c.round,grantMove:c.m.id,grantUse:c.effectUseCount()});}});}
-{const old=registry[1875];registry[1875]=Object.freeze({...old,used4905(c){if(!c.actualUsed||c.a.hp<=0||c.m.kind==='item'||!c.on(c.a,'西西弗用招回复附伤'))return;const e=c.a.effects['西西弗用招回复附伤'],before=c.a.hp,request=c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1);c.heal(c.a,request,'霜花环身用招回复','skill');const net=Math.max(0,c.a.hp-before);if(c.a.hp>0&&c.t.hp>0&&net>0)c.hurt(c.t,net,'霜花环身等量净回复附伤','percent');(c.a.soulState.heal18754905??=[]).push({round:c.round,move:c.m.id,request,net});}});}
+{const old=registry[1875];registry[1875]=Object.freeze({...old,used4905(c){if(!c.actualUsed||c.a.hp<=0||c.m.kind==='item'||!c.on(c.a,'西西弗用招回复附伤'))return;const e=c.a.effects['西西弗用招回复附伤'],before=c.a.hp,request=c.a.stats.maxHp*e.fraction*(before<c.a.stats.maxHp*e.threshold?2:1);const net=c.heal(c.a,request,'霜花环身用招回复','skill')??0;if(c.a.hp>0&&c.t.hp>0&&net>0)c.hurt(c.t,net,'霜花环身等量净回复附伤','percent');(c.a.soulState.heal18754905??=[]).push({round:c.round,move:c.m.id,request,net});}});}
 
 
 {const old=registry[1799],exact=(p,m,i)=>(m?.wikiId??m?.id)===38398&&m.revision==='seerapi:b0b9810f'&&i===1&&JSON.stringify(p)==='[100,28,1]';registry[1799]=Object.freeze({...old,validate(p,m,i){if(exact(p,m,i))return;return old.validate(p,m,i);},execute(c,p){if(!exact(p,c.m,c.effectInstanceIndex))return old.execute(c,p);if(c.a.side!==c.first&&!(statusRoll(c,p[0])&&c.ailment(c.t,'束缚',c.a,false,false,null,{probabilityPercent:p[0]})))refreshCounter4599({...c,a:c.t},'nextAttackInvalid',p[2],'1799:38398:b0b9810f:1');}});}
@@ -6595,12 +6796,12 @@ for(const id of[1613,2176,2076,2039,2142,1515,1099]){const old=registry[id];regi
 metadata[2503]={info:'对手处于骑士决斗类状态时，当回合无视对手的攻击伤害减少类效果',args_num:0};add(2503,'beforeDamageSetup',c=>{if(['duel','defeat'].includes(c.t.soulState.knightDuel4911?.kind))c.a.soulState.knight2503Round=c.round;},[]);
 metadata[2505]={info:'令对手{0}，自身每有{1}点{2}值，每次在场限{3}次',args_num:4};add(2505,'afterHit',(c,p)=>{const state=c.a.soulState,panel=state.entryPanelSpeed2505;if(!Number.isFinite(panel)||panel<0)throw Error('4911/2505缺少真实入场速度面板快照');const st=state.knightIce2505??={entrySpeed:panel,quota:Math.floor(panel/p[1])*p[3],used:0,attempts:[],sourceHash:'fa1ebace',args:p.slice()};if(st.used>=st.quota)return;st.used++;const applied=c.ailment(c.t,'冰封',c.a);if(st.used===1)Object.assign(st,{firstAttemptRound:c.round,firstApplied:applied,knownCommonFirst:true});st.attempts.push({round:c.round,applied,used:st.used,quota:st.quota});},[[15,15],[170,170],[4,4],[1,1]],'每次在场的真实重新出场速度快照与次数重置生命周期；当前首次在场按面板入场快照floor(speed/170)，免疫消费额度已实现');
 for(const[id,moveId,hash,index,args]of[[2503,38418,'4863a56c',4,[]],[2505,38419,'fa1ebace',4,[15,170,4,1]]]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)!==moveId||m.revision!=='seerapi:'+hash||i!==index||JSON.stringify(p)!==JSON.stringify(args))throw Error(id+'仅核实4911当前精确来源');return old.validate(p);}});}
-{const old=registry[2076];registry[2076]=Object.freeze({...old,used4911(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'星光用招低体比例吸取'))return;const e=c.a.effects['星光用招低体比例吸取'],before=c.t.hp,n=c.t.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1);healthRules.drainPercent({...c,heal:(f,v,label)=>c.heal(f,v,label,'skill')},n,'苍色冰原理论比例吸取');if(c.t.hp===before)c.a.soulState.starBench2076={round:c.round,amount:e.benchHeal,sourceMove:29370,sourceHash:'52cca2a8',requires:'真实场下存活目标',implemented:false};}});}
+{const old=registry[2076];registry[2076]=Object.freeze({...old,used4911(c){if(!c.actualUsed||c.m.kind==='item'||c.a.hp<=0||!c.on(c.a,'星光用招低体比例吸取'))return;const e=c.a.effects['星光用招低体比例吸取'],before=c.t.hp,n=c.t.stats.maxHp*e.fraction*(c.a.hp<c.a.stats.maxHp*e.threshold?2:1);healthRules.drainPercent({...c,heal:(f,v,label)=>c.heal(f,v,label,'skill')},n,'苍色冰原理论比例吸取');if(c.t.hp===before&&c.teamMode)c.healLivingBench(c.a,e.benchHeal,'苍色冰原场下回复');else if(c.t.hp===before)c.a.soulState.starBench2076={round:c.round,amount:e.benchHeal,sourceMove:29370,sourceHash:'52cca2a8',requires:'真实场下存活目标',implemented:false};}});}
 
 {const old=registry[2505];registry[2505]=Object.freeze({...old,deploymentPendingFor(p,m,i){if((m?.wikiId??m?.id)===38419&&m.revision==='seerapi:fa1ebace'&&i===4&&JSON.stringify(p)==='[15,170,4,1]')return ''; /* Q-4911-001 latest user answer and state matrices verified */return old.deploymentPendingFor?.(p,m,i);}});}
 
 const rows4912=[{"moveId":38424,"hash":"a780a551","index":2,"id":1978,"args":[100,22,3]},{"moveId":29372,"hash":"54469252","index":1,"id":2096,"args":[100,2,2,2]},{"moveId":29372,"hash":"54469252","index":2,"id":125,"args":[4,170]},{"moveId":29372,"hash":"54469252","index":3,"id":2248,"args":[170]},{"moveId":38425,"hash":"f990202","index":1,"id":1414,"args":[2]},{"moveId":38426,"hash":"b6172bf8","index":2,"id":1823,"args":[100,2,100,22,0,-2,0,-2,0,0,0]}],exact4912=(p,m,i,id)=>rows4912.some(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args));
-for(const id of[1978,2096,1414,1823,2248,125]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4912(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4912(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1978){const ok=c.clearBoost(c.t)&&statusRoll(c,p[0])&&c.ailment(c.t,'焚烬',c.a,false,false,null,{probabilityPercent:p[0]});if(!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');return;}if(id===2096){const had=conditionStatusRules.active(c.t,'烧伤',c.round),ok=statusRoll(c,p[0])&&c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:p[0]});if(had||!ok)c.timed(c.a,'攻击伤害免疫',p[3],{});return;}if(id===1414){const a=c.clear(c.a),b=c.clear(c.t);if(a||b){c.ailment(c.a,'烧伤',c.a);c.ailment(c.t,'烧伤',c.a);}return;}if(id===1823){if(statusRoll(c,p[0])&&c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:p[0]}))return;if(statusRoll(c,p[2])&&c.ailment(c.t,'焚烬',c.a,false,false,null,{probabilityPercent:p[2]}))return;for(let i=0;i<6;i++)if(p[5+i])c.stage(c.a,p[5+i],[stats[i]]);return;}if(id===125){old.execute(c,p);c.a.effects['攻击伤害上限'].pending1254854=true;return;}return old.execute(c,p);}});}
+for(const id of[1978,2096,1414,1823,2248,125]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4912(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4912(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1978){const cleared=c.clearBoost(c.t),ok=cleared&&statusRoll(c,p[0])&&c.ailment(c.t,'焚烬',c.a,false,false,null,{probabilityPercent:p[0]});if(cleared&&!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比附伤','percent');return;}if(id===2096){const had=conditionStatusRules.active(c.t,'烧伤',c.round),ok=statusRoll(c,p[0])&&c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:p[0]});if(had||!ok)c.timed(c.a,'攻击伤害免疫',p[3],{});return;}if(id===1414){const a=c.clear(c.a),b=c.clear(c.t);if(a||b){c.ailment(c.a,'烧伤',c.a);c.ailment(c.t,'烧伤',c.a);}return;}if(id===1823){if(statusRoll(c,p[0])&&c.ailment(c.t,'烧伤',c.a,false,false,null,{probabilityPercent:p[0]}))return;if(statusRoll(c,p[2])&&c.ailment(c.t,'焚烬',c.a,false,false,null,{probabilityPercent:p[2]}))return;for(let i=0;i<6;i++)if(p[5+i])c.stage(c.a,p[5+i],[stats[i]]);return;}if(id===125){old.execute(c,p);c.a.effects['攻击伤害上限'].pending1254854=true;return;}return old.execute(c,p);}});}
 metadata[2506]={info:'消耗自身本场战斗系别中的火系，之后本场战斗自身获得的渐烬改为2层天烬海',args_num:0};add(2506,'afterHit',c=>{const st=c.a.soulState.moth2099??={embers:0,sea:0,capZero:false,ownFirst:false,foeFirst:false,events:[],sourceHash:'5827a832'};if(st.fireConsumed)return;const parts=c.typeParts(c.a.type);if(!parts.includes('火')){st.events.push({round:c.round,kind:'consume-fire-failed',sourceMove:38426,sourceHash:'b6172bf8'});return;}const left=parts.filter(k=>k!=='火');if(left.length!==1||left[0]!=='虫')throw Error('4912当前消耗火系仅核实火虫变虫');c.a.type='虫';st.fireConsumed=true;st.events.push({round:c.round,kind:'consume-fire',type:'虫',sourceMove:38426,sourceHash:'b6172bf8'});},[]);
 {const old=registry[2504],exact=(p,m,i)=>(m?.wikiId??m?.id)===38426&&m.revision==='seerapi:b6172bf8'&&i===1&&Array.isArray(p)&&p.length===0;registry[2504]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)===38426&&!exact(p,m,i))throw Error('2504仅核实4912当前精确源');return old.validate(p,m,i);},deferredFor(p,m,i){if(exact(p,m,i))return '真实下场/重新登场后本次在场命中失效状态的复位；当前命中/零红消费、MISS/整招无效及命中效果封锁不消费均实现';return old.deferredFor?.(p,m,i)??old.deferred;}});}
 for(const[id,moveId,hash,index]of[[2506,38426,'b6172bf8',0]]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)!==moveId||m.revision!=='seerapi:'+hash||i!==index||JSON.stringify(p)!=='[]')throw Error(id+'仅核实4912当前精确源');return old.validate(p);}});}
@@ -6613,7 +6814,7 @@ for(const[id,moveId,hash,index]of[[2506,38426,'b6172bf8',0]]){const old=registry
 
 const rows4915=[{"moveId":38431,"hash":"6509bb0b","index":0,"id":1978,"args":[100,7,3]},{"moveId":38431,"hash":"6509bb0b","index":1,"id":1876,"args":[1]},{"moveId":29378,"hash":"9dc03db0","index":0,"id":1932,"args":[4,32]},{"moveId":29378,"hash":"9dc03db0","index":2,"id":1300,"args":[3,50,300,2]},{"moveId":29379,"hash":"8bc01e60","index":1,"id":1067,"args":[4,3,2,3]},{"moveId":38433,"hash":"34c7d7cc","index":1,"id":2034,"args":[100,7,2,50]}],exact4915=(p,m,i,id)=>rows4915.some(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args));
 const feedback4915=(c,p)=>{const entries=stats.filter(k=>c.a.stages[k]<0);if(!entries.length)return;const policy=c.a.soulState.qualifiedFeedback4644??{target:'add',self:'clear'};if(c.canFeedbackNegative?.(c.a)===false||c.canRemoveNegative?.(c.a)===false)return;if(policy?.failed===true){c.clearNegative(c.a);return;}if((c.weaknessBlocked(c.t)||c.canFeedbackNegative?.(c.a)===false)&&!policy)throw Error('Q-N50-4511-002：1876反馈的保护与反制范围待确认');if(entries.some(k=>(c.actualStage?.(c.t,k)??c.t.stages[k])!==0)&&!policy?.target)throw Error('Q-N50-4600-002：1876反馈目标非零时叠加或设值待确认');if(!['clear','keep'].includes(policy?.self))throw Error('Q-N50-4600-002：1876反馈成功后自身负等级是否移除待确认');let changed=false;for(const k of entries){const before=c.actualStage?.(c.t,k)??c.t.stages[k],n=c.a.stages[k],wanted=policy?.target==='set'?n:policy?.target==='lower'?Math.min(before,n):Math.max(-6,Math.min(6,before+n));c.stage(c.t,wanted-before,[k]);const moved=(c.actualStage?.(c.t,k)??c.t.stages[k])<before;changed||=moved;if(moved&&policy.self==='clear')c.a.stages[k]=0;}if(!changed)c.clearNegative(c.a);if(changed)refreshCounter4599({...c,a:c.t},'nextSkillInvalid',p[0],'4915:38431:1876');};
-for(const id of[1978,1876,1932,2034,1067,1300]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4915(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4915(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1978){const ok=c.clearBoost(c.t)&&statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a,false,false,null,{probabilityPercent:p[0]});if(!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比','percent');return;}if(id===1876)return feedback4915(c,p);if(id===1932)return c.timed(c.a,'免异常反弹除凝滞',p[0],{});if(id===2034){if(!(c.clear(c.t)&&statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a,false,false,null,{probabilityPercent:p[0]})))c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});return;}if(id===1067)return c.timed(c.a,'钢傀用招低体改吸取',p[0],{healFraction:1/p[1],threshold:1/p[2],drainFraction:1/p[3]});if(id===1300){old.execute(c,p);c.a.effects['减伤高伤随机异常'].source4915=true;return;}}});}
+for(const id of[1978,1876,1932,2034,1067,1300]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4915(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4915(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1978){const cleared=c.clearBoost(c.t),ok=cleared&&statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a,false,false,null,{probabilityPercent:p[0]});if(cleared&&!ok)c.hurt(c.t,c.a.stats.maxHp/p[2],c.m.name+'未触发百分比','percent');return;}if(id===1876)return feedback4915(c,p);if(id===1932)return c.timed(c.a,'免异常反弹除凝滞',p[0],{});if(id===2034){if(c.clear(c.t)&&!(statusRoll(c,p[0])&&c.ailment(c.t,'疲惫',c.a,false,false,null,{probabilityPercent:p[0]})))c.timed(c.a,'分类攻击减伤',p[2],{kind:2,fraction:p[3]/100});return;}if(id===1067)return c.timed(c.a,'钢傀用招低体改吸取',p[0],{healFraction:1/p[1],threshold:1/p[2],drainFraction:1/p[3]});if(id===1300){old.execute(c,p);c.a.effects['减伤高伤随机异常'].source4915=true;return;}}});}
 metadata[74]={info:'命中时有30%概率令对手中毒、烧伤或冻伤',args_num:0};add(74,'afterHit',c=>{if(statusRoll(c,30))c.ailment(c.t,['中毒','烧伤','冻伤'][Math.floor(c.random()*3)],c.a,false,false,null,{probabilityPercent:30});},[]);
 {const old=registry[74];registry[74]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)!==12905||m.revision!=='seerapi:290d3e6d'||i!==0||p.length)throw Error('74仅核实4915真实源');return old.validate(p);}});}
 {const old=registry[1300];registry[1300]=Object.freeze({...old,received4915(c,damage){const e=c.a.effects['减伤高伤随机异常'];if(damage<=e.threshold){c.clear(c.t);return;}const results=c.randomFromSharedPool(e.count,false,1300),n=results.filter(x=>x.applied).length;if(n<results.length)c.clear(c.t);}});}
@@ -6642,7 +6843,7 @@ add(2534,'battleStart',c=>{c.a.soulState.miragePPMove2534=c.m.id;},[]);registry[
 add(2535,'beforeOrder',c=>{if(cityAfter4923(c.a,'源','序'))c.priority++;},[]);
 add(2536,'afterHit',c=>{if(cityAfter4923(c.a,'逐','源'))c.ailment(c.t,'冻伤',c.a);},[]);
 add(2537,'beforeDamage',c=>{if(cityAfter4923(c.a,'理','逐'))c.affinity=Math.max(1,c.affinity);},[]);
-add(2538,'afterHit',c=>{const cities=c.a.soulState.mirage2119?.cities??[];if(['序','源','逐','理'].every(n=>cities.some(e=>e.name===n)))c.a.soulState.mirageSwitchRequest4923={from:c.round,through:c.round+3,targetSide:c.t.side,sourceHash:'b4a7b601'};},[],'四种蜃都存在时对手4回合真实主动换宠限制；仅换宠门禁延期');
+add(2538,'afterHit',c=>{const cities=c.a.soulState.mirage2119?.cities??[];if(['序','源','逐','理'].every(n=>cities.some(e=>e.name===n))){if(c.teamMode)c.timed(c.t,'不能主动切换',4,{noSwitch:true});c.a.soulState.mirageSwitchRequest4923={from:c.round,through:c.round+3,targetSide:c.t.side,sourceHash:'b4a7b601'};}},[],'四种蜃都存在时对手4回合真实主动换宠限制；仅换宠门禁延期');
 add(1561,'afterHit',(c,p)=>{const amount=Math.min(p[0],Math.abs(c.a.stats.maxHp-c.t.stats.maxHp)),source='1561:'+c.m.id+':'+c.effectInstanceIndex;c.refreshShield(c.a,amount,source);if(amount)(c.a.soulState.sourceShieldReactions??={})[source]={kind:'miragePower1561',amount,count:p[1]};else if(c.a.soulState.sourceShieldReactions)delete c.a.soulState.sourceShieldReactions[source];},[[0,99999],[1,99]]);
 for(const id of[2534,2535,2536,2537,2538,1561,200,559,2390,2459,2121,1892]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,j){if(exact4923(p,m,j,id))return;return old.validate(p,m,j);},execute(c,p){if(!exact4923(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===200){if(Object.values(c.t.stages).some(v=>v>0)&&statusRoll(c,p[0]))c.ailment(c.t,'烧伤',c.a);return;}if(id===2390){if(c.clear(c.t)){c.timed(c.t,'莫缇攻击无法伤害',p[0],{},c.round+1);c.timed(c.t,'攻击技能命中效果失效',p[0],{},c.round+1);}return;}if(id===2459){for(const k of stats)if(c.a.stages[k]<c.t.stages[k]){const a=c.a.stages[k],b=c.t.stages[k];c.stage(c.a,b-a,[k]);c.stage(c.t,a-b,[k]);}if(Object.values(c.t.stages).some(n=>n<0))refreshCounter4599(c,'attackNullify',p[0],'2459:38460:45d1e022:2');if(Object.values(c.a.stages).some(n=>n>0))c.timed(c.a,'id913',1,{bonus:p[1]/100},c.round+1);return;}if(id===2121){if(c.a.hp<=0||c.t.hp<=0)return;if(drain2121_4753(c,p[0]/100))c.a.soulState.continuations2121_4753=[{from:c.round+1,fraction:p[0]/100,mode:'next-use-once',sourceMove:38460,sourceHash:'45d1e022',sourceIndex:3,sourceKey:'2121:38460:45d1e022:3',grantUse:c.round+':'+c.m.id+':'+(c.a.soulState.skillUses?.[c.m.id]??0)}];return;}if(id===1892){c.timed(c.a,'斯布林蒂用招吸取',p[0],{amount:p[1],threshold:1/p[2],failureDamage:p[3],originMove:29397,originHash:'455946da'});return;}return old.execute(c,p);}});}
 
@@ -6675,9 +6876,9 @@ add(2533,'afterHit',(c,p)=>{if(!(statusRoll(c,p[0])&&c.ailment(c.t,'臣服',c.a)
 add(668,'beforeOrder',c=>{if(stats.some(k=>c.actualStage(c.t,k)>0))c.priority++;},[]);
 add(2532,'afterHit',(c,p)=>{c.a.soulState.benchDrainRequest2532={round:c.round,move:38485,sourceHash:'fc1fac18',damageStep:p[0],trueDrainPerStep:p[1],targetMaxHpCap:p[2]/100,requiresRealBenchDamageAndRecipients:true};},[[1,99999],[1,99999],[0,100]],'真实己方场下累计受伤按阈值计算真伤汲取，回复实际场下精灵；当前双方没有场下受伤或受益者，不造计数');
 add(2531,'beforeDamage',(c,p)=>{c.modifier*=1+new Set(marks4930(c).map(e=>e.name)).size*p[0]/100;},[[0,1000]]);
-add(2527,'afterHit',(c,p)=>{const marks=marks4930(c),sum=marks.reduce((n,e)=>n+e.remaining,0),total=Math.floor(sum/p[0]);if(total)c.timed(c.a,'帝皇印记固粉免疫',total*p[1],{});},[[1,99],[1,99]]);
+add(2527,'afterHit',(c,p)=>{const marks=marks4930(c),sum=marks.reduce((n,e)=>n+e.remaining,0),total=Math.floor(sum/p[0]);if(total)c.timed(c.a,'帝皇印记固粉免疫',total*p[1],{sourceEffectId:2527,ownerSide:c.a.side});},[[1,99],[1,99]]);
 add(2528,'afterAttack',(c,p)=>{if(c.a.hp>0&&c.t.hp<=0)c.a.soulState.emperorRecovery2528={round:c.round+1,fraction:1/p[0],extra:p[1]/100,sourceMove:38485,sourceHash:'fc1fac18'};},[[1,9999],[0,1000]],'真实击败后下一回合须有新的真实对手入场；当前击败登记与当前回血/附伤结算分支可验证，真实敌方下一只登场第二阶段');
-{const old=registry[2528];registry[2528]=Object.freeze({...old,start(c){const e=c.a.soulState.emperorRecovery2528;if(!e||e.round!==c.round||c.a.hp<=0)return;delete c.a.soulState.emperorRecovery2528;const before=c.a.hp;c.heal(c.a,c.a.stats.maxHp*e.fraction,'帝皇击败次轮技能回复','skill');c.a.soulState.emperorExtra2528={amount:Math.max(0,c.a.hp-before)*e.extra,sourceHash:e.sourceHash};},used(c){const e=c.a.soulState.emperorExtra2528;if(!e||!c.actualUsed||!['physical','special'].includes(c.m.kind))return;delete c.a.soulState.emperorExtra2528;if(c.t.hp>0&&e.amount>0)c.hurt(c.t,e.amount,'帝皇净回复量百分比附伤','percent');}});}
+{const old=registry[2528];registry[2528]=Object.freeze({...old,start(c){const e=c.a.soulState.emperorRecovery2528;if(!e||e.round!==c.round||c.a.hp<=0)return;delete c.a.soulState.emperorRecovery2528;const healed=c.heal(c.a,c.a.stats.maxHp*e.fraction,'帝皇击败次轮技能回复','skill')??0;if(c.a.hp<=0)return;c.a.soulState.emperorExtra2528={amount:healed*e.extra,sourceHash:e.sourceHash};},used(c){const e=c.a.soulState.emperorExtra2528;if(!e||!c.actualUsed||!['physical','special'].includes(c.m.kind))return;delete c.a.soulState.emperorExtra2528;if(c.t.hp>0&&e.amount>0)c.hurt(c.t,e.amount,'帝皇净回复量百分比附伤','percent');}});}
 for(const id of[2530,2529,2533,668,2532,2531,2527,2528,453,1700,1818,2162,1303,1926,2171,2040]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,j){if(exact4930(p,m,j,id))return;return old.validate(p,m,j);},execute(c,p){if(!exact4930(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===453){if(c.clearBoost(c.t))c.ailment(c.t,'臣服',c.a);return;}if(id===1700){const before={...c.a.stages};c.clearNegative(c.a);if(stats.some(k=>before[k]<0&&c.a.stages[k]>before[k]))c.grantOracleImmunity(c.a,p[0],'1700:38483:6f90d4a:3','1700');return;}if(id===1818)return c.timed(c.a,'固定百分比免疫反弹',p[0],{source4912:true,sourceMove:29419,sourceHash:'a54d662c'});if(id===2162){c.a.soulState.emperorNextEntry2162={armed:true,ailment:'臣服',sourceHash:'a54d662c'};return;}if(id===2040){c.a.soulState.emperorSwitch2040={from:c.round,through:c.round+p[0]-1,chance:p[1],ailment:'臣服',sourceHash:'fc1fac18'};return;}if(id===1303)return c.timed(c.a,'奥菲利娅用招双吸',4,{fraction:1/3,threshold:1/2,sourceMove:29420,sourceHash:'de6c546a'});if(id===1926)return refreshCounter4599(c,'nextAttackIgnoreImmunity',p[0],'1926:29420:de6c546a:3');if(id===2171){const n=stats.reduce((n,k)=>n+Math.max(0,-c.actualStage(c.a,k)),0),boosted=stats.some(k=>c.actualStage(c.t,k)>0);return healthRules.drainFixed({...c,heal:(f,n,l)=>c.heal(f,n,l,'skill')},n*p[0]*(boosted?2:1),c.m.name+'负级固定吸取');}return old.execute(c,p);}});}
 
 const rows4933=[{"moveId":38492,"hash":"1a615f6c","index":0,"id":2554,"args":[]},{"moveId":29425,"hash":"1a270d9b","index":2,"id":1058,"args":[100,6,1]},{"moveId":29426,"hash":"68c06eaf","index":2,"id":2039,"args":[4,100,11,1]},{"moveId":29426,"hash":"68c06eaf","index":3,"id":1926,"args":[2]},{"moveId":38493,"hash":"55a9b4f4","index":0,"id":2554,"args":[]},{"moveId":38494,"hash":"d821773b","index":0,"id":2554,"args":[]},{"moveId":38494,"hash":"d821773b","index":1,"id":2498,"args":[28,31,1,1]},{"moveId":38494,"hash":"d821773b","index":4,"id":2555,"args":[3]}],exact4933=(p,m,i,id)=>rows4933.some(x=>x.id===id&&(m?.wikiId??m?.id)===x.moveId&&m.revision==='seerapi:'+x.hash&&i===x.index&&JSON.stringify(p)===JSON.stringify(x.args));
@@ -6720,7 +6921,7 @@ metadata[1101]={"info":"命中后{0}%秒杀对方，若MISS则自身死亡，使
 metadata[2280]={"info":"技能无效时，对手下回合无法主动切换精灵","args_num":0};
 add(2568,'afterHit',(c,p)=>{if(c.canRemoveNegative(c.a)===false)return;let changed=false;for(const k of stats)if(c.a.stages[k]<0){const before=c.a.stages[k];c.stage(c.a,-2*before,[k]);changed ||=c.a.stages[k]>before;}if(changed)c.t.counts.nextStatusInvalid=(c.t.counts.nextStatusInvalid??0)+p[0];},[[1,99]]);
 add(2567,'afterHit',(c,p)=>c.timed(c.a,'冰呪',p[0],{sourceHash:'8ab248b8'}),[[1,99]]);
-add(2569,'battleStart',c=>{c.a.soulState.icePassive2569={moveId:38523,sourceHash:'57e42775',effectId:2569};},[], '对方其他精灵的秒杀特性统计与跨队伍条件在第二阶段实现；当前在场特性立即检查',undefined,{beforeConsume(c){if(c.opponentInstantKillSoul2141()&&c.random()<.2)c.noPPConsumption=true;},beforeAccuracy(c){if(c.opponentInstantKillSoul2141())c.accuracyBonus=(c.accuracyBonus??0)+100;}});
+add(2569,'battleStart',c=>{c.a.soulState.icePassive2569={moveId:38523,sourceHash:'57e42775',effectId:2569};},[], '对方其他精灵的秒杀特性统计与跨队伍条件在第二阶段实现；当前在场特性立即检查',undefined,{beforeConsume(c){const count=Number(c.opponentInstantKillSoul2141());if(count>0&&(count>=5||c.random()<count*.2))c.noPPConsumption=true;},beforeAccuracy(c){const count=Number(c.opponentInstantKillSoul2141());if(count)c.accuracyBonus=(c.accuracyBonus??0)+100*count;}});
 add(1101,'afterHit',(c,p)=>{if(roll(c,p[0]))c.defeat(c.t,c.m.name+'直接秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});},[[0,100],[1,5],[1,6]],undefined,undefined,{onMiss(c,p){c.a.hp=0;const pool=c.t.moves.slice();for(let i=0;i<p[1]&&pool.length;i++){const key=pool.splice(Math.floor(c.random()*pool.length),1)[0];clearPp2125(c,c.t,key);}c.stage(c.t,-p[2]);}});
 registry[1101]=Object.freeze({...registry[1101],attackImmunityExempt:true});
 add(2280,'afterHit',c=>{},[],'技能无效时对手下回合无法主动换宠；依赖真实换宠合法性检查',undefined,{onInvalid(c){c.t.soulState.noVoluntarySwitch2280={start:c.round+1,end:c.round+1,sourceHash:'dd9926eb',requiresRealSwitch:true};}});
@@ -6755,7 +6956,7 @@ for(const id of [2570,2576,2571,2572,2573,2574,2591,927,1683,2430,1885]){const o
 {const old=registry[1156],exact=(p,m,i)=>(m?.wikiId??m?.id)===38541&&m.revision==='seerapi:e5337815'&&i===4&&JSON.stringify(p)==='[3]';registry[1156]=Object.freeze({...old,validate(p,m,i){if(exact(p,m,i))return;if((m?.wikiId??m?.id)===38541)throw Error('4947 exact1156 source requires preserved [3]');return old.validate(p,m,i);},deploymentPendingFor(p,m,i){return exact(p,m,i)?undefined:old.deploymentPendingFor?.(p,m,i);},execute(c,p){if(!exact(p,c.m,c.effectInstanceIndex))return old.execute(c,p);if(c.t.hp<=0&&c.a.hp>0){c.heal(c.a,c.a.stats.maxHp,c.m.name+'击败回复','skill');c.restorePP(c.a,Infinity,'skill');}}});}
 
 metadata[2575]={"info":"自身拥有武道时，消除对手的武道并令对手衰弱{0}回合，未触发则对手{1}回合内无法行动","args_num":2};
-add(2575,'afterHit',(c,p)=>{const ability=c.soulAbility(2147,'hasWudao',c.a);if(ability){c.soulAbility(2147,'clearWudao',c.t);c.ailment(c.t,'衰弱',c.a,false,false,p[0]);}else c.timed(c.t,'战魂禁行动',p[1],{sourceHash:'63f36b1a'});},[[2,2],[2,2]]);
+add(2575,'afterHit',(c,p)=>{const ability=c.soulAbility(2147,'hasWudao',c.a);if(ability){c.soulAbility(2147,'clearWudao',c.t);if(!c.ailment(c.t,'衰弱',c.a,false,false,p[0]))c.timed(c.t,'战魂禁行动',p[1],{sourceHash:'63f36b1a'});}},[[2,2],[2,2]]);
 {const old=registry[2575];registry[2575]=Object.freeze({...old,validate(p,m,i){if((m?.wikiId??m?.id)!==38540||m.revision!=='seerapi:63f36b1a'||i!==2||JSON.stringify(p)!=='[2,2]')throw Error('4947 exact2575 source required');}});}
 
 metadata[2580]={"info":"帝皇之钺担任主位时解除自身所处的异常状态，帝皇之御担任主位时消除对手的能力提升状态，任意一项触发成功对手{0}回合内无法主动切换精灵","args_num":1};
@@ -6817,7 +7018,7 @@ metadata[2500]={info:'此技能以自然、光、冰、超能、神灵系中的�
 metadata[2494]={info:'若自身于上回合受到了攻击伤害则附加{0}点的{1}系伤害，此攻击伤害对应的攻击值每有{2}点效果翻倍{3}次',args_num:4};
 add(2494,'afterHit',(c,p)=>{if(!exact4000(c,2494)||JSON.stringify(p)!=='[170,9,260,1]')throw Error('4000/2494真实来源不匹配');const values=c.previousAttackValues4000();if(!values.length)return;const last=values.at(-1);if(!Number.isFinite(last))throw Error('2494最后一次真实攻击缺少攻击值记录');c.typedAttribute4000(p[0]*2**(Math.floor(last/p[2])*p[3]),'冰');},[[170,170],[9,9],[260,260],[1,1]]);
 metadata[2495]={info:'若自身未于上回合受到攻击伤害则获得自身最大体力的{0}%的护盾、护罩',args_num:1};add(2495,'afterHit',(c,p)=>{if(!exact4000(c,2495))throw Error('4000/2495真实来源不匹配');if(c.previousAttackValues4000().length)return;const n=c.a.stats.maxHp*p[0]/100,origin='2495:'+c.m.id+':'+c.m.revision+':'+c.effectInstanceIndex;c.refreshShield(c.a,n,origin);c.refreshBarrier(c.a,n,origin);},[[26,26]]);
-metadata[2497]={info:'解除自身所处的异常状态，若解除的异常状态中存在自身上次登场效果所免疫的异常状态，则本场战斗己方免疫此异常状态',args_num:0};add(2497,'afterHit',c=>{if(!exact4000(c,2497))throw Error('4000/2497真实来源不匹配');const prior=Object.keys(c.a.ailments).filter(k=>c.a.ailments[k]>=c.round);c.clearAilments(c.a);for(const k of prior)if(!(c.a.ailments[k]>=c.round)&&(c.a.soulState.verse2098?.entryImmuneHistory??[]).includes(k)){const st=c.a.soulState.verse2098??={sourceHash:'901c8cb4',permanentAilments:[]};const immune=c.a.soulState.permanentAilments2497??=st.permanentAilments??[];st.permanentAilments=immune;if(!immune.includes(k))immune.push(k);(st.teamPermanentRequests??=[]).push({status:k,sourceHash:'6ea7f2c9',requiresActualAllies:true});}},[]);
+metadata[2497]={info:'解除自身所处的异常状态，若解除的异常状态中存在自身上次登场效果所免疫的异常状态，则本场战斗己方免疫此异常状态',args_num:0};add(2497,'afterHit',c=>{if(!exact4000(c,2497))throw Error('4000/2497真实来源不匹配');const prior=Object.keys(c.a.ailments).filter(k=>c.a.ailments[k]>=c.round);c.clearAilments(c.a);for(const k of prior)if(!(c.a.ailments[k]>=c.round)&&(c.a.soulState.verse2098?.entryImmuneHistory??[]).includes(k)){const st=c.a.soulState.verse2098??={sourceHash:'901c8cb4',permanentAilments:[]};const immune=c.a.soulState.permanentAilments2497??=st.permanentAilments??[];st.permanentAilments=immune;if(!immune.includes(k))immune.push(k);if(c.teamMode){for(const member of c.teamReserves(c.a.side)){const shared=member.soulState.permanentAilments2497??=[];if(!shared.includes(k))shared.push(k);}}else(st.teamPermanentRequests??=[]).push({status:k,sourceHash:'6ea7f2c9',requiresActualAllies:true});}},[]);
 metadata[2493]={info:'恢复自身所有技能{0}点PP值，每恢复{1}点汲取对手{2}点体力，自身每有{3}级先制附加的伤害翻倍{4}次',args_num:5};
 add(2493,'afterHit',(c,p)=>{if(!exact4000(c,2493)||JSON.stringify(p)!=='[4,1,17,1,1,1,1]')throw Error('4000/2493真实来源不匹配');const result=c.restorePP(c.a,p[0]),restored=result.reduce((n,x)=>n+x.restored,0);if(restored===0)return;const priority=c.priorityValue(),amount=restored/p[1]*p[2]*2**Math.max(0,Math.floor(priority/p[3])*p[4]);c.drainTrue4000(amount);c.heal(c.a,amount,c.m.name+'汲取回复');},[[4,4],[1,1],[17,17],[1,1],[1,1],[1,1],[1,1]]);
 metadata[2501]={info:'技能无效时，重新进行伤害结算且自身每有260点特攻值威力翻倍1次',args_num:0};add(2501,'onInvalid',c=>{if(!exact4000(c,2501))throw Error('4000/2501真实来源不匹配');c.recalculate4000(2**Math.floor(c.panelStat(c.a,'spa')/260),c.redoCrit2501);},[]);
@@ -6846,17 +7047,30 @@ for(const row of rows){const old=registry[row.id],exact=(p,m,i)=>(m?.wikiId??m?.
 // 4956 exact source compatibility; original instances retain their own handlers.
 for(const [id,move,index,target]of[[1168,38598,0,bindings4658],[1619,29484,0,bindings4658],[2102,38599,0,bindings4643],[2587,38597,2,bindings4950]]){const m=[{"id":38589,"hash":"1c196d53","effectInstances":[]},{"id":29480,"hash":"a0faf925","effectInstances":[{"id":4,"args":[5,100,2],"description":"技能使用成功时，100%改变自身命中等级+2"}]},{"id":38590,"hash":"447ee64f","effectInstances":[]},{"id":29481,"hash":"cb9834a5","effectInstances":[{"id":1866,"args":[16,36,31,14,2],"description":"为自身随机附加流血、沸涌、臣服、狂暴中的2种异常状态"}]},{"id":38591,"hash":"73ee35b1","effectInstances":[{"id":2240,"args":[100],"description":"解除自身所处的异常状态，解除成功则本次攻击威力提升100%"},{"id":48,"args":[3],"description":"3回合内免疫所有受到的异常状态"}]},{"id":38592,"hash":"a9e540c3","effectInstances":[{"id":1878,"args":[3],"description":"消除对手回合类效果，若对手不处于回合类效果则吸取对手最大体力的1/3"},{"id":2601,"args":[0,100,6],"description":"若对手当回合选择的技能威力高于此技能，则100%令对手害怕"},{"id":440,"args":[3,3],"description":"3回合内对手使用技能消耗的PP值变为3倍"}]},{"id":38593,"hash":"d39b0013","effectInstances":[{"id":193,"args":[16],"description":"若对手流血，则必定造成双倍伤害"},{"id":154,"args":[16,1],"description":"若对手流血，则对对方造成伤害的1/1恢复自身体力"}]},{"id":38594,"hash":"b4fa8a36","effectInstances":[{"id":404,"args":[],"description":"恢复双方全部体力"}]},{"id":29482,"hash":"1435a25","effectInstances":[{"id":77,"args":[3,99],"description":"3回合内若使用技能则恢复99点体力值"},{"id":481,"args":[2,1],"description":"下2回合自身攻击先制+1"}]},{"id":38595,"hash":"d2820cf4","effectInstances":[{"id":495,"args":[37,30],"description":"若对手处于砥砺状态，则30%概率秒杀对手"}]},{"id":38596,"hash":"e3f8d16d","effectInstances":[{"id":921,"args":[20,2,2],"description":"20%概率造成的攻击伤害为2倍，未触发则2回合内令对手使用的属性技能无效"},{"id":1621,"args":[50,1],"description":"50%令对手所有技能PP值-1，自身满体力时效果翻倍"},{"id":1654,"args":[1],"description":"当回合击败对手则令对手下只登场精灵首次使用的技能所附加的效果失效"}]},{"id":29483,"hash":"b5c40e08","effectInstances":[{"id":1752,"args":[300,300,1],"description":"获得300点护盾，护盾消失时吸取对手300点体力且令对手随机1个技能的PP值归零"},{"id":426,"args":[2,70],"description":"2回合内每回合70%闪避对手攻击"}]},{"id":38597,"hash":"1b622fc9","effectInstances":[{"id":191,"args":[4],"description":"4回合内免疫并反弹所有受到的异常状态"},{"id":2560,"args":[4,100,16,3],"description":"4回合内每回合使用技能额外100%令对手流血，未触发则恢复自身最大体力的1/3"},{"id":2587,"args":[1,1],"description":"消除对手所处的异常状态，每消除1种对手1回合内无法行动"},{"id":693,"args":[2,120],"description":"下2回合造成的攻击伤害额外提升120%"}]},{"id":38598,"hash":"91319834","effectInstances":[{"id":1168,"args":[1],"description":"全属性+1，双方任意一方处于异常状态则强化效果翻倍"},{"id":936,"args":[80,23,2],"description":"80%令对手诅咒，未触发则令对手2回合内使用的属性技能无效"},{"id":717,"args":[4,3,2],"description":"4回合内每回合使用技能吸取对手最大体力的1/3，恢复体力时若自身体力低于最大体力的1/2则恢复效果翻倍"},{"id":843,"args":[2,2],"description":"下2回合令自身所有技能先制+2"}]},{"id":29484,"hash":"6330b279","effectInstances":[{"id":1619,"args":[],"description":"50%复制对手当回合释放的技能，未触发则恢复自身最大体力的1/2且令对手全属性-1"},{"id":1673,"args":[10,255],"description":"命中后10%的概率秒杀对手，未触发则造成的伤害不少于255"}]},{"id":38599,"hash":"a2fdf9fa","effectInstances":[{"id":2102,"args":[2,100,1],"description":"2回合内自身使用技能后100%随机附加1种弱化类异常状态"},{"id":54,"args":[3,2],"description":"3回合使对方攻击伤害是正常状态下的1/2倍"},{"id":1217,"args":[1],"description":"消除对手能力提升状态，消除成功则对手下1次攻击技能无效"},{"id":43,"args":[2],"description":"恢复自身最大体力的1/2"}]},{"id":29485,"hash":"4486dfc8","effectInstances":[{"id":2600,"args":[],"description":"若己方拥有起/承/转/合，则对应的为对手附加谋死A/B/C/D，对方存在对应的谋死且对手没有谋死时改为将对方的随机1种谋死转移至对手，若转移后对手拥有顺序最靠后的谋死，则自身触发己方拥有过的起、承、转中的己方效果"},{"id":2280,"args":[],"description":"技能无效时，对手下回合无法主动切换精灵"}]}].find(m=>m.id===move),e=m.effectInstances[index];target.push({id,moveId:move,move,hash:m.hash,index,args:e.args,description:e.description});}
 const rows4956=[{"id":1866,"move":29481,"hash":"cb9834a5","index":0,"args":[16,36,31,14,2]},{"id":193,"move":38593,"hash":"d39b0013","index":0,"args":[16]},{"id":154,"move":38593,"hash":"d39b0013","index":1,"args":[16,1]},{"id":495,"move":38595,"hash":"d2820cf4","index":0,"args":[37,30]},{"id":936,"move":38598,"hash":"91319834","index":1,"args":[80,23,2]}],exact4956=(p,m,i,id)=>rows4956.some(e=>e.id===id&&e.move===(m?.wikiId??m?.id)&&m.revision==='seerapi:'+e.hash&&e.index===i&&JSON.stringify(e.args)===JSON.stringify(p));
-for(const id of[1866,193,154,495,936]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4956(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4956(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1866)return c.randomForTarget4635(c.a,2,'limited',1866,['流血','沸涌','臣服','狂暴']);if(id===193){if(c.t.ailments['流血']>=c.round)c.modifier*=2;return;}if(id===154){if(c.t.ailments['流血']>=c.round)c.heal(c.a,(c.hpLoss??c.dealt??0)/p[1],c.m.name+'流血吸血');return;}if(id===495){if(c.t.ailments['砥砺']>=c.round&&roll(c,p[1]))c.defeat(c.t,c.m.name+'砥砺秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});return;}return old.execute(c,p);}});}
+for(const id of[1866,193,154,495,936]){const old=registry[id];registry[id]=Object.freeze({...old,validate(p,m,i){if(exact4956(p,m,i,id))return;return old.validate(p,m,i);},execute(c,p){if(!exact4956(p,c.m,c.effectInstanceIndex,id))return old.execute(c,p);if(id===1866)return c.randomForTarget4635(c.a,2,'limited',1866,['流血','沸涌','臣服','狂暴']);if(id===193){if(c.t.ailments['流血']>=c.round)c.modifier*=2;return;}if(id===154){if(c.t.ailments['流血']>=c.round)c.heal(c.a,(c.settledDamage??c.dealt??0)/p[1],c.m.name+'流血吸血');return;}if(id===495){if(c.t.ailments['砥砺']>=c.round&&roll(c,p[1]))c.defeat(c.t,c.m.name+'砥砺秒杀',{lethalProtection:true,defeatReactions:true,instantKill:true});return;}return old.execute(c,p);}});}
 metadata[2601]={"info":"若对手当回合选择的技能威力{0}此技能，则{1}%令对手{2}","args_num":3};
 add(2601,'afterHit',(c,p)=>{if((c.m.wikiId??c.m.id)!==38592||c.m.revision!=='seerapi:a9e540c3')throw Error('4956/2601 source mismatch');const m=c.selectedMove(c.t);if(m&&m.kind!=='item'&&m.power>c.m.power&&statusRoll(c,p[1]))c.ailment(c.t,'害怕',c.a,false,false,null,{probabilityPercent:p[1]});},[[0,0],[100,100],[6,6]]);
 metadata[2560]={"info":"{0}回合内每回合使用技能额外{1}%令对手{2}，未触发则恢复自身最大体力的1/{3}","args_num":4};
 add(2560,'afterHit',(c,p)=>c.timed(c.a,'珀萝用招流血回复',p[0],{chance:p[1],status:'流血',denominator:p[3],sourceHash:'1b622fc9'}),[[4,4],[100,100],[16,16],[3,3]]);
 {const old=registry[2560];registry[2560]=Object.freeze({...old,listen4956(c){const e=c.a.effects['珀萝用招流血回复'];if(!(statusRoll(c,e.chance)&&c.ailment(c.t,'流血',c.a,false,false,null,{probabilityPercent:e.chance})))c.heal(c.a,c.a.stats.maxHp/e.denominator,'白夜流血失败回复');}});}
 metadata[2600]={"info":"若己方拥有起/承/转/合，则对应的为对手附加谋死A/B/C/D，对方存在对应的谋死且对手没有谋死时改为将对方的随机1种谋死转移至对手，若转移后对手拥有顺序最靠后的谋死，则自身触发己方拥有过的起、承、转中的己方效果","args_num":0};
-add(2600,'afterHit',c=>{const st=c.a.soulState.plot2153;if(!st||st.phase>3)return;const marks=c.t.soulState.murder2153??=[];if(!marks.includes(st.phase))marks.push(st.phase);st.markEvents.push({round:c.round,target:c.t.side,mark:st.phase});},[], '其他真实对方成员已有谋死但当前对手没有时，随机转移及触发己方历史起承转效果；当前对手赋予立即实现');
+add(2600,'afterHit',c=>{const st=c.a.soulState.plot2153;if(!st||st.phase>3)return;const marks=c.t.soulState.murder2153??=[];
+ if(c.teamMode&&!marks.length){
+   const reserves=c.teamReserves(c.t.side);
+   if(reserves.some(f=>f.soulState.murder2153?.includes(st.phase))){
+     const sources=reserves.flatMap(f=>(f.soulState.murder2153??[]).map(mark=>({f,mark})));
+     const chosen=sources[Math.floor(c.random()*sources.length)];
+     const latest=Math.max(...sources.map(x=>x.mark));
+     chosen.f.soulState.murder2153.splice(chosen.f.soulState.murder2153.indexOf(chosen.mark),1);
+     marks.push(chosen.mark);
+     if(chosen.mark===latest)for(const chapter of st.history)if(chapter>=0&&chapter<=2)c.soulAbility(2153,'grant',chapter);
+     st.markEvents.push({round:c.round,target:c.t.side,mark:chosen.mark,from:chosen.f.teamPosition});return;
+   }
+ }
+ if(!marks.includes(st.phase))marks.push(st.phase);st.markEvents.push({round:c.round,target:c.t.side,mark:st.phase});},[], '其他真实对方成员已有谋死但当前对手没有时，随机转移及触发己方历史起承转效果；当前对手赋予立即实现');
 
 // 4956 source-only missing 154 and invalid-switch hook.
-metadata[154]={info:'若对手{0}，则对对方造成伤害的1/{1}恢复自身体力',args_num:2};add(154,'afterHit',(c,p)=>{if(!exact4956(p,c.m,c.effectInstanceIndex,154))throw Error('4956/154 source mismatch');if(c.t.ailments['流血']>=c.round)c.heal(c.a,(c.hpLoss??c.dealt??0)/p[1],c.m.name+'流血吸血');},[[16,16],[1,1]]);
+metadata[154]={info:'若对手{0}，则对对方造成伤害的1/{1}恢复自身体力',args_num:2};add(154,'afterHit',(c,p)=>{if(!exact4956(p,c.m,c.effectInstanceIndex,154))throw Error('4956/154 source mismatch');if(c.t.ailments['流血']>=c.round)c.heal(c.a,(c.settledDamage??c.dealt??0)/p[1],c.m.name+'流血吸血');},[[16,16],[1,1]]);
 {const old=registry[2280],exact=(m,i)=>(m?.wikiId??m?.id)===29485&&m.revision==='seerapi:4486dfc8'&&i===1;registry[2280]=Object.freeze({...old,validate(p,m,i){if(exact(m,i)&&p.length===0)return;return old.validate(p,m,i);},hooks:{...old.hooks,onInvalid(c,p){if(exact(c.m,c.effectInstanceIndex)){c.t.soulState.noVoluntarySwitch2280={start:c.round+1,end:c.round+1,sourceHash:'4486dfc8',requiresRealSwitch:true};return;}return old.hooks.onInvalid(c,p);}}});}
 
 {const old=registry[1752];registry[1752]=Object.freeze({...old,execute(c,p){const result=old.execute(c,p);if((c.m.wikiId??c.m.id)===29483&&c.m.revision==='seerapi:b5c40e08'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[300,300,1]'){const source='1752:'+c.a.side+':29483:seerapi:b5c40e08:0';c.a.soulState.sourceShieldReactions[source].kind='fixedDrain4956';}return result;}});}
@@ -6935,7 +7149,7 @@ registry[1774]=Object.freeze({...registry[1774],allowUnderHitEffectsDisabled:()=
  deferredFor(p,m,i){return exact(m,i,p)?undefined:old.deferredFor?.(p,m,i)??old.deferred;}
 });}
 metadata[2613]={info:'恢复自身最大体力的1/{0}，体力少于1/{1}时恢复效果翻倍，自身体力为满时改为恢复己方所有精灵{2}点体力',args_num:3};
-add(2613,'afterHit',(c,p)=>{if(c.a.hp<=0)return;const full=c.a.hp===c.a.stats.maxHp;const n=full?p[2]:c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1);c.heal(c.a,n,c.m.name+'回复');},[[1,9999],[1,9999],[0,99999]],'满体力时恢复己方其他精灵体力；当前在场自身回复分支即时执行');
+add(2613,'afterHit',(c,p)=>{if(c.a.hp<=0)return;const full=c.a.hp===c.a.stats.maxHp;const n=full?p[2]:c.a.stats.maxHp/p[0]*(c.a.hp<c.a.stats.maxHp/p[1]?2:1);c.heal(c.a,n,c.m.name+'回复');if(full&&c.teamMode)c.healLivingBench(c.a,p[2],c.m.name+'场下回复');},[[1,9999],[1,9999],[0,99999]]);
 metadata[2614]={info:'造成的攻击伤害不低于180',args_num:0};
 add(2614,'beforeDamage',c=>{c.minimumDamage=Math.max(c.minimumDamage??0,180);},[]);
 metadata[2612]={info:'消除双方能力提升、下降状态，每消除{0}种能力的状态，附加{1}点固定伤害',args_num:2};
@@ -6984,10 +7198,643 @@ add(2608,'afterHit',(c,p)=>{if(!c.hasDamageImmunity(c.a,'fixed'))c.hurt(c.t,p[2]
 metadata[2609]={info:'若{0}{1}百分比伤害免疫效果，则附加对手最大体力{2}%的百分比伤害',args_num:3};
 add(2609,'afterHit',(c,p)=>{if(!c.hasDamageImmunity(c.a,'percent'))c.hurt(c.t,c.t.stats.maxHp*p[2]/100,c.m.name+'无免粉追加','percent');},[[0,0],[1,1],pct]);
 
+{
+  const rule = registry[2351];
+  registry[2351] = Object.freeze({...rule, execute(c,p) {
+    if (!c.teamMode || c.t.hp <= 0) return rule.execute(c,p);
+    const before = Object.fromEntries(Object.keys(c.t.stages).map(key=>[key,c.actualStage(c.t,key)]));
+    c.stage(c.t,-p[0]);
+    if (!Object.keys(before).some(key=>c.actualStage(c.t,key)<before[key])) {
+      c.timed(c.t,'不能主动切换',p[1],{noSwitch:true});
+    }
+  }});
+}
+for (const id of [1478, 2144]) {
+  const rule = registry[id];
+  registry[id] = Object.freeze({...rule, execute(c,p) {
+    if (!c.teamMode) return rule.execute(c,p);
+    const targets = id === 2144 ? [c.a,c.t] : [c.t];
+    for (const fighter of targets) {
+      c.timed(fighter,'不能主动切换',p[0],{noSwitch:true},c.round+1);
+    }
+  }});
+}
+for (const id of [1665, 1669, 2032]) {
+  const original = registry[id];
+  registry[id] = Object.freeze({...original, execute(c, p) {
+    if (!c.teamMode) return original.execute(c, p);
+    const members = c.teamMembers(id === 2032 ? c.t : c.a);
+    const count = members.filter(f => id === 1669 ? f.hp > 0 : f.hp <= 0 && (id !== 2032 || f !== c.t)).length;
+    c.stage(c.a, p[0] * (roll(c, Math.min(100, count * p[1])) ? 2 : 1));
+  }});
+}
+for (const id of [2237, 2272]) {
+  const rule = registry[id];
+  registry[id] = Object.freeze({...rule, hooks: {...rule.hooks, beforeDamage(c, params) {
+    if (!c.teamMode) return rule.hooks?.beforeDamage?.(c, params);
+    const alive = fighter => c.teamPopulation(fighter.side).live;
+    if (id === 2237) c.power += Math.max(0, alive(c.t) - alive(c.a)) * params[0];
+    else if (alive(c.a) > 1) c.modifier *= 1 + params[0] / 100;
+  }}});
+}
+// Both source revisions of 1307 reach the same bench selection.
+// The earlier zero-argument version defines a fixed heal of 100.
+for (const id of [1307, 1955]) {
+  const rule = registry[id];
+  registry[id] = Object.freeze({...rule, execute(c,p) {
+    if (!c.teamMode) return rule.execute(c,p);
+    const amount = id === 1307 && p.length === 0 ? 100 : p[0];
+    if (id === 1955 || c.t.hp > 0) c.healLivingBench(c.a,amount,c.m.name+'场下回复');
+  }});
+}
+
+{
+  const rule=registry[2105];
+  registry[2105]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    c.vanishFirstFallenAfterUse(c.t);
+  }});
+}
+
+for(const [id,refresh] of [[1911,'refreshBarrier'],[1937,'refreshShield'],[1702,'healOnEntry']]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const source=[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+    (c.a.soulState.onVoluntaryExit??={})[source]={effectId:id,source,amount:p[0]};
+  },onTeamEntry(member,grant,services){
+    services[refresh](member,grant.amount,grant.source);
+  }});
+}
+
+registry[1955] = Object.freeze({...registry[1955], afterSacrifice(c,op) {
+  return c.teamMode && op.index===2 && ((c.m.wikiId??c.m.id)===37755 && c.m.revision==='seerapi:cbbda92d' ||
+    (c.m.wikiId??c.m.id)===38087 && c.m.revision==='seerapi:b2048c2f');
+}});
+
+{
+  const rule=registry[1882];
+  registry[1882]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const source=[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+    c.queueEntry(c.a,{effectId:1882,source,count:p[0],chance:p[1],status:ailments[p[2]]});
+  },onTeamEntry(member,grant,services){
+    services.status(member,{self:true,chance:grant.chance,status:grant.status,origin:'skill',attackGuard:grant.count,source:grant.source});
+  }});
+}
+{
+  const rule=registry[2148];
+  const wusheng=m=>(m.wikiId??m.id)===38087&&m.revision==='seerapi:b2048c2f';
+  const mystic=m=>(m.wikiId??m.id)===37510&&m.revision==='seerapi:2cbf8808';
+  registry[2148]=Object.freeze({...rule,
+    afterSacrifice:(c,op)=>c.teamMode&&(wusheng(c.m)&&op.index===1||mystic(c.m)&&op.index===3||(c.m.wikiId??c.m.id)===37750&&c.m.revision==='seerapi:66399b07'&&op.index===2),
+    execute(c,p){
+      if(c.teamMode&&c.a.hp<=0){
+        if(wusheng(c.m)&&c.effectInstanceIndex===1){c.queueEntry(c.a,{effectId:2148,key:'2148:38087:1',kind:'wusheng2148',count:p[0]});return;}
+        if(mystic(c.m)&&c.effectInstanceIndex===3){c.queueEntry(c.a,{effectId:2148,key:'2148:37510:2cbf8808:3',kind:'神觉2148',count:p[0]});return;}
+        if((c.m.wikiId??c.m.id)===37750&&c.m.revision==='seerapi:66399b07'&&c.effectInstanceIndex===2){c.queueEntry(c.a,{effectId:2148,key:'2148:37750:66399b07:2',kind:'void2148',count:p[0]});return;}
+      }
+      return rule.execute(c,p);
+    },onTeamEntry(member,grant,services){services.immunity(member,grant);}
+  });
+}
+{
+ const old=registry[1562];registry[1562]=Object.freeze({...old,execute(c,p){
+   if(!c.teamMode)return old.execute(c,p);
+   let applied=false;
+   const result=old.execute({...c,ailment(...args){const ok=c.ailment(...args);if(ok)applied=true;return ok;}},p);
+   if(applied){
+     const source=[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+     c.watchSwitch(c.t,source,{effectId:1562,through:c.round+p[2]-1,chance:p[3],status:p[4]===41?'狂信':ailments[p[4]],sourcePosition:c.a.teamPosition});
+     delete c.a.soulState.pendingSwitchFaith4898;
+   }
+   return result;
+ }});
+}
+{
+ const base=registry[1116];registry[1116]=Object.freeze({...base,execute(c,p){
+   if(!c.teamMode||(c.m.wikiId??c.m.id)!==27797)return base.execute(c,p);
+   const applied=c.randomFromSharedPool(p[0],false,1116);
+   if(!applied.some(result=>result.applied))c.clear(c.t);
+ }});
+}
+for(const id of [1510,2040,1600]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const source=[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+    if(id===1600){
+      return rule.execute({...c,timed(f,key,n,data,start){
+        const result=c.timed(f,key,n,data,start);
+        if(key==='主动切换后异常')c.watchSwitch(c.t,source,{effectId:id,through:c.round+n-1,chance:p[4],status:ailments[p[5]]});
+        return result;
+      }},p);
+    }
+    c.watchSwitch(c.t,source,{effectId:id,through:c.round+p[0]-1,chance:p[1],
+      status:id===2040?ailments[p[2]]:null,count:id===1510?p[2]:0});
+  },onTeamEntry(member,grant,services){services.status(member,{chance:grant.chance,status:grant.status,origin:'skill'});}});
+}
+{
+  const rule=registry[1868];
+  registry[1868]=Object.freeze({...rule,deferredFor(){return '原1868整个条件限本回合普通主动换入；首段失败才补偿，无换入、视为驱逐、死亡补位均不触发两段。队伍专项已实现，待正式全部机制验收。';},execute(c,p){
+    // The whole conditional includes its fallback. Non-voluntary entries cannot enter either branch.
+    if(!c.teamMode||!c.voluntarilyEntered(c.t))return;
+    const first=p[1]===32?'凝滞':ailments[p[1]];
+    if(statusRoll(c,p[0])&&c.ailment(c.t,first,c.a,false,false,null,{probabilityPercent:p[0]}))return;
+    if(statusRoll(c,p[2]))c.ailment(c.t,ailments[p[3]],c.a,false,false,null,{probabilityPercent:p[2]});
+  }});
+}
+{
+  const rule=registry[2481];
+  registry[2481]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    (c.a.soulState.onTeamKnockout??={})['38409:f0d4e6e3:5']={effectId:2481};
+  },captureTeamKnockout(owner,grant){
+    return {...grant,groups:Math.min(owner.soulState.nineScars??0,owner.soulState.hundredFires??0)};
+  },onTeamEntry(member,grant,services){
+    if(!grant.groups)return;
+    for(const status of ['束缚','麻痹','焚烬'].slice(0,grant.groups))
+      services.status(member,{chance:100,status,origin:'skill'});
+    services.drain(member,Math.floor(member.stats.maxHp*grant.groups/10));
+  }});
+}
+for(const id of [1319,2162]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const source=[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':');
+    const field=id===1319?'onTeamDefeat':'onTeamKnockout';
+    (c.a.soulState[field]??={})[source]=id===1319?{effectId:id,stages:p.slice()}:{effectId:id,status:ailments[p[0]]};
+  },onTeamEntry(member,grant,services){
+    if(id===1319)services.stages(member,grant.stages);
+    else services.status(member,{chance:100,status:grant.status,origin:'skill'});
+  }});
+}
+for(const id of [2017,934]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,onTeamKnockout:p=>({effectId:id,turns:id===2017?1:p[0],amount:p[1]}),
+    onTeamEntry(member,grant,services){
+      const key=id===2017?'先制效果失效':'次回合先制降低';
+      member.effects[key]={start:services.round,end:services.round+grant.turns-1,amount:grant.amount};
+    }
+  });
+}
+for(const id of [1128,1827,910]){
+  const rule=registry[id];
+  function grantBlock(c,p){
+    if(id!==910 && c.t.hp<=0)c.queueEntry(c.t,{effectId:id,amount:p[0],shared:[3322,3514,4354,4400,4501,4510,4676].includes(Number(c.a.number))});
+  }
+  registry[id]=Object.freeze({...rule,hooks:{...rule.hooks,afterUse(c,p){
+    if(!c.teamMode)return rule.hooks?.afterUse?.(c,p);
+    if(id===1128 && c.m.kind==='status')grantBlock(c,p);
+  }},execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    grantBlock(c,p);
+  },onTeamEntry(member,grant,services){
+    if(id===910){
+      member.effects.statusBlock={start:services.round,end:services.round+grant.amount-1};
+    }else{
+      const count=id===1128?'nextAttackInvalid1128':'nextStatusInvalid1827';
+      if(grant.shared)services.addTeamBlock(member,count,grant.amount);
+      else member.counts[count]=(member.counts[count]??0)+grant.amount;
+    }
+  }});
+}
+registry[1090]=Object.freeze({...registry[1090],
+  onTeamKnockout:(args,move,round)=>({effectId:1090,start:round+1,end:round+args[0],shared:(move.wikiId??move.id)===37522}),
+  onTeamEntry(member,grant,services){
+    const window={start:grant.start,end:grant.end,effectId:1090};
+    member.effects.attackBlock=window;
+    if(grant.shared)services.shareAttackBlock(member,window);
+  }
+});
+registry[1654]=Object.freeze({...registry[1654],
+  onTeamKnockout:args=>({effectId:1654,count:args[0]}),
+  onTeamEntry(member,grant){member.counts.nextSkillPayloadInvalid1654=grant.count;}
+});
+registry[910]=Object.freeze({...registry[910],onTeamKnockout:args=>({effectId:910,amount:args[0]})});
+registry[698]=Object.freeze({...registry[698],
+  onTeamKnockout:args=>({effectId:698,chance:args[0],status:args[1]===13?'易燃':ailments[args[1]]}),
+  onTeamEntry(member,grant,services){services.status(member,{chance:grant.chance,status:grant.status,origin:'skill'});}
+});
+{
+ const original=registry[757];
+ registry[757]=Object.freeze({...original,hooks:{...original.hooks,beforeUse(c,p){
+   if(c.teamMode&&conditionStatusRules.active(c.t,'流血',c.round)){
+     (c.a.soulState.onTeamKnockout??={})['757']={effectId:757,round:c.round,move:c.m.id,chance:p[1],status:ailments[p[2]]};
+   }
+ }},captureTeamKnockout(owner,grant){return grant;},onTeamEntry(member,grant,services){services.status(member,{chance:grant.chance,status:grant.status,origin:'skill'});}});
+}
+{
+ const old=registry[753];
+ registry[753]=Object.freeze({...old,execute(c,p){
+   if(c.teamMode)c.shareStatusBlock(c.t,p[0]);
+   return old.execute(c,p);
+ }});
+ const next=registry[1275];
+ registry[1275]=Object.freeze({...next,execute(c,p){
+   const result=next.execute(c,p);
+   if(c.teamMode&&c.a.hp<=0)c.queueEntry(c.a,{effectId:1275,count:p[0],firstOrderSource:{label:c.m.name,moveId:c.m.wikiId??c.m.id,revision:c.m.revision,index:c.effectInstanceIndex}});
+   return result;
+ },onTeamEntry(f,grant){f.soulState.teamFirstCrit1275=grant.count;f.soulState.teamFirstCritAttack1275=grant.count;f.soulState.teamFirstSource1275=grant.firstOrderSource;}});
+}
+{
+ const base=registry[904];
+ registry[904]=Object.freeze({...base,execute(c,p){
+   const id=c.m.wikiId??c.m.id,version=c.m.revision;
+   if(!c.teamMode||c.effectInstanceIndex!==0||!(id===19473&&version==='seerapi:a092987a'||id===38366&&version==='seerapi:6ba1a04e'))return base.execute(c,p);
+   c.hurt(c.a,c.a.hp,c.m.name+'消耗全部体力','direct',true);c.clear(c.t);
+   const grant={effectId:904,key:'904:'+id+':'+version.slice(8)+':0',kind:'team904',count:p[0],shield:p[1],block:p[2]};
+   c.queueEntry(c.a,grant);
+ },onTeamEntry(f,g,s){
+   s.immunity(f,g);
+   if(g.shield)s.refreshShield(f,g.shield,g.key);
+   if(g.block)s.blockEnemyStatus(f,g.block);
+ }});
+}
+{
+ const rule=registry[1059];
+ registry[1059]=Object.freeze({...rule,execute(c,p){
+   const result=rule.execute(c,p);
+   if(c.teamMode&&c.a.hp<=0)c.queueEntry(c.a,{effectId:1059,turns:p[2],bonus:p[3]/100,priority:p[4]});
+   return result;
+ },onTeamEntry(f,g,s){
+   f.effects['九死增伤与先制']={start:s.round,end:s.round+g.turns-1,bonus:g.bonus,priority:g.priority};
+ }});
+}
+registry[1872]=Object.freeze({...registry[1872],onTeamKnockout(p,m,round,actor,opponent){
+  if(opponent.soulState.hunterAttackBlockRound===round)return {effectId:1872,power:opponent.soulState.hunterAttackBlockPower,round:round+1};
+},onTeamEntry(f,g){f.soulState.hunterAttackBlockRound=g.round;f.soulState.hunterAttackBlockPower=g.power;}});
+{
+ const rule=registry[1298];registry[1298]=Object.freeze({...rule,execute(c,p){
+   if(!c.teamMode)return rule.execute(c,p);
+   if(!c.clearBoost(c.t))return;
+   const living=c.teamReserves(c.t.side).filter(f=>f.hp>0);
+   if(living.length){const f=living[Math.floor(c.random()*living.length)];c.benchHpLoss(f,Math.floor(f.stats.maxHp/4),c.m.name);}
+ }});
+ const other=registry[1299];registry[1299]=Object.freeze({...other,execute(c,p){
+   if(!c.teamMode)return other.execute(c,p);
+   c.timed(c.a,'轮回之狱',3,{});
+ }});
+}
+{
+ const base=registry[933],shared=new Map([[37790,'seerapi:4d2407f1'],[37812,'seerapi:918de109'],[37879,'seerapi:cce0c12b']]);
+ const keyFor=(id,revision,index)=>'skill:933:'+id+':'+revision+':'+index;
+ const keys=new Set(["skill:933:19939:seerapi:313e1e6:1","skill:933:30820:seerapi:cce543aa:1","skill:933:31261:seerapi:f74ef3cf:3","skill:933:36201:seerapi:149026aa:1","skill:933:31853:seerapi:8dbdc558:1","skill:933:32300:seerapi:c7315522:1","skill:933:36745:seerapi:a30d8491:2","skill:933:35653:seerapi:7c7abf89:2","skill:933:31294:seerapi:febc5415:1","skill:933:36761:seerapi:876450a9:3","skill:933:37089:seerapi:79e86cd4:0","skill:933:37382:seerapi:69624b5a:3","skill:933:37504:seerapi:7b54bfab:2","skill:933:37790:seerapi:4d2407f1:2","skill:933:37812:seerapi:918de109:1","skill:933:37879:seerapi:cce0c12b:2","skill:933:38134:seerapi:82f2baf1:2"]);
+ registry[933]=Object.freeze({...base,teamSharedKey:key=>keys.has(key),execute(c,p){
+   const id=c.m.wikiId??c.m.id;
+   if(!c.teamMode||shared.get(id)!==c.m.revision||id===37879)return base.execute(c,p);
+   if(c.t.hp>0&&!(id===37790?killed4725(c):ko4732(c)))base.refreshCounter4599(c,'nextCrit',p[0],keyFor(id,c.m.revision,c.effectInstanceIndex));
+ },onTeamEntry(member,g){base.refreshCounter4599({a:member},'nextCrit',g.count,g.key);}});
+}
+{
+ const base=registry[1212];registry[1212]=Object.freeze({...base,execute(c,p){
+   const result=base.execute(c,p);
+   if(c.teamMode&&c.a.hp<=0){
+     delete c.a.soulState.deferred1212;
+     c.queueEntry(c.a,{effectId:1212,count:p[0],turns:p[1],bonus:p[2]/100});
+   }return result;
+ },onTeamEntry(member,g,s){
+   s.blockOpponentAttack(member,g.count);member.effects['献祭攻击增伤']={start:s.round,end:s.round+g.turns-1,bonus:g.bonus};
+ }});
+}
+{
+ const base=registry[1979];registry[1979]=Object.freeze({...base,execute(c,p){
+   if(!c.teamMode)return base.execute(c,p);
+   let hp=false,pp=false;
+   const result=base.execute({...c,clear(...args){const done=c.clear(...args);hp||=!!done;return done;},clearBoost(...args){const done=c.clearBoost(...args);pp||=!!done;return done;}},p);
+   if(c.a.hp<=0&&(hp||pp))c.queueEntry(c.a,{effectId:1979,restoreHp:hp,restorePP:pp});
+   delete c.a.soulState.successor1979;
+   return result;
+ },onTeamEntry(member,g,s){if(g.restoreHp)s.healOnEntry(member,member.stats.maxHp);if(g.restorePP)s.restorePP(member,Infinity);}});
+}
+for(const id of [59,1493]){
+ const base=registry[id];
+ registry[id]=Object.freeze({...base,execute(c,p){
+   const result=base.execute(c,p);
+   if(c.teamMode&&c.a.hp<=0)c.queueEntry(c.a,{effectId:id,stats:p.slice()});
+   return result;
+ },onTeamEntry(member,grant,services){
+   if(id===59)services.stages(member,stats.map((_,index)=>Number(grant.stats.includes(index))));
+   else member.effects['免异常']={start:services.round,end:Math.max(member.effects['免异常']?.end??0,services.round+(Number(member.number)===3866?5:3)-1)};
+ }});
+}
+{
+ const base=registry[1374];
+ registry[1374]=Object.freeze({...base,hooks:{...base.hooks,onMiss(c,p){
+   base.hooks.onMiss(c,p);
+   if(c.teamMode&&c.a.hp<=0)c.queueEntry(c.a,{effectId:1374});
+ }},onTeamEntry(member,grant,s){
+   member.effects['冰之祝福']={start:s.round,end:s.round+2,crit:.5,fixedMin:150,fixedMax:300};
+ }});
+}
+registry[2474]=Object.freeze({...registry[2474],allowUnderHitEffectsDisabled:wholeTeamFaith});
+registry[2279]=Object.freeze({...registry[2279],onTeamKnockout(p,m,round,owner,target){
+  if(owner.soulId===1948&&target.soulState.mark1948?.owner===owner.side)return {effectId:2279};
+},onTeamEntry(member,g,services){services.huntMark(member);}});
+registry[2159]=Object.freeze({...registry[2159],onTeamKnockout(p,m,round,actor){
+  return {effectId:2159,percent:p[0]*(actor.soulState.lastWhisperLayers??0)};
+},onTeamEntry(member,grant,s){
+  s.addTeamBlock(member,'nextAttackInvalid1128',1);
+  if(grant.percent>0)s.drain(member,Math.floor(member.stats.maxHp*grant.percent/100));
+}});
+registry[2426]=Object.freeze({...registry[2426],onTeamKnockout(p,m,round,actor){
+ const captured=actor.soulState.teamOutputGrant2426;
+ const turns=captured?.round===round&&captured.move===m.id?captured.turns:actor.soulState.ningjie??0;
+ return turns>0?{effectId:2426,turns}:null;
+},onTeamEntry(member,grant,s){s.blockTeamOutput(member,grant.turns);}});
+{
+ const base=registry[2283];
+ registry[2283]=Object.freeze({...base,execute(c,p){
+   if(!c.teamMode)return base.execute(c,p);
+   return base.execute({...c,hurt(target,...args){
+     const actual=c.hurt(target,...args);
+     if(target===c.a&&actual>0){
+       const allies=c.teamReserves(c.a.side).filter(f=>f.hp>0);
+       const share=allies.length?Math.floor(actual/allies.length):0;
+       if(share)for(const ally of allies)c.heal(ally,share,c.m.name+'平分体力');
+     }
+     return actual;
+   }},p);
+ }});
+}
+{
+ const base=registry[2403];registry[2403]=Object.freeze({...base,execute(c,p){
+   if(!c.teamMode)return base.execute(c,p);
+   return base.execute({...c,ailment(target,status,...args){
+     const success=c.ailment(target,status,...args);
+     if(success)target.soulState.repeatOnExit2403={effectId:2403,status,chance:p[0],turns:p[2],through:c.round+p[2]-1,sourcePosition:target.teamPosition};
+     return success;
+   }},p);
+ },onTeamEntry(member,grant,s){s.status(member,{...grant,repeat2403:true,origin:'skill'});}});
+}
+for(const id of [1456,2213]){
+ const base=registry[id];
+ registry[id]=Object.freeze({...base,execute(c,p){
+   const result=base.execute(c,p);if(!c.teamMode)return result;
+   if(id===1456)c.queueEntry(c.a,{effectId:id,turns:p[1]});
+   else {const pending=c.a.soulState.pendingNextGuard2213;if(pending?.spent>0)c.queueEntry(c.a,{effectId:id,shield:pending.shield,barrier:pending.barrier});delete c.a.soulState.pendingNextGuard2213;}
+   return result;
+ },onTeamEntry(member,g,s){
+   if(id===1456)member.effects['攻击伤害免疫']={start:s.round,end:s.round+g.turns-1};
+   else {s.refreshShield(member,g.shield,'米斯蒂克堕之盛响');s.refreshBarrier(member,g.barrier,'米斯蒂克堕之盛响');}
+ }});
+}
+registry[2551]=Object.freeze({...registry[2551],onTeamKnockout(p,m,r,owner){
+ return {effectId:2551,ownerPosition:owner.teamPosition,serial:owner.soulState.holyThunderSpentSerial??0};
+},onTeamEntry(member,g){member.soulState.thunderSeal2551={ownerPosition:g.ownerPosition,serial:g.serial};}});
+registry[1830]=Object.freeze({...registry[1830],onTeamKnockout(p,m,round,actor,target,battle){
+ if(!battle.swordReforge?.[actor.side])return null;
+ const count=battle.holySwords.reduce((total,n)=>total+n,0);
+ if(!count)return null;
+ battle.holySwords.fill(0);
+ return {effectId:1830,count};
+},onTeamEntry(member,g,s){s.status(member,{randomCount:g.count,effectId:1830,origin:'skill'});}});
+registry[185]=Object.freeze({...registry[185],onTeamKnockout(p,m,round,actor,target){
+ return target.soulState.submittedAtDefeat?{effectId:185,status:'臣服'}:null;
+},onTeamEntry(member,g,s){s.status(member,{chance:100,status:g.status,origin:'skill'});}});
+{const base=registry[2574];registry[2574]=Object.freeze({...base,execute(c,p){const result=base.execute(c,p);if(c.teamMode)c.blockBenchTargets(p[0]);return result;}});}
+for(const id of [2405,2411])registry[id]=Object.freeze({...registry[id],onTeamEntry(member,g,s){
+ for(const status of g.statuses??[g.status])s.status(member,{status,chance:g.chance??100,origin:'skill'});
+}});
+registry[2379]=Object.freeze({...registry[2379],execute(c,p){
+ if(c.teamMode)(c.a.soulState.onTeamDefeat??={})['2379:'+c.m.id]={effectId:2379,amount:p[0]};
+},onTeamEntry(member,g){
+ member.soulState.resistanceGain2379=(member.soulState.resistanceGain2379??0)+g.amount;
+ for(const kind of ['critical','fixed','percent'])member.build.resistance[kind]=Math.min(100,(member.build.resistance[kind]??0)+g.amount);
+}});
+registry[2326]=Object.freeze({...registry[2326],onTeamKnockout:()=>({effectId:2326}),onTeamEntry(member,g,s){s.charm(member);}});
+{
+ const base=registry[2532];registry[2532]=Object.freeze({...base,execute(c,p){
+   if(!c.teamMode)return base.execute(c,p);
+   const allies=c.teamReserves(c.a.side).filter(f=>f.hp>0);
+   if(!allies.length||c.t.hp<=0)return;
+   const steps=Math.floor(c.benchDamageTotal(c.a.side)/p[0]);
+   const amount=Math.min(steps*p[1],Math.floor(c.t.stats.maxHp*p[2]/100));
+   if(amount>0){c.hurt(c.t,amount,c.m.name+'场下累计受伤汲取','true');const share=Math.floor(amount/allies.length);if(share)for(const f of allies)c.heal(f,share,c.m.name+'平分汲取回复','skill');}
+ }});
+}
+registry[2432]=Object.freeze({...registry[2432],onTeamEntry(member,grant,s){s.restorePP(member,grant.amount);}});
+registry[2194]=Object.freeze({...registry[2194],onTeamKnockout:()=>({effectId:2194}),onTeamEntry(member){member.soulState.fatalCracks=Math.min(3,(member.soulState.fatalCracks??0)+1);}});
+registry[601]=Object.freeze({...registry[601],onTeamKnockout:p=>({effectId:601,stages:p.map(n=>-n)}),onTeamEntry(f,g,s){s.stages(f,g.stages);}});
+{
+ const rule=registry[1182];
+ registry[1182]=Object.freeze({...rule,execute(c,p){
+   const result=rule.execute(c,p);
+   if(c.teamMode&&c.a.hp<=0)c.queueEntry(c.a,{effectId:1182,count:p[1]});
+   return result;
+ },onTeamEntry(f,g){f.soulState.miracleCharges1182=g.count;}});
+}
+{
+ const rule=registry[2278];
+ registry[2278]=Object.freeze({...rule,hooks:{...rule.hooks,afterAttack(c,p){
+   if(!c.teamMode)return;
+   const target=c.soulAbility(1948,'target');
+   if(target&&target.teamPosition!==c.t.teamPosition&&target.hp>0&&c.t.hp>0)
+     c.hurt(c.t,Math.floor(target.hp*(p[1]+((c.a.soulState.hunt1948?.souls??0)>0?p[2]:0))/100),'狩杀之的场下体力附伤','percent');
+ }}});
+}
+for(const id of [574,873]){
+ const original=registry[id];
+ function grant(f,entry={}){
+   if(id===574){if(entry.nextSkill!==false)f.soulState.ji574NextSkill=true;if(entry.nextLandedCrit!==false)f.soulState.ji574NextLandedCrit=true;f.soulState.ji574Source=entry.firstOrderSource;}
+   else{f.soulState.nextAttack873=true;f.soulState.nextAttackSource873=entry.firstOrderSource;}
+ }
+ registry[id]=Object.freeze({...original,execute(c,p){
+   if(!c.teamMode)return original.execute(c,p);
+   if(id===873){c.clearBoost(c.t);c.clear(c.t);}
+   if(id===574){delete c.a.soulState.ji574NextSkill;delete c.a.soulState.ji574NextLandedCrit;delete c.a.soulState.ji574Source;}
+   c.hurt(c.a,c.a.hp,c.m.name+'消耗全部体力','direct',true);
+   const entry={effectId:id,firstOrderSource:{label:c.m.name,moveId:c.m.wikiId??c.m.id,revision:c.m.revision,index:c.effectInstanceIndex}};
+   if(c.a.hp<=0)c.queueEntry(c.a,entry);
+   else grant(c.a,entry);
+ },onTeamEntry:grant,...(id===574?{captureTeamRemainder(f){
+   const source=f.soulState.ji574Source,nextSkill=!!f.soulState.ji574NextSkill,nextLandedCrit=!!f.soulState.ji574NextLandedCrit;
+   if(!source||!nextSkill&&!nextLandedCrit)return null;
+   const valid=source.moveId===23108&&['seerapi:592e26d2','seerapi:abd04168'].includes(source.revision)&&source.index===0||source.moveId===28384&&source.revision==='seerapi:70b97509'&&source.index===1;
+   return valid?{effectId:574,firstOrderSource:source,nextSkill,nextLandedCrit}:null;
+ }}:{})});
+}
+for(const id of [1331,1663,2027]){
+ const rule=registry[id];
+ registry[id]=Object.freeze({...rule,onTeamKnockout:p=>({effectId:id,amount:p[0]}),
+   onTeamEntry(member,grant,services){
+     if(id===1331)services.status(member,{chance:100,status:ailments[grant.amount],origin:'skill'});
+     else services.pp(member,{clear:id===1663,count:grant.amount});
+   }
+ });
+}
+for(const id of [840,1779]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    if(id===840 && c.t.hp>0)return;
+    c.queueEntry(c.t,{effectId:id,denominator:id===840?p[0]:p[1],remaining:id===840?1:p[0],...(id===1779?{entryKinds:['voluntary','knockout']}:{})});
+  },onTeamEntry(member,grant,services){
+    services.drain(member,Math.floor(member.stats.maxHp/grant.denominator));
+  }});
+}
+for(const id of [67,883,892]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    if(id!==883 && c.t.hp>0)return;
+    c.queueEntryDamage(c.t,{effectId:id,source:[c.a.number,c.m.wikiId??c.m.id,c.m.revision,c.effectInstanceIndex].join(':'),
+      numerator:id===67?1:p[0],denominator:id===67?p[0]:100,limit:id===883?p[1]:null});
+  },onTeamEntry(member,grant,services){
+    services.percentDamage(member,Math.floor(member.stats.maxHp*grant.numerator/grant.denominator));
+  }});
+}
+
+for(const id of [1303,1785]){
+  const rule=registry[id];
+  registry[id]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const benchHeal=id===1303?100:p[2];
+    return rule.execute({...c,timed(f,key,turns,data,start){
+      return c.timed(f,key,turns,{...data,fullBeforeDrainBenchHeal:benchHeal},start);
+    }},p);
+  }});
+}
+
+// Each living member contributes to one skill heal, each fallen member to one fixed damage event.
+{
+  const rule=registry[1305];
+  registry[1305]=Object.freeze({...rule,execute(c,p){
+    if(!c.teamMode)return rule.execute(c,p);
+    const {live:alive,dead:fallen}=c.teamPopulation(c.a.side);
+    if(alive)c.heal(c.a,alive*p[0],c.m.name+'己方存活回复','skill');
+    if(fallen)c.hurt(c.t,fallen*p[1],c.m.name+'己方阵亡附加','fixed');
+  }});
+}
+
 // Preserve legacy1213 payload gates; only the real4940 grant carries the actual-use qualification.
 {const old=registry[1213],exact=(p,m,i)=>(m?.wikiId??m?.id)===37732&&m.revision==='seerapi:df2bd956'&&(m.hash===undefined||m.hash==='df2bd956')&&i===1&&JSON.stringify(p)==='[2,4]';registry[1213]=Object.freeze({...old,
 validate(p,m,i){if((m?.wikiId??m?.id)===37732){if(!exact(p,m,i))throw Error('4940/1213 exact source mismatch');return;}return old.validate?.(p,m,i);},
 execute(c,p){if(exact(p,c.m,c.effectInstanceIndex))return c.timed(c.a,'用招附加最大体力粉伤',p[0],{fraction:1/p[1],actualUseSource1213:{effectId:1213,moveId:37732,hash:'df2bd956',index:1,args:[2,4]}});return old.execute(c,p);},
 actualUse4940(e){const x=e?.actualUseSource1213;return x?.effectId===1213&&x.moveId===37732&&x.hash==='df2bd956'&&x.index===1&&JSON.stringify(x.args)==='[2,4]';}});}
-});
+// 用户确认：仅天空领域22976/2652f7f2的138反弹为百分比；其他同ID来源保持各自已核实类型。
+{const old=registry[138];registry[138]=Object.freeze({...old,execute(c,p){old.execute(c,p);if((c.m.wikiId??c.m.id)===22976&&c.m.revision==='seerapi:2652f7f2'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[1,2]'&&c.a.side===c.first)c.a.effects['攻击免疫反弹'].damageType='percent';}});}
 
+// 用户确认：3079激雷地狱的1回合电系伤害翻倍从下一回合起算。
+{const old=registry[42];registry[42]=Object.freeze({...old,execute(c,p){if(Number(c.a.number)===3079&&c.a.soulId===425&&c.a.soulHash==='ba3a5753'&&(c.m.wikiId??c.m.id)===23359&&c.m.revision==='seerapi:b1ed17bc'&&c.effectInstanceIndex===2&&JSON.stringify(p)==='[1,1]'){if(c.a.hp>0)c.timed(c.a,'电系伤害翻倍',1,{},c.round+1);return;}return old.execute(c,p);}});}
+// 用户确认：仅3102狂魂崩断本体红伤按本回合所受完整红伤二倍，技能回复按对手实际HP损失。
+{const old=registry[929];registry[929]=Object.freeze({...old,execute(c,p){if(Number(c.a.number)===3102&&(c.m.wikiId??c.m.id)===19563&&c.m.revision==='seerapi:f89dc705'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[2]'){c.heal(c.a,c.hpLoss??c.dealt,c.m.name+'实际反馈回复','skill');return;}return old.execute(c,p);}});}
+
+// 用户确认：仅哈迪斯14117/472按完整结算红伤回复，不截断到敌剩余HP。
+{const old=registry[472];registry[472]=Object.freeze({...old,execute(c,p){if(Number(c.a.number)===3141&&(c.m.wikiId??c.m.id)===14117&&c.m.revision==='seerapi:9c02c285'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[6]'){if(c.t.ailments['害怕']>=c.round)c.heal(c.a,c.settledDamage??c.dealt,c.m.name,'skill');return;}return old.execute(c,p);}});}
+
+// 用户确认：仅哈迪斯两招直接反转可穿过防消吸强化保护；保留标准反转事件与免弱。
+for(const[id,move,hash,multiple,args]of[[743,17176,'56e15311',1,[1,1]],[970,19721,'8c918f22',2,[1]]]){const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){if(Number(c.a.number)!==3141||(c.m.wikiId??c.m.id)!==move||c.m.revision!=='seerapi:'+hash||c.effectInstanceIndex!==0||JSON.stringify(p)!==JSON.stringify(args))return old.execute(c,p);const values=Object.fromEntries(Object.entries(c.t.stages).filter(([,n])=>n>0).map(([k,n])=>[k,-multiple*n])),result=c.rewriteStageValues(c.t,values,'reverse');if(Object.keys(values).some(k=>result.after[k]<0))c.timed(c.a,'id984',1,{amount:id===743?p[1]:p[0]},c.round+1);else if(id===970)c.clearBoost(c.t);}});}
+
+// 用户2026-11-12统一确认：按本次攻击伤害回血取完整结算红伤。
+// 这些处理器只用dealt作为攻击吸血基数；实际损失的929等明确例外不在此列表。
+for(const id of[1,105,178,194,458,472,505,575,628,633,671,687,1415,1437]){
+ const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){
+  const settled=Math.max(0,c.settledDamage??c.dealt??0);
+  return old.execute({...c,dealt:settled},p);
+ }});
+}
+
+// 两条最新统一答复同时适用：先按完整红伤请求吸血，再按实际回复附加等量百分比。
+for(const id of[1249,1323]){
+ const old=registry[id];registry[id]=Object.freeze({...old,execute(c,p){
+  const full=Math.max(0,c.settledDamage??c.dealt??0);if(full<=0||c.a.hp<=0)return;
+  const healed=c.heal(c.a,full*p[0]/100,c.m.name+(id===1249?'吸血':'完整红伤比例回复'),'skill')??0;
+  if(healed>0&&c.a.hp>0&&c.t.hp>0&&(id===1249?conditionStatusRules.conditionPresent(c.t,c.round):c.crit))
+   c.hurt(c.t,healed,c.m.name+(id===1249?'异常追加':'暴击净回复等量百分比'),'percent');
+ }});
+}
+
+// Latest human rule: gain-blocked absorption clears the donor but cannot grant absorption-success rewards.
+for(const id of [872,931,948,985,1012,1022,1025,1044,1060,1062,1123,1159,1180,1199,1207,1261,1287,1310,1354,1445,1542,1726,1776,1880,2047,2361,2385,2444]){const old=registry[id];if(!old||old.phase!=='afterHit'||Object.keys(old.hooks??{}).length)throw Error('steal-success rule shape '+id);registry[id]=Object.freeze({...old,execute(c,p){if(c.on(c.a,'禁强化')&&Object.values(c.t.stages).some(n=>n>0)){c.steal(c.a,c.t,'技能');return;}return old.execute(c,p);}});}
+{const old=registry[85];registry[85]=Object.freeze({...old,execute(c,p){if(c.on(c.a,'禁强化')&&Object.values(c.t.stages).some(n=>n>0)){c.steal(c.a,c.t,'技能');return;}return old.execute(c,p);}});}
+// Earlier source-limited1069 ban behavior is superseded by the later explicit global rule.
+{const old=registry[125];registry[125]=Object.freeze({...old,partial:false,deploymentPendingFor(){return null;},execute(c,p){const result=old.execute(c,p),effect=c.a.effects['攻击伤害上限'];if(effect){effect.cumulativeRoundRed=true;effect.global125RoundRed=true;delete effect.wholeAttackRedCap;delete effect.pending1254854;}return result;}});}
+
+
+// Source-limited human confirmation: 3482/31355 feedback follows counter34,
+// while its own recovery uses theoretical feedback, independently of target loss.
+{const old=registry[929];registry[929]=Object.freeze({...old,execute(c,p){
+ if(Number(c.a.number)===3482&&(c.m.wikiId??c.m.id)===31355&&c.m.revision==='seerapi:fd2fed3d'&&c.effectInstanceIndex===0&&JSON.stringify(p)==='[2]'){
+  const amount=c.incomingSettledDamage('attack')*p[0];
+  c.hurt(c.t,amount,c.m.name+'本回合反馈','true');
+  c.heal(c.a,amount,c.m.name+'理论反馈回复','skill');return;
+ }
+ return old.execute(c,p);
+}});}
+
+// These sources use ailment indices outside the existing versions of the effects.
+function novemberAilmentEffect(effectId, moveId, hash, index, args, execute) {
+ const original=registry[effectId];
+ const matches=(move,slot,values)=>(move?.wikiId??move?.id)===moveId&&
+  (move.hash===hash||move.revision==='seerapi:'+hash)&&slot===index&&JSON.stringify(values)===JSON.stringify(args);
+ registry[effectId]=Object.freeze({...original,
+  validate(values,move,slot){if(!matches(move,slot,values))return original.validate?.(values,move,slot);},
+  execute(context,values){if(matches(context.m,context.effectInstanceIndex,values))return execute(context,values);
+   return original.execute(context,values);
+  },
+ });
+}
+novemberAilmentEffect(1278,29524,'ffd41eae',1,[100,8,1],(c,p)=>{
+ if(!(statusRoll(c,p[0])&&c.ailment(c.t,'睡眠',c.a)))grantAttackReflection(c,'fixed',p[2]);
+});
+novemberAilmentEffect(1058,29525,'c87049ce',1,[100,6,2],(c,p)=>{
+ if(!(statusRoll(c,p[0])&&c.ailment(c.t,'害怕',c.a)))c.timed(c.t,'attackBlock',p[2],{});
+});
+novemberAilmentEffect(1471,38656,'da57bfba',0,[100,8,3],(c,p)=>{
+ if(c.clearBoost(c.t)&&!(statusRoll(c,p[0])&&c.ailment(c.t,'睡眠',c.a)))c.heal(c.a,c.a.stats.maxHp/p[2],c.m.name+'异常未触发回复');
+});
+novemberAilmentEffect(1799,38657,'b290bb02',1,[100,8,1],(c,p)=>{
+ if(c.a.side!==c.first&&!(statusRoll(c,p[0])&&c.ailment(c.t,'睡眠',c.a)))
+  c.t.counts.nextAttackInvalid=(c.t.counts.nextAttackInvalid??0)+p[2];
+});
+novemberAilmentEffect(1400,29522,'ce55f878',1,[3,100,8],(c,p)=>{
+ c.timed(c.a,'回合被清追加异常',p[0],{chance:p[1],ailment:'睡眠'});
+});
+{
+ const old=registry[2073];
+ const matches=(move,index,args)=>(move?.wikiId??move?.id)===38657&&
+  (move.hash==='b290bb02'||move.revision==='seerapi:b290bb02')&&index===2&&JSON.stringify(args)==='[50]';
+ registry[2073]=Object.freeze({...old,
+ validate(args,move,index){if(!matches(move,index,args))return old.validate(args,move,index);},
+ sourceTemplate(entry,move,index,instance){
+  return matches(move,index,instance.args)&&
+   entry.revision==='seerapi:61722d27'&&entry.template==='对手每处于1种异常状态造成的伤害提升{0}%'&&
+   instance.id===2073||old.sourceTemplate?.(entry,move,index,instance)===true;
+ }});
+}
+{
+ const old=registry[185];
+ const matches=(m,i,args)=>(m?.wikiId??m?.id)===38658&&
+  (m.hash==='2dc806ff'||m.revision==='seerapi:2dc806ff')&&i===4&&JSON.stringify(args)==='[8]';
+ registry[185]=Object.freeze({...old,
+  validate(p,m,i){if(!matches(m,i,p))return old.validate(p,m,i);},
+  deferredFor(p,m,i){if(!matches(m,i,p))return old.deferredFor?.(p,m,i)??old.deferred;},
+  execute(c,p){if(!matches(c.m,c.effectInstanceIndex,p))return old.execute(c,p);},
+  onTeamKnockout(p,m,round,actor,target){
+   if(matches(m,4,p))return target.soulState.milinnaSleepingDefeat===round?{effectId:185,status:'睡眠'}:null;
+   return old.onTeamKnockout(p,m,round,actor,target);
+  },
+ });
+}
+metadata[1045]={info:'未击败对手则附加自身最大体力1/{0}的百分比伤害',args_num:1};
+add(1045,'afterAttack',(c,p)=>{if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp/p[0],c.m.name+'未击败附伤','percent');},[[1,9999]]);
+metadata[2061]={info:'随机附加{0}种弱化类异常状态',args_num:1};
+add(2061,'afterHit',(c,p)=>c.randomAilmentsFrom(p[0],[
+ '中毒','烧伤','寄生','冻伤','混乱','衰弱','易燃','流血','失明','烈焰诅咒','致命诅咒','虚弱诅咒','束缚','失神','沉默','臣服','凝滞','沸涌','魇昧',
+],2061),[[1,19]]);
+for(const [id,index,category,template,key,sign] of [
+ [2622,2,3,'{0}回合内自身使用{1}技能时令对手全属性-{2}','夜暝用攻弱化',-1],
+ [2623,3,4,'{0}回合内自身使用{1}技能时使自身全属性+{2}','夜暝用属强化',1],
+]){
+ registry[id]=Object.freeze({id,template,argsNum:3,instanceArgsNum:3,direct:true,phase:'afterHit',
+  validate(p,m,i){
+   if((m?.wikiId??m?.id)!==29525||(m.hash!=='c87049ce'&&m.revision!=='seerapi:c87049ce')||
+      i!==index||JSON.stringify(p)!==JSON.stringify([3,category,1]))throw Error('夜暝渊墟效果来源不匹配');
+  },
+  execute(c,p){c.timed(c.a,key,p[0],{amount:sign*p[2]});},
+ });
+}
+
+});

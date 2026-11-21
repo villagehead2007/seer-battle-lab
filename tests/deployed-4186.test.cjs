@@ -1,1 +1,5 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4186-battle.cjs'),{E,make,pick,turn,timer,key,keys}=H,shields=require('../dist/shield-rules.js');
+test('4186 原魂印1409真实250入场盾、异常快照1/3回血及已变双属性时克制上限2',()=>{
+ const entry={moveId:10004,index:null},s=make(entry,{soul:1409,hp:1000});assert.equal(s.fighters[0].suitState.shield,250);s.fighters[0].ailments['失明']=9;const o=turn(s,920031);assert.equal(o.fighters[0].hp,4000);assert.equal(o.fighters[0].soulState.dragonAbnormalSnapshotRound,1);
+ const known=require('../research/4135-reviewed-snapshot.json'),damages=[];for(const abnormal of [false,true]){const x=make(entry,{soul:1409});shields.consume(x.fighters[0]);x.typeChart.aliases['自然神秘']=known.typeChart.aliases['自然神秘'];x.fighters[0].type='自然神秘';x.moveDefinitions[key(920040)].type='超能';if(abnormal)x.fighters[0].ailments['失明']=9;const a=turn(x,920031,920040);damages.push(a.fighters[0].roundSettledAttackDamage);}assert.ok(Math.abs(damages[0]-2*damages[1])<=1);
+});

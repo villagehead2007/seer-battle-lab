@@ -1,3 +1,4 @@
+// 2026-11-16 untyped small immunity is red only; 874 uses the whole skill. Historical proof lookup titles are retained.
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const H=require('./helpers/3580-battle.cjs');
@@ -37,7 +38,7 @@ test('3580 受击1322独立于魂印、免控转全弱、免弱与四回合到�
 test('3580 低伤1018在399返还、400不返还及三回合到期',()=>{
   const e=pick(1018)[0];for(const n of [399,400,401]){const s=make(e,{bStats:{atk:9000}});timer(s,0,'攻击伤害上限',{amount:n});const o=turn(s,e.moveId,HIT);assert.deepEqual(hp(o),n<400?[9000,9000-n]:[9000-n,9000]);}
   let s=turn(make(e),e.moveId,HIT);assert.equal(s.fighters[0].hp,9000);for(let r=2;r<=3;r++){s=turn(s,IDLE,HIT);assert.equal(s.fighters[0].hp,9000);}assert.ok(turn(s,IDLE,HIT).fighters[0].hp<9000);
-  const fixed=make(e,{opponentEffect:pick(29)[0]});timer(fixed,0,'鬼王攻击免疫');const f=turn(fixed,e.moveId,900023);assert.deepEqual(hp(f),[9000,8925]);
+  const fixed=make(e,{opponentEffect:pick(29)[0]});timer(fixed,0,'鬼王攻击免疫');const f=turn(fixed,e.moveId,900023);assert.deepEqual(hp(f),[8925,9000]);
   const protectedEnemy=make(e);timer(protectedEnemy,1,'当回合免伤');assert.deepEqual(hp(turn(protectedEnemy,e.moveId,HIT)),[9000,9000]);
 });
 test('3580 随机异常786真实附加一种、免疫与失误',()=>{

@@ -22,4 +22,30 @@ function compositeIssues(s,root=__dirname){
  }catch(e){errors.push(e.message);}
  return errors;
 }
-module.exports={compositeIssues};
+function originalIssues(snapshot,root=__dirname){
+ const mars=require('./dist/sp-mars-rules.js');
+ const directory='research/POST-V9-20261121/original-source';
+ const hash=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+ if(!mars.validSource(snapshot)||snapshot.source.url!==`local:${directory}/design-v1.txt`)
+   return ['原创精灵身份或来源字段未匹配'];
+ try{
+   const original=fs.readFileSync(path.join(root,directory,'design-v1.txt'));
+   const bytes=fs.readFileSync(path.join(root,directory,'spec.json'));
+   if(hash(original)!==mars.SOURCE_HASH||hash(bytes)!==mars.SPEC_HASH)throw Error('原创原文或定稿哈希不符');
+   const spec=JSON.parse(bytes);
+   if(!equal(snapshot.originalSpec,spec)||snapshot.name!==spec.species.name)throw Error('原创定稿引用不符');
+   const description=original.toString('utf8').split('神谕技能')[0].split('魂印效果')[1].trim();
+   if(snapshot.souls[0].description!==description||!equal(snapshot.souls[0].args,[]))throw Error('原创魂印原文不符');
+   if(!equal(snapshot.moves.map(move=>move.id),Object.values(mars.MOVES)))throw Error('原创技能顺序不符');
+   for(const [key,raw] of Object.entries(spec.moves)){
+     const actual=snapshot.moves.find(move=>move.id===mars.MOVES[key]);
+     const expected={name:raw.name,type:raw.element??'属性',kind:raw.category,power:raw.power,pp:raw.pp,
+       accuracy:100,alwaysHit:raw.alwaysHit,critical:'1/16',priority:raw.priority??0,fifth:key==='fifth',
+       effectIds:[],effectInstances:[],provider:'user-original',revision:spec.revision,hash:hash(JSON.stringify({key,move:raw}))};
+     if(!Object.keys(expected).every(field=>equal(actual[field],expected[field])))throw Error(`原创技能 ${key} 字段不符`);
+   }
+   return [];
+ }catch(error){return [error.message];}
+}
+
+module.exports={compositeIssues,originalIssues};

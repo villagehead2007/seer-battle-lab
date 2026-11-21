@@ -2,7 +2,31 @@
 const red=(s,side=0)=>(s.damageEvents??[]).filter(e=>e.round===s.round-1&&e.type==='attack'&&e.sourceSide===side).reduce((n,e)=>n+e.settledDamage,0);
 test('5000/86非必中属性技能真实MISS且必中例外，攻击技能不受属性闪避影响',()=>{for(const hit of[false,true]){const s=make({move:20605,enemySource:source,enemyLoadout:[20499,10993,20606,20607,31143],hit:false});if(hit)timer(s,1,'属性必中',{});turn(s,20605,20499);assert.equal(!!s.fighters[0].ailments['疲惫'],hit);}const x=make({move:20605});turn(x,20605,10127);assert.ok(red(x,1)>0);});
 test('5000/29元素断空破真实固定200与30，28最大HP八分之一粉伤独立免疫',()=>{for(const [id,n]of[[11261,200],[10994,30]])for(const blocked of[false,true]){const s=make({move:id});if(blocked)timer(s,1,'固定百分比免疫',{});turn(s,id,20117);assert.equal(sum(s,'fixed'),blocked?0:n);}const s=make({move:11000});turn(s,11000,20117);assert.equal(sum(s,'percent'),1125);});
-test('5000/34能量按本回合实际所受完整红伤双倍固定反馈，先手无先前伤害不凭空反馈；35惩罚只加对方正等级',()=>{const s=make({move:11274,aStats:{spe:1},bStats:{spe:500}});turn(s,11274,10127);assert.equal(sum(s,'fixed'),red(s,1)*2);const first=make({move:11274});timer(first,0,'id984',{amount:10});turn(first,11274,10127);assert.equal(first.turns[0].first,0);assert.equal(sum(first,'fixed'),0);const a=make({move:10997}),b=make({move:10997,index:-1});for(const x of[a,b]){x.fighters[1].stages.spe=6;x.fighters[1].stages.atk=-6;}b.moveDefinitions[key(10997)].power+=6;turn(a,10997,20117);turn(b,10997,20117);assert.equal(red(a),red(b));});
+test('5000/34能量按本回合累计完整红伤双倍真实反馈，先手无先前红伤无反馈；35惩罚只计算对手正等级',()=>{
+ const s=make({move:11274,aStats:{spe:1},bStats:{spe:500}});
+ timer(s,1,'固定百分比免疫');
+ turn(s,11274,10127);
+ assert.equal(s.turns[0].first,1);
+ const incoming=red(s,1);
+ assert.ok(incoming>0);
+ assert.equal(sum(s,'true'),incoming*2);
+ assert.equal(sum(s,'fixed'),0);
+ const first=make({move:11274});
+ timer(first,0,'id984',{amount:10});
+ turn(first,11274,10127);
+ assert.equal(first.turns[0].first,0);
+ assert.ok(red(first,1)>0);
+ assert.equal(sum(first,'true'),0);
+ const a=make({move:10997}),b=make({move:10997,index:-1});
+ for(const state of [a,b]){
+  state.fighters[1].stages.spe=6;
+  state.fighters[1].stages.atk=-6;
+ }
+ b.moveDefinitions[key(10997)].power+=6;
+ turn(a,10997,20117);
+ turn(b,10997,20117);
+ assert.equal(red(a),red(b));
+});
 test('5000/77生命用招才回100，控制不回；43轮回回满与3净弱及33清强真实状态',()=>{const s=make({move:20606,hp:1000,loadout:[20606,10993,10996,20607,31143]});turn(s,20606,20117);assert.equal(s.fighters[0].hp,1100);s.fighters[0].ailments['疲惫']=2;turn(s,10993,20117);assert.equal(s.fighters[0].hp,1100);const full=make({move:20607,hp:1000});turn(full,20607,20117);assert.equal(full.fighters[0].hp,9000);const weak=make({move:10999});weak.fighters[0].stages.def=-2;weak.fighters[0].stages.spe=1;turn(weak,10999,20117);assert.equal(weak.fighters[0].stages.def,0);assert.equal(weak.fighters[0].stages.spe,1);const clear=make({move:10998});clear.fighters[1].stages.def=2;clear.fighters[1].stages.spe=-1;turn(clear,10998,20117);assert.equal(clear.fighters[1].stages.def,0);assert.equal(clear.fighters[1].stages.spe,-1);});
 test('5000/22灵魂干涉真实70%疲惫成败与免疫，60五回合持续固定30到期停止',()=>{const seen=new Set();for(let seed=1;seed<=16&&seen.size<2;seed++){const s=make({move:20499,hit:false,seed:seed*987654321});turn(s,20499,20117);seen.add(!!s.fighters[1].ailments['疲惫']);}assert.equal(seen.size,2);const s=make({move:10995,loadout:[10995,20606,10993,20607,31143]});s.moveDefinitions[key(20606)].operations=[];for(let r=1;r<=6;r++){turn(s,r===1?10995:20606,20117);assert.equal(sum(s,'fixed'),r<=5?30:0);}});
 test('5000/87永恒恢复所有PP含自身刚消耗，58下两回合攻击必暴且状态招不占次数',()=>{const s=make({move:20608});for(const k of s.fighters[0].moves)s.fighters[0].pp[k]=1;turn(s,20608,20117);for(const k of s.fighters[0].moves)assert.equal(s.fighters[0].pp[k],s.moveDefinitions[k].pp);const a=make({move:20500,loadout:[20500,10993,20606,20607,31143]});turn(a,20500,20117);for(let i=0;i<2;i++){const b=structuredClone(a);delete b.fighters[0].effects['必定暴击'];turn(a,10993,20117);turn(b,10993,20117);assert.ok(red(a)>red(b)*1.4);}assert.equal(a.fighters[0].effects['必定暴击'],undefined);});

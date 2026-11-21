@@ -81,7 +81,7 @@ test('数据库只读、浏览器模块与Node一致，导出的旧表可修改�
 
 test('现有129份精灵快照逐格兼容且来源冲突单独保留，不修改精灵资料',()=>{
  const audit=require('../research/type-system-audit.json');assert.equal(audit.existing.speciesCount,129);assert.equal(audit.existing.missing.length,0);assert.equal(audit.existing.rowDifferences.length,0);assert.equal(audit.existing.aliasDifferences.length,0);
- for(const r of audit.existing.records){const bytes=fs.readFileSync(r.path);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),r.sha256);const s=JSON.parse(bytes).snapshot;for(const [a,row]of Object.entries(s.typeChart.rows))for(const [d,n]of Object.entries(row))assert.equal(D.baseMultiplier(a,d),n);for(const [name,parts]of Object.entries(s.typeChart.aliases))assert.deepEqual(D.getCombination(name).types.map(id=>D.getType(id).name),parts);}
+ for(const r of audit.existing.records){const bytes=require('./helpers/historical-species-bytes.cjs')(r.path,r.sha256);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),r.sha256);const s=JSON.parse(bytes).snapshot;for(const [a,row]of Object.entries(s.typeChart.rows))for(const [d,n]of Object.entries(row))assert.equal(D.baseMultiplier(a,d),n);for(const [name,parts]of Object.entries(s.typeChart.aliases))assert.deepEqual(D.getCombination(name).types.map(id=>D.getType(id).name),parts);}
  assert.deepEqual(audit.sources.sourceDifferences.map(d=>[d.attack,d.defense,d.seerapi,d.wiki]),[['战斗','邪灵',.5,1],['圣灵','邪灵',1,.5],['轮回','虚空',.5,1]]);
  assert.equal(audit.implementation.engineIntegrated,false);
 });

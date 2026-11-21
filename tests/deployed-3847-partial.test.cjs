@@ -19,7 +19,7 @@ test('3847 1221反弱成功免疫次数、无弱化和禁止反转失败',()=>{
  const s=make(pick(1221)[0]);s.fighters[0].stages.atk=-6;s.fighters[0].stages.def=2;
  let o=turn(s);assert.equal(o.fighters[0].stages.atk,6);assert.equal(o.fighters[0].stages.def,2);assert.equal(o.fighters[0].counts.immune,1);
  assert.equal(turn(make(pick(1221)[0])).fighters[0].counts.immune??0,0);
- for(const effect of ['弱化不可解除反转','禁强化']){const no=structuredClone(s);timer(no,0,effect);const out=turn(no);assert.equal(out.fighters[0].stages.atk,-6);assert.equal(out.fighters[0].counts.immune??0,0);}
+ for(const effect of ['弱化不可解除反转','禁强化']){const no=structuredClone(s);timer(no,0,effect);const out=turn(no);assert.equal(out.fighters[0].stages.atk,effect==='禁强化'?0:-6);assert.equal(out.fighters[0].stages.def,2);assert.equal(out.fighters[0].counts.immune??0,0);}
  const immune=make(pick(1221)[0],{opponentMove:30813,opponentEffectId:451});immune.fighters[0].stages.spe=-1;
  o=turn(immune,undefined,900042);assert.equal(o.fighters[0].counts.immune,0);assert.deepEqual(o.fighters[0].ailments,{});
  o=turn(o,900031,900042);assert.equal(Object.keys(o.fighters[0].ailments).length,1);assert.equal(o.fighters[0].pp[key(900031)],98);

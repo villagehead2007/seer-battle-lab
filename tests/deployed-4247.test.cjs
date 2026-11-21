@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4247-battle.cjs'),{make,pick,turn,timer,key,keys,E}=H,ev=(o,type='attack',side=1)=>(o.damageEvents??[]).filter(e=>e.type===type&&e.targetSide===side),sum=(o,type='attack',side=1)=>ev(o,type,side).reduce((n,e)=>n+e.settledDamage,0),seed=i=>Math.imul(i+1,2654435761)>>>0;
+test('4247魂印小数溢出向上取整30个百分点且实际回复不变',()=>{const s=make({moveId:10001,index:null},{soul:1467,hit:false,hp:8500,aStats:{spe:1}}),o=turn(s,920031);assert.equal(o.fighters[0].hp,9000);assert.equal(o.fighters[0].soulState.senyaLastOverflow.overflow,2650);assert.equal(o.fighters[0].effects['森娅溢出增益@2'].units,30);});

@@ -10,8 +10,9 @@ test('4622主线1960本体KO即时保护，隔离实例1829回末真伤晚杀在
   const e=entry(1960),direct=H.turn(H.make(e,{soul:1829,targetHp:1}));assert.equal(direct.fighters[1].hp,0);assert.ok(direct.fighters[0].effects['强化保护']);assert.equal(direct.fighters[0].pp[H.key(e.moveId)],4);
   // Isolate this original index2 from942. This verifies a real mixed-source guard;
   // it does not claim that every full-fifth loadout reaches this exact fixture.
-  let s=H.make(e,{soul:1829,aStats:{atk:1},bStats:{def:3000}});s=H.turn(s,920031);assert.equal(s.fighters[0].soulState.intent1829,2);s.fighters[1].hp=10;H.timer(s,1,'固定百分比免疫');
+  let s=H.make(e,{soul:1829,aStats:{atk:1},bStats:{def:3000}});s=H.turn(s,920031);assert.equal(s.fighters[0].soulState.intent1829,2);/* Preserve the original10HP soul-KO budget after one1125 true burn tick. */s.fighters[1].hp=1135;H.timer(s,1,'固定百分比免疫');
   const old=H.E.SOULS;let seen;H.E.SOULS={...old,run(event,c){if(event==='roundEnd'&&c.a.soulId===1829){const before=c.t.hp;const out=old.run(event,c);seen={before,hp:c.t.hp,pp:c.a.pp[H.key(e.moveId)],layers:c.a.soulState.intent1829};return out;}return old.run(event,c);}};
   let result;try{result=H.turn(s);}finally{H.E.SOULS=old;}assert.ok(result.fighters[0].effects['强化保护']);assert.equal(result.fighters[0].soulState.sito1960Award.phase,'round-end');
   assert.ok(seen.before>0&&seen.before<10);assert.equal(seen.hp,0);assert.equal(seen.pp,4);assert.equal(seen.layers,4);
+  const trueEvents=result.turns.at(-1).events.filter(e=>e.damage?.type==='true'&&e.damage.targetSide===1);assert.deepEqual(trueEvents.map(e=>e.damage.settledDamage),[1125,20]);assert.ok(trueEvents.every(e=>e.damage.sourceSide===0));assert.equal(trueEvents[1].damage.hpLoss,seen.before);
 });

@@ -32,7 +32,7 @@ test('3865 1297消回合成功害怕失败比例吸取、成功不吸及禁疗',
  const q=make(e(1297),{hp:1000});timer(q,1,'免弱');const n=turn(q);assert.equal(n.fighters[0].hp,1000);assert.ok(n.fighters[1].ailments['害怕']);delete q.fighters[1].effects['免弱'];timer(q,0,'技能禁疗');assert.equal(turn(q).fighters[0].hp,1000);
 });
 test('3865 1415结算前低体吸血50、相等25及禁疗上限',()=>{
- for(const [hp,targetHp,fraction]of [[400,500,.5],[500,500,.25]]){const q=make(e(1415),{hp,targetHp,aStats:{atk:1000}}),n=turn(q);assert.ok(n.fighters[1].hp<hp);assert.equal(n.fighters[0].hp,hp+Math.floor(n.fighters[0].lastAttackDamage*fraction));timer(q,0,'技能禁疗');assert.equal(turn(q).fighters[0].hp,hp);}
+ for(const [hp,targetHp,fraction]of [[400,500,.5],[500,500,.25]]){const q=make(e(1415),{hp,targetHp,aStats:{atk:1000}}),n=turn(q);assert.ok(n.fighters[1].hp<hp);assert.equal(n.fighters[1].hp,0);assert.equal(n.fighters[0].lastAttackDamage,targetHp);assert.ok(n.fighters[0].lastSettledAttackDamage>targetHp);assert.equal(n.fighters[0].hp,hp+Math.floor(n.fighters[0].lastSettledAttackDamage*fraction));timer(q,0,'技能禁疗');assert.equal(turn(q).fighters[0].hp,hp);}
  const q=make(e(1415),{hp:8999});assert.equal(turn(q).fighters[0].hp,9000);
 });
 test('3865 正式本地17招配招初始化和第五两项加算实际伤害',()=>{

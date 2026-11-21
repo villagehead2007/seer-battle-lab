@@ -38,7 +38,7 @@ test('共同609疲惫威力翻倍、180清回合与432普通攻击闪避且必�
 test('神圣领域433每回合攻速命强化、491减伤50%与690清强反制状态',()=>{
  const s=H.make(23771,{index:0});let out=H.turn(s);assert.equal(out.fighters[0].stages.atk,1);assert.equal(out.fighters[0].stages.spe,1);assert.equal(out.fighters[0].stages.acc,1);out=H.turn(out,H.WAIT);assert.equal(out.fighters[0].stages.atk,2);out=H.turn(out,H.WAIT);assert.equal(out.fighters[0].stages.atk,3);out=H.turn(out,H.WAIT);assert.equal(out.fighters[0].stages.atk,3);
  const half=H.make(23771,{index:1}),normal=H.make(23771,{index:1});normal.moveDefinitions['wiki:23771'].operations=[];half.rng=normal.rng=2048;const reduced=H.sum(H.turn(half,23771,H.HIT),'attack',1),full=H.sum(H.turn(normal,23771,H.HIT),'attack',1);assert.ok(reduced>=full*.45&&reduced<=full*.55);
- const guard=H.turn(H.make(23771,{index:2,enemyMove:16684}));assert.ok(guard.fighters[0].effects['强化消失封属']);guard.fighters[0].stages.atk=2;const triggered=H.turn(guard,H.WAIT,16684);assert.equal(triggered.fighters[0].stages.atk,0);assert.equal(triggered.fighters[1].effects.statusBlock.start,3);
+ const guard=H.turn(H.make(23771,{index:2,enemyMove:16684}));assert.ok(guard.fighters[0].effects['强化消失封属']);guard.fighters[0].stages.atk=2;const triggered=H.turn(guard,H.WAIT,16684);assert.equal(triggered.fighters[0].stages.atk,0);assert.equal(triggered.fighters[1].effects.statusBlock.start,2);assert.equal(triggered.fighters[1].effects.statusBlock.end,4);
 });
 test('诛魔807按对手上次完整红伤追加固定，776下两回合翻倍，610仅被克制时增加先制',()=>{
  const s=H.make(17908,{index:0});s.fighters[1].lastSettledAttackDamage=800;assert.equal(H.sum(H.turn(s),'fixed'),800);const immune=H.make(17908,{index:0});immune.fighters[1].lastSettledAttackDamage=800;H.timer(immune,1,'固定百分比免疫');assert.equal(H.sum(H.turn(immune),'fixed'),0);

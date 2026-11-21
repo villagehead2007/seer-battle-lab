@@ -73,9 +73,9 @@ test('3679 455已损体力固伤与683随机固伤，满血零追加护罩和封
  for(const id of [455,683]){const b=make(e(id),{hp:4000});timer(b,0,'skillBlock');assert.equal(turn(b).fighters[1].hp,9000);}
 });
 
-test('3679 696每次暴击概率递增至必暴，实际暴击伤害与未触发分支',()=>{
+test('3679 696每次命中后暴击概率递增至必暴，实际暴击伤害与未触发分支',()=>{
  let yes,no;for(let seed=0;seed<50;seed++){const s=make(e(696),{seed,criticals:true}),o=turn(s);if(o.turns[0].events.some(x=>JSON.stringify(x).includes('致命')))yes=o;else no=o;}assert.ok(yes&&no);
- for(let seed=0;seed<12;seed++){const s=make(e(696),{seed,criticals:true});s.fighters[0].soulState.skillUses={[key(s.auditMoveId)]:7};const o=turn(s);assert.ok(o.turns[0].events.some(x=>JSON.stringify(x).includes('致命')));const p=structuredClone(s);p.moveDefinitions[key(s.auditMoveId)].operations=[];p.moveDefinitions[key(s.auditMoveId)].criticalChance=0;const plain=turn(p);assert.ok(Math.abs(o.fighters[0].lastAttackDamage-plain.fighters[0].lastAttackDamage*2)<6);}
+ for(let seed=0;seed<12;seed++){const s=make(e(696),{seed,criticals:true});s.fighters[0].soulState.skillUses={[key(s.auditMoveId)]:7};s.fighters[0].soulState.skillHitUses={[key(s.auditMoveId)]:7};const o=turn(s);assert.ok(o.turns[0].events.some(x=>JSON.stringify(x).includes('致命')));const p=structuredClone(s);p.moveDefinitions[key(s.auditMoveId)].operations=[];p.moveDefinitions[key(s.auditMoveId)].criticalChance=0;const plain=turn(p);assert.ok(Math.abs(o.fighters[0].lastAttackDamage-plain.fighters[0].lastAttackDamage*2)<6);}
  const b=make(e(696),{criticals:true});timer(b,0,'skillBlock');assert.equal(turn(b).fighters[1].hp,9000);
 });
 

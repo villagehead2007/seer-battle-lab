@@ -54,10 +54,10 @@ test('4853/4与5逐实例能力变化，1953负状态倍威，842与999只按正
  for(const id of[4,5]){const r=row(id),a=make(r);turn(a);assert.equal(a.fighters[id===4?0:1].stages[id===4?'spa':'spe'],id===4?2:-1);}
  const a=make(row(1953));a.fighters[1].stages.acc=-1;let context;observe((event,x)=>{if(event==='beforeDamage'&&x.a.side===0)context=x;},()=>turn(a));assert.equal(context.power,180);for(const [id,stages,want]of[[842,{atk:1},2.5],[999,{atk:1,def:4,spa:-2},1.3]]){const r=row(id),b=make(r),base=make({move:r.move,index:-1});Object.assign(b.fighters[0].stages,stages);Object.assign(base.fighters[0].stages,stages);turn(b);turn(base);assert.ok(Math.abs(sum(b)-sum(base)*want)<=2);}
 });
-test('4853/1440免异次数同源刷新、1684弱化不得清除反转、1683强化保护按既有公共确认也挡反转、1311用属性真实全弱',()=>{
+test('4853/1440次数免异刷新、1684负级锁、1683防消吸但不防直接反转、1311属性全弱',()=>{
  const a=make(row(1440));observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.t.counts.immune,2);assert.equal(c.ailment(c.t,'中毒',c.a,false,false,2),false);assert.equal(c.t.counts.immune,1);}},()=>turn(a));turn(a);assert.equal(a.fighters[0].counts.immune,2);
  const b=make(row(1684));b.fighters[1].stages.def=-2;turn(b);observe((e,c)=>{if(e==='beforeUse'&&c.a.side===1){assert.equal(c.canRemoveNegative(c.a),false);c.clearNegative(c.a);assert.equal(c.a.stages.def,-2);}},()=>turn(b));
- const c=make(row(1683));turn(c);c.fighters[0].stages.def=2;observe((e,x)=>{if(e==='beforeUse'&&x.a.side===1){assert.equal(x.clearBoost(x.t),false);assert.equal(x.steal(x.a,x.t,'测试'),undefined);x.rewriteStageValues(x.t,{def:-2},'reverse');assert.equal(x.t.stages.def,2);}},()=>turn(c));
+ const c=make(row(1683));turn(c);c.fighters[0].stages.def=2;observe((e,x)=>{if(e==='beforeUse'&&x.a.side===1){assert.equal(x.clearBoost(x.t),false);assert.equal(x.steal(x.a,x.t,'测试'),undefined);x.rewriteStageValues(x.t,{def:-2},'reverse');assert.equal(x.t.stages.def,-2);}},()=>turn(c));
  const d=make(row(1311));turn(d);for(const k of keys)assert.equal(d.fighters[1].stages[k],k==='atk'?0:-1);
 });
 test('4853/955反转弱成功才理论固定吸取300含免伤，1892低体翻倍吸取且零固定追加真实300',()=>{

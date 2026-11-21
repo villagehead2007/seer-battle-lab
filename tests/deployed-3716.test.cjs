@@ -67,7 +67,7 @@ test('3716 1110反转成功一次封属失败不封、1124清回合成功下两�
  const boost=make(e(1124));timer(boost,1,'doubleDamage');const b=turn(boost);assert.equal(b.fighters[0].effects.id913.start,2);assert.equal(b.fighters[0].effects.id913.end,3);const no=structuredClone(b);delete no.fighters[0].effects.id913;assert.ok(turn(b,900030).fighters[0].lastAttackDamage>turn(no,900030).fighters[0].lastAttackDamage);assert.equal(turn(make(e(1124))).fighters[0].effects.id913,undefined);
 });
 test('3716 696逐次暴击提升与80%封顶通过真实伤害比较',()=>{
- let grew=false,noncrit=false;for(let seed=0;seed<40;seed++){const run=uses=>{const s=make(e(696),{seed,criticals:true});s.fighters[0].soulState.skillUses={[key(s.auditMoveId)]:uses};return turn(s).fighters[0].lastAttackDamage;};const first=run(0),cap=run(10);assert.equal(cap,run(50));if(cap>first)grew=true;if(first===cap)noncrit=true;}assert.ok(grew&&noncrit);
+ let grew=false,noncrit=false;for(let seed=0;seed<40;seed++){const run=uses=>{const s=make(e(696),{seed,criticals:true});s.fighters[0].soulState.skillHitUses={[key(s.auditMoveId)]:uses};return turn(s).fighters[0].lastAttackDamage;};const first=run(0),cap=run(10);assert.equal(cap,run(50));if(cap>first)grew=true;if(first===cap)noncrit=true;}assert.ok(grew&&noncrit);
 });
 
 test('3716 确认1751本来源盾独立消失、同来源刷新一次及其他盾不重复反应',()=>{const o=require('./helpers/assert-1751-source-shield.cjs')(3716),p=require('./helpers/3716-battle.cjs').pick(1751)[0].params;assert.equal(o.fighters[1].hp,9000-p[1]);});

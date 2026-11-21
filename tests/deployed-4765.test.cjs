@@ -628,7 +628,7 @@ test('4765完整37907负级先制3、1221经正常强化事件，禁强/解除�
     let immune;
     go(s, 37907, 20030, (event, c) => { if (event === 'afterUse' && c.a.side === 0) immune = c.a.counts.immune ?? 0; });
     assert.equal(s.fighters[0].soulState.resolvedPriority.value, mode === 'none' ? 0 : 3);
-    assert.equal(s.fighters[0].stages.def, mode === 'success' ? 2 : mode === 'none' ? 0 : -2);
+    assert.equal(s.fighters[0].stages.def, mode === 'success' ? 2 : ['none','ban'].includes(mode) ? 0 : -2);
     assert.equal(immune, mode === 'success' ? 1 : 0);
   }
 });
@@ -723,7 +723,7 @@ test('4765完整37915当前1249仅本次回复净增附粉：普通满血溢出�
     const end = mode === 'full' || mode === 'overflow' ? 9000 : mode === 'ban' ? initial :
       mode === 'conversion' ? initial - request : initial + request - (mode === 'gu' ? 40 : 0);
     assert.equal(s.fighters[0].hp, end, mode);
-    assert.equal(sum(s, 'percent'), Math.max(0, end - initial), mode + ':this1249NET only');
+    assert.equal(sum(s, 'percent'), ['ban', 'conversion'].includes(mode) ? 0 : Math.min(request, 9000 - initial), mode + ':this1249NET only');
     assert.equal(sum(s, 'fixed'), 240, 'independent29[240] must not enlarge1249request');
     if (mode === 'gu') assert.equal(sum(s, 'true', 1), 40);
   }

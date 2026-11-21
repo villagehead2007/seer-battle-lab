@@ -170,7 +170,7 @@ test('4125原版前述包含回合初分支，随机在使用后、失败吸取�
  let s=make({moveId:14102,index:null},{omit:true,soul:1356,hp:1000});s.fighters[0].ailments['烧伤']=3;timer(s,1,'免异常');
  let o=turn(s,900031);assert.equal(o.randomStatusEvents.filter(e=>e.type==='draw').length,1);
  assert.equal(o.damageEvents.filter(e=>e.type==='percent'&&e.sourceSide===0&&e.targetSide===1).length,1);
- const burn=o.damageEvents.find(e=>e.targetSide===0&&e.type==='percent'&&e.settledDamage===1125);assert.ok(burn);assert.equal(burn.hpLoss,1125);assert.equal(o.fighters[0].hp+burn.hpLoss,4000);assert.equal(o.fighters[0].hp,2875);assert.equal(o.fighters[0].suitState.shield,3000); // 失败吸取理论3000回复；普通盾不抵挡烧伤百分比伤害。
+ const burn=o.damageEvents.find(e=>e.targetSide===0&&e.type==='true'&&e.settledDamage===1125);assert.ok(burn);assert.equal(burn.hpLoss,1125);assert.equal(o.fighters[0].hp+burn.hpLoss,4000);assert.equal(o.fighters[0].hp,2875);assert.equal(o.fighters[0].suitState.shield,3000); // 失败吸取理论3000回复；普通盾不抵挡烧伤真实伤害。
  s=make({moveId:14102,index:null},{omit:true,soul:1356,hp:1000});timer(s,1,'免异常');o=turn(s,900031);assert.equal(o.randomStatusEvents,undefined);assert.equal(o.fighters[0].hp,1000);
  s=make({moveId:14102,index:null},{omit:true,soul:1356,hp:1000});s.fighters[0].ailments['疲惫']=3;timer(s,1,'免异常');o=turn(s,900031);assert.equal(o.randomStatusEvents,undefined);assert.equal(o.fighters[0].hp,1000);
 });

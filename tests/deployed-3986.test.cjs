@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn,pick,timer,key,keys}=require('./helpers/3986-battle.cjs');
+test('3986神印清PP与当前PP减少都遵守PP保护和免疫PP削减',()=>{for(const id of [1532,1534])for(const mode of ['effect','soul']){const s=make(pick(id)[0]);s.fighters[1].soulState.holyMarks=2;if(mode==='effect')timer(s,1,'PP保护');else timer(s,1,'免疫PP削减');const o=turn(s);assert.equal(o.fighters[1].pp[key(900040)],99);assert.equal(Object.values(o.fighters[1].pp).filter(n=>n===0).length,0);}});

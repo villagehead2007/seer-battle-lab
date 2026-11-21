@@ -61,7 +61,7 @@ test('3673 1163累计20至40百分比追加，特攻速度强化与抗性封顶'
  const boost=make(e(1163));boost.fighters[0].stages.spa=2;boost.fighters[0].stages.spe=2;const o=turn(boost);// 用户本轮通则：面板比例粉伤不计能力等级，research/historical-eight-user-confirmations-2026-10-18.json
  assert.equal(9000-o.fighters[1].hp-o.fighters[0].lastAttackDamage,136);
  const res=make(e(1163));res.fighters[1].build.resistance.percent=50;const r=turn(res);assert.equal(9000-r.fighters[1].hp-r.fighters[0].lastAttackDamage,68);
- const b=make(e(1163));timer(b,0,'skillBlock',{},1,1);const fail=turn(b);assert.equal(fail.fighters[1].hp,9000);const next=turn(fail);assert.equal(9000-next.fighters[1].hp-next.fighters[0].lastAttackDamage,204);
+ const b=make(e(1163));timer(b,0,'skillBlock',{},1,1);const fail=turn(b);assert.equal(fail.fighters[1].hp,9000);const next=turn(fail);assert.equal(9000-next.fighters[1].hp-next.fighters[0].lastAttackDamage,136);
 });
 
 test('3673 魂印959先手增伤后手减伤，消强睡眠与无强化先制',()=>{
@@ -83,9 +83,9 @@ test('3673 58下两回合必暴与40先手双威力，过期封招与后手边�
  for(const slow of [false,true]){const s=make(e(40),{aStats:{spe:slow?1:500}}),o=turn(s),plain=turn(make(e(40),{omit:true,aStats:{spe:slow?1:500}}));assert.ok(Math.abs(o.fighters[0].lastAttackDamage-plain.fighters[0].lastAttackDamage*(slow?1:2))<=3);}
 });
 
-test('3673 795每次使用成长25至100，换招不继承、封招用次保留',()=>{
+test('3673 795命中成长25至100，换招与封招不增加本招成长',()=>{
  let s=make(e(795));for(let i=1;i<=5;i++){const plain=structuredClone(s);plain.moveDefinitions[key(s.auditMoveId)].operations=[];const p=turn(plain),o=turn(s);assert.ok(Math.abs(o.fighters[0].lastAttackDamage-p.fighters[0].lastAttackDamage*(1+Math.min(i,4)*.25))<=2);s=o;}const control=structuredClone(s);control.fighters[0].soulState.damageGrowth={};const neutral=turn(s,900030),ref=turn(control,900030);assert.equal(neutral.fighters[0].lastAttackDamage,ref.fighters[0].lastAttackDamage);
- const b=make(e(795));timer(b,0,'skillBlock',{},1,1);const f=turn(b);assert.equal(f.fighters[1].hp,9000);const baseline=structuredClone(f);baseline.moveDefinitions[key(f.auditMoveId)].operations=[];const next=turn(f),plain=turn(baseline);assert.ok(Math.abs(next.fighters[0].lastAttackDamage-plain.fighters[0].lastAttackDamage*1.5)<=2);
+ const b=make(e(795));timer(b,0,'skillBlock',{},1,1);const f=turn(b);assert.equal(f.fighters[1].hp,9000);const baseline=structuredClone(f);baseline.moveDefinitions[key(f.auditMoveId)].operations=[];const next=turn(f),plain=turn(baseline);assert.ok(Math.abs(next.fighters[0].lastAttackDamage-plain.fighters[0].lastAttackDamage*1.25)<=2);
 });
 
 test('3673 450随机回复150至300与656概率随机清三PP，禁疗封顶失败',()=>{

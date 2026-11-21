@@ -294,7 +294,7 @@ test('3575 回合985吸强封属性只在下一回合、无强化与禁强化',(
   assert.ok(o.fighters[1].effects.statusBlock);const x=turn(o,IDLE,900023);assert.equal(x.fighters[1].pp[key(900023)],9);assert.equal(x.fighters[1].stages.acc,0);assert.equal(x.fighters[1].effects.statusBlock,undefined);
   const expired=turn(x,IDLE,900023);assert.equal(expired.fighters[1].stages.acc,1);assert.equal(expired.fighters[1].pp[key(900023)],8);
   assert.equal(turn(make(e)).fighters[1].effects.statusBlock,undefined);
-  const b=make(e);b.fighters[1].stages.atk=2;timer(b,0,'禁强化');const y=turn(b);assert.equal(y.fighters[1].stages.atk,2);assert.equal(y.fighters[0].stages.atk,0);assert.equal(y.fighters[1].effects.statusBlock,undefined);
+  const b=make(e);b.fighters[1].stages.atk=2;timer(b,0,'禁强化');const y=turn(b);assert.equal(y.fighters[1].stages.atk,0);assert.equal(y.fighters[0].stages.atk,0);assert.equal(y.fighters[1].effects.statusBlock,undefined);
 });
 test('3575 回合928清除才得一次免异常、真实消费、空目标与免断',()=>{
   const e=pick(928)[0],s=make(e);timer(s,1,'免弱');const o=turn(s);assert.equal(o.fighters[1].effects['免弱'],undefined);assert.equal(o.fighters[0].counts.immune,1);
@@ -302,9 +302,9 @@ test('3575 回合928清除才得一次免异常、真实消费、空目标与免
   let caught=false;for(let seed=0;seed<32;seed++){const c=structuredClone(x);c.rng=seed;const y=turn(c,IDLE,FEAR);if(y.fighters[0].ailments['害怕'])caught=true;}assert.ok(caught);
   assert.equal(turn(make(e)).fighters[0].counts.immune??0,0);const b=make(e);timer(b,1,'免弱');timer(b,1,'protect');const y=turn(b);assert.equal(y.fighters[0].counts.immune??0,0);assert.ok(y.fighters[1].effects['免弱']);
 });
-test('3575 回合670连续三次按实时攻击45扣血、到期与免伤',()=>{
-  const e=pick(670)[0];let s=turn(make(e));assert.equal(s.fighters[1].hp,8919);s.fighters[0].stages.atk=2;s=wait(s);assert.equal(s.fighters[1].hp,8757);s=wait(s);assert.equal(s.fighters[1].hp,8595);s=wait(s);assert.equal(s.fighters[1].hp,8595);
-  const imm=make(e);timer(imm,1,'当回合免伤');assert.equal(turn(imm).fighters[1].hp,9000);
+test('3575 回合670连续三次按未计等级攻击面板45扣百分比，到期与对应免粉，普通红伤免疫不阻挡',()=>{
+  const e=pick(670)[0];let s=turn(make(e));assert.equal(s.fighters[1].hp,8919);s.fighters[0].stages.atk=2;s=wait(s);assert.equal(s.fighters[1].hp,8838);s=wait(s);assert.equal(s.fighters[1].hp,8757);s=wait(s);assert.equal(s.fighters[1].hp,8757);
+  const redOnly=make(e);timer(redOnly,1,'攻击伤害免疫');assert.equal(turn(redOnly).fighters[1].hp,8919);const imm=make(e);timer(imm,1,'固定百分比免疫');assert.equal(turn(imm).fighters[1].hp,9000);const all=make(e);timer(all,1,'当回合免伤');assert.equal(turn(all).fighters[1].hp,9000);
   const ko=turn(make(e,{targetHp:50}));assert.equal(ko.fighters[1].hp,0);assert.equal(ko.fighters[0].hp,9000);
 });
 test('3575 回合923先手吸150、后手无吸、两回合到期和回血上限',()=>{
@@ -437,8 +437,8 @@ test('3575 回复1005等量实际回血转伤、满血零伤、禁疗与残血�
   const s=make(e,{hp:1000});timer(s,0,'技能禁疗');const o=turn(s);assert.equal(o.fighters[0].hp,1000);assert.equal(o.fighters[1].hp,9000);
   const ko=turn(make(e,{hp:1000,targetHp:100}));assert.equal(ko.fighters[1].hp,0);assert.equal(ko.fighters[0].hp,5500);
 });
-test('3575 回复101按实际攻击伤害回血、致死截断、满血和禁疗',()=>{
-  const e=pick(101)[0];for(const targetHp of [9000,10]){const o=turn(make(e,{hp:1000,targetHp}));assert.equal(o.fighters[0].hp,1000+o.fighters[0].lastAttackDamage);assert.equal(o.fighters[1].hp,targetHp-o.fighters[0].lastAttackDamage);}
+test('3575 回复101按完整结算红伤回血，致死不截断基数，满血和禁疗',()=>{
+  const e=pick(101)[0];for(const targetHp of [9000,10]){const o=turn(make(e,{hp:1000,targetHp})),red=o.damageEvents.filter(e=>e.round===o.round-1&&e.sourceSide===0&&e.targetSide===1&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);assert.ok(red>0);assert.equal(o.fighters[0].hp,1000+red);assert.equal(o.fighters[1].hp,Math.max(0,targetHp-red));}
   assert.equal(turn(make(e)).fighters[0].hp,9000);
   const s=make(e,{hp:1000});timer(s,0,'技能禁疗');assert.equal(turn(s).fighters[0].hp,1000);
 });
@@ -548,7 +548,7 @@ test('3575 属性85吸取强化、上限、无强化和禁强化',()=>{
     const out=turn(s);assert.equal(out.fighters[0].stages.atk,6);assert.equal(out.fighters[1].stages.atk,0);assert.equal(out.fighters[1].stages.def,-2);
     const empty=turn(make(e));assert.equal(empty.fighters[0].stages.atk,0);
     const blocked=make(e);blocked.fighters[1].stages.atk=2;timer(blocked,0,'禁强化');
-    const no=turn(blocked);assert.equal(no.fighters[1].stages.atk,2);assert.equal(no.fighters[0].stages.atk,0);
+    const no=turn(blocked);assert.equal(no.fighters[1].stages.atk,0);assert.equal(no.fighters[0].stages.atk,0);
   }
 });
 test('3575 属性585与1001六项增幅、异常条件、封顶和禁强化',()=>{

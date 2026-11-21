@@ -79,10 +79,10 @@ test('真实零概率施加不写入异常也不消耗免疫次数',()=>{
  for(const id of [10,11,15,16]){const s=game([[id,[0]]]);s.fighters[1].counts.immune=1;const out=turn(s,1);assert.deepEqual(out.fighters[1].ailments,{});assert.equal(out.fighters[1].counts.immune,1);assert.equal(out.fighters[1].hp,1600);assert.equal(out.fighters[1].pp[key(1,2)],29);}
 });
 
-test('中毒用最大体力计算且受百分比抗性，后加异常免疫不清除既有毒',()=>{
+test('用户20261110中毒用最大体力计算真伤不受百分比抗性，后加异常免疫不清除既有毒',()=>{
  let s=game();S.attempt(s.fighters[0],'中毒',1,{duration:2});s.fighters[0].hp=900;s.fighters[0].stats.maxHp=2400;s.fighters[0].build.resistance.percent=50;timer(s,0,'免异常');
- s=turn(s);assert.equal(s.fighters[0].hp,750);assert.equal(s.fighters[0].ailments['中毒'],2);assert.equal(s.fighters[0].pp[key(0,2)],29);
- s=turn(s);assert.equal(s.fighters[0].hp,600);assert.equal(s.fighters[0].ailments['中毒'],undefined);assert.equal(turn(s).fighters[0].hp,600);
+ s=turn(s);assert.equal(s.fighters[0].hp,600);assert.equal(s.fighters[0].ailments['中毒'],2);assert.equal(s.fighters[0].pp[key(0,2)],29);
+ s=turn(s);assert.equal(s.fighters[0].hp,300);assert.equal(s.fighters[0].ailments['中毒'],undefined);assert.equal(turn(s).fighters[0].hp,300);
 });
 
 test('麻痹和害怕受到攻击仍控制且不自行改变能力等级，到期后恢复行动',()=>{

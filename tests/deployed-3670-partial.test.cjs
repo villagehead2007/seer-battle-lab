@@ -47,17 +47,17 @@ test('3670 公共713和1772按六项等级总和追加固伤、忽略反向等�
  }
 });
 
-test('3670 公共1328累计使用概率40/60/80/100及上限，跨技能保留且封招扣PP记使用但无伤害',()=>{
+test('3670 公共1328按命中成长40/60/80/100封顶，跨技能保留且封招只记用招不增长',()=>{
  const id=32320;
  for(const uses of [0,1,2,3,10])for(let seed=0;seed<15;seed++){
-  const s=make(id,1328,seed);s.fighters[0].soulState.skillUses={[key(id)]:uses};
+  const s=make(id,1328,seed);s.fighters[0].soulState.skillUses={[key(id)]:uses};s.fighters[0].soulState.skillHitUses={[key(id)]:uses};
   const chance=Math.min(100,40+uses*20),yes=chance===100||random(seed)<chance/100;
   const ref=make(id,-1,chance===100?seed:(seed+0x6D2B79F5)>>>0);const expectedTurn=turn(ref,id),o=turn(s,id);
   const n=expectedTurn.fighters[0].lastAttackDamage,actual=o.fighters[0].lastAttackDamage;
   assert.ok(actual>=(yes?n*2:n)&&actual<=(yes?n*2+1:n),String({uses,seed,yes,actual,n}));assert.equal(9000-o.fighters[1].hp,actual);
-  assert.equal(o.fighters[0].soulState.skillUses[key(id)],uses+1);
+  assert.equal(o.fighters[0].soulState.skillUses[key(id)],uses+1);assert.equal(o.fighters[0].soulState.skillHitUses[key(id)],uses+1);
  }
- let s=turn(make(id,1328),id);s=turn(s,900031);assert.equal(s.fighters[0].soulState.skillUses[key(id)],1);s.fighters[0].effects.skillBlock={start:3,end:3};const b=turn(s,id);assert.equal(b.fighters[0].soulState.skillUses[key(id)],2);assert.equal(b.fighters[0].pp[key(id)],s.fighters[0].pp[key(id)]-1);assert.equal(b.fighters[1].hp,s.fighters[1].hp);
+ let s=turn(make(id,1328),id);s=turn(s,900031);assert.equal(s.fighters[0].soulState.skillUses[key(id)],1);assert.equal(s.fighters[0].soulState.skillHitUses[key(id)],1);s.fighters[0].effects.skillBlock={start:3,end:3};const b=turn(s,id);assert.equal(b.fighters[0].soulState.skillUses[key(id)],2);assert.equal(b.fighters[0].soulState.skillHitUses[key(id)],1);assert.equal(b.fighters[0].pp[key(id)],s.fighters[0].pp[key(id)]-1);assert.equal(b.fighters[1].hp,s.fighters[1].hp);
 });
 
 test('3670 公共519使用技能后按非零能力种类回复并持续五回合',()=>{

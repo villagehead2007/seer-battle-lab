@@ -34,9 +34,9 @@ test('3741 1400回合效果被清疲惫、免断失败与异常免疫和到期',
 test('3741 39两实例PP削减概率、零PP阻止后手及下限',()=>{
  for(const x of pick(39)){let yes=false,no=false;for(let seed=0;seed<70;seed++){const s=make(x,{seed});s.fighters[1].pp[key(900041)]=1;const o=turn(s);if(o.fighters[1].pp[key(900040)]===99-x.params[1]){yes=true;assert.equal(o.fighters[1].pp[key(900041)],0);assert.ok(o.turns[0].events.some(e=>e.text.includes('已无 PP')));}else no=true;}assert.ok(yes);if(x.params[0]<100)assert.ok(no);}
 });
-test('3741 34实际攻击伤害双倍反馈、未受攻击零追加及固定免疫',()=>{
+test('3741 34双倍真实反馈、未受红伤为零且固粉免疫不阻挡',()=>{
  const s=make(e(34),{aStats:{spe:1}}),o=turn(s,s.auditMoveId,900040);assert.equal(9000-o.fighters[1].hp,2*(9000-o.fighters[0].hp));assert.equal(turn(make(e(34))).fighters[1].hp,9000);
- const im=make(e(34),{aStats:{spe:1}});im.fighters[1].soulId=622;const out=turn(im,im.auditMoveId,900040);assert.equal(out.fighters[1].hp,9000);
+ const im=make(e(34),{aStats:{spe:1}});im.fighters[1].soulId=622;const out=turn(im,im.auditMoveId,900040),feedback=2*(9000-out.fighters[0].hp);assert.ok(feedback>0);assert.equal(out.fighters[1].hp,9000-feedback);assert.ok(out.turns.at(-1).events.some(e=>e.damage?.sourceSide===0&&e.damage?.type==='true'&&e.damage?.hpLoss===feedback));
 });
 test('3741 452与101按攻击实际伤害回复，免攻和禁疗失败',()=>{
  for(const x of pick(101)){const s=make(x,{hp:1000}),o=turn(s);assert.equal(o.fighters[0].hp,1000+Math.floor(o.fighters[0].lastAttackDamage*x.params[0]/100));timer(s,0,'技能禁疗');assert.equal(turn(s).fighters[0].hp,1000);timer(s,1,'攻击伤害免疫');assert.equal(turn(s).fighters[0].hp,1000);}
@@ -52,7 +52,7 @@ test('3741 3与521和1167解除反转及回满，锁弱和封招失败',()=>{
  for(const id of [3,521,1167]){const s=make(e(id),{hp:1000});s.fighters[0].stages.atk=-3;const o=turn(s);assert.equal(o.fighters[0].stages.atk,id===521?3:0);assert.equal(o.fighters[0].hp,id===1167?9000:1000);timer(s,0,'弱化不可解除反转');assert.equal(turn(s).fighters[0].stages.atk,-3);assert.equal(turn(s).fighters[0].hp,1000);const no=make(e(id),{hp:1000});assert.equal(turn(no).fighters[0].hp,1000);}
 });
 test('3741 85与1180吸强、成功下两回合必暴及禁强失败',()=>{
- for(const id of [85,1180]){const s=make(e(id));s.fighters[1].stages.atk=3;const o=turn(s);assert.equal(o.fighters[0].stages.atk,3);assert.equal(o.fighters[1].stages.atk,0);if(id===1180){assert.equal(o.fighters[0].effects['必定暴击'].start,2);assert.equal(o.fighters[0].effects['必定暴击'].end,3);assert.equal(turn(make(e(id))).fighters[0].effects['必定暴击'],undefined);}timer(s,0,'禁强化');assert.equal(turn(s).fighters[1].stages.atk,3);}
+ for(const id of [85,1180]){const s=make(e(id));s.fighters[1].stages.atk=3;const o=turn(s);assert.equal(o.fighters[0].stages.atk,3);assert.equal(o.fighters[1].stages.atk,0);if(id===1180){assert.equal(o.fighters[0].effects['必定暴击'].start,2);assert.equal(o.fighters[0].effects['必定暴击'].end,3);assert.equal(turn(make(e(id))).fighters[0].effects['必定暴击'],undefined);}timer(s,0,'禁强化');const blocked=turn(s);assert.equal(blocked.fighters[1].stages.atk,0);assert.equal(blocked.fighters[0].stages.atk,0);if(id===1180)assert.equal(blocked.fighters[0].effects['必定暴击'],undefined);}
 });
 test('3741 436自身损失体力追加、满体零与百分比免疫，785按远古微弱先制',()=>{
  for(const hp of [1000,9000]){const s=make(e(436),{hp}),o=turn(s);assert.equal(9000-o.fighters[1].hp-o.fighters[0].lastAttackDamage,(9000-hp)*.2);s.fighters[1].soulId=622;s.fighters[1].ailments['疲惫']=1;const im=turn(s);assert.equal(9000-im.fighters[1].hp,im.fighters[0].lastAttackDamage);}

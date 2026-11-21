@@ -23,7 +23,7 @@ test('用户规则睡眠非攻击伤害不唤醒，已失去行动后唤醒不�
 });
 test('用户规则流血每回合末扣80，不依赖对手行动且来源星哲按实际来源增伤',()=>{
  for(const blocked of [false,true]){const s=game();apply(s,0,'流血',2);if(blocked)apply(s,1,'疲惫',2);let o=turn(s);assert.equal(o.fighters[0].hp,1520);o=turn(o);assert.equal(o.fighters[0].hp,1440);assert.equal(turn(o).fighters[0].hp,1440);}
- const s=game();apply(s,0,'中毒',1);apply(s,1,'星哲',1);assert.equal(turn(s).fighters[0].hp,1340);
+ const s=game();apply(s,0,'中毒',1);apply(s,1,'星哲',1);assert.equal(turn(s).fighters[0].hp,1400);const bleed=game();apply(bleed,0,'流血',1);apply(bleed,1,'星哲',1);assert.equal(turn(bleed).fighters[0].hp,1496);
 });
 test('用户规则星赐逐技能回复2PP且饱和，星赎先延长再判断到期',()=>{
  const s=game();apply(s,0,'星赐',1);for(const id of s.fighters[0].moves)s.fighters[0].pp[id]=1;s.fighters[0].pp[key(0,0)]=30;const o=turn(s);assert.equal(o.fighters[0].pp[key(0,0)],30);assert.equal(o.fighters[0].pp[key(0,2)],2);assert.equal(o.fighters[0].pp[key(0,1)],3);

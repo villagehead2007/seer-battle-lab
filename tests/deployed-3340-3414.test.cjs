@@ -5,14 +5,7 @@ for(const id of [3340,3355,3372,3383,3388,3393,3396,3406,3407,3414])test(`${id}�
   const source=store.species(id);
   assert.deepEqual(store.issues(source),[]);
   assert.equal(source.source.storage,'local');
-  for(const move of source.moves){
-    const selected=E.WIKI.defaultMoves(source);
-    if(!selected.includes(move.id))selected[selected.findIndex(x=>!!source.moves.find(m=>m.id===x).fifth===!!move.fifth)]=move.id;
-    const s=E.createBattle({wikiSnapshots:[source,source],wikiLoadouts:[selected,E.WIKI.defaultMoves(source)],criticals:false,builds:[{overrides:{maxHp:9999}},{overrides:{maxHp:9999}}]});
-    const t=E.resolveTurn(s,['wiki:'+move.id,'potion:hp']);
-    assert.equal(t.round,2,move.name);
-    assert.ok(t.fighters.every(f=>f.hp>=0&&f.hp<=f.stats.maxHp),move.name);
-  }
+  require('./helpers/exercise-version-moves.cjs')(source);
 });
 
 test('3393 马尔修斯出场为极速，终极技能成功后于下回合切换形态',()=>{

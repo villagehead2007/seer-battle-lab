@@ -19,8 +19,9 @@ function run(event,c,intrinsic=()=>undefined){const f=c.a,st=f.soulState;if(!st)
  if(event==='otherAilmentImmunity')return;
  if(event==='beforeStageChange'&&c.delta<0&&!c.blocked&&available(f,'weakness',c.round)){applied(c,'weakness');c.blocked=true;}
  if(event==='otherWeaknessImmunity')return;
- if(event==='beforeDamage'&&(st.guardAttackRewards>0||Number.isInteger(c.round)&&st.guardAttackBoostRound===c.round))c.modifier*=2;
- if(event==='afterUse'&&(c.actionAttackDamage??0)>0&&st.guardAttackRewards>0&&st.guardAttackBoostRound!==c.round){st.guardAttackRewards--;st.guardAttackBoostRound=c.round;}
+ if(event==='beforeDamage'&&(st.guardAttackRewards>0||Number.isInteger(c.round)&&st.guardAttackBoostRound===c.round)){c.modifier*=2;st.guardAttackBoostCandidateRound=c.round;}
+ // The earlier human-confirmed whole-round unit remains; the latest rule makes zero-red hits consume too.
+ if(event==='afterUse'&&['physical','special'].includes(c.m?.kind)&&(c.didSkillHit?.()??c.landed??((c.actionAttackDamage??0)>0))&&st.guardAttackBoostCandidateRound===c.round&&st.guardAttackRewards>0&&st.guardAttackBoostRound!==c.round){st.guardAttackRewards--;st.guardAttackBoostRound=c.round;}
  if(event==='combatEnd'&&f.hp>0&&state(f,'white',c.round)&&st.royalWhiteRound===c.round){const done=st.royalWhiteSuccess??{};if(done.attack)st.guardAttackRewards=(st.guardAttackRewards??0)+1;if(done.fixed&&c.t.hp>0)c.hurt(c.t,300,'白色龙鳞固定反应','fixed');if(done.percent&&c.t.hp>0)c.hurt(c.t,f.stats.maxHp*.3,'白色龙鳞百分比反应','percent');if(done.ailment&&c.t.hp>0)c.randomFromSharedPool(2,true);if(done.weakness&&c.t.hp>0)c.stage(c.t,-2);}
  if(event==='afterStateExpiry'&&f.hp>0){const white=f.soulState.royalGuards?.white;if(white?.end<=c.round)disappearWhite(c);}
  if(event==='battlePhaseEnd'&&f.hp>0&&st.royalScaleContract?.armed&&!st.royalScaleContract.whiteIssued&&['red','yellow','blue'].every(k=>!state(f,k,c.round))){st.royalScaleContract.whiteIssued=true;st.royalScaleContract.unlocked=true;grant(f,'white',c.round,st.royalScaleContract.source,{turns:3,start:c.round+1});}

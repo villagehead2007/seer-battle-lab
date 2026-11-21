@@ -44,10 +44,11 @@ test('4766逆转普通致死即停止反馈衍化，免攻零结算不触发，�
  const dead=path(make({hp:1,bStats:{atk:9999}}),{direction:'reverse'});go(dead,10127,10086);assert.equal(dead.fighters[0].hp,0);assert.equal(st(dead).index,0);assert.equal(sum(dead,'percent'),1500);
  const immune=path(make({hp:1000}),{direction:'reverse'});timer(immune,0,'攻击伤害免疫');timer(immune,0,'技能禁疗');go(immune,10127,10086);assert.equal(st(immune).index,0);assert.equal(sum(immune,'percent'),1500);assert.equal(immune.fighters[0].hp,4000);
 });
-test('4766当前有限血邪天血轨迹、末血回满PP及再衍化关闭，关闭后常驻附伤回血仍在',()=>{
- const s=make({ids:[10127,20117,20307,20308,37911]});s.fighters[0].pp[key(37911)]=1;
- for(let r=1;r<=5;r++){refill(s);go(s,10127,10086);assert.equal(st(s).index,[1,1,2,3,3][r-1]);if(r===4)assert.equal(s.fighters[0].pp[key(37911)],source.moves.find(m=>m.id===37911).pp);}
- assert.equal(st(s).closed,true);refill(s);s.fighters[0].hp=1000;go(s,10127);assert.equal(sum(s,'percent'),1500);assert.equal(s.fighters[0].hp,2500);
+test('4766血邪天血持续循环、两次回血道回满PP，外部关闭后常驻附伤回血仍在',()=>{
+ const s=make({ids:[10127,20117,20307,20308,37911]});
+ const expected=[1,1,2,3,1,2,3],fifth=key(37911),maxPP=source.moves.find(m=>m.id===37911).pp;
+ for(const index of expected){refill(s);s.fighters[0].pp[fifth]=1;go(s,10127,10086);assert.equal(st(s).index,index);assert.equal(st(s).closed,false);assert.equal(s.fighters[0].pp[fifth],index===3?maxPP:1);}
+ const closed=path(make({hp:1000}),{closed:true});go(closed,10127);assert.equal(sum(closed,'percent'),1500);assert.equal(closed.fighters[0].hp,2500);
 });
 test('4766战日月逆行逆转保留当前位置且累计仅反馈一次，免疫和150%上限不改变消费',()=>{
  for(const immune of [false,true]){const s=path(make({move:37910,aStats:{maxHp:9000}}),{index:1,blocked:20000});timer(s,1,'致命保留',{hp:1});timer(s,1,'protect');if(immune)timer(s,1,'固定百分比免疫');go(s,37910);assert.equal(st(s).direction,'reverse');assert.equal(st(s).index,1);assert.equal(st(s).sequence[1],'sky');assert.equal(st(s).blocked,0);assert.equal(sum(s,'fixed'),immune?0:13500);refill(s);go(s,37910);assert.equal(sum(s,'fixed'),0);}
@@ -67,11 +68,11 @@ test('4766真实2300锁伤挡伤触发害怕，普通减免护盾护罩和残血
  const protectedStatus=make({move:37911});timer(protectedStatus,1,'攻击伤害上限',{amount:1});timer(protectedStatus,1,'免异常');timer(protectedStatus,1,'protect');protectedStatus.fighters[1].suitState.shield=500;go(protectedStatus,37911);assert.equal(protectedStatus.fighters[1].ailments['害怕'],undefined);assert.equal(protectedStatus.fighters[1].suitState.shield,500);
 });
 test('4766真实733负级反转触发强化事件，禁强化与负级锁失败不授害怕，正常免异可阻补偿',()=>{
- for(const mode of ['normal','ban','lock','immune']){const s=make({move:37910});s.fighters[0].stages.atk=-2;if(mode==='ban')timer(s,0,'禁强化');if(mode==='lock')timer(s,0,'弱化不可解除反转');if(mode==='immune')timer(s,1,'免异常');go(s,37910);assert.equal(s.fighters[0].stages.atk,['ban','lock'].includes(mode)?-2:2);assert.equal(!!s.fighters[1].ailments['害怕'],mode==='normal');}
+ for(const mode of ['normal','ban','lock','immune']){const s=make({move:37910});s.fighters[0].stages.atk=-2;if(mode==='ban')timer(s,0,'禁强化');if(mode==='lock')timer(s,0,'弱化不可解除反转');if(mode==='immune')timer(s,1,'免异常');go(s,37910);assert.equal(s.fighters[0].stages.atk,mode==='ban'?0:mode==='lock'?-2:2);assert.equal(!!s.fighters[1].ailments['害怕'],mode==='normal');}
 });
 test('4766真实532及1065按对应一次净HP增加附粉，溢出禁疗蛊转伤和两种回复来源互不混算',()=>{
  for(const id of [29052,29046])for(const mode of ['normal','cap','ban','gu','conversion']){const s=make({move:id,hp:mode==='cap'?8999:1000});if(mode==='ban')timer(s,0,'技能禁疗');if(mode==='gu')s.fighters[0].soulState.soulGu=[{sourceSide:1,usedRound:0}];if(mode==='conversion')timer(s,0,'自身技能回复转伤害',{sourceSide:1,fraction:1});let before,after;
- go(s,id,20030,(e,c)=>{if(e==='afterUse'&&c.a.side===0){after=c.a.hp;}});const request=id===29046?6000:3000,net=mode==='ban'||mode==='conversion'?0:mode==='cap'?1:request-(mode==='gu'?40:0);assert.equal(sum(s,'percent'),1500+net);assert.equal(after,mode==='conversion'?0:mode==='ban'?1000:mode==='cap'?9000:1000+net);}
+ go(s,id,20030,(e,c)=>{if(e==='afterUse'&&c.a.side===0){after=c.a.hp;}});const request=id===29046?6000:3000,net=mode==='ban'||mode==='conversion'?0:mode==='cap'?1:request-(mode==='gu'?40:0);assert.equal(sum(s,'percent'),1500+(mode==='ban'||mode==='conversion'?0:mode==='cap'?1:request));assert.equal(after,mode==='conversion'?0:mode==='ban'?1000:mode==='cap'?9000:1000+net);}
 });
 test('4766真实1748只看本招，已命中零红暴击算暴击，MISS无效与命中封锁保留',()=>{
  for(const mode of ['noncrit','crit','zero','miss','invalid','seal']){const s=make({move:37921,hit:mode!=='miss'});if(mode!=='noncrit')timer(s,0,'必定暴击',{},1,1);if(mode==='zero')timer(s,1,'攻击伤害免疫');if(mode==='miss')timer(s,0,'攻击必失');if(mode==='invalid')s.fighters[0].counts.nextSkillInvalid=1;if(mode==='seal')timer(s,0,'技能命中效果失效');go(s,37921);assert.equal(!!s.fighters[0].effects['必定暴击'],mode==='noncrit',mode);}

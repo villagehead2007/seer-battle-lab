@@ -1,1 +1,2 @@
-'use strict';
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/4233-battle.cjs'),{make,pick,turn,timer,key,keys,E}=H,attack=o=>(o.damageEvents??[]).filter(e=>e.type==='attack'&&e.sourceSide===0),seed=i=>Math.imul(i+1,2654435761)>>>0;
+test('4233 1695原子实际回复后等量百分比，一二蛊/满体改自身四分一/溢出/免疫/禁疗/死亡和基础击杀',()=>{const o=require('./helpers/assert-1695-atomic-heal.cjs')(4233);assert.equal(o.fighters[0].hp,0);assert.equal(o.fighters[1].hp,9000);});
