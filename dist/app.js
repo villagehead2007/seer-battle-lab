@@ -120,7 +120,7 @@
     return `<input type="number" name="${name}" value="${value ?? ''}" min="${min}" max="${max}" step="1" aria-label="${label}" ${optional ? '' : 'required'}>`;
   }
   function ailmentSelect(i,slot,value,rate) {
-    return `<label>${slot==='third'?'第3槽':rate+'% 免疫'}<select name="${i}-res-${slot}" aria-label="${sideName(i)}${slot==='third'?'第三槽异常抗性':rate+'%异常抗性'}"><option value="">不设置</option>${E.GEAR.AILMENTS.map(k=>`<option value="${k}" ${value===k?'selected':''}>${k}</option>`).join('')}</select></label>`;
+    return `<label>${slot==='third'?'第3槽':rate+'% 免疫'}<select name="${i}-res-${slot}" aria-label="${sideName(i)}${slot==='third'?'第三槽异常抗性':rate+'%异常抗性'}"><option value="">不设置</option>${Object.entries(E.GEAR.AILMENT_GROUPS).map(([category,names])=>`<optgroup label="${category}异常">${names.map(k=>`<option value="${k}" ${value===k?'selected':''}>${k}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
   }
   function syncSettings() {
     $('stats-editors').innerHTML = state.fighters.map((f, i) => {

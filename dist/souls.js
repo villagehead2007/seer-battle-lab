@@ -113,8 +113,8 @@ function cityActive2119(fighters,name){return fighters.some(f=>E.SOULS.registry[
     {effectId:101,index:2,phase:'afterHit',params:{fraction:1}}
   ];
   E.MOVES = Object.freeze({ ...E.MOVES, ...moves });
-  E.SPECIES.emperor = {name:'瀚宇星皇',number:'3291',type:'自然圣灵',base:{maxHp:170,atk:135,def:115,spa:70,spd:112,spe:128},moves:['emperor5','emperor150','emperorQuick','gate','cycle'],soul:'皇',soulText:'免固定、百分比伤害与弱化；五招用后 50% 判定皇怒，未命中或被封招也判定。星皇之赐：行动后回复 1/8 体力；首发星皇之佑：前 3 回合免异常。皇怒追加行动不扣 PP、不接受对手响应。'};
-  E.SPECIES.king = {name:'王·雷伊',number:'3142',type:'电',base:{maxHp:151,atk:130,def:110,spa:70,spd:109,spe:130},moves:['king5','king150','kingQuick','inherit','stormKing'],soul:'雷 · 强化',soulText:'回合开始、结束吸取对手强化；开始时将对手回合效果缩为 1 回合。回合开始体力较高：回合末攻击 +2、速度和命中 +1；较低：本回合免断回合。'};
+  E.SPECIES.emperor = {name:'瀚宇星皇',number:'3291',type:'自然圣灵',base:{maxHp:170,atk:135,def:115,spa:70,spd:112,spe:128},moves:['emperor150','emperorQuick','gate','cycle','emperor5'],soul:'皇',soulText:'免固定、百分比伤害与弱化；五招用后 50% 判定皇怒，未命中或被封招也判定。星皇之赐：行动后回复 1/8 体力；首发星皇之佑：前 3 回合免异常。皇怒追加行动不扣 PP、不接受对手响应。'};
+  E.SPECIES.king = {name:'王·雷伊',number:'3142',type:'电',base:{maxHp:151,atk:130,def:110,spa:70,spd:109,spe:130},moves:['king150','kingQuick','inherit','stormKing','king5'],soul:'雷 · 强化',soulText:'回合开始、结束吸取对手强化；开始时将对手回合效果缩为 1 回合。回合开始体力较高：回合末攻击 +2、速度和命中 +1；较低：本回合免断回合。'};
   const copy = x => JSON.parse(JSON.stringify(x));
   E.copyBattleJSON=copy;
 
@@ -190,6 +190,10 @@ function cityActive2119(fighters,name){return fighters.some(f=>E.SOULS.registry[
   E.createBattle = function (options = {}) {
     const savedMoves=E.MOVES,savedSpecies={...E.SPECIES};
     try {
+    if(options.wikiSnapshots && options.wikiLoadouts){
+      options={...options,wikiLoadouts:options.wikiSnapshots.map((snapshot,i)=>
+        E.WIKI.restoreLoadout(snapshot,options.wikiLoadouts[i]??E.WIKI.defaultMoves(snapshot)))};
+    }
     const online=options.wikiSnapshots?E.WIKI.prepare(options.wikiSnapshots,options.wikiLoadouts):null;
     if(online)for(const snapshot of options.wikiSnapshots)E.TYPES.assertChart(snapshot.typeChart);
     const s = classicCreate({...options,species:options.species ?? online?.map(x=>x.species) ?? ['emperor','king'],seed:options.seed ?? 'emperor-king-001'});

@@ -1,4 +1,4 @@
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.BattleEquipment=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./status-catalog.js'):root.BattleStatusCatalog);if(typeof module==='object'&&module.exports)module.exports=api;else root.BattleEquipment=api;})(typeof globalThis!=='undefined'?globalThis:this,function(catalog){
   'use strict';
   const SUITS={
     none:{name:'不穿套装',flat:{},percent:{},statsText:'无面板加成',passive:'无套装被动。'},
@@ -8,7 +8,9 @@
     judgment:{name:'裁决',flat:{atk:60,spa:60,spe:80},percent:{},statsText:'攻击、特攻各 +60，速度 +80',passive:'攻击增伤40%；首回合末每损失10%体力获得50护罩（最多300），按当时每50护罩再增加10%攻击伤害（最多40%，本次在场保留）；回合开始无护罩时固伤、百分比减伤5%，每损失15%体力再加5%，最多25%。'},
     corrosion:{name:'腐蚀',flat:{},percent:{atk:10,spa:10},statsText:'攻击、特攻各 +10%（换算后加入面板）',passive:'攻击忽略对手15%双防；受击且存活时登记腐蚀，下回合令对手麻痹1回合，未成功则造成对手最大体力1/6的百分比伤害。'}
   };
-  const AILMENTS=['麻痹','疲惫','害怕','睡眠','石化','冰封','瘫痪','焚烬','诅咒','感染','中毒','烧伤','冻伤','易燃','流血','失明','束缚','失神','沉默'];
+  const AILMENT_GROUPS = Object.freeze(Object.fromEntries(['控制类','弱化类'].map(category =>
+    [category, Object.freeze(catalog.records.filter(record => record.category === category).map(record => record.name))])));
+  const AILMENTS = Object.freeze(Object.values(AILMENT_GROUPS).flat());
   const DAMAGE_LABELS={critical:'暴击伤害',fixed:'固定伤害',percent:'百分比伤害'};
   function normalizeResistance(input={}){
     const out={};for(const k of Object.keys(DAMAGE_LABELS)){const v=input[k]??0;if(!Number.isInteger(v)||v<0||v>100)throw new Error(`${DAMAGE_LABELS[k]}抗性必须是 0–100 的整数。`);out[k]=v;}
@@ -34,5 +36,5 @@
     if(['fixed','percent'].includes(type)&&f.build.suit==='destiny')n*=1-.02*(f.suitState?.stacks??0);
     return Math.max(0,Math.floor(n));
   }
-  return {SUITS,AILMENTS,DAMAGE_LABELS,normalizeResistance,suitBonus,resistanceChance,damageResistance,mitigate};
+  return {SUITS,AILMENT_GROUPS,AILMENTS,DAMAGE_LABELS,normalizeResistance,suitBonus,resistanceChance,damageResistance,mitigate};
 });

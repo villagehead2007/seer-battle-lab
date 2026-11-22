@@ -19,30 +19,12 @@ function member(input){
     snapshot.selectedSkillVersion=input.version;
   }
   const moves=input.moves;
-  requireThat(Array.isArray(moves)&&moves.length<=5&&new Set(moves).size===moves.length&&E.WIKI.assess(snapshot,moves).supported,'配招无效');
+  requireThat(Array.isArray(moves)&&moves.length<=5&&new Set(moves).size===moves.length,'配招无效');
+  const check=E.WIKI.assess(snapshot,moves);
+  requireThat(check.supported,check.issues.join('；'));
   E.WIKI.prepare([snapshot,snapshot],[moves,moves]);
   const {build}=E.calculateStats(E.WIKI.profileFor(snapshot).key,input.build??{});
   return {snapshot,moves,build};
-}
-function choicesFor(game,side,target){
-  const targets=[null,null];targets[side]=target;
-  const view=T.projectReplacement(game,targets),f=view.battle.fighters[side];
-  if(game.battle.teamDrivenAction1061?.[side]?.round===game.battle.round)return [{key:'pass',name:'本回合已被驱逐，无需出招'}];
-  const options=[];
-  for(const key of E.availableMoves(f,view.battle.round)){
-    if(key==='team:switch')continue;
-    const slot=view.slots[side][view.active[side]];
-    const raw=key.startsWith('wiki:')?E.WIKI.selectedMove(slot.config.snapshot,slot.config.moves.find(id=>'wiki:'+id===key)):null;
-    const move=raw??view.battle.moveDefinitions[key];
-    const name=move?.selectionName??move?.name??key;
-    const pp=(E.SpMars.projectedBody(f,view.battle.round)?.pp??f.pp)[key];
-    const label=pp==null?name:name+' · PP '+pp;
-    if(E.SpMars.owns(f)&&key===E.SpMars.FIFTH_KEY){
-      for(const form of E.SpMars.legalForms(f))options.push({key:E.SpMars.choiceKey(form),name:label+' · '+E.SpMars.LABELS[form]});
-    }else options.push({key,name:label});
-  }
-  for(const index of T.candidates(view,side))options.push({key:'switch/'+index,name:'换入 '+view.slots[side][index].fighter.name});
-  return options;
 }
 function panelFor(game,side,target=null){
   const targets=[null,null];targets[side]=target;
@@ -71,7 +53,7 @@ function createRoom(){
   const presentations=new WeakMap();
   function options(side){
     const targets=game.pending.includes(side)?T.candidates(game,side,true):[null];
-    return targets.map(target=>({target,name:target==null?'':game.slots[side][target].fighter.name,actions:choicesFor(game,side,target)}));
+    return targets.map(target=>({target,name:target==null?'':game.slots[side][target].fighter.name,actions:T.choicesFor(game,side,target)}));
   }
   function presentation(side){
     if(!presentations.has(game))presentations.set(game,{panels:[0,1].map(i=>panelFor(game,i)),previews:[{},{}]});
