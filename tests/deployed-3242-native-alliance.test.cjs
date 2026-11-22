@@ -1,0 +1,10 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3242-native.cjs');
+test('3242联盟审判1064本地三位长老及用户确认五形态红伤提升50，普通目标不加，未导入3162不扩范围',()=>{
+ const elders=[3194,3592,3673,3575,3665,4762,3667,3679];let landed=0;for(const enemyId of [...elders,2989]){const seen=[],old=H.E.WIKI.effectsEngine;H.E.WIKI.effectsEngine={...old,run(phase,ops,c){const before=c.modifier,result=old.run(phase,ops,c);if(phase==='beforeDamage'&&c.a.side===0)seen.push({before,after:c.modifier});return result;}};let s;try{s=H.turn(H.make(30185,{enemyId,aStages:{acc:6},aEffects:{免异常:{start:1,end:2}}}),30185);}finally{H.E.WIKI.effectsEngine=old;}assert.equal(seen.length,1);assert.ok(Math.abs(seen[0].after/seen[0].before-(elders.includes(enemyId)?1.5:1))<1e-9);if(H.damage(s,'attack')>0)landed++;}assert.ok(landed>=2);
+});
+test('3242联盟审判低红奖励只供下一次有效攻击，MISS整招无效PP药保留，随后一次双红再恢复',()=>{
+ for(const mode of ['miss','invalid','item']){let s=H.make(30185,{extraMoves:[10711],aStages:{acc:6},aEffects:mode==='miss'?{攻击必失:{start:2,end:2}}:mode==='invalid'?{skillBlock:{start:2,end:2}}:{}});s=H.turn(s,30185);assert.ok(H.damage(s,'attack')<300);assert.equal(s.fighters[0].counts.nextAttackBoost,1);s=H.turn(s,mode==='item'?'potion:pp':10711);assert.equal(H.damage(s,'attack'),0);assert.equal(s.fighters[0].counts.nextAttackBoost,1);for(let round=3;round<=4;round++){s=H.turn(s,10711);const e=s.turns.at(-1).events.find(e=>e.damage?.sourceSide===0&&e.damage.type==='attack');assert.ok(e.damage.settledDamage>0);assert.match(e.detail,new RegExp('增减伤 '+(round===3?2:1)+' ×'));assert.equal(s.fighters[0].counts.nextAttackBoost,0);}}
+});
+test('3242联盟审判1016高红不奖励，攻击免疫零红仍命中且低于300获得一次奖励',()=>{
+ const high=H.turn(H.make(30185,{aStats:{atk:9999},bStats:{def:1000}}),30185);assert.ok(H.damage(high,'attack')>=300);assert.equal(high.fighters[0].counts.nextAttackBoost??0,0);const zero=H.turn(H.make(30185,{bEffects:{攻击伤害免疫:{start:1,end:1}}}),30185);assert.equal(H.damage(zero,'attack'),0);assert.equal(zero.fighters[0].counts.nextAttackBoost,1);
+});

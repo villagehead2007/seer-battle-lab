@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),T=require('../dist/team-engine.js'),E=require('../dist/engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+function member(id,ids=[]){const snapshot=store.species(id);return{snapshot,moves:loadout(snapshot,ids),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+test('统一下场重置1867关银屏真实四次攻击增长到70焚烬概率，离场两种成长都清除，返场从50重新累加',()=>{
+ let g=T.create([[member(4663,[10001]),member(3056)],[member(2989)]],[0,0],{seed:'global-tiger-reset',criticals:false});const probability=()=>E.SOULS.registry[1867].abilities.probability({a:g.battle.fighters[0]});for(let n=0;n<4;n++)g=T.turn(g,['wiki:10001','potion:pp']);assert.equal(g.battle.fighters[0].soulState.tiger1867.layers,3);assert.ok(Math.abs(probability()-.7)<1e-9);g=T.turn(g,[{switchTo:1},'potion:pp']);assert.equal(g.slots[0][0].fighter.soulState.tiger1867?.priorProbabilitySteps??0,0);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.equal(g.battle.fighters[0].soulState.tiger1867.layers,0);assert.equal(probability(),.5);for(let n=1;n<=3;n++){g=T.turn(g,['wiki:10001','potion:pp']);assert.equal(g.battle.fighters[0].soulState.tiger1867.layers,n);assert.ok(Math.abs(probability()-(n===3?.6:.5))<1e-9);}
+});

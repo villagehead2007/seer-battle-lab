@@ -155,16 +155,68 @@
   const E=window.BattleEngine,T=window.TeamBattle;
   const teams=[[],[]],leads=[0,0],sides=[0,1],$=id=>document.getElementById(id);
   let game=null,initialMatch=null,replacement=[null,null];
+  const cpu=location.hash==='#cpu';
+  const levels={practice:'练习',standard:'标准',hard:'困难'};
+  let difficulty='standard',worker=null,job=null;
+  function cancelComputer(){
+    if(job)clearTimeout(job.timer);
+    worker?.terminate();worker=null;job=null;
+  }
+  function computerTurn(){
+    if(!cpu)return;
+    if(!game||game.phase==='finished'){cancelComputer();return;}
+    if(job?.position===game)return;
+    if(job)clearTimeout(job.timer);
+    const current=job={position:game,ready:false,locked:false,answer:null};
+    if(!worker){
+      worker=new Worker('team-ai-worker.js');
+      const scripts=Array.from(document.querySelectorAll('script[defer][src]'),s=>s.src);
+      worker.postMessage({scripts:[...scripts.slice(0,scripts.findIndex(src=>src.endsWith('/engine.js'))+1),new URL('team-engine.js',location.href).href]});
+    }
+    function finish(){
+      if(job!==current||current.ready)return;
+      clearTimeout(current.timer);
+      if(!current.answer){fail('电脑未能完成试算，请重试');return;}
+      current.ready=true;
+      if(current.locked)settleComputer();
+      else updateSelection();
+    }
+    function fail(message){
+      if(job!==current)return;
+      cancelComputer();notice.textContent=message;
+      notice.append(button('重新计算',()=>{render();}));
+      updateSelection();
+    }
+    worker.onerror=e=>fail(e.message);
+    worker.onmessage=({data})=>{
+      if(job!==current)return;
+      if(data.error){fail(data.error);return;}
+      current.answer=data.action;
+      if(data.done)finish();
+    };
+    // A fresh deadline can interrupt a long engine call using its last completed sample.
+    current.timer=setTimeout(()=>{worker?.terminate();worker=null;finish();},4000);
+    const seed=crypto.getRandomValues(new Uint32Array(1))[0];
+    worker.postMessage({game:{...game,battle:{...game.battle,rng:0,seed:'',initial:{...game.battle.initial,seed:''}}},seed,difficulty});
+  }
+  function settleComputer(){
+    try{
+      const b=job.answer,targets=[replacement[0],b.target];
+      const pair=[choices[0],b.key].map(v=>v?.startsWith('switch/')?{switchTo:Number(v.slice(7))}:v);
+      game=game.phase==='replace'?T.turnWithReplacement(game,targets,pair,{blind:true}):T.turn(game,pair);
+      choices=[null,null];replacement=[null,null];render();
+    }catch(e){job.locked=false;notice.textContent=e.message;updateSelection();}
+  }
   const expandedResources=new Set();
   const C=window.TeamComponents,{el,node,health}=C;
   function button(label,fn){
     const b=el('button',label);b.type='button';b.className='button secondary';
-    b.onclick=async()=>{try{b.disabled=true;await fn();notice.textContent='';}catch(e){notice.textContent=e.message;}finally{b.disabled=false;}};
+    b.onclick=async()=>{try{b.disabled=true;notice.textContent='';await fn();}catch(e){notice.textContent=e.message;}finally{if(cpu&&b.hasAttribute('data-team-resolve'))updateSelection();else b.disabled=false;}};
     return b;
   }
   const notice=el('p');notice.setAttribute('role','alert');
   const panel=el('section');panel.className='settings';
-  document.querySelector('.heading').replaceChildren(el('h1','多精灵基础实验台'));
+  document.querySelector('.heading').replaceChildren(el('h1',cpu?'人机对战':'多精灵基础实验台'));
   const picker=document.querySelector('.wiki-picker'),growth=document.querySelector('.growth-settings');
   picker.before(panel);panel.after(notice);
   for(const selector of ['.workspace','.rules','#wiki-start','#wiki-pair-status','#settings-form button[type=submit]','.wiki-picker > p','.growth-settings .settings-note']){
@@ -175,7 +227,7 @@
   },true);
   $('data-provider').value='local';$('data-provider').disabled=true;
   document.querySelector('.brand').href='modes.html';
-  document.title='多精灵基础实验台';
+  document.title=cpu?'人机对战':'多精灵基础实验台';
   sides.forEach(i=>{
     const add=button('将当前配招和养成加入 '+(i?'B':'A')+' 队',async()=>{
       if(game||teams[i].length>=6)throw Error('每方最多 6 只');
@@ -198,6 +250,12 @@
   function setup() {
     panel.className = 'settings team-setup';
     panel.append(el('h2','队伍与首发'));
+    if(cpu){
+      const label=el('label','电脑难度 '),select=el('select');
+      for(const [key,name] of Object.entries(levels))select.add(new Option(name,key));
+      select.value=difficulty;select.onchange=()=>{difficulty=select.value;};
+      label.append(select);panel.append(label);
+    }
     const grid = node('div','team-setup-grid');
     panel.append(grid);
     for(const side of sides) {
@@ -233,11 +291,14 @@
       const f=turnView().battle.fighters[side];
       const form=E.SpMars.fifthForm(f,value);
       const move=cardMove(side,form?E.SpMars.FIFTH_KEY:value);
+      if(cpu&&side===1){label.textContent=game.phase==='finished'?'已结束':job?.ready?'已锁定':'思考中';continue;}
       label.textContent = value ? (value==='switch/random'?'驱逐换人（随机）':value.startsWith('switch/') ? '换入 '+teams[side][Number(value.slice(7))].snapshot.name : form?move.name+' · '+E.SpMars.LABELS[form]:move?.name??'无需出招')
         : game.phase==='finished'?'已结束':'待选择';
     }
     const resolve=panel.querySelector('[data-team-resolve]');
-    if(resolve)resolve.disabled=sides.some(i=>{
+    if(resolve&&cpu)resolve.textContent=job?.locked?'已锁定，等待电脑':game.phase==='replace'?'锁定补位与行动':'锁定本回合行动';
+    if(resolve)resolve.disabled=(cpu&&(!job||job.locked))||(cpu?[0]:sides).some(i=>{
+      if(cpu&&game.battle.teamDrivenAction1061?.[i]?.round===game.battle.round)return game.pending.includes(i)&&replacement[i]==null;
       if(game.phase!=='replace')return !choices[i];
       if(game.pending.includes(i)&&replacement[i]==null)return true;
       return !choices[i]&&game.battle.teamDrivenAction1061?.[i]?.round!==game.battle.round;
@@ -248,8 +309,8 @@
     const b=node('button',cls);
     b.type='button';b.dataset.side=String(side);b.dataset.teamChoice=key;
     b.setAttribute('aria-label',sideName(side)+' '+label+(reason?' · '+reason:''));
-    b.setAttribute('aria-pressed','false');b.disabled=Boolean(reason);b.title=reason||label;
-    b.onclick=()=>{choices[side]=key;updateSelection();notice.textContent='';};
+    b.setAttribute('aria-pressed','false');b.disabled=Boolean(reason)||(cpu&&side===1);b.title=reason||label;
+    b.onclick=()=>{if(cpu&&(side===1||job?.locked))return;choices[side]=key;updateSelection();notice.textContent='';};
     return b;
   }
 
@@ -270,7 +331,7 @@
   function fighterPanel(side) {
     const view=turnView(),f=view.battle.fighters[side],active=view.active[side],phase=game.phase;
     const waiting=phase==='replace'&&game.pending.includes(side)&&replacement[side]==null;
-    const drivenAction=phase==='replace'&&view.battle.teamDrivenAction1061?.[side]?.round===view.battle.round;
+    const drivenAction=(cpu||phase==='replace')&&view.battle.teamDrivenAction1061?.[side]?.round===view.battle.round;
     const canAct=phase!=='finished'&&!waiting&&!drivenAction;
     const P=window.BattlePresentation,snapshot=game.slots[side][active].config.snapshot;
     const display=window.BattleDisplay.fighter(f,game.battle.round,game.battle.moveDefinitions,game.battle);
@@ -278,12 +339,12 @@
     const card=C.fighterHead(side,model,expandedResources);
     const area=node('div','move-area'),heading=node('div','move-heading'),selected=el('strong');
     selected.dataset.selection=String(side);heading.append(el('span','本回合行动'),selected);area.append(heading);
-    if(phase==='replace'&&game.pending.includes(side)){
+    if(phase==='replace'&&game.pending.includes(side)&&!(cpu&&side===1)){
       const bench=node('div','team-bench');
       for(const index of T.candidates(game,side,true)){
         const reserve=game.slots[side][index].fighter;
         const b=button('补位 '+reserve.name,()=>{
-          if(replacement[side]===index)return;
+          if(replacement[side]===index||cpu&&job?.locked)return;
           replacement[side]=index;choices[side]=null;
           const updated=turnView(),opponent=1-side,action=choices[opponent];
           if(action?.startsWith('switch/')&&!T.candidates(updated,opponent).includes(Number(action.slice(7))))
@@ -353,6 +414,7 @@
 
   function appendMatchControls(actions){
     actions.append(button('重新开局',()=>{
+      cancelComputer();
       expandedResources.clear();choices=[null,null];replacement=[null,null];
       const initial=structuredClone(initialMatch);
       game=T.create(initial.teams,initial.leads,initial.settings);render();
@@ -364,14 +426,23 @@
     window.BattlePresentation.closeMoveDetails();
     picker.hidden=!!game;growth.hidden=!!game;
     document.body.classList.toggle('team-in-battle',!!game);panel.replaceChildren();
+    computerTurn();
     if(!game){setup();return;}
     panel.className='team-combat';
     const arena=node('section','team-arena'),bar=node('div','team-roundbar');
     bar.append(el('h2',game.phase==='finished'?(game.battle.winner==='draw'?'平局':(game.battle.winner?'B':'A')+' 方获胜'):'第 '+game.battle.round+' 回合'));
+    if(cpu)bar.append(el('span','电脑 · '+levels[difficulty]));
     const host=node('span','growth-help team-host-label','房主 '+sideName(game.battle.challengedSide)+' · 同档必先优先');host.title='本场开始时随机确定，换人后保持不变';bar.append(host);
     const actions=node('div','team-actions');
     if(game.phase!=='finished'){
-      const submit=button(game.phase==='replace'?'确认补位并结算回合':'结算回合',()=>{
+      const submit=button(cpu?'锁定本回合行动':game.phase==='replace'?'确认补位并结算回合':'结算回合',()=>{
+        if(cpu){
+          if(!job||job.locked)return;
+          job.locked=true;
+          if(job.ready)settleComputer();
+          else updateSelection();
+          return;
+        }
         const selected=choices.map(value=>value==='switch/random'?{switchTo:'random'}:value?.startsWith('switch/')?{switchTo:Number(value.slice(7))}:value);
         game=game.phase==='replace'?T.turnWithReplacement(game,replacement,selected):T.turn(game,selected);
         choices=[null,null];replacement=[null,null];render();

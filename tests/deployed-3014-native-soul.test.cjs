@@ -1,0 +1,18 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),{E,make,turn,loadout}=require('./helpers/3014-native.cjs'),pp='potion:pp';
+const damage=(s,type,side=0)=>(s.damageEvents??[]).filter(e=>e.round===s.turns.at(-1).round&&e.type===type&&e.sourceSide===side).reduce((n,e)=>n+e.settledDamage,0);
+test('3014魂382真实手下留情保1按上回合完整红伤半数附固定，初始200实际损199与初始1实际损0均不截断，下轮无受伤清零',()=>{
+ for(const hp of [200,1]){let s=make(20230,{extraMoves:[10004],aHp:hp,enemyId:4732,enemyMoves:[10057],aStats:{def:100,spe:100},bStats:{atk:9999,spe:9999}});s=turn(s,20230,10057);const hit=s.damageEvents.find(e=>e.type==='attack'&&e.sourceSide===1);assert.ok(hit.settledDamage>200);assert.equal(hit.hpLoss,hp-1);assert.equal(s.fighters[0].hp,201);s=turn(s,10004);assert.equal(damage(s,'fixed'),Math.floor(hit.settledDamage*.5));s=turn(s,10004);assert.equal(damage(s,'fixed'),0);}
+});
+test('3014魂382原文使用攻击时附伤独立于命中，自然MISS与命中都按前轮半伤，属性药剂和受控未使用不附',()=>{
+ let hits=0,misses=0;for(let seed=1;seed<=24;seed++){let s=make(20230,{seed,extraMoves:[10004],enemyMoves:[10086],aStages:{acc:-6},bStats:{spe:9999,atk:4000}});s=turn(s,20230,10086);const previous=damage(s,'attack',1);assert.ok(previous>0);s=turn(s,10004);assert.equal(damage(s,'fixed'),Math.floor(previous*.5));if(damage(s,'attack')>0)hits++;else misses++;}assert.ok(hits>0&&misses>0);for(const move of [pp,20230]){let s=make(20230,{extraMoves:[10004],enemyMoves:[10086],bStats:{spe:9999,atk:4000}});s=turn(s,20230,10086);assert.ok(damage(s,'attack',1)>0);s=turn(s,move);assert.equal(damage(s,'fixed'),0);}let s=make(20230,{extraMoves:[10004],enemyMoves:[10086],bStats:{spe:9999,atk:4000}});s.fighters[0].ailments['疲惫']=2;s=turn(s,20230,10086);assert.ok(damage(s,'attack',1)>0);s=turn(s,10004);assert.equal(damage(s,'fixed'),0);assert.equal(s.fighters[0].pp['wiki:10004'],35);
+});
+test('3014魂382战斗阶段结束先回200再扣中毒，1000真实毒1125后存活75，满体先回零后7875不偷多回200',()=>{
+ for(const[hp,expected]of[[1000,75],[9000,7875]]){const s=turn(make(20230,{aHp:hp,enemyId:4693,enemyMoves:[20020]}),20230,20020);assert.equal(s.fighters[0].hp,expected);assert.equal(damage(s,'true',1),1125);const events=s.turns[0].events,heal=events.findIndex(e=>e.kind==='heal'&&e.text.includes('炽天使')),poison=events.findIndex(e=>e.damage?.type==='true'&&e.text.includes('中毒'));assert.ok(heal>=0&&poison>heal);}
+});
+test('3014魂382不需使用技能战斗阶段结束都回200，药剂和疲惫不阻挡，仅技能禁疗不挡而近满体封顶',()=>{
+ let s=make(20230,{aHp:1000,aEffects:{'无法通过自身技能恢复体力':{start:1,end:5}}});s=turn(s,pp);assert.equal(s.fighters[0].hp,1200);s=turn(s,20230);assert.equal(s.fighters[0].hp,1400);s=make(20230,{aHp:1000});s.fighters[0].ailments['疲惫']=2;s=turn(s,20230);assert.equal(s.fighters[0].hp,1200);assert.equal(s.fighters[0].pp['wiki:20230'],40);s=turn(make(20230,{aHp:8999}),pp);assert.equal(s.fighters[0].hp,9000);
+});
+test('3014魂382真实场下暂停回血，回场当回合战斗阶段结束回200无需出招，致死进替补不能借回血复活',()=>{
+ const member=(id,moves=[],stats={})=>{const snapshot=store.species(id);return{snapshot,moves:loadout(snapshot,moves),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000,...stats}}};};let g=T.create([[member(3014,[20230]),member(3056)],[member(2989)]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].hp=1000;g=T.turn(g,[pp,pp]);assert.equal(g.battle.fighters[0].hp,1200);g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.slots[0][0].fighter.hp,1200);g=T.turn(g,[{switchTo:0},pp]);assert.equal(g.battle.fighters[0].hp,1400);g=T.create([[member(3014,[20230],{def:100}),member(3056)],[member(2989,[10086],{atk:9999,spe:9999})]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].hp=100;g=T.turn(g,['wiki:20230','wiki:10086']);assert.equal(g.slots[0][0].fighter.hp,0);assert.equal(g.phase,'replace');
+});

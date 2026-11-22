@@ -18,6 +18,10 @@
     for(const side of sides){
       const members=teams[side];
       if(!Array.isArray(members)||members.length<1||members.length>6)throw Error('每方需要 1～6 只精灵');
+      for(const member of members){
+        if(!Array.isArray(member.moves))throw Error('队员缺少配招，请选择当前版本的技能');
+        member.moves=E.WIKI.restoreLoadout(member.snapshot,member.moves);
+      }
       if(new Set(members.map(m=>Number(m.snapshot.id))).size!==members.length)throw Error('同一方不能重复精灵编号');
       if(!Number.isInteger(leads[side])||!members[leads[side]])throw Error('请选择有效首发');
     }
@@ -721,5 +725,25 @@
     });
     return turn(game,actions,true);
   }
-  return {create,turn:(game,choices)=>turn(game,choices),replace,candidates,switchMode,projectReplacement,turnWithReplacement};
+  function choicesFor(game,side,target){
+    const targets=[null,null];targets[side]=target;
+    const view=projectReplacement(game,targets),f=view.battle.fighters[side];
+    if(game.battle.teamDrivenAction1061?.[side]?.round===game.battle.round)return [{key:'pass',name:'本回合已被驱逐，无需出招'}];
+    const options=[];
+    for(const key of E.availableMoves(f,view.battle.round)){
+      if(key==='team:switch')continue;
+      const slot=view.slots[side][view.active[side]];
+      const raw=key.startsWith('wiki:')?E.WIKI.selectedMove(slot.config.snapshot,slot.config.moves.find(id=>'wiki:'+id===key)):null;
+      const move=raw??view.battle.moveDefinitions[key];
+      const name=move?.selectionName??move?.name??key;
+      const pp=(E.SpMars.projectedBody(f,view.battle.round)?.pp??f.pp)[key];
+      const label=pp==null?name:name+' · PP '+pp;
+      if(E.SpMars.owns(f)&&key===E.SpMars.FIFTH_KEY){
+        for(const form of E.SpMars.legalForms(f))options.push({key:E.SpMars.choiceKey(form),name:label+' · '+E.SpMars.LABELS[form]});
+      }else options.push({key,name:label});
+    }
+    for(const index of candidates(view,side))options.push({key:'switch/'+index,name:'换入 '+view.slots[side][index].fighter.name});
+    return options;
+  }
+  return {create,choicesFor,turn:(game,choices)=>turn(game,choices),replace,candidates,switchMode,projectReplacement,turnWithReplacement};
 });

@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+function member(id,skills=[],first=null){const snapshot=store.species(id);let moves=loadout(snapshot,skills);if(first!==null)moves=[first,...moves.filter(x=>x!==first)];assert.equal(E.WIKI.assess(snapshot,moves).issues.length,0);return{snapshot,moves,build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+test('统一下场重置梅赫维特旧唱词，真实两首眷颂获得后下场清空，返场中切一号原招只生成本次新唱词',()=>{
+ let g=T.create([[member(4853,[38171,38172],38171),member(2989)],[member(2989)]],[0,0],{seed:14,criticals:false});g=T.turn(g,['wiki:38171','potion:pp']);assert.deepEqual(g.battle.fighters[0].soulState.lyrics4853.list,[2372]);g=T.turn(g,['wiki:38172','potion:pp']);assert.deepEqual(g.battle.fighters[0].soulState.lyrics4853.list,[2372,2375]);g=T.turn(g,[{switchTo:1},'potion:pp']);assert.deepEqual(g.slots[0][0].fighter.soulState.lyrics4853.list,[],'未注明下场保留的旧唱词清除');g=T.turn(g,[{switchTo:0},'potion:pp']);assert.deepEqual(g.battle.fighters[0].soulState.lyrics4853.list,[2372],'本次真实中切一号逐日长诗只新获一首，不继承原两首');assert.equal(g.battle.fighters[0].pp['wiki:38171'],store.species(4853).moves.find(m=>m.id===38171).pp-2);
+});

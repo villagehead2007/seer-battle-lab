@@ -1,0 +1,8 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/original-entry-native.cjs');assert.equal(H.store.species(3322).souls.find(x=>x.id===647).hash,'afc83e18');
+test('3322原加速与互动各自速度加一及原PP，禁强封属无强化六级封顶；原647按敌方攻击将正红限4500且不清自身负级',()=>{
+ for(const move of[20030,20290])for(const mode of['normal','ban','invalid','cap']){let s=H.make(3322,{moves:[move],stages:{atk:-1,spd:-2,...mode==='cap'?{spe:6}:{}},effects:mode==='ban'?{禁强化:{start:1,end:1}}:mode==='invalid'?{statusBlock:{start:1,end:1}}:{},aStats:{def:1},bStats:{atk:3000}});const pp=s.fighters[0].pp['wiki:'+move],r=s.round;s=H.turn(s,move,10086);assert.equal(s.fighters[0].pp['wiki:'+move],pp-1);assert.equal(s.fighters[0].stages.spe,mode==='cap'?6:mode==='normal'?1:0);assert.equal(s.fighters[0].stages.atk,-1);assert.equal(s.fighters[0].stages.spd,-2);assert.equal(H.damage(s,r,1),4500);assert.equal(s.fighters[0].hp,4500);}
+});
+test('3322原647按敌方原雷祭而非自身PP药授当回免异并回合末清负，弱化锁独立，正等级保留且药剂真实补满原PP',()=>{
+ for(const lock of[false,true]){let s=H.make(3322,{moves:[10016],enemyId:3576,enemyMoves:[20085],stages:{atk:-1,spd:-2,acc:6},effects:lock?{弱化不可解除反转:{start:1,end:1}}:{}});assert.equal(s.turns.length,0);s.fighters[1].stages.acc=6;s.fighters[0].pp['wiki:10016']=1;const bPp=s.fighters[1].pp['wiki:20085'];s=H.turn(s,'potion:pp',20085);assert.equal(s.fighters[0].pp['wiki:10016'],10);assert.equal(s.fighters[1].pp['wiki:20085'],bPp-1);assert.equal(s.fighters[0].ailments.麻痹,undefined);assert.equal(s.fighters[0].stages.atk,lock?-1:0);assert.equal(s.fighters[0].stages.spd,lock?-2:0);assert.equal(s.fighters[0].stages.acc,6);}
+});

@@ -1,0 +1,15 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs');
+const D=require('../dist/battle-display.js');
+function member(id,maxHp,skills=[]){const snapshot=store.species(id),moves=E.WIKI.defaultMoves(snapshot);for(const k of skills)if(!moves.includes(k))moves[moves.findIndex((x,i)=>i>0&&!skills.includes(x))]=k;return{snapshot,moves,build:{overrides:{maxHp,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+const make=ally=>T.create([[member(4717,1000),member(3102,ally)],[member(3056,9000,[10127,10716])]],[0,0],{seed:14,criticals:false});
+test('原始黑洞真实全队上限1000加1000等于半数首回即转态，1000加1001先涨至1010后重新计总和于次回转态缩至909',()=>{
+ for(const other of [1000,1001]){let g=make(other);g=T.turn(g,['potion:pp','wiki:10127']);assert.equal(g.battle.fighters[0].soulState.void1919.broken,other===1000);assert.equal(g.battle.fighters[0].stats.maxHp,other===1000?900:1010);const red=(g.battle.damageEvents??[]).filter(e=>e.sourceSide===1&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);assert.equal(red>0,other===1000);if(other===1001){g=T.turn(g,['potion:pp','wiki:10127']);assert.equal(g.battle.fighters[0].soulState.void1919.broken,true);assert.equal(g.battle.fighters[0].stats.maxHp,909);}}
+});
+test('原始黑洞含阵亡队友门槛，真固伤破免后离场重置上限而返场本场转态仍衰减',()=>{
+ let g=make(1001);g.slots[0][1].fighter.hp=0;g=T.turn(g,['potion:pp','potion:pp']);assert.equal(g.battle.fighters[0].soulState.void1919.broken,false);assert.equal(g.battle.fighters[0].stats.maxHp,1010);const before=structuredClone(g),items=D.fighter(g.battle.fighters[0],g.battle.round,g.battle.moveDefinitions).items;assert.match(items.find(x=>x.name==='黑洞转态门槛').value,/2001.*1000.5/);assert.deepEqual(g,before);
+ g=make(9000);g=T.turn(g,['potion:pp','wiki:10716']);assert.equal(g.battle.fighters[0].soulState.void1919.broken,true);assert.equal(g.battle.fighters[0].stats.maxHp,1010);assert.ok(g.battle.damageEvents.some(e=>e.type==='fixed'&&e.settledDamage===50));g=T.turn(g,[{switchTo:1},'potion:pp']);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.equal(g.battle.fighters[0].stats.maxHp,900);assert.equal(g.battle.fighters[0].soulState.void1919.broken,true);const untouched=structuredClone(g);assert.match(D.fighter(g.battle.fighters[0],g.battle.round,g.battle.moveDefinitions).items.find(x=>x.name==='黑洞状态').value,/本场已转态.*转态资格本场保留.*上限变化下场重置/);assert.deepEqual(g,untouched);
+});
+test('原始黑洞本场转态资格下场保留，实际涨缩上限重置1000后返场衰减900或增长1010',()=>{
+ for(const other of [1000,9000]){let g=make(other);g=T.turn(g,['potion:pp','potion:pp']);const first=g.battle.fighters[0].stats.maxHp;g=T.turn(g,[{switchTo:1},'potion:pp']);assert.ok(first!==1000);assert.equal(g.slots[0][0].fighter.stats.maxHp,1000);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.equal(g.battle.fighters[0].stats.maxHp,other===1000?900:1010);assert.equal(g.battle.fighters[0].soulState.void1919.broken,other===1000);assert.ok(g.battle.fighters[0].hp<=g.battle.fighters[0].stats.maxHp);}
+});

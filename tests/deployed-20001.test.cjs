@@ -78,7 +78,7 @@ test('20001 原创来源全技能编译，坚壁首发，三身体 HP 和 PP 各
   const s=duel();
   assert.equal(s.fighters[0].soulId,20001);
   assert.equal(state(s).lead,'wall');
-  assert.deepEqual(s.fighters[0].moves,Object.values(mars.MOVES).map(id=>'wiki:'+id));
+  assert.deepEqual(s.fighters[0].moves,['verdict','intercept','overdrive','rampart','fifth'].map(move));
   const initial=E.resolveTurn(s,[fifth('swift'),pp]);
   assert.equal(initial.fighters[0].hp,900);
   assert.equal(initial.fighters[0].pp[move('fifth')],4);

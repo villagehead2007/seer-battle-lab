@@ -1,0 +1,12 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),S=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs'),pp='potion:pp';
+function member(snapshot,ids=[],stats={}){return{snapshot,moves:loadout(snapshot,ids),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1,...stats}}};}
+function make(){const raw=S.species(3740),source=E.WIKI.versionSnapshots(raw).find(x=>x.selectedSoulId===1932)||raw;source.selectedSoulId=1932;return T.create([[member(source,[10535],{def:500,spd:1}),member(S.species(3056))],[member(S.species(3223),[10127],{atk:9999}),member(S.species(3012),[12567],{spa:9999,spe:9999})]],[0,0],{seed:14,criticals:false});}
+function water(g,count){for(let i=0;i<count;i++){g=T.turn(g,['wiki:10535',pp]);assert.equal(g.battle.fighters[0].soulState.eternalWater,i+1);assert.ok(g.battle.fighters[0].suitState.shield>0);}return g;}
+test('1932原魂真实原攻击赚七或八道永恒之水，实际下场只有达到八道才保留',()=>{
+ for(const count of[7,8]){let g=water(make(),count);g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.slots[0][0].fighter.soulState.eternalWater??0,count===8?8:0);g=T.turn(g,[{switchTo:0},pp]);assert.equal(g.battle.fighters[0].soulState.eternalWater??0,count===8?8:0);assert.ok(g.battle.fighters[0].suitState.shield>0,'original genuine entry shield regranted');}
+});
+test('1932真实赚满水后敌原攻击破初盾，原攻击三次种泪，持有者换返保泪而源真正阵亡清场下标记',()=>{
+ let g=water(make(),8);g=T.turn(g,['wiki:10535','wiki:10127']);assert.equal(g.battle.fighters[0].suitState.shield,0,'real original attack breaks original400 shield');assert.ok(g.battle.fighters[0].hp>0);for(let i=1;i<=3;i++){g=T.turn(g,['wiki:10535',pp]);assert.equal(g.battle.fighters[1].soulState.inkTears,i);assert.equal(g.battle.fighters[1].soulState.inkTearsSource,0);}
+ g=T.turn(g,[{switchTo:1},{switchTo:1}]);assert.equal(g.slots[1][0].fighter.soulState.inkTears,3);assert.equal(g.slots[0][0].fighter.soulState.eternalWater,8);g=T.turn(g,[pp,{switchTo:0}]);assert.equal(g.battle.fighters[1].soulState.inkTears,3);g=T.turn(g,[pp,{switchTo:1}]);assert.equal(g.slots[1][0].fighter.soulState.inkTears,3);g=T.turn(g,[{switchTo:0},pp]);g=T.turn(g,[pp,'wiki:12567']);assert.equal(g.battle.fighters[0].hp,0,'real fireball kills source');assert.equal(g.phase,'replace');assert.equal(g.slots[1][0].fighter.soulState.inkTears,undefined);assert.equal(g.slots[1][0].fighter.soulState.inkTearsSource,undefined);
+});

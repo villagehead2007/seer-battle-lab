@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,make,turn}=require('./helpers/3013-native.cjs');
+const red=s=>(s.damageEvents??[]).filter(e=>e.round===s.turns.at(-1).round&&e.type==='attack'&&e.sourceSide===0).reduce((n,e)=>n+e.settledDamage,0);
+function check(s,mult){const m=s.moveDefinitions['wiki:10157'],base=Math.floor(Math.floor(42*45*1200/4000)/50)+2,factor=E.sameTypeBonus(m.type,s.fighters[0].type,s.typeChart)*E.typeEffectiveness(m.type,s.fighters[1].type,s.typeChart)*mult;assert.ok(red(s)>=Math.floor(base*factor*.85)&&red(s)<=Math.floor(base*factor));}
+test('3013魂383严格半体4499仅先制一4500两项皆无4501仅红伤五成，真实慢速先后手和红伤分别核对',()=>{
+ for(const hp of [4499,4500,4501]){const s=turn(make(10157,{aHp:hp,enemyMoves:[10086],aStats:{spe:100},bStats:{spe:9999}}),10157,10086);assert.equal(s.fighters[0].soulState.halfLow,hp<4500);assert.equal(s.fighters[0].soulState.halfHigh,hp>4500);assert.equal(s.fighters[0].soulState.resolvedPriority.value,hp<4500?1:0);assert.equal(s.turns[0].first,hp<4500?0:1);check(s,hp>4500?1.5:1);}for(const hp of [4499,4500]){const s=turn(make(20044,{aHp:hp,enemyMoves:[10086],aStats:{spe:100},bStats:{spe:9999}}),20044,10086);assert.equal(s.fighters[0].soulState.resolvedPriority.value,hp<4500?1:0);assert.equal(s.turns[0].first,hp<4500?0:1);assert.equal(s.fighters[0].stages.def,1);}
+});
+test('3013魂383高体回合开始锁定后被真实先手打到半体以下仍本次增伤，下轮才低体加先制且不再增伤',()=>{
+ let s=make(10157,{aHp:4501,enemyMoves:[10086],aStats:{spe:100},bStats:{spe:9999,atk:8000}});s=turn(s,10157,10086);assert.equal(s.turns[0].first,1);assert.ok(s.fighters[0].hp<4500);assert.equal(s.fighters[0].soulState.halfHigh,true);assert.equal(s.fighters[0].soulState.halfLow,false);check(s,1.5);s=turn(s,10157,10086);assert.equal(s.turns[1].first,0);assert.equal(s.fighters[0].soulState.halfLow,true);assert.equal(s.fighters[0].soulState.halfHigh,false);assert.equal(s.fighters[0].soulState.resolvedPriority.value,1);check(s,1);
+});
+test('3013魂383低体回合原生纵横回血跨半不即时改为高体，本次无增伤而下一轮切换高体，固定附伤不被红增放大',()=>{
+ let s=make(19192,{aHp:4499,extraMoves:[10157],enemyMoves:[10086],aStats:{spe:100},bStats:{spe:9999},aStages:{acc:6}});s=turn(s,19192,10086);assert.equal(s.turns[0].first,0);assert.ok(s.fighters[0].hp>4500);assert.equal(s.fighters[0].soulState.halfLow,true);assert.equal(s.fighters[0].soulState.halfHigh,false);s=turn(s,10157,10086);assert.equal(s.turns[1].first,1);assert.equal(s.fighters[0].soulState.halfLow,false);assert.equal(s.fighters[0].soulState.halfHigh,true);check(s,1.5);s=turn(make(19195,{aHp:4501}),19195);assert.equal(s.fighters[0].soulState.halfHigh,true);assert.equal(s.damageEvents.filter(e=>e.type==='fixed'&&e.sourceSide===0).reduce((n,e)=>n+e.settledDamage,0),100);
+});

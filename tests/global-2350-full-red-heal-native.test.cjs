@@ -1,0 +1,7 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+test('2350原虐饕伏苍斩对保1目标按完整红伤吸血，先真实耗HP至1，无弱化才回血并排除同招固定伤害',()=>{
+ for(const weak of[false,true]){const a=store.species(3586),b=store.species(2989),stats={maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000};let s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,[38119]),loadout(b,[])],seed:14,criticals:false,builds:[{overrides:stats},{overrides:{...stats,spe:100}}]});s.fighters[0].hp=1000;s.fighters[1].hp=1;s.fighters[1].effects.致命保留={start:1,end:5,hp:1};if(weak)s.fighters[1].stages.atk=-1;const seen={},old=E.SOULS;E.SOULS={...old,run(event,c){if(c.a.side===0&&event==='damageDealt'&&c.type==='attack'){seen.before=c.a.hp;seen.complete=c.settledDamage;}if(c.a.side===0&&event==='afterAttack')seen.after=c.a.hp;return old.run(event,c);}};try{s=E.resolveTurn(s,['wiki:38119','potion:pp']);}finally{E.SOULS=old;}
+  assert.equal(seen.before,1,'同招2353真实消耗当前体力至1');assert.ok(s.damageEvents.some(e=>e.type==='fixed'&&e.sourceSide===0&&e.settledDamage===999));assert.ok(seen.complete>=Math.floor(8999*.6*(weak?1:2)));const red=s.damageEvents.find(e=>e.type==='attack'&&e.sourceSide===0);assert.equal(red.hpLoss,0);assert.equal(seen.after-seen.before,weak?0:Math.min(8999,seen.complete),'只在目标原无弱化时按完整红伤回血');
+ }
+});

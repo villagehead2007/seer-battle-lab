@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+function member(id,moves=[],hp=9000){const snapshot=store.species(id);return{snapshot,moves:loadout(snapshot,moves),build:{overrides:{maxHp:hp,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+test('统一67原阿尔斯兰二分一奇拉美三分一雷伊四分一真实KO指定补位只扣当前HP，上限不变且不重复施于再下一只',()=>{
+ for(const[id,move,denominator]of[[3223,30073,2],[3227,30095,3],[3079,16105,4]])for(const kill of[false,true]){let g=T.create([[member(id,[move])],[member(2989,[],kill?1:9000),member(3056),member(3013)]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].stages.acc=6;g=T.turn(g,['wiki:'+move,'potion:pp']);assert.equal(g.battle.fighters[1].hp===0,kill);if(kill){assert.equal(g.phase,'replace');g=T.replace(g,[null,1]);}else g=T.turn(g,['potion:pp',{switchTo:1}]);assert.equal(g.battle.fighters[1].stats.maxHp,9000);assert.equal(g.battle.fighters[1].hp,kill?9000-9000/denominator:9000);assert.equal(g.slots[1][2].fighter.hp,9000);g=T.turn(g,['potion:pp',{switchTo:2}]);assert.equal(g.battle.fighters[1].stats.maxHp,9000);assert.equal(g.battle.fighters[1].hp,9000);}
+});

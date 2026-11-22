@@ -17,17 +17,14 @@ async function launch(port){
 }
 (async()=>{
   let port=null;
-  for(let candidate=61648;candidate<=61655;candidate++){
+  const preferred=Number(process.env.SEER_LAUNCH_PORT);
+  for(let candidate=preferred||61648;candidate<=(preferred||61655);candidate++){
     let info=await inspect(candidate);
     if(info.state==='ours'&&info.revision===revision){port=candidate;break;}
-    if(info.state==='ours'&&info.revision!==revision){
-      try{process.kill(info.pid);for(let i=0;i<20;i++){await sleep(250);if((await inspect(candidate)).state==='free')break;}}catch(error){console.error(`旧服务 ${candidate} 无法停止：${error.message}`);}
-      info=await inspect(candidate);
-    }
     if(info.state==='free'&&await launch(candidate)){port=candidate;break;}
   }
   if(port===null)throw Error('本地服务未启动。请查看 launcher-server.log，确认端口 61648–61655 可用。');
   const url=`http://${host}:${port}/modes.html`;
   console.log('对战实验台已就绪：'+url);
-  if(!process.argv.includes('--no-open')){const browser=spawn('explorer.exe',[url],{windowsHide:true,detached:true,stdio:'ignore'});browser.on('error',()=>console.log('请手动打开上述地址。'));browser.unref();}
+  if(!process.argv.includes('--no-open') && !process.env.SEER_NO_OPEN){const browser=spawn('explorer.exe',[url],{windowsHide:true,detached:true,stdio:'ignore'});browser.on('error',()=>console.log('请手动打开上述地址。'));browser.unref();}
 })().catch(error=>{console.error(error.message);process.exitCode=1;});

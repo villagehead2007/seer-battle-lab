@@ -1,0 +1,4 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3289-native.cjs'),D=require('../dist/battle-display.js');
+test('3289原魂618显示首登时点、低体理论回复与高体当前半数，读操作不改HP或概率且严格版本守卫',()=>{
+ let s=H.make(10004,{aHp:100,bHp:500,enemyMoves:[10086]});const read=()=>{const before=structuredClone(s),rows=D.fighter(s.fighters[0],s.round,s.moveDefinitions,s).items;assert.deepEqual(s,before);return rows;};const row=n=>read().find(x=>x.name==='天苍玄魂 · '+n).value;assert.match(row('登场保护'),/首次登场当回合/);assert.match(row('低体追击'),/3000 点百分比伤害.*基础回复 3000.*按理论值/);assert.match(row('高体追击'),/50 点百分比伤害/);assert.match(row('体力比较'),/当前低于对手/);s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[0].hp,3100);assert.match(row('登场保护'),/已结束/);assert.match(row('高体追击'),/1550 点百分比伤害/);assert.match(row('体力比较'),/目标已阵亡/);s.fighters[0].soulHash='bad';assert.equal(read().some(x=>x.name.startsWith('天苍玄魂 · ')),false);
+});

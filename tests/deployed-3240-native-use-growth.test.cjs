@@ -1,0 +1,20 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3240-native.cjs');
+function observe(work){const old=H.E.WIKI.effectsEngine,seen=[];H.E.WIKI.effectsEngine={...old,run(phase,ops,c){const original=c.statusProbability;if(phase==='afterHit'&&c.a.side===0&&(c.m.wikiId??c.m.id)===15884)c.statusProbability=n=>{seen.push(n);return original?original(n):n;};try{return old.run(phase,ops,c);}finally{c.statusProbability=original;}}};try{return{state:work(),seen};}finally{H.E.WIKI.effectsEngine=old;}}
+test('3240妖异465命中零红仍成长，疲惫被免疫也计命中，下一次原概率30',()=>{
+ const p=observe(()=>{let s=H.turn(H.make(15884,{aStages:{acc:6},bEffects:{攻击伤害免疫:{start:1,end:1},免异常:{start:1,end:3}}}),15884);assert.equal(H.damage(s,'attack'),0);assert.equal(s.fighters[1].ailments.疲惫,undefined);s=H.turn(s,15884);assert.ok(H.damage(s,'attack')>0);assert.equal(s.fighters[1].ailments.疲惫,undefined);return s;});assert.deepEqual(p.seen,[20,30]);assert.equal(p.state.fighters[0].soulState.effect465Uses['wiki:15884'],2);
+});
+test('3240妖异465按用户统一仅命中成长，首次MISS或全招封锁耗PP但不计数，下一次命中仍20',()=>{
+ for(const mode of['miss','invalid']){const p=observe(()=>{let s=H.turn(H.make(15884,{aStages:{acc:6},aEffects:mode==='miss'?{攻击必失:{start:1,end:1}}:{skillBlock:{start:1,end:1}}}),15884);assert.equal(s.fighters[0].pp['wiki:15884'],4);assert.equal(H.damage(s,'attack'),0);s=H.turn(s,15884);assert.ok(H.damage(s,'attack')>0);return s;});assert.deepEqual(p.seen,[20],mode);assert.equal(p.state.fighters[0].pp['wiki:15884'],3);}
+});
+test('3240妖异465实际成长后合法换下再返场计数清零，原魂原招保留且再次命中从20起算',()=>{
+ const T=require('../dist/team-engine.js'),store=require('../local-species.cjs');function member(id,moves){const snapshot=store.species(id);return{snapshot,moves:H.loadout(snapshot,moves??[]),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}let found=false;for(let seed=1;seed<=24&&!found;seed++){const p=observe(()=>{let g=T.create([[member(3240,[15884]),member(3013)],[member(2989)]],[0,0],{seed,criticals:false});g=T.turn(g,['wiki:15884','potion:pp']);g=T.turn(g,[{switchTo:1},'potion:pp']);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.equal(Number(g.battle.fighters[0].number),3240);assert.equal(g.battle.fighters[0].soulState.skillUses?.['wiki:15884']??0,0);g=T.turn(g,['wiki:15884','potion:pp']);return g.battle;});if(p.seen.length!==2)continue;found=true;assert.deepEqual(p.seen,[20,20]);}assert.ok(found,'自然初始种子覆盖两次真实命中，不中途改命中或计数');
+});
+test('3240妖异465原20疲惫自然成功失败，成功两回控制穿梭且第三回恢复，免异阻止但不抹原红',()=>{
+ let success,failed=false;for(let seed=1;seed<=64&&(!success||!failed);seed++){const s=H.turn(H.make(15884,{seed,aStages:{acc:6},aStats:{spe:4000},enemyMoves:[20889]}),15884,20889);assert.ok(H.damage(s,'attack')>0);if(s.fighters[1].ailments.疲惫)success??={seed,s};else failed=true;}assert.ok(success&&failed);let s=success.s;assert.equal(s.fighters[1].ailments.疲惫,2);assert.equal(s.fighters[1].stages.spe,0);s=H.turn(s,'potion:pp',20889);assert.equal(s.fighters[1].stages.spe,0);s=H.turn(s,'potion:pp',20889);assert.equal(s.fighters[1].stages.spe,1);const immune=H.turn(H.make(15884,{seed:success.seed,aStages:{acc:6},aStats:{spe:4000},enemyMoves:[20889],bEffects:{免异常:{start:1,end:4}}}),15884,20889);assert.equal(immune.fighters[1].ailments.疲惫,undefined);assert.equal(immune.fighters[1].stages.spe,1);assert.ok(H.damage(immune,'attack')>0);
+});
+test('3240妖异465药剂或疲惫未用不增加次数，之后首次实际命中仍为20',()=>{
+ for(const controlled of[false,true]){const p=observe(()=>{let s=H.make(15884,{aStages:{acc:6},aAilments:controlled?{疲惫:1}:{}});s=H.turn(s,controlled?15884:'potion:pp');assert.equal(s.fighters[0].pp['wiki:15884'],5);s=H.turn(s,15884);assert.ok(H.damage(s,'attack')>0);return s;});assert.deepEqual(p.seen,[20]);}
+});
+test('3240妖异465原五PP实际使用20到60封顶，真实PP药恢复后继续第六次仍60且不改原参数',()=>{
+ const p=observe(()=>{let s=H.make(15884,{aStages:{acc:6}});for(let i=0;i<5;i++)s=H.turn(s,15884);assert.equal(s.fighters[0].pp['wiki:15884'],0);s=H.turn(s,'potion:pp');assert.equal(s.fighters[0].pp['wiki:15884'],5);s=H.turn(s,15884);return s;});assert.deepEqual(p.seen,[20,30,40,50,60,60]);assert.equal(p.state.fighters[0].pp['wiki:15884'],4);
+});

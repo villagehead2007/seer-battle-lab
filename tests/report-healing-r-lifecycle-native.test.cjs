@@ -1,0 +1,11 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/report-restriction-native.cjs'),{T,pp}=H;
+test('报告R原生施放者离场仍留原目标，己方继任实际断回合并获得两回合翻倍',()=>{const r=H.lifecycle('R','clear');assert.equal(r.reward.multiple,2);});
+test('报告R原生目标离场不传继任，原目标返场不恢复旧限制且神泣无收益',()=>{const r=H.lifecycle('R','target');assert.equal(r.originalAfterReturn,undefined);assert.equal(r.reward,undefined);});
+test('报告R原生限制自然到期后实际神泣不能凭旧限制得到成功收益',()=>{const r=H.lifecycle('R','expired');assert.equal(r.reward,undefined);});
+test('报告R原生实际25582回合保护阻止清除，神泣命中仍不获断回合成功收益',()=>{const r=H.lifecycle('R','protected');assert.equal(r.protectedEvent,true);assert.equal(r.reward,undefined);});
+test('报告R原4359减疗80%在源离场后将瑞奥真实技能回复150减为30且血药250减为50',()=>{let result;for(let seed=1;seed<=32;seed++){let g=H.cast('R',seed,{targetId:3008,targetMoves:[24678],sourceStats:{spa:2000},targetStats:{spd:300}});if(!g||9000-g.battle.fighters[1].hp<300)continue;const first=g.battle.fighters[1].hp;g=T.turn(g,[{switchTo:1},'wiki:24678']);assert.equal(g.battle.fighters[1].hp-first,30);const second=g.battle.fighters[1].hp;g=T.turn(g,[pp,'potion:hp']);assert.equal(g.battle.fighters[1].hp-second,50);result=g;break;}assert.ok(result);assert.equal(result.battle.fighters[1].effects['回复效果削减'].fraction,.8);});
+test('报告R原4359减疗80%仍缩减真实410魂印3000回复为600，来源离场后继续作用原目标',()=>{let result;for(const spa of[2000,3000,4000]){let g=H.cast('R',14,{targetId:3056,targetMoves:[10127],sourceStats:{spa},targetStats:{spd:300}});if(!g||9000-g.battle.fighters[1].hp<1200)continue;const before=g.battle.fighters[1].hp;g=T.turn(g,[{switchTo:1},'wiki:10127']);assert.equal(g.battle.fighters[1].hp-before,600);result=g;break;}assert.ok(result,'natural original damage must leave room for real600 soul healing');assert.equal(result.battle.fighters[1].soulId,410);});
+test.after(()=>console.log('REPORT_R_NATIVE_LIFECYCLE_TRACES '+JSON.stringify(H.report())));
+
+test('报告R原生目标真实使用23108自损死亡后指定补位，已授限制不传新成员',()=>{const r=H.targetDeath('R');assert.equal(r.newState,undefined);assert.equal(r.replacedNumber,'3008');});
+test('报告R原生施放者被真实攻击击败，继任后限制仍在原目标且真实断回合获益',()=>{const r=H.casterDeath('R');assert.equal(r.sourceDead,true);assert.equal(r.reward.multiple,2);});

@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),T=require('../dist/team-engine.js'),H=require('./helpers/3102-native.cjs'),store=require('../local-species.cjs'),pp='potion:pp';
+function member(id,moves=[],soul=449,stats={}){const snapshot=structuredClone(store.species(id));if(id===3102)snapshot.selectedSoulId=soul;return{snapshot,moves:H.loadout(snapshot,moves),build:{overrides:{maxHp:9000,atk:1200,spa:1200,def:4000,spd:4000,spe:1000,...stats}}};}
+test('3102第五840两魂真正击败后只吸玩家选定新敌三分一最大体力，未选替补无损且不再吸下一次换入',()=>{
+ for(const soul of[449,456]){let g=T.create([[member(3102,[19565],soul)],[member(2989),member(3004),member(3014)]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].hp=1000;g.battle.fighters[1].hp=1;g=T.turn(g,['wiki:19565',pp]);assert.equal(g.phase,'replace');const before=g.battle.fighters[0].hp;g=T.replace(g,[null,2]);assert.equal(Number(g.battle.fighters[1].number),3014);assert.equal(g.battle.fighters[1].hp,6000);assert.equal(g.slots[1][1].fighter.hp,9000);assert.equal(g.battle.fighters[0].hp,Math.min(9000,before+3000));assert.ok(g.battle.damageEvents.some(e=>e.type==='percent'&&e.sourceSide===0&&e.settledDamage===3000));g=T.turn(g,[pp,{switchTo:1}]);assert.equal(g.battle.fighters[1].hp,9000);}
+});
+test('3102第五840未击败不预留后继奖励；敌百分比免疫不失血但仍按3000理论回复，禁疗只阻技能回复',()=>{
+ let g=T.create([[member(3102,[19565])],[member(2989),member(3004)]],[0,0],{seed:14,criticals:false});g=T.turn(g,['wiki:19565',pp]);assert.ok(g.battle.fighters[1].hp>0);g=T.turn(g,[pp,{switchTo:1}]);assert.equal(g.battle.fighters[1].hp,9000);
+ for(const ban of[false,true]){const target=member(3004);target.build.resistance={percent:100};g=T.create([[member(3102,[19565])],[member(2989),target]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].hp=1000;g.battle.fighters[1].hp=1;if(ban)g.battle.fighters[0].effects['无法通过自身技能恢复体力']={start:1,end:4};g=T.turn(g,['wiki:19565',pp]);const hp=g.battle.fighters[0].hp;g=T.replace(g,[null,1]);assert.equal(g.battle.fighters[1].hp,9000);assert.equal(g.battle.fighters[0].hp,ban?hp:Math.min(9000,hp+3000));}
+});

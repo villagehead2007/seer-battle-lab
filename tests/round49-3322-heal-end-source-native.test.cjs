@@ -1,0 +1,7 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/round49-3322-heal-end-source-native.cjs');
+test('3322原30514双原4防特防加一与77三轮实际用招回200，已授后整招无效照回而药剂不回到期停止',()=>{const x=H.heal();assert.deepEqual(x[0].periodHPs,[1200,1400,1600,1600]);assert.deepEqual(x[1].periodHPs,[1200,1200,1400,1400]);assert.equal(x[2].firstStages.def,6);assert.equal(x[2].firstStages.spd,6);assert.equal(x[3].firstStages.def,0);assert.equal(x[3].firstHP,1200);assert.equal(x[4].firstHP,9000);assert.equal(x[5].firstHP,1000);});
+test('3322原30514完整原魂原序的封命中无效受控MISS不授强化或77监听，零PP事务拒绝不变',()=>{for(const x of H.failures(30514)){if(x.mode==='zero'){assert.equal(x.zeroRejected,true);assert.equal(x.unchanged,true);}else{assert.equal(x.firstHP,1000);assert.equal(x.firstStages.def,0);assert.equal(x.firstStages.spd,0);}}});
+test('3322原30515/1142真实回末降HP5000到1并按降低4999的一半2499附粉，原1HP无降低无附粉且粉免不取消自身降低',()=>{const x=H.end();assert.equal(x[0].firstHP,1);assert.equal(x[0].nominalLowered,4999);assert.equal(x[0].firstPercent,2499);assert.equal(x[1].firstPercent,0);assert.equal(x[2].firstHP,1);assert.equal(x[2].firstPercent,0);});
+test('3322原30515/1142封命中无效受控MISS不授回末降体延迟，原1128有序保留且零PP事务拒绝不变',()=>{for(const x of H.failures(30515)){if(x.mode==='zero'){assert.equal(x.zeroRejected,true);assert.equal(x.unchanged,true);}else{assert.equal(x.firstHP,5000);assert.equal(x.firstPercent,0);}}});
+test.after(()=>console.log('ROUND49_3322_HEAL_END_SOURCE_COUNTS '+JSON.stringify(H.report())));

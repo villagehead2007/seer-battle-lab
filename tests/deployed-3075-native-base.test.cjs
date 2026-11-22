@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn}=require('./helpers/3075-native.cjs');
+test('3075真实22招字段完整绑定421原版本，唯一19454第五且原生逐招耗一PP不改输入',()=>{
+ assert.equal(source.moves.length,22);for(const m of source.moves){const s=make(m.id),k='wiki:'+m.id,c=s.moveDefinitions[k];for(const p of['name','kind','power','pp','accuracy','priority','alwaysHit','fifth'])assert.equal(c[p],m[p],m.id+'/'+p);assert.equal(c.type,m.kind==='status'?'属性':m.type);const[n,d]=m.critical.split('/').map(Number);assert.equal(c.criticalChance,n/d);assert.equal(s.fighters[0].soulId,421);assert.equal(s.fighters[0].soulHash,'b20ecbb5');assert.equal(s.fighters[0].moves.filter(k=>s.moveDefinitions[k].fifth).length,1);assert.ok(s.fighters[0].moves.includes('wiki:19454'));const before=structuredClone(s),o=turn(s,m.id);assert.equal(o.fighters[0].pp[k],m.pp-1);assert.deepEqual(s,before);}
+});
+test('3075原生零PP拒绝且疲惫不耗PP不执行技能，仍有独立魂印每回合强化和吸取',()=>{
+ for(const m of source.moves){let s=make(m.id),k='wiki:'+m.id;s.fighters[0].pp[k]=0;const before=structuredClone(s);assert.throws(()=>turn(s,m.id),/有 PP/);assert.deepEqual(s,before);s=make(m.id,{aAilments:{疲惫:2}});const o=turn(s,m.id);assert.equal(o.fighters[0].pp[k],m.pp);assert.equal(o.fighters[0].hp,4650);assert.equal(o.fighters[1].hp,8850);assert.equal(o.fighters[0].stages.spa,1);assert.equal(o.fighters[0].stages.spe,1);assert.equal(o.fighters[0].stages.atk,0);assert.deepEqual(o.fighters[1].ailments,{});}
+});
+test('3075基础物特红伤逐招按原面板防御本系相性浮动，先手40为两倍且范围字段只当前目标一次',()=>{
+ for(const id of[10499,10225,11531,16178,12231,15915,16179,16180,16181,16182,19451,19452,19453]){const m=source.moves.find(m=>m.id===id),s=make(id,{enemyMoves:[10086]}),a=s.fighters[0],b=s.fighters[1],atk=m.kind==='physical'?a.stats.atk:a.stats.spa,def=m.kind==='physical'?b.stats.def:b.stats.spd,power=m.power*(id===12231?2:1),base=Math.floor(Math.floor(42*power*atk/def)/50)+2,factor=E.sameTypeBonus(m.type,a.type,s.typeChart)*E.typeEffectiveness(m.type,b.type,s.typeChart),o=turn(s,id,10086),hits=o.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===0);assert.equal(hits.length,1);assert.ok(hits[0].settledDamage>=Math.floor(base*factor*.85)&&hits[0].settledDamage<=Math.floor(base*factor),JSON.stringify({id,base,factor,hit:hits[0]}));}
+});

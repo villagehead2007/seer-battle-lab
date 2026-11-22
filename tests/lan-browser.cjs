@@ -12,24 +12,7 @@ const retry=async(page,key,target=null,epoch)=>{
   return page.evaluate(async data=>(await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).status,
     {op:'lock',matchId,key,target,epoch});
 };
-async function member(page,side,id,overrides={}){
-  await page.locator('#wiki-query-'+side).fill(String(id));
-  await page.locator('#wiki-search-'+side+' button').click();
-  await page.locator('[data-load-side="'+side+'"][data-id="'+id+'"]').click();
-  await page.locator('#wiki-detail-'+side+' .wiki-moves').waitFor();
-  const fields=page.locator('.growth-card').nth(side);
-  const details=fields.locator('details.override');
-  if(!await details.evaluate(n=>n.open))await details.locator('summary').click();
-  for(const [k,v] of Object.entries(overrides))await fields.locator('[name="'+side+'-override-'+k+'"]').fill(String(v));
-  if(new URL(page.url()).pathname!=='/room'){
-    const entries=page.locator('.team-roster').nth(side).locator('.roster-entry'),count=await entries.count();
-    await page.getByRole('button',{name:'将当前配招和养成加入 '+'AB'[side]+' 队'}).click();
-    await entries.nth(count).waitFor();return;
-  }
-  const count=(await state(page)).team.length;
-  await page.getByRole('button',{name:'将当前配招和养成加入我的队伍'}).click();
-  await page.waitForFunction(async count=>(await (await fetch('/state')).json()).team?.length===count+1,count);
-}
+const member=require('./helpers/browser-member.cjs');
 async function lock(page,key){
   await page.locator('[data-team-choice="'+key+'"]:enabled').click();
   await page.getByRole('button',{name:'锁定本回合行动'}).click();

@@ -265,7 +265,22 @@ function compileCore(m,s){
 function compile(m,s){const result=compileCore(m,s),ignored=(m.deferredEffects??[]).filter(x=>x.field==='atk_num'&&Number.isInteger(m.sourceTargetCount)&&m.sourceTargetCount>1);return {...result,experimental:(m.effectIds??[]).map(id=>effectsEngine.registry[id]?.experimental).filter(Boolean),ignoredSourceFeatures:ignored.map(x=>({field:'atk_num',value:m.sourceTargetCount,historicalRecord:x,confirmation:'research/MULTI-TARGET-USER-SCOPE.json',scope:'用户明确排除；当前目标一次普通攻击'})),deferred:[...(m.deferredEffects??[]).filter(x=>!ignored.includes(x)),...(result.operations??[]).filter(op=>op.deferred).map(op=>({effectId:op.effectId,description:op.deferred,scope:'多精灵待实现'}))]};}
 
 function moveIssue(m,s){return compile(m,s).issue;}
-function defaultMoves(s){const p=s.source?.provider!=='seerapi'?profiles[s.id]:null;if(p)return p.defaults.slice();const preferred=s.trainingCompatibility&&(s.selectedSkillVersion??'trained')==='trained'?s.trainingCompatibility.advance.skill.map(x=>x.id):[],available=availableMoves(s).filter(m=>!moveIssue(m,s)).sort((a,b)=>Number(preferred.includes(b.id))-Number(preferred.includes(a.id))||b.level-a.level),fifth=available.find(m=>m.fifth),others=available.filter(m=>!m.fifth);return [...(fifth?[fifth]:[]),...others].slice(0,slotCount(s)).map(m=>m.id);}
+// Import older complete loadouts by moving their sole native fifth, preserving ordinary order.
+function restoreLoadout(s,ids){
+ if(!Array.isArray(ids)||ids.length!==5)return ids;
+ const moves=ids.map(id=>selectedMove(s,id));
+ if(moves.some(m=>!m)||moves.filter(m=>m.fifth).length!==1||moves[4].fifth)return ids;
+ return [...ids.filter((_,i)=>!moves[i].fifth),ids[moves.findIndex(m=>m.fifth)]];
+}
+function defaultMoves(s){
+ const p=s.source?.provider!=='seerapi'?profiles[s.id]:null;
+ if(p)return restoreLoadout(s,p.defaults.slice());
+ const preferred=s.trainingCompatibility&&(s.selectedSkillVersion??'trained')==='trained'?s.trainingCompatibility.advance.skill.map(x=>x.id):[];
+ const available=availableMoves(s).filter(m=>!moveIssue(m,s)).sort((a,b)=>Number(preferred.includes(b.id))-Number(preferred.includes(a.id))||b.level-a.level);
+ const picks=available.filter(m=>!m.fifth).slice(0,4),fifths=available.filter(m=>m.fifth);
+ if(fifths.length)picks.push(fifths[0]);
+ return picks.map(m=>m.id);
+}
 function effectiveness(a,b,chart){return E.TYPES.effectiveness(a,b,chart);}
 function assess(s,selected){const p=profileFor(s),issues=[];
  issues.push(...skillVersionIssues(s));
@@ -274,7 +289,9 @@ function assess(s,selected){const p=profileFor(s),issues=[];
  if(p.key.startsWith('wiki:')&&!s.typeChart)issues.push('需要在线通用属性克制表');
  if(s.typeChart)try{effectiveness(s.type,s.type,s.typeChart);for(const m of s.moves.filter(m=>selected?.includes(m.id)&&m.kind!=='status'))effectiveness(m.type,s.type,s.typeChart);}catch(e){issues.push(e.message);}
  const ids=selected??defaultMoves(s),count=slotCount(s);if(ids.length!==count||new Set(ids).size!==count)issues.push(`请选择 ${count} 个不同技能`);
- if(s.moves.some(m=>m.fifth)&&ids.filter(id=>s.moves.find(m=>m.id===id)?.fifth).length!==1)issues.push('需要携带恰好一个第五技能');
+ if(ids.filter(id=>selectedMove(s,id)?.fifth).length>1)issues.push('配招包含多个第五技能，请按当前版本保留一个');
+ if(ids.slice(0,4).some(id=>selectedMove(s,id)?.fifth))issues.push('第1至4号位只能装备普通技能');
+ if(availableMoves(s).some(m=>m.fifth)&&!selectedMove(s,ids[4])?.fifth)issues.push('请为第5号位选择当前版本的第五技能');
  for(const id of ids){const m=selectedMove(s,id);if(!m)issues.push(`技能 ${id} 不属于此精灵的当前版本`);else{const issue=moveIssue(m,s);if(issue)issues.push(`${m.name}：${issue}`);}}
  // Extra unreviewed skills cannot inherit the emperor's five-skill rage contract.
  if(p.key==='emperor'&&ids.some(id=>!p.defaults.includes(id)))issues.push('星皇额外技能与皇怒时序尚未核对');
@@ -295,5 +312,5 @@ function prepare(snapshots,loadouts){if(!Array.isArray(snapshots)||snapshots.len
  }
  E.MOVES=Object.freeze({...E.MOVES,...additions});Object.assign(E.SPECIES,speciesAdditions);return checks.map((c,i)=>({species:c.profile.key,typeChart:chart,moves:c.selected.map(id=>(snapshots[i].source?.provider!=='seerapi'?registry[id]?.[0]:null)??'wiki:'+id)}));
 }
-return {effectsEngine,registry,profiles,profileFor,skillVersionIssues,versionSnapshots,availableMoves,selectableMoves,selectedMove,slotCount,defaultMoves,compile,effectiveness,moveIssue,assess,prepare,mergeCharts,verified,fingerprint};
+return {effectsEngine,registry,profiles,profileFor,skillVersionIssues,versionSnapshots,availableMoves,selectableMoves,selectedMove,slotCount,restoreLoadout,defaultMoves,compile,effectiveness,moveIssue,assess,prepare,mergeCharts,verified,fingerprint};
 });

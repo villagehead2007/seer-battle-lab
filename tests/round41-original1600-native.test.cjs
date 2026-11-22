@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/round41-original1600-native.cjs');
+function pos(id){const xs=H.success(id);for(const x of xs){assert.equal(x.selected,2);assert.equal(x.unselectedUnchanged,true);if(x.mode==='initialImmune'){assert.equal(x.armed,0);assert.equal(x.initialStatus,null);assert.deepEqual(x.initialCrit,{start:2,end:3});}else{assert.equal(x.armed,1);assert.ok(x.initialStatus);if(x.mode==='ok')assert.ok(x.ailments[x.status]);else assert.equal(x.ailments[x.status],undefined);}}return xs;}
+function neg(id){const xs=H.failures(id);for(const x of xs){if(x.mode==='zero'){assert.equal(x.zeroRejected,true);assert.equal(x.unchanged,true);}else if(x.nativeControlCleared){assert.equal(id,4632);assert.equal(x.armed,1);assert.equal(x.actorMaxHP,9900);assert.ok(x.ailments[x.status]);}else if(x.mode==='always'){assert.equal(x.alwaysHit,true);assert.equal(x.armed,1);assert.ok(x.ailments[x.status]);}else{assert.equal(x.armed,0);assert.equal(x.ailments[x.status],undefined);}}return xs;}
+test('4373原35892/1600原目标自然中毒成功才传播第三槽，原圣谱阻首段仅授次回暴击、免继任到期死切分别核',()=>{const x=pos(4373);assert.ok(x[0].ailments.中毒);assert.equal(x[1].armed,0);assert.equal(x[4].deathReplacement,true);});
+test('4373原35892/1600封命中无效受控药剂零PP负门槛，原必中不伪造MISS',()=>{const x=neg(4373);assert.equal(x[0].armed,0);assert.equal(x.at(-1).mode,'always');assert.ok(x.at(-1).ailments.中毒);});
+test('4632原37292/1600原目标自然中毒成功才传播第三槽，原魂随机DOT保留且首段免疫继任免疫到期死切分别核',()=>{const x=pos(4632);assert.ok(x[0].ailments.中毒);assert.equal(x[1].armed,0);assert.equal(x[4].deathReplacement,true);});
+test('4632原37292/1600封命中无效药剂零PP及MISS不授监听，原魂自然清疲惫增上限9900后实际传播',()=>{const x=neg(4632);assert.equal(x[0].armed,0);assert.equal(x[2].nativeControlCleared,true);assert.equal(x[2].actorMaxHP,9900);assert.equal(x.at(-1).mode,'miss');assert.equal(x.at(-1).armed,0);});
+test('4644原37357/1600原目标自然麻痹成功才传播第三槽，构造原魂保留且首段免疫继任免疫到期真实死切分别核',()=>{const x=pos(4644);assert.ok(x[0].ailments.麻痹);assert.equal(x[1].armed,0);assert.equal(x[4].deathReplacement,true);});
+test('4644原37357/1600受控原魂额外麻痹不冒充本技能监听，封命中无效药剂零PP及原必中分别核',()=>{const x=neg(4644);assert.equal(x[0].armed,0);assert.equal(x[2].armed,0);assert.equal(x.at(-1).mode,'always');assert.ok(x.at(-1).ailments.麻痹);});
+test('4745原37864/1600原目标自然流血成功才传播第三槽，原真实队友继承保留且首段免疫继任免疫到期死切分别核',()=>{const x=pos(4745);assert.ok(x[0].ailments.流血);assert.equal(x[1].armed,0);assert.equal(x[4].deathReplacement,true);});
+test('4745原37864/1600封命中无效受控药剂零PP负门槛，原必中不伪造MISS',()=>{const x=neg(4745);assert.equal(x[0].armed,0);assert.equal(x.at(-1).mode,'always');assert.ok(x.at(-1).ailments.流血);});
+test.after(()=>console.log('ROUND41_ORIGINAL1600_COUNTS '+JSON.stringify(H.report())));

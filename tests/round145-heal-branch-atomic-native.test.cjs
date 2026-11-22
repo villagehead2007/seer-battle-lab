@@ -1,0 +1,22 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),S=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs'),rows=require('../research/TEAM-STAGE-2/round145-heal-branch-source-input-20261113.json').rows,pp='potion:pp';
+function make(row,{hp=1000,mode='normal',gu=true}={}){
+ const own=row.source,foe=S.species(gu?3516:2989),stats={maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000},s=E.createBattle({wikiSnapshots:[own,foe],wikiLoadouts:[loadout(own,[row.moveId]),loadout(foe,[])],builds:[{overrides:stats},{overrides:{...stats,spe:500}}],seed:14,criticals:false});assert.equal(s.fighters[0].soulId,row.selectedSoulId);s.fighters[0].hp=hp;if(gu)s.fighters[1].stages.atk=1;if(mode==='ban')s.fighters[0].effects['无法通过自身技能恢复体力']={start:1,end:9};if(mode==='half'||mode==='fatal')s.fighters[0].effects['回复效果削减']={start:1,end:9,fraction:mode==='fatal'?.999:.5};if(mode==='immune')s.fighters[1].effects['固定百分比免疫']={start:1,end:9};if(mode==='invalid')s.fighters[0].effects.skillBlock={start:2,end:2};if(mode==='miss')s.fighters[0].effects['攻击必失']={start:2,end:2};if(mode==='control')s.fighters[0].ailments['疲惫']=3;
+ const out=E.resolveTurn(s,[pp,pp]);if(gu)assert.ok(out.fighters[0].soulState.soulGu?.length>0,row.key+' natural Gu planted');return out;
+}
+function use(s,row){const old=E.WIKI.effectsEngine,heals=[],hurts=[];E.WIKI.effectsEngine={...old,run(phase,ops,c){if(c.a.side!==0||(c.m.wikiId??c.m.id)!==row.moveId)return old.run(phase,ops,c);const ctx={...c,heal(f,n,label,...rest){const before=f.hp,actual=c.heal(f,n,label,...rest);if(ctx.effectInstanceIndex===row.index)heals.push({n,actual:actual??0,before,after:f.hp,label,phase});return actual;},hurt(f,n,label,type,...rest){if(ctx.effectInstanceIndex===row.index)hurts.push({n,label,type,phase,ownHp:c.a.hp,targetHp:f.hp});return c.hurt(f,n,label,type,...rest);}};return old.run(phase,ops,ctx);}};try{return{out:E.resolveTurn(s,['wiki:'+row.moveId,pp]),heals,hurts};}finally{E.WIKI.effectsEngine=old;}}
+test('799与1239及997二十五原来源完整技能在真实种蛊后按本次实际治疗等量附百分比而不误扣蛊40',()=>{
+ let guCount=0;for(const row of rows){const x=use(make(row),row);assert.equal(x.heals.length,1,row.key+' selected original operation heals once');assert.ok(x.heals[0].actual>0,row.key);assert.equal(x.hurts.length,1,row.key+' selected op attaches once');assert.equal(x.hurts[0].type,'percent',row.key);assert.equal(x.hurts[0].n,x.heals[0].actual,row.key+' actual treatment basis');if(x.heals[0].before+x.heals[0].actual-x.heals[0].after===40)guCount++;assert.equal(x.out.fighters[0].soulState.skillUses['wiki:'+row.moveId],1,row.key+' true original use');}assert.ok(guCount>0);
+});
+test('三类八实际处理分支近满与满体禁疗减疗及固粉免疫分离，原低体条件按回复前判断',()=>{
+ for(const id of[3613,4623,4706,3586,4642,4648,4665,4709]){const row=rows.find(r=>r.speciesId===id);for(const [mode,hp]of[['normal',8950],['normal',9000],['ban',1000],['half',1000],['immune',1000]]){const x=use(make(row,{hp,mode,gu:false}),row),healed=x.heals.reduce((n,h)=>n+h.actual,0),hurt=x.hurts.reduce((n,h)=>n+h.n,0),before=x.heals[0]?.before??hp,condition=row.effectId===799||before<9000/row.args[row.effectId===1239?1:0];assert.equal(hurt,condition?healed:0,row.key+' '+mode);if(mode==='ban')assert.equal(healed,0,row.key);if(mode==='half')assert.ok(healed>0,row.key);if(mode==='immune')assert.ok(!(x.out.damageEvents??[]).some(e=>e.round===2&&e.sourceSide===0&&e.type==='percent'&&e.hpLoss>0),row.key);}}
+});
+test('三类原技能整招无效与疲惫未出均不执行治疗或百分比载荷且保原PP门禁',()=>{
+ for(const id of[3613,4623,4706,3586,4642,4648,4665,4709]){const row=rows.find(r=>r.speciesId===id);for(const mode of['invalid','control']){const s=make(row,{mode,gu:false}),before=s.fighters[0].pp['wiki:'+row.moveId],x=use(s,row);assert.equal(x.heals.length,0,row.key+' '+mode);assert.equal(x.hurts.length,0,row.key+' '+mode);assert.equal(x.out.fighters[0].pp['wiki:'+row.moveId],before-(mode==='invalid'?1:0),row.key+' '+mode);}}
+});
+test('4709原997自然蛊后按实际治疗4500附百分比，不以净增4460替代',()=>{
+ const row=rows.find(r=>r.speciesId===4709),x=use(make(row),row);assert.equal(x.heals.length,1);assert.equal(x.heals[0].actual,4500);assert.equal(x.hurts[0]?.n,4500);
+});
+test('4623和4642独立实际治疗分支遭自然蛊致死后不再继续附加百分比伤害',()=>{
+ for(const id of[4642,4623]){const row=rows.find(r=>r.speciesId===id),s=make(row,{hp:1,mode:'fatal'}),x=use(s,row);assert.equal(x.out.fighters[0].hp,0,row.key);assert.ok(x.heals.some(h=>h.actual>0),row.key+' genuine treatment before Gu KO');assert.equal(x.hurts.length,0,row.key+' no posthumous attachment');}
+});

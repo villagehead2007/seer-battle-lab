@@ -1,0 +1,25 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3205-native.cjs'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),pp='potion:pp';
+const damages=(s,type)=>(s.damageEvents??[]).filter(e=>e.round===s.round-1&&e.sourceSide===0&&e.type===type).reduce((n,e)=>n+e.settledDamage,0);
+test('3205原33招两魂原hash全部实例多阶段绑定，零PP拒绝与疲惫不执行且原始完整快照不改',()=>{
+ const before=structuredClone(H.source);assert.equal(H.source.moves.length,33);assert.deepEqual(H.source.souls.map(x=>[x.id,x.hash]),[[535,'f112a7d3'],[548,'c07f8985']]);for(const m of H.source.moves){const c=H.E.WIKI.compile(m,H.source);assert.equal(c.issue,'');assert.deepEqual([...new Set(c.operations.map(o=>o.index))],m.effectInstances.map((_,i)=>i));for(const o of c.operations){assert.equal(o.effectId,m.effectInstances[o.index].id);assert.deepEqual(o.sourceArgs,m.effectInstances[o.index].args);}}
+ for(const soul of[535,548])for(const id of[10499,25101,19989]){let s=H.make(id,{soul});s.fighters[0].pp['wiki:'+id]=0;const old=structuredClone(s);assert.throws(()=>H.turn(s,id),/有 PP/);assert.deepEqual(s,old);s=H.turn(H.make(id,{soul,aAilments:{疲惫:2}}),id);assert.equal(s.fighters[0].pp['wiki:'+id],H.source.moves.find(m=>m.id===id).pp);assert.equal(s.fighters[1].hp,9000);}assert.deepEqual(H.source,before);
+});
+test('3205无量622六项同时一或二且60概率有自然成败，707严格低半回6000否则3000，禁疗与满体封顶',()=>{
+ const seen=new Set();for(let seed=1;seed<=24&&seen.size<2;seed++){const s=H.turn(H.make(25101,{seed}),25101),stages=Object.values(s.fighters[0].stages);assert.ok(stages.every(n=>n===stages[0]));assert.ok([1,2].includes(stages[0]));seen.add(stages[0]);}assert.equal(seen.size,2);
+ for(const[hp,expected]of[[1000,7000],[4499,9000],[4500,7500],[4501,7501],[8950,9000]]){const s=H.turn(H.make(25101,{aHp:hp}),25101);assert.equal(s.fighters[0].hp,expected);assert.equal(s.fighters[0].effects.id913.start,2);assert.equal(s.fighters[0].effects.id913.end,3);}const banned=H.turn(H.make(25101,{aHp:1000,aEffects:{'技能禁疗':{start:1,end:4}}}),25101);assert.equal(banned.fighters[0].hp,1000);
+});
+test('3205皎月77当前三轮用招回复150而药剂不回复，426原55闪避自然命中失败并由648只惩罚下一次未命中',()=>{
+ let yes=false,no=false;for(let seed=1;seed<=40&&!(yes&&no);seed++){const s=H.turn(H.make(23505,{seed,aHp:1000,enemyMoves:[10086]}),23505,10086),hit=(s.damageEvents??[]).some(e=>e.round===s.round-1&&e.sourceSide===1&&e.targetSide===0&&e.type==='attack'&&e.settledDamage>0),asleep=!!s.fighters[1].ailments['睡眠'];if(asleep)yes=true;else no=true;assert.equal(s.fighters[1].counts.nextAttackMissAilment,undefined);assert.equal(s.fighters[0].effects['概率闪避'].chance,55);assert.equal(s.fighters[0].effects['概率闪避'].end,3);assert.equal(s.fighters[0].effects['用招定额回血'].end,3);assert.equal(asleep,!hit);}
+ assert.ok(yes&&no);let s=H.turn(H.make(23505,{aHp:1000,extraMoves:[20491]}),23505);assert.equal(s.fighters[0].hp,1150);s=H.turn(s,pp);assert.equal(s.fighters[0].hp,1150);s=H.turn(s,20491);assert.equal(s.fighters[0].hp,1300);s=H.turn(s,20491);assert.equal(s.fighters[0].hp,1300);
+});
+test('3205第五889消回合成功睡眠先于1046检查，空回合或保护未眠时百分比3000，已有失明则不附',()=>{
+ for(const mode of['clear','empty','protect','ailment']){const effects=mode==='clear'?{doubleDamage:{start:1,end:4}}:mode==='protect'?{protect:{start:1,end:4},免异常:{start:1,end:4}}:{},s=H.turn(H.make(19989,{bEffects:effects,bAilments:mode==='ailment'?{失明:4}:{}}),19989);assert.equal(damages(s,'percent'),['clear','ailment'].includes(mode)?0:3000,mode);if(mode==='clear')assert.ok(s.fighters[1].ailments['睡眠']);if(mode==='protect')assert.ok(s.fighters[1].effects.protect);}
+});
+test('3205绯转1035技能50睡眠有原生成败，未触发才下两轮攻击50睡眠，魂印独立不抹技能失败奖励',()=>{
+ let yes=false,no=false;for(let seed=1;seed<=40&&!(yes&&no);seed++){const s=H.turn(H.make(19988,{seed}),19988),e=s.fighters[0].effects['攻击概率异常'];if(e){no=true;assert.equal(e.start,2);assert.equal(e.end,3);assert.equal(e.chance,50);assert.equal(e.ailment,'睡眠');}else{yes=true;assert.ok(s.fighters[1].ailments['睡眠']);}}assert.ok(yes&&no);const im=H.turn(H.make(19988,{bEffects:{免异常:{start:1,end:4}}}),19988);assert.equal(im.fighters[1].ailments['睡眠'],undefined);assert.equal(im.fighters[0].effects['攻击概率异常'].chance,50);
+});
+test('3205破魔真实KO后698向实际继任者50睡眠且67只扣当前体力四分一，双魂自然成功失败且不降低上限',()=>{
+ function member(id,moves=[],hp=9000){const snapshot=store.species(id);return{snapshot,moves:H.loadout(snapshot,moves),build:{overrides:{maxHp:hp,atk:9999,spa:9999,def:id===2989?1:4000,spd:id===2989?1:4000,spe:1000}}};}
+ for(const soul of[535,548]){let yes=false,no=false;for(let seed=1;seed<=32&&!(yes&&no);seed++){const own=member(3205,[17809]);own.snapshot.selectedSoulId=soul;let g=T.create([[own],[member(2989,[],1),member(3013)]],[0,0],{seed,criticals:false});g=T.turn(g,['wiki:17809',pp]);assert.equal(g.phase,'replace');g=T.replace(g,[null,1]);assert.equal(g.battle.fighters[1].stats.maxHp,9000);assert.equal(g.battle.fighters[1].hp,6750);const end=g.battle.fighters[1].ailments['睡眠'];if(end){yes=true;assert.ok([2,3].includes(end-g.battle.round+1));}else no=true;}assert.ok(yes&&no);}
+});

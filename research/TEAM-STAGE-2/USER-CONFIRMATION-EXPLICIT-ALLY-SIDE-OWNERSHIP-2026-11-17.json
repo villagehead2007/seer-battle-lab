@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-17T09:31:04.095Z",
+  "sourceType": "explicit-user-task-and-mechanic-confirmation-delegated-from-coordination-chat",
+  "sourceThreadId": "01a159fd-9889-7e81-a641-a756df1ec5a4",
+  "verbatimInstruction": "用户新增明确任务与机制确认，请加入最终整库回归前的必做门槛，并保存独立用户确认及任务记录，压缩上下文后仍保留：\n\n审核当前已导入范围的全部技能/魂印词条的效果归属，修正所有应绑定己方队伍却错误绑定单个精灵的效果。用户明确：文案明确说明“使己方”等己方效果，绑定己方一侧/队伍，不是施放者个人；索伦森先三断回合后“己方免疫下2次受到的异常状态”就是例子。这条已确认，不要再问用户是否己方绑定。能依据真实来源、已有确认确定绑定对手的词条，也一并修正。\n\n触发线索（协调对话只读代码检查，未执行复现，不能当测试已通过）：3414 混沌魔君索伦森，30470 魔灵千星及30992诸雄之主均有928[2]，原文“消除对手回合类效果，消除成功则己方免疫下2次受到的异常状态”。dist/range-effects.js的通用928目前写c.a.counts.immune或grantOracleImmunity(c.a,...generic)，观察到team-engine的传递分支只处理特定kind，疑似未将此免异按己方一侧保留给接替者。请核对最终运行调用链并真实复现，再修复；断回合本身仍是当前目标上的即时清除，不要把整个技能所有子效果一律变成队伍效果。\n\n执行方式：对全量当前词条建立归属覆盖检查，复用已有正确审核；按相同机制及相同归属/生命周期分组，一次修公共实现、逐实例核对原参数、条件、版本和来源。不要把这变成旧精灵逐只重新部署或重复整套语义审核。区分作用对象与效果存放位置：己方侧绑定不是全队每人复制两次免异；对手绑定也要区分当前对手个体与敌方一侧，不能只因写“对手”就推成敌方全队。持续时机、下场保留/消耗、死亡补位、施放者离场、多个来源叠加/刷新按已有确认和明确来源处理，不擅自补规则；真正无法确定时先查历史答案和资料，剩余语义才弹窗问。\n\n必要真实测试覆盖：施放后主动换宠/死亡补位、原施放者回场、次数在不同成员间连续消耗而不复制、不串双方、对手个体切换、来源离场、重复施放与已有明确叠加规则，保留单精灵行为。只测适用场景，不制造假想规则。记录已核对/需修/已修已测/待答数量及涉及实例，保留原始文案与hash，用户裁定标用户来源。\n\n先让当前已启动的专项自然完成并收取结果，再衔接这项工作，不中断有效测试；不得提前启动完整npm或经验证器间接启动整库。该项与原有所有前置任务完成、证据对齐并最终冻结后，才执行已授权的一次共享完整回归和正式门槛。新增修改使受影响旧证据失效时定向重验，不泛化重跑无关目标。沿用现有限并发和唯一主写入策略；星魂机制仍暂不改。持续完成原任务及本新增门槛，不因这条消息单独收尾暂停。",
+  "confirmedRule": "Explicit ally-side effects such as 使己方 belong to allied side/team rather than the caster personal state.",
+  "doNotAskAgainForExplicitAllySideBinding": true,
+  "preserveOriginalSourceTextHashesAndParameters": true,
+  "doNotTreatOpponentWordAloneAsEnemyTeamBinding": true,
+  "sidePoolNotPerMemberCopy": true,
+  "sideOwnershipAndImmediateRecipientMustBeSeparated": true,
+  "starSoulChangesExcluded": true,
+  "priorTaskStillRequired": true,
+  "mandatoryBeforeFinalRegressionAndFreeze": true,
+  "formalCertified": 0,
+  "fullNpmRun": false
+}

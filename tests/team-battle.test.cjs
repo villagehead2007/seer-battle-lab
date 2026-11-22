@@ -49,7 +49,7 @@ test('先手击败取消原行动、跳过回合末；死切不推进；后手�
     const g=T.create([[member(2988,{atk:9999,spe:late?1:9999})],[target,member(3056)]]);
     const [a,b]=g.battle.fighters;a.hp=1000;
     a.effects['每回合强化']={start:1,end:2,stages:[1,0,0,0,0,0]};
-    const attack=a.moves[0],reply=late?'wiki:20369':b.moves[0];
+    const attack='wiki:19123',reply=late?'wiki:20369':'wiki:19123';
     const out=T.turn(g,[attack,reply]);
     assert.equal(out.phase,'replace');assert.equal(out.battle.fighters[1].hp,0);
     assert.equal(out.battle.turns[0].first,late?1:0);
@@ -107,7 +107,7 @@ test('先手终末之光只有自爆方阵亡，对方不出招不扣PP，跳过
   const bomber=member(3383,{spe:9999}),id=30819;
   if(!bomber.moves.includes(id))bomber.moves[bomber.moves.length-1]=id;
   const game=T.create([[bomber,member(3056)],[member(2988,{spe:1})]]);
-  const enemy=game.battle.fighters[1],reply=enemy.moves[0];
+  const enemy=game.battle.fighters[1],reply='wiki:19123';
   enemy.effects['每回合强化']={start:1,end:2,stages:[1,0,0,0,0,0]};
   const h=T.turn(game,['wiki:'+id,reply]);
   assert.deepEqual(h.pending,[0]);assert.deepEqual(h.battle.fighters.map(f=>f.hp),[0,1]);

@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),S=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs'),pp='potion:pp';
+function member(id,soul,ids=[]){const raw=S.species(id),snapshot=E.WIKI.versionSnapshots(raw).find(x=>x.selectedSoulId===soul&&ids.every(id=>E.WIKI.selectedMove(x,id)))||raw;if(soul)snapshot.selectedSoulId=soul;return{snapshot,moves:loadout(snapshot,ids),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+test('1605场下原源十回合真实记录后授四及六层，场下获标者首次上场耗PP双倍，获标后真下场清标返场耗一',()=>{
+ assert.equal(S.species(4386).souls.find(s=>s.id===1605).hash,'85e76e53');let g=T.create([[member(2989),member(4386,1605)],[member(2988,null,[19123]),member(2994)]],[0,0],{seed:13,criticals:false});
+ for(let round=1;round<=11;round++)g=T.turn(g,[pp,round===5?{switchTo:1}:pp]);assert.deepEqual(g.slots[1].map(x=>x.fighter.soulState.tieMarksBySource[0].count),[4,6]);
+ g=T.turn(g,[{switchTo:1},{switchTo:0}]);assert.equal(g.battle.fighters[0].soulState.dishengLayers,4);assert.equal(g.battle.fighters[1].soulState.tieMarksBySource[0].count,4);const before=g.battle.fighters[1].pp['wiki:19123'];g=T.turn(g,[pp,'wiki:19123']);assert.equal(g.battle.fighters[1].pp['wiki:19123'],before-2);
+ g=T.turn(g,[pp,{switchTo:1}]);assert.equal(g.slots[1][0].fighter.soulState.tieMarksBySource,undefined);assert.equal(g.battle.fighters[1].soulState.tieMarksBySource?.[0],undefined);g=T.turn(g,[pp,{switchTo:0}]);assert.equal(g.battle.fighters[0].soulState.dishengLayers,0);assert.equal(g.battle.fighters[1].soulState.tieMarksBySource?.[0],undefined);const returned=g.battle.fighters[1].pp['wiki:19123'];g=T.turn(g,[pp,'wiki:19123']);assert.equal(g.battle.fighters[1].pp['wiki:19123'],returned-1,'real original attack no longer pays the cleared one-round double-PP effect');
+});
+test('2600原第五自然授谋死A，持有者真下场清且返场不自动重授，原技能可重新授予而仅源下场不清未离场持有者',()=>{
+ assert.equal(S.species(4956).souls.find(s=>s.id===2153).hash,'7cf7948c');let g=T.create([[member(4956,2153,[29485]),member(2989)],[member(2988),member(2994)]],[0,0],{seed:14,criticals:false});assert.equal(g.battle.teamPlot2153[0].phase,0);
+ g=T.turn(g,['wiki:29485',pp]);assert.deepEqual(g.battle.fighters[1].soulState.murder2153,[0]);g=T.turn(g,[pp,{switchTo:1}]);assert.equal(g.slots[1][0].fighter.soulState.murder2153,undefined);g=T.turn(g,[pp,{switchTo:0}]);assert.equal(g.battle.fighters[1].soulState.murder2153,undefined);
+ g=T.turn(g,['wiki:29485',pp]);assert.deepEqual(g.battle.fighters[1].soulState.murder2153,[0]);g=T.turn(g,[{switchTo:1},pp]);assert.deepEqual(g.battle.fighters[1].soulState.murder2153,[0]);g=T.turn(g,[{switchTo:0},pp]);assert.deepEqual(g.battle.fighters[1].soulState.murder2153,[0]);g=T.turn(g,['wiki:29485',pp]);assert.deepEqual(g.battle.fighters[1].soulState.murder2153,[0]);assert.equal(g.battle.teamPlot2153[0].phase,0);
+});

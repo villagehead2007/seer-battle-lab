@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3056-native.cjs'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),pp='potion:pp';
+function member(id,stats={},moves=[]){const snapshot=store.species(id);return{snapshot,moves:H.loadout(snapshot,moves),build:{overrides:{maxHp:9000,atk:1200,spa:1200,def:4000,spd:4000,spe:1000,...stats}}};}
+test('3056天威826原生KO后仅下轮给玩家选定真正继任者随机一种PVP异常，未KO主动换人不施加',()=>{
+ for(const knockout of[false,true]){let g=T.create([[member(3056,{},[19368])],[member(2989,{maxHp:knockout?1:9000}),member(3004),member(3014)]],[0,0],{seed:14,criticals:false});g=T.turn(g,['wiki:19368',pp]);assert.equal(g.slots[1][0].fighter.hp===0,knockout);if(knockout)g=T.replace(g,[null,1]);else g=T.turn(g,[pp,{switchTo:1}]);assert.equal(Number(g.battle.fighters[1].number),3004);g=T.turn(g,[pp,pp]);const ailments=Object.entries(g.battle.fighters[1].ailments);assert.equal(ailments.length,knockout?1:0);assert.equal(Object.keys(g.slots[1][2].fighter.ailments).length,0);if(knockout){const[name,end]=ailments[0];assert.ok(require('../dist/status-pools.js').pool().some(row=>row.name===name));assert.ok(end>=2&&end<=4);}}
+});

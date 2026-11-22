@@ -1,0 +1,9 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+function version(id,move){return E.WIKI.versionSnapshots(store.species(id)).find(s=>E.WIKI.availableMoves(s).some(m=>m.id===move));}
+test('4450真实魂解析原4278成长招并复刻：组件封招不成长，下次有效复刻仍20%，之后30%',()=>{
+ const a=version(4450,36303),b=version(4278,35389),stats={maxHp:9000,atk:100,spa:100,def:5000,spd:5000,spe:1000};assert.ok(a&&b);let s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,[36303]),loadout(b,[35389])],seed:14,criticals:false,builds:[{overrides:stats},{overrides:{...stats,spe:100}}]});assert.equal(s.fighters[0].soulId,1664);assert.ok(s.moveDefinitions['wiki:35389'].power<=100);assert.ok(s.moveDefinitions['wiki:36303'].power>100);s.fighters[0].stages.acc=6;s.fighters[1].stages.acc=6;s.fighters[1].effects['低威力攻击无效']={start:2,end:2,power:100};
+ s=E.resolveTurn(s,['potion:pp','wiki:35389']);assert.equal(s.fighters[0].soulState.futureParsedMove.id,'wiki:35389');
+ const percentages=[];for(const[i,r]of[2,4,6].entries()){if(i)s=E.resolveTurn(s,['potion:pp','potion:pp']);assert.ok(E.availableMoves(s.fighters[0]).includes('wiki:36303'),'原第五合法PP，使用间隔真实补PP药');s=E.resolveTurn(s,['wiki:36303','potion:pp']);percentages.push((s.damageEvents??[]).filter(e=>e.round===r&&e.sourceSide===0&&e.targetSide===1&&e.type==='percent').reduce((n,e)=>n+e.settledDamage,0));assert.equal(s.fighters[0].soulState.replaySkillUses['wiki:35389'],i+1);assert.equal(s.fighters[0].soulState.skillHitUses?.['wiki:35389']??0,i);assert.equal(s.fighters[0].soulState.skillUses['wiki:35389'],undefined);assert.equal(s.fighters[0].soulState.skillUses['wiki:36303'],i+1);assert.equal(s.fighters[0].soulState.replayCurrentComponent,undefined);}
+ assert.match(b.souls.find(x=>x.id===s.fighters[1].soulId).description,/降低50%/);assert.deepEqual(percentages,[0,900,1350]);
+});

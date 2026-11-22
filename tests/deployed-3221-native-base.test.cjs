@@ -1,0 +1,16 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3221-native.cjs'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs');
+function member(id,skills=[]){const snapshot=store.species(id);return{snapshot,moves:H.loadout(snapshot,skills),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+function make(move,seed=14){return T.create([[member(3221,[move]),member(2989)],[member(2989),member(3013)]],[0,0],{seed,criticals:false});}
+test('3221完整29原招逐一合法配备，保留543和全部有序实例，真实队伍出招扣原PP并执行原数据',()=>{
+ assert.equal(H.source.source.revision,'d6ed32c0');assert.equal(H.source.moves.length,29);for(const m of H.source.moves){let g=make(m.id),a=g.battle.fighters[0],key='wiki:'+m.id;assert.equal(a.soulId,543);assert.equal(a.soulHash,'7c7e8c71');assert.equal(g.battle.wikiSnapshots[0].moves.length,29);assert.equal(H.E.WIKI.assess(g.battle.wikiSnapshots[0],a.moves.map(k=>Number(k.slice(5)))).issues.length,0);const compiled=H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m),actual=g.battle.moveDefinitions[key];assert.equal(compiled.issue,'');assert.equal(actual.revision,m.revision);assert.deepEqual(actual.operations.map(x=>[x.effectId,x.index,x.phase,x.params]),compiled.operations.map(x=>[x.effectId,x.index,x.phase,x.params]));a.stages.acc=6;g=T.turn(g,[key,'potion:pp']);assert.equal(g.battle.fighters[0].pp[key],m.pp-1,m.name);assert.equal(g.battle.fighters[0].soulState.basePPCostThisUse.amount,1);assert.ok(g.battle.turns.at(-1).events.some(e=>e.text.includes(m.name)),m.name);if(m.power>0&&m.kind!=='status')assert.ok(H.damage(g.battle,'attack')>0,m.name+'原生红伤');}
+});
+test('3221完整29原招零PP不能选择，初始真实疲惫阻止出招且不扣PP，原被动仍按完整魂印处理',()=>{
+ for(const m of H.source.moves){const key='wiki:'+m.id;let g=make(m.id);g.battle.fighters[0].pp[key]=0;assert.throws(()=>T.turn(g,[key,'potion:pp']));g=make(m.id);g.battle.fighters[0].ailments.疲惫=1;g=T.turn(g,[key,'potion:pp']);assert.equal(g.battle.fighters[0].pp[key],m.pp,m.name);assert.equal(H.damage(g.battle,'attack'),0);assert.ok(g.battle.fighters[0].soulState.fortyNineDrains>=1,'控制不阻止原魂印回末吸取');}
+});
+test('3221完整29原招初始整招封锁仍消费原PP，出招不能偷跑命中载荷或代替魂印被动',()=>{
+ for(const m of H.source.moves){const key='wiki:'+m.id;let g=make(m.id);g.battle.fighters[0].effects.skillBlock={start:1,end:1};g=T.turn(g,[key,'potion:pp']);assert.equal(g.battle.fighters[0].pp[key],m.pp-1,m.name);assert.equal(H.damage(g.battle,'attack'),0);assert.equal(g.battle.fighters[0].hp,9000);assert.equal(g.battle.fighters[1].hp,8910,'只有原魂印90吸取，不执行牺牲/固定/百分比/附伤载荷');}
+});
+test('3221所有非必中原招在合法负六命中和自然初始种子下真实MISS，保留PP消费且不出红伤或偷跑命中载荷',()=>{
+ for(const m of H.source.moves.filter(m=>!m.alwaysHit)){let missed=false;for(let seed=1;seed<=24&&!missed;seed++){let g=make(m.id,seed);g.battle.fighters[0].stages.acc=-6;let miss=false;const old=H.E.SOULS;H.E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===0)miss=Boolean(c.invalidReason?.miss);}};try{g=T.turn(g,['wiki:'+m.id,'potion:pp']);}finally{H.E.SOULS=old;}if(!miss)continue;missed=true;assert.equal(g.battle.fighters[0].pp['wiki:'+m.id],m.pp-1);assert.equal(H.damage(g.battle,'attack'),0);assert.equal(g.battle.fighters[1].hp,8910,'原被动之外不执行命中附伤');}assert.equal(missed,true,m.name+'非必中原招应能实际MISS');}
+});

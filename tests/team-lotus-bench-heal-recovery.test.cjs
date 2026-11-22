@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),D=require('../dist/battle-display.js');
+function member(id,skills=[]){const snapshot=store.species(id),moves=E.WIKI.defaultMoves(snapshot);for(const k of skills)if(!moves.includes(k))moves[moves.findIndex((x,i)=>i>0&&!skills.includes(x))]=k;return{snapshot,moves,build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+function pale(setup=()=>{}){let g=T.create([[member(4872,[20044]),...[3102,2988,4647,4648,4649].map(id=>member(id))],[member(3056,[23287]) ]],[0,0],{seed:14,criticals:false});setup(g);const end=g.battle.fighters[0].soulState.lotus2059.meshEnd;for(let i=1;i<=end;i++)g=T.turn(g,['potion:pp',i===end?'wiki:23287':'potion:pp']);assert.equal(g.battle.fighters[0].soulState.lotus2059.form,'pale');return g;}
+test('妙时天女真实浮世络结束转怀生，原英勇圣甲挡随机弱化后五名场下各回99且封顶不复活',()=>{
+ let g=pale(g=>{[1000,8950,9000,0,1000].forEach((hp,i)=>g.slots[0][i+1].fighter.hp=hp);g.battle.fighters[0].hp=8000;});g=T.turn(g,['wiki:20044','potion:pp']);assert.equal(g.battle.fighters[0].soulState.lotus2059.paleEvents.at(-1).applied,false);assert.deepEqual(g.slots[0].slice(1).map(x=>x.fighter.hp),[1099,9000,9000,0,1099]);assert.equal(g.battle.fighters[0].hp,8000);
+});
+test('妙时天女场下99为魂印回复，技能禁疗不挡、回复削减逐人结算，药剂不触发',()=>{
+ let g=pale(g=>{for(const slot of g.slots[0].slice(1))slot.fighter.hp=1000;g.slots[0][1].fighter.effects['技能禁疗']={start:1,end:99};g.slots[0][2].fighter.effects['回复效果削减']={start:1,end:99,fraction:.5};g.slots[0][3].fighter.effects['回复效果削减']={start:1,end:99,fraction:1};});g=T.turn(g,['potion:pp','potion:pp']);assert.deepEqual(g.slots[0].slice(1).map(x=>x.fighter.hp),[1000,1000,1000,1000,1000]);g=T.turn(g,['wiki:20044','potion:pp']);assert.deepEqual(g.slots[0].slice(1).map(x=>x.fighter.hp),[1099,1049,1000,1099,1099]);
+});
+test('妙时天女异常成功不奶场下，返场真实重新进入浮世络，形态与场下回复提示只读',()=>{
+ let g=pale(g=>{g.slots[0][1].fighter.hp=1000;});for(let i=0;i<5;i++)g=T.turn(g,['potion:pp','potion:pp']);g=T.turn(g,['wiki:20044','potion:pp']);assert.equal(g.battle.fighters[0].soulState.lotus2059.paleEvents.at(-1).applied,true);assert.equal(g.slots[0][1].fighter.hp,1000);const before=structuredClone(g);assert.match(D.team(g,0).find(x=>x.name==='怀生场下回复').value,/99.*存活.*5/);assert.deepEqual(g,before);g=T.turn(g,[{switchTo:1},'potion:pp']);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.equal(g.battle.fighters[0].soulState.lotus2059.form,'mesh');assert.equal(D.team(g,0).find(x=>x.name==='怀生场下回复'),undefined);
+});

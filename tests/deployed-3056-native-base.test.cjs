@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{E,source,make,turn}=require('./helpers/3056-native.cjs');
+test('3056真实22招逐字段及有序实例绑定，410原版本与五槽唯一19369第五，原技能逐招实际耗一PP',()=>{
+ assert.equal(source.moves.length,22);for(const m of source.moves){const s=make(m.id),k='wiki:'+m.id,c=s.moveDefinitions[k];for(const p of['name','kind','power','pp','accuracy','priority','alwaysHit','fifth'])assert.equal(c[p],m[p],m.id+'/'+p);assert.equal(c.type,m.kind==='status'?'属性':m.type);const[n,d]=m.critical.split('/').map(Number);assert.equal(c.criticalChance,n/d);assert.equal(s.fighters[0].soulId,410);assert.equal(s.fighters[0].soulHash,'30d4ab29');assert.equal(s.fighters[0].moves.length,5);const fifth=s.fighters[0].moves.filter(k=>s.moveDefinitions[k].fifth);assert.equal(fifth.length,1);assert.equal(s.moveDefinitions[fifth[0]].wikiId,19369);const before=structuredClone(s),out=turn(s,m.id);assert.equal(out.fighters[0].pp[k],m.pp-1);assert.deepEqual(s,before);}
+});
+test('3056原生全招零PP拒绝保持输入，疲惫不出招不扣PP不启动回血且不执行强化或伤害',()=>{
+ for(const m of source.moves){let s=make(m.id),k='wiki:'+m.id;s.fighters[0].pp[k]=0;const before=structuredClone(s);assert.throws(()=>turn(s,m.id),/有 PP/);assert.deepEqual(s,before);s=make(m.id,{aAilments:{疲惫:2}});const o=turn(s,m.id);assert.equal(o.fighters[0].pp[k],m.pp);assert.equal(o.fighters[0].hp,4500);assert.equal(o.fighters[1].hp,9000);assert.ok(!o.fighters[0].soulState.gaiaRecovery);assert.ok(Object.values(o.fighters[0].stages).every(n=>n===0));}
+});
+test('3056无条件额外倍率的原物特红伤按来源攻防本系相性浮动，每段独算且附加固定50独立',()=>{
+ for(const m of source.moves.filter(m=>m.kind!=='status')){const s=make(m.id),a=s.fighters[0],b=s.fighters[1],atk=m.kind==='physical'?a.stats.atk:a.stats.spa,def=m.kind==='physical'?b.stats.def:b.stats.spd,base=Math.floor(Math.floor(42*m.power*atk/def)/50)+2,factor=E.sameTypeBonus(m.type,a.type,s.typeChart)*E.typeEffectiveness(m.type,b.type,s.typeChart),o=turn(s,m.id),hits=o.damageEvents.filter(e=>e.type==='attack'&&e.sourceSide===0);assert.ok(m.id===15966?hits.length>=3&&hits.length<=5:hits.length===1,m.id);for(const h of hits)assert.ok(h.settledDamage>=Math.floor(base*factor*.85)&&h.settledDamage<=Math.floor(base*factor),JSON.stringify({move:m.id,base,factor,hit:h}));if(m.id===10716)assert.equal(o.damageEvents.find(e=>e.type==='fixed'&&e.sourceSide===0).settledDamage,50);}
+});

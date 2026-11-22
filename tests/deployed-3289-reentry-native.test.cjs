@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/original-entry-native.cjs'),T=require('../dist/team-engine.js'),{loadout}=require('./helpers/3001-native.cjs');
+function member(id,moves=[]){const snapshot=H.store.species(id),selected=loadout(snapshot,moves);assert.equal(H.E.WIKI.assess(snapshot,selected).supported,true);return{snapshot,moves:selected,build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000}}};}
+const make=()=>T.create([[member(3289),member(2989)],[member(2989,[20889,10086])]], [0,0],{seed:14,criticals:false}),turn=(g,a='potion:pp',b='potion:pp')=>T.turn(g,[a,b]),red=(g,r)=>(g.battle.damageEvents??[]).filter(e=>e.round===r&&e.sourceSide===1&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);
+function status(g,speed){const pp=g.battle.fighters[1].pp['wiki:20889'];g=turn(g,'potion:pp','wiki:20889');assert.equal(g.battle.fighters[1].pp['wiki:20889'],pp-1);assert.equal(g.battle.fighters[1].stages.spe,speed);return g;}
+test('3289原618首次在场不封真实穿梭，第二第三次真实登场各只封当回及下回且到期恢复，不靠改魂印或中途注入状态',()=>{
+ let g=make();assert.equal(g.battle.fighters[0].soulId,618);g=status(g,1);g=turn(g,{switchTo:1});for(const entry of[2,3]){const speed=entry===2?1:3,pp=g.battle.fighters[1].pp['wiki:20889'];g=turn(g,{switchTo:0},'wiki:20889');assert.equal(g.battle.fighters[0].soulState.teamEntry.number,entry);assert.equal(g.battle.fighters[1].pp['wiki:20889'],pp-1);assert.equal(g.battle.fighters[1].stages.spe,speed);const mark=g.battle.fighters[1].effects.statusBlock;assert.equal(mark.start,entry===2?3:7);assert.equal(mark.end,entry===2?4:8);g=status(g,speed);g=status(g,speed+1);if(entry===2)g=turn(g,{switchTo:1},'wiki:20889');}
+});
+test('3289原618真实首登对手原冲顶无效，但实际回场只封属性而不再次获得首登攻击无效，完整正红事件与魂追加各自保留',()=>{
+ let g=make(),r=g.battle.round;g=turn(g,'potion:pp','wiki:10086');assert.equal(red(g,r),0);assert.equal(g.battle.fighters[1].pp['wiki:10086'],34);g=turn(g,{switchTo:1});r=g.battle.round;const secondPp=g.battle.fighters[1].pp['wiki:10086'];g=turn(g,{switchTo:0},'wiki:10086');assert.equal(g.battle.fighters[0].soulState.teamEntry.number,2);assert.equal(g.battle.fighters[1].pp['wiki:10086'],secondPp-1);assert.ok(red(g,r)>0);assert.ok(g.battle.fighters[0].hp>0);assert.ok(g.battle.fighters[1].hp<9000);
+});

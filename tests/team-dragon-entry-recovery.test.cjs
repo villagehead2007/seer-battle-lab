@@ -1,0 +1,18 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),D=require('../dist/battle-display.js');
+function member(id,stats={}){const snapshot=store.species(id);return{snapshot,moves:E.WIKI.defaultMoves(snapshot),build:{overrides:{maxHp:9000,atk:4000,spa:4000,def:4000,spd:4000,spe:4000,...stats}}};}
+const pp='potion:pp';
+test('天堂极龙兽战初转换只执行一次，外加敌方面板依统一下场重置后重新按当前值转换',()=>{
+ let g=T.create([[member(2988),member(4921)],[member(3102,{maxHp:5000}),member(3056,{maxHp:7200})]],[0,0],{seed:14,criticals:false});let f=g.slots[0][1].fighter;assert.equal(f.stats.maxHp,7200);assert.equal(f.hp,7200);assert.equal(f.stats.atk,5800);assert.equal(f.soulState.dragon2117.recordedMax,7200);assert.equal(g.battle.fighters[1].stats.maxHp,5000);
+ g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.battle.fighters[1].stats.maxHp,6000);assert.equal(g.battle.fighters[1].stats.atk,3000);assert.equal(g.battle.fighters[1].hp,5000);assert.equal(g.battle.fighters[0].soulState.dragon2117.initialConsumed,1800);
+ g=T.turn(g,[{switchTo:0},{switchTo:1}]);f=g.slots[0][1].fighter;assert.equal(f.stats.maxHp,7200);assert.equal(f.stats.atk,5800);assert.equal(f.soulState.dragon2117.temporaryGain,0);assert.equal(g.slots[1][0].fighter.stats.maxHp,5000);assert.equal(g.slots[1][0].fighter.stats.atk,4000);
+ g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.battle.fighters[1].stats.maxHp,7200);assert.equal(g.battle.fighters[1].stats.atk,4000);assert.equal(g.battle.fighters[0].stats.atk,5800);
+ g=T.turn(g,[{switchTo:0},{switchTo:0}]);g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.battle.fighters[1].stats.maxHp,6000);assert.equal(g.battle.fighters[1].stats.atk,3000);assert.equal(g.battle.fighters[0].soulState.dragon2117.recordedMax,7200);assert.equal(g.battle.fighters[0].soulState.dragon2117.initialConsumed,1800);
+ const before=structuredClone(g);assert.match(D.fighter(g.battle.fighters[0],g.battle.round,g.battle.moveDefinitions).items.find(x=>x.name==='极龙初始转换').value,/记录 7200/);D.team(g,0);assert.deepEqual(g,before);
+});
+test('天堂极龙兽临时上限由真实溢出累计，离场全部清除且返场重新溢出不重复扣初始上限',()=>{
+ let g=T.create([[member(4921),member(2988)],[member(3102)]],[0,0],{seed:14,criticals:false});g=T.turn(g,[pp,pp]);let f=g.battle.fighters[0];assert.equal(f.stats.maxHp,9000);assert.equal(f.soulState.dragon2117.temporaryGain,1800);g=T.turn(g,[pp,pp]);assert.ok(g.battle.fighters[0].stats.maxHp>9000);g=T.turn(g,[{switchTo:1},pp]);f=g.slots[0][0].fighter;assert.equal(f.stats.maxHp,7200);assert.equal(f.hp,7200);assert.equal(f.soulState.dragon2117.temporaryGain,0);assert.equal(f.soulState.dragon2117.bestRound,0);g=T.turn(g,[{switchTo:0},pp]);f=g.battle.fighters[0];assert.equal(f.stats.maxHp,9000);assert.equal(f.soulState.dragon2117.temporaryGain,1800);assert.equal(f.soulState.dragon2117.recordedMax,7200);assert.equal(f.stats.atk,5800);
+});
+test('天堂极龙兽原生雷伊麻痹触发后成长依统一下场清零，战初记录与消耗不重做',()=>{
+ const owner=member(4921);owner.build.resistance=E.GEAR.normalizeResistance({slots:[{name:'麻痹',chance:0},{name:'中毒',chance:0},{name:'烧伤',chance:0}]});let g=T.create([[owner,member(2988)],[member(4829)]],[0,0],{seed:14,criticals:false});g=T.turn(g,[pp,'wiki:38133']);assert.equal(g.battle.fighters[0].soulState.dragon2117.triggerCount,1);g=T.turn(g,[{switchTo:1},pp]);assert.equal(g.slots[0][0].fighter.soulState.dragon2117.triggerCount,0);assert.equal(g.slots[0][0].fighter.ailments['麻痹'],undefined);g=T.turn(g,[{switchTo:0},pp]);const f=g.battle.fighters[0],last=f.soulState.dragon2117.recoveries.at(-1);assert.equal(f.soulState.dragon2117.triggerCount,0);assert.equal(last.requested,1800);assert.equal(last.triggerCount,0);assert.equal(f.soulState.dragon2117.initialConsumed,1800);
+});

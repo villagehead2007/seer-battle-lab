@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),pp='potion:pp';
+function member(id,stats={}){const snapshot=store.species(id);return {snapshot,moves:E.WIKI.defaultMoves(snapshot),build:{overrides:{maxHp:9000,atk:180,spa:180,def:30,spd:30,spe:1000,...stats}}};}
+function setup(field){const lead=member(field?4321:2988,{maxHp:1,def:1});let g=T.create([[lead,member(4745,{maxHp:1000,def:1,spe:2000}),member(3102,{atk:9999,spe:9999}),...(!field?[member(4321)]:[])],[member(3102,{atk:9999})]],[0,0],{seed:14,criticals:false});const key=g.slots[0][1].fighter.moves[0];g.slots[0][1].fighter.pp[key]=0;return {g,key};}
+function fallen(field){let {g,key}=setup(field);g=T.turn(g,[pp,'wiki:19564']);assert.equal(g.phase,'replace');assert.equal(Boolean(g.battle.swordReforge?.[0]),field);g=T.replace(g,[1,null]);g=T.turn(g,['potion:hp','wiki:19564']);assert.equal(g.phase,'replace');assert.equal(g.slots[0][1].fighter.hp,0);assert.equal(g.slots[0][1].fighter.pp[key],0);return {g,key};}
+test('用户更正也继承队友KO：真实圣华死亡生成重铸后阿尔忒弥斯阵亡，另一队友真实KO令其满HP与PP复活',()=>{
+ let {g,key}=fallen(true);assert.equal(g.slots[0][0].fighter.hp,0);g=T.replace(g,[2,null]);g=T.turn(g,['wiki:19564',pp]);const f=g.slots[0][1].fighter;assert.equal(g.battle.fighters[1].hp,0);assert.equal(g.battle.swordReforge[0],true);assert.equal(g.slots[0][0].fighter.hp,1);assert.equal(f.hp,1000);assert.equal(f.soulState.deathResolved,undefined);assert.equal(f.pp[key],f.teamPPDefinitions[key].pp);for(const move of f.moves)assert.equal(f.pp[move],f.teamPPDefinitions[move].pp);assert.equal(f.soulState.hunt1948.inheritedAllyRevivalHistory.at(-1).sourceHash,'2a1c0673');
+});
+test('继承圣华只保留KO复活子句，不因阿尔忒弥斯自身死亡生成重铸，无原场地时队友KO也不复活',()=>{
+ let {g}=fallen(false);assert.equal(g.battle.swordReforge?.[0]??false,false);assert.equal(g.battle.holySwords[0],0);g=T.replace(g,[2,null]);g=T.turn(g,['wiki:19564',pp]);assert.equal(g.battle.fighters[1].hp,0);assert.equal(g.slots[0][1].fighter.hp,0);assert.equal(g.slots[0][3].fighter.hp,9000);assert.equal(g.slots[0][1].fighter.soulState.hunt1948.inheritedAllyRevivalHistory,undefined);
+});

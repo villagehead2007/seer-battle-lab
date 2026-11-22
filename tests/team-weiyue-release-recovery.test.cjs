@@ -1,0 +1,19 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),D=require('../dist/battle-display.js'),store=require('../local-species.cjs');
+function member(id,skills=[],stats={}){const snapshot=store.species(id),moves=E.WIKI.defaultMoves(snapshot);for(const[i,k]of skills.entries())if(!moves.includes(k))moves[i+1]=k;return {snapshot,moves,build:{overrides:{maxHp:9000,atk:180,spa:180,...stats}}};}
+function create(initialEnemyHp=null){const g=T.create([[member(4510,[],{maxHp:1}),member(4499,[10047,14897,28285]),member(2987)],[member(3056,[10127,20117,23285],{atk:9999}),member(3102)]],[0,0],{seed:14,criticals:false});if(initialEnemyHp!==null)g.battle.fighters[1].hp=initialEnemyHp;return g;}
+function release(kind,initialEnemyHp=null){let g=create(initialEnemyHp);if(kind!=='shield')g=T.turn(g,['potion:pp',kind==='barrier'?'wiki:20117':'potion:pp']);g=T.turn(g,['potion:pp','wiki:10127']);assert.equal(g.phase,'replace');assert.equal(g.battle.fighters[0].hp,0);const end=g.battle.teamWeiyue1723[0].end;g=T.replace(g,[1,null]);assert.equal(g.battle.round,end);return g;}
+function damage(g,type){return (g.battle.damageEvents??[]).filter(e=>e.round===g.battle.round-1&&e.sourceSide===0&&e.targetSide===1&&e.type===type).reduce((n,e)=>n+e.settledDamage,0);}
+test('卫岳真实阵亡解放盾罩分别由选定后继承接红伤翻倍或固粉一半增伤，保持原两回期限且到期不再加成',()=>{
+ for(const kind of ['shield','barrier','both']){const ready=release(kind),buff=ready.battle.teamWeiyue1723[0];assert.equal(buff.shield,kind!=='barrier');assert.equal(buff.barrier,kind!=='shield');const before=structuredClone(ready);assert.match(D.team(ready,0).find(x=>x.name==='卫岳解放').value,/余 1 回合/);assert.deepEqual(ready,before);for(const [skill,type]of [[10047,'attack'],[14897,'fixed'],[28285,'percent']]){
+   const control=structuredClone(ready);delete control.battle.teamWeiyue1723[0];const actual=T.turn(ready,['wiki:'+skill,'potion:pp']),baseline=T.turn(control,['wiki:'+skill,'potion:pp']);const expected=(type==='attack'?buff.shield:buff.barrier)?type==='attack'?2:1.5:1;assert.ok(damage(baseline,type)>0);assert.ok(Math.abs(damage(actual,type)-damage(baseline,type)*expected)<=1);assert.equal(actual.slots[0][0].fighter.hp,0);
+   const after=T.turn(actual,['wiki:'+skill,'potion:pp']),noBuff=structuredClone(actual);delete noBuff.battle.teamWeiyue1723[0];const same=T.turn(noBuff,['wiki:'+skill,'potion:pp']);assert.equal(damage(after,type),damage(same,type));
+  }
+ }
+});
+test('卫岳真实双解放后当前敌原生回满技能为零回复，到期并用PP药后恢复；单解放不禁敌回复',()=>{
+ for(const kind of ['shield','barrier','both']){let g=release(kind,1000);const before=g.battle.fighters[1].hp;assert.ok(before<9000);g=T.turn(g,['potion:pp','wiki:23285']);assert.equal(g.battle.fighters[1].hp,kind==='both'?before:9000);g=T.turn(g,['potion:pp','potion:pp']);assert.ok(!D.team(g,0).some(x=>x.name==='卫岳解放'));g=T.turn(g,['potion:pp','wiki:23285']);assert.equal(g.battle.fighters[1].hp,9000);}
+});
+test('卫岳真实晚入场首回响应攻击开盾与属性开罩，主动离场清两标记，返场无用招下回合重开两者',()=>{
+ for(const status of [false,true]){let g=T.create([[member(2987),member(4510)],[member(3056,[10127,20117])]],[0,0],{seed:14,criticals:false});g=T.turn(g,['potion:pp','potion:pp']);g=T.turn(g,[{switchTo:1},status?'wiki:20117':'wiki:10127']);assert.equal(!!g.battle.fighters[0].soulState.weiyueShieldHeld,!status);assert.equal(!!g.battle.fighters[0].soulState.weiyueBarrierHeld,status);g=T.turn(g,[{switchTo:0},'potion:pp']);assert.ok(!g.slots[0][1].fighter.soulState.weiyueShieldHeld);assert.ok(!g.slots[0][1].fighter.soulState.weiyueBarrierHeld);g=T.turn(g,[{switchTo:1},'potion:pp']);assert.ok(!g.battle.fighters[0].soulState.weiyueShieldHeld);g=T.turn(g,['potion:pp','potion:pp']);assert.ok(g.battle.fighters[0].soulState.weiyueShieldHeld);assert.ok(g.battle.fighters[0].soulState.weiyueBarrierHeld);}
+});

@@ -1,0 +1,5 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3237-native.cjs'),D=require('../dist/battle-display.js');
+test('3237明王560真实受红授次轮减伤只读显示，过期与死亡状态准确且错误版本不冒显',()=>{
+ let s=H.make(14102,{enemyMoves:[10086],aStats:{def:1000},bStats:{atk:9999}});function read(){const before=structuredClone(s),row=D.fighter(s.fighters[0],s.round,s.moveDefinitions,s).items.find(x=>x.name==='明王 · 当前减伤');assert.deepEqual(s,before);return row;}assert.match(read().value,/未生效/);s=H.turn(s,'potion:pp',10086);assert.ok(H.damage(s,'attack',1)>300);assert.match(read().value,/红伤减少50%/);s=H.turn(s,'potion:pp',10086);assert.match(read().value,/未生效/);const before=structuredClone(s);s.fighters[0].soulHash='wrong-version';assert.equal(read(),undefined);s=before;
+ const dead=H.turn(H.make(14102,{aHp:1,enemyMoves:[10086],aStats:{def:1000},bStats:{atk:9999}}),'potion:pp',10086),copy=structuredClone(dead),row=D.fighter(dead.fighters[0],dead.round,dead.moveDefinitions,dead).items.find(x=>x.name==='明王 · 击败反制');assert.match(row.value,/已触发/);assert.deepEqual(dead,copy);
+});

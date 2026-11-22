@@ -1,0 +1,8 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/original-entry-native.cjs');assert.equal(H.store.species(3318).souls.find(x=>x.id===645).hash,'31d027da');
+test('3318完整原645每回速度加二与药剂独立，负二回零不获必暴、正速获原必暴、禁强与六级封顶不混用招成长',()=>{
+ for(const mode of['normal','negative','ban','cap']){let s=H.make(3318,{moves:[12089],stages:{acc:6,...mode==='negative'?{spe:-2}:mode==='cap'?{spe:6}:{}},effects:mode==='ban'?{禁强化:{start:1,end:3}}:{}});assert.equal(s.fighters[0].soulId,645);s=H.turn(s);const stage=mode==='normal'?2:mode==='cap'?6:0;assert.equal(s.fighters[0].stages.spe,stage);const pp=s.fighters[0].pp['wiki:12089'],r=s.round;s=H.turn(s,12089);assert.equal(s.fighters[0].pp['wiki:12089'],pp-1);assert.ok(H.damage(s,r)>0);assert.equal(s.turns.at(-1).events.some(e=>e.text.includes('致命一击')),stage>0);assert.equal(s.fighters[0].stages.spe,mode==='normal'?4:mode==='negative'?2:mode==='cap'?6:0);}
+});
+test('3318完整原645实际致死浴火重生只一次，随后两次原冲顶红伤被抵挡且各消费一次，第三次再致死不重生',()=>{
+ let s=H.make(3318,{moves:[12089],hp:1,aStats:{def:1},bStats:{atk:3000}}),r=s.round;s=H.turn(s,'potion:pp',10086);assert.ok(H.damage(s,r,1)>9000);assert.equal(s.fighters[0].hp,9000);assert.equal(s.fighters[0].soulState.phoenixReborn,true);assert.equal(s.fighters[0].counts.attackNullify,2);for(const remaining of[1,0]){r=s.round;const pp=s.fighters[1].pp['wiki:10086'];s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[1].pp['wiki:10086'],pp-1);assert.equal(H.damage(s,r,1),0);assert.equal(s.fighters[0].hp,9000);assert.equal(s.fighters[0].counts.attackNullify,remaining);}s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[0].hp,0);assert.equal(s.fighters[0].soulState.phoenixReborn,true);
+});

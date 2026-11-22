@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs');
+function member(id,skills=[],stats={}){const snapshot=store.species(id),moves=E.WIKI.defaultMoves(snapshot);for(const[i,k]of skills.entries())if(!moves.includes(k))moves[i+1]=k;return {snapshot,moves,build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,...stats}}};}
+function game(){return T.create([[member(4422,[36140,36133],{def:1}),member(3102)],[member(3056,[10127],{atk:9999}),member(2987)]],[0,0],{seed:14,criticals:false});}
+test('天奔流·东辉真实天奔七式原62索引1七回绑定，任一方实际主动换人解除双方且原期限不再处决',()=>{
+ for(const side of [0,1]){let g=game();g=T.turn(g,['wiki:36140','potion:pp']);const token=g.battle.fighters[0].effects['延迟决胜'].delayedExecutionToken;assert.equal(g.battle.fighters[0].effects['延迟决胜'].start,8);assert.equal(g.battle.fighters[1].effects['延迟决胜绑定'].delayedExecutionToken,token);g=T.turn(g,side===0?[{switchTo:1},'potion:pp']:['potion:pp',{switchTo:1}]);for(const slot of g.slots.flat())assert.ok(!Object.values(slot.fighter.effects).some(e=>e.delayedExecutionToken===token));while(g.battle.round<=8)g=T.turn(g,['potion:pp','potion:pp']);assert.equal(g.phase,'action');assert.ok(g.battle.fighters.every(f=>f.hp>0));assert.ok(!(g.battle.healthLossEvents??[]).some(e=>e.type==='execution'));}
+});
+test('天奔流·东辉真实天奔七式任一方被击败后强制补位解除双方绑定，原截止回合不会处决继任者',()=>{
+ for(const side of [0,1]){let g=game();g.battle.fighters[side].hp=1;if(side===1)g.battle.fighters[1].effects['攻击伤害免疫']={start:1,end:1};g=T.turn(g,['wiki:36140','potion:pp']);const token=g.battle.fighters[0].effects['延迟决胜'].delayedExecutionToken;g=T.turn(g,side===0?['potion:pp','wiki:10127']:['wiki:36133','potion:pp']);assert.equal(g.phase,'replace');assert.equal(g.battle.fighters[side].hp,0);g=T.replace(g,side===0?[1,null]:[null,1]);for(const slot of g.slots.flat())assert.ok(!Object.values(slot.fighter.effects).some(e=>e.delayedExecutionToken===token));while(g.battle.round<=8)g=T.turn(g,['potion:pp','potion:pp']);assert.equal(g.phase,'action');assert.ok(g.battle.fighters.every(f=>f.hp>0));assert.ok(!(g.battle.healthLossEvents??[]).some(e=>e.type==='execution'));}
+});
+test('天奔流·东辉真实七回绑定无人离场时仍在原第八回合执行，保留原62有效分支',()=>{
+ let g=game();g=T.turn(g,['wiki:36140','potion:pp']);const hp=g.battle.fighters[1].hp;while(g.battle.round<8)g=T.turn(g,['potion:pp','potion:pp']);assert.equal(g.phase,'action');assert.equal(g.battle.fighters[1].hp,hp);g=T.turn(g,['potion:pp','potion:pp']);assert.equal(g.phase,'replace');assert.equal(g.battle.fighters[1].hp,0);
+});

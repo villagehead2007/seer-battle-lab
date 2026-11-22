@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/original-entry-native.cjs');
+test('3318原645重生后的真实冲顶MISS不消费两次抵挡，随后两次命中依次消费，耗尽再致死不二次重生',()=>{
+ let s=H.make(3318,{moves:[12089],hp:1,aStats:{def:1},bStats:{atk:3000}});assert.equal(s.turns.length,0);s.fighters[1].effects.攻击必失={start:2,end:2};s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[0].hp,9000);assert.equal(s.fighters[0].counts.attackNullify,2);let r=s.round,pp=s.fighters[1].pp['wiki:10086'];s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[1].pp['wiki:10086'],pp-1);assert.ok(s.turns.at(-1).events.some(e=>e.text.includes('未命中')));assert.equal(H.damage(s,r,1),0);assert.equal(s.fighters[0].hp,9000);assert.equal(s.fighters[0].counts.attackNullify,2);for(const remaining of[1,0]){r=s.round;s=H.turn(s,'potion:pp',10086);assert.equal(H.damage(s,r,1),0);assert.equal(s.fighters[0].hp,9000);assert.equal(s.fighters[0].counts.attackNullify,remaining);}s=H.turn(s,'potion:pp',10086);assert.equal(s.fighters[0].hp,0);assert.equal(s.fighters[0].soulState.phoenixReborn,true);
+});

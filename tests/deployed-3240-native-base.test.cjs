@@ -1,0 +1,10 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3240-native.cjs');
+test('3240完整原招原魂564版本有序实例逐一正常用招耗PP，零PP拒绝且输入不变',()=>{
+ assert.equal(H.source.source.revision,'45cc46e3');assert.equal(H.source.souls[0].hash,'2e5b4a29');for(const m of H.source.moves){let s=H.make(m.id,{aStages:{acc:6}});assert.equal(s.fighters[0].soulId,564);const c=H.E.WIKI.effectsEngine.compileInstances(m.effectInstances,H.source.effects,m);assert.equal(c.issue,'');assert.deepEqual(s.moveDefinitions['wiki:'+m.id].operations.map(o=>[o.effectId,o.index,o.phase,o.params]),c.operations.map(o=>[o.effectId,o.index,o.phase,o.params]));s=H.turn(s,m.id);assert.equal(s.fighters[0].pp['wiki:'+m.id],m.pp-1);if(m.kind!=='status'&&m.power>0)assert.ok(H.damage(s,'attack')>0,m.name);const q=H.make(m.id);q.fighters[0].pp['wiki:'+m.id]=0;const before=structuredClone(q);assert.throws(()=>H.turn(q,m.id));assert.deepEqual(q,before);}
+});
+test('3240全部原招疲惫未用不扣PP，全招无效耗PP但不产生原攻击及固定百分比附伤',()=>{
+ for(const m of H.source.moves){let s=H.turn(H.make(m.id,{aAilments:{疲惫:2}}),m.id);assert.equal(s.fighters[0].pp['wiki:'+m.id],m.pp);assert.equal(s.fighters[1].hp,9000);s=H.turn(H.make(m.id,{aEffects:{skillBlock:{start:1,end:1}}}),m.id);assert.equal(s.fighters[0].pp['wiki:'+m.id],m.pp-1);assert.equal(H.damage(s,'attack'),0);assert.equal(H.damage(s,'fixed'),0);assert.equal(H.damage(s,'percent'),0);}
+});
+test('3240非必中原招自然种子负六命中真实MISS，原魂吸血与低伤奖励不触发',()=>{
+ for(const m of H.source.moves.filter(m=>!m.alwaysHit)){let found=false;for(let seed=1;seed<=32&&!found;seed++){let miss=false;const old=H.E.SOULS;H.E.SOULS={...old,run(event,c){const out=old.run(event,c);if(event==='afterUse'&&c.a.side===0)miss=!!c.invalidReason?.miss;return out;}};let s;try{s=H.turn(H.make(m.id,{seed,aStages:{acc:-6},aHp:1000}),m.id);}finally{H.E.SOULS=old;}if(!miss)continue;found=true;assert.equal(s.fighters[0].pp['wiki:'+m.id],m.pp-1);assert.equal(H.damage(s,'attack'),0);assert.equal(H.damage(s,'fixed'),0);assert.equal(H.damage(s,'percent'),0);assert.equal(s.fighters[0].hp,1000);}assert.ok(found,m.name);}
+});

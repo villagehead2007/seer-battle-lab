@@ -1,0 +1,8 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),D=require('../dist/battle-display.js'),{E,make,turn}=require('./helpers/3013-native.cjs'),pp='potion:pp';
+test('3013原生空间PP倍耗和刹那先制麻痹都显示真实数量概率异常种类及独立到期，读取不改状态',()=>{
+ let s=turn(make(24687),24687),before=structuredClone(s);assert.ok(E.describeEffects(s.fighters[1],s.round).some(t=>/PP消耗倍增 ×2 · 余 2 回合/.test(t)));assert.deepEqual(s,before);s=turn(make(24688),24688);before=structuredClone(s);assert.ok(E.describeEffects(s.fighters[0],s.round).some(t=>/技能先制 \+2 · 余 2 回合/.test(t)));assert.ok(E.describeEffects(s.fighters[0],s.round).some(t=>/攻击附加异常（50%麻痹） · 余 3 回合/.test(t)));assert.deepEqual(s,before);s=turn(s,pp);s=turn(s,pp);assert.ok(!E.describeEffects(s.fighters[0],s.round).some(t=>t.includes('技能先制')));assert.ok(E.describeEffects(s.fighters[0],s.round).some(t=>/50%麻痹.*余 1 回合/.test(t)));
+});
+test('3013原第五实际连用次数预测下一次固定150200250封顶，其他技能打断后隐藏且只读不提前叠层',()=>{
+ let s=make(19195,{extraMoves:[20044]});for(const[next,actual]of[[150,100],[200,150],[250,200],[250,250]]){s=turn(s,19195);assert.equal(s.damageEvents.filter(e=>e.round===s.turns.at(-1).round&&e.type==='fixed'&&e.sourceSide===0).reduce((n,e)=>n+e.settledDamage,0),actual);const before=structuredClone(s),item=D.fighter(s.fighters[0],s.round,s.moveDefinitions).items.find(x=>x.name==='极空幻天斩连用附伤');assert.ok(item);assert.match(item.value,new RegExp('下次连续使用 '+next+' 点固定伤害'));assert.deepEqual(s,before);}s=turn(s,20044);assert.ok(!D.fighter(s.fighters[0],s.round,s.moveDefinitions).items.some(x=>x.name==='极空幻天斩连用附伤'));s=turn(s,19195);assert.match(D.fighter(s.fighters[0],s.round,s.moveDefinitions).items.find(x=>x.name==='极空幻天斩连用附伤').value,/下次连续使用 150 点固定伤害/);
+});

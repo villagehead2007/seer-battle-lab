@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{make,turn}=require('./helpers/3010-native.cjs'),pp='potion:pp',keys=['atk','def','spa','spd','spe','acc'];
+test('3010四个原生4及585各自参数生效，圣芒攻一双防二命中一不误加特攻速度，正六封顶禁强化',()=>{
+ for(const[id,expected]of[[20276,{spa:1}],[20568,{def:1,spd:1}],[20569,{atk:2}],[24191,{atk:1,def:2,spd:2,acc:1}]]){let s=turn(make(id),id);for(const k of keys)assert.equal(s.fighters[0].stages[k],expected[k]??0,id+'/'+k);s=turn(make(id,{aStages:Object.fromEntries(keys.map(k=>[k,5]))}),id);for(const k of keys)assert.equal(s.fighters[0].stages[k],expected[k]?6:5);s=turn(make(id,{aEffects:{禁强化:{start:1,end:2}}}),id);for(const k of keys)assert.equal(s.fighters[0].stages[k],0);}
+});
+test('3010千年两5原生只降低攻特攻一且负六封底，星皇免弱；风沙10%降攻自然成功失败独立',()=>{
+ let s=turn(make(20565),20565);assert.equal(s.fighters[1].stages.atk,-1);assert.equal(s.fighters[1].stages.spa,-1);for(const k of ['def','spd','spe','acc'])assert.equal(s.fighters[1].stages[k],0);s=turn(make(20565,{bStages:{atk:-6,spa:-6}}),20565);assert.equal(s.fighters[1].stages.atk,-6);assert.equal(s.fighters[1].stages.spa,-6);s=turn(make(20565,{enemyId:3291}),20565);assert.equal(s.fighters[1].stages.atk,0);assert.equal(s.fighters[1].stages.spa,0);let yes=0,no=0;for(let seed=1;seed<=64;seed++){s=turn(make(11144,{seed,aStages:{acc:6}}),11144);assert.ok([0,-1].includes(s.fighters[1].stages.atk));if(s.fighters[1].stages.atk<0)yes++;else no++;for(const k of keys.filter(k=>k!=='atk'))assert.equal(s.fighters[1].stages[k],0);}assert.ok(yes>0&&no>0);s=turn(make(11144,{enemyId:3291}),11144);assert.equal(s.fighters[1].stages.atk,0);s=turn(make(11144,{bStages:{atk:-6}}),11144);assert.equal(s.fighters[1].stages.atk,-6);
+});
+test('3010能量33实际清穿梭正速保留原负防，真实繁苍保护阻挡消强，空正级不重置负级',()=>{
+ let s=make(11148,{enemyMoves:[20889],bStages:{def:-2},aStages:{acc:6}});s=turn(s,pp,20889);assert.equal(s.fighters[1].stages.spe,1);s=turn(s,11148);assert.equal(s.fighters[1].stages.spe,0);assert.equal(s.fighters[1].stages.def,-2);s=turn(make(11148,{bStages:{def:-2},aStages:{acc:6}}),11148);assert.equal(s.fighters[1].stages.def,-2);s=make(11148,{enemyId:3549,enemyMoves:[29392],aStages:{acc:6}});s=turn(s,pp,29392);const before={...s.fighters[1].stages};assert.ok(Object.values(before).some(n=>n>0));s=turn(s,11148);assert.deepEqual(s.fighters[1].stages,before);
+});
+test('3010电能521只反转自身负级保留正级，真实攻击值600在反转前入伤害，正负六边界不交换正级',()=>{
+ let s=turn(make(17623,{aStages:{atk:-2,def:1,spa:-1,spd:2,spe:-3,acc:1}}),17623);assert.deepEqual(s.fighters[0].stages,{atk:2,def:1,spa:1,spd:2,spe:3,acc:1});assert.equal(s.damageEvents.find(e=>e.type==='attack'&&e.sourceSide===0).attackValue,600);s=turn(make(17623,{aStages:{atk:-6,def:6,acc:6}}),17623);assert.equal(s.fighters[0].stages.atk,6);assert.equal(s.fighters[0].stages.def,6);s=turn(make(17623,{aStages:{atk:1,def:2,acc:6}}),17623);assert.equal(s.fighters[0].stages.atk,1);assert.equal(s.fighters[0].stages.def,2);
+});

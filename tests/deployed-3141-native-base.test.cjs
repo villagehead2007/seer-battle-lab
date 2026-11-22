@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3141-native.cjs');
+test('3141原27招和480及611原强化魂真实字段、唯一19724第五；逐招PP零PP疲惫与输入只读',()=>{
+ assert.equal(H.source.moves.length,27);for(const soul of[480,611])for(const m of H.source.moves){let s=H.make(m.id,{soul}),k='wiki:'+m.id,c=s.moveDefinitions[k];for(const p of['name','kind','power','pp','accuracy','priority','alwaysHit','fifth'])assert.equal(c[p],m[p],m.id+'/'+p);assert.equal(c.type,m.kind==='status'?'属性':m.type);assert.equal(s.fighters[0].soulHash,soul===480?'2abaceaa':'312a1a2f');assert.equal(s.fighters[0].moves.filter(k=>s.moveDefinitions[k].fifth).length,1);assert.ok(s.fighters[0].moves.includes('wiki:19724'));const old=structuredClone(s),out=H.turn(s,m.id);assert.equal(out.fighters[0].pp[k],m.pp-1);assert.deepEqual(s,old);s=H.make(m.id,{soul});s.fighters[0].pp[k]=0;assert.throws(()=>H.turn(s,m.id),/有 PP/);s=H.turn(H.make(m.id,{soul,aAilments:{疲惫:2}}),m.id);assert.equal(s.fighters[0].pp[k],m.pp);assert.equal(s.fighters[0].hp,4500);assert.equal(s.fighters[1].hp,9000);}
+});

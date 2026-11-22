@@ -1,8 +1,13 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const E=require('../dist/engine.js');
-const {inventory}=require('../completion-policy.cjs');
+const {inventory,checkReview}=require('../completion-policy.cjs');
 const root=path.join(__dirname,'..');
+// Some original snapshots retained atk_num only in their archived deferred note.
+// Resolve only checksum-bound historical fields, without changing snapshot raw data.
+const historicalRangeBytes=fs.readFileSync(path.join(__dirname,'TEAM-STAGE-2/historical-target-counts.json'));
+const historicalRangeValid=require('node:crypto').createHash('sha256').update(historicalRangeBytes).digest('hex')==='e07b30c9a125945ca56daa5fad9dcb3c77bea5a0281c3cfac2566e7faef68cd4';
+const historicalRanges=JSON.parse(historicalRangeBytes).rows;
 function build(snapshots,reviews={entries:{}}) {
   const result=[],excluded=[];
   for(const s of snapshots) {
@@ -28,6 +33,9 @@ function build(snapshots,reviews={entries:{}}) {
       const current=review?.sourceDigest===entry.sourceDigest;
       const parts=entry.key.split(':'),move=entry.kind==='soul'?null:s.moves.find(x=>x.id===Number(parts[2]));
       const metadata=entry.raw.metadata;
+      const historicalRange=historicalRangeValid&&historicalRanges.find(x=>x.key===entry.key&&x.sourceDigest===entry.sourceDigest&&x.skillRevision===entry.raw.hash&&x.petRevision===s.source?.revision);
+      const confirmedHistoricalMixedRange=historicalRange&&historicalRange.independentInstances.every(x=>{const e=items.find(e=>e.key===`${s.id}:skill:${entry.raw.id}:${x.index}`),r=reviews.entries?.[e?.key];return e?.raw.instance.id===x.id&&JSON.stringify(e.raw.instance.args)===JSON.stringify(x.args)&&r?.scope==='single'&&r.sourceDigest===e.sourceDigest&&checkReview(e,r,root).length===0;});
+      const sourceTargetCount=entry.raw.sourceTargetCount??(confirmedHistoricalMixedRange?historicalRange.originalTargetCount:undefined);
       const row={key:entry.key,speciesId:s.id,speciesName:s.name,kind:entry.kind,skillId:move?.id??null,ruleId:entry.kind==='soul'?entry.raw.id:entry.raw.instance?.id??null,instanceIndex:entry.raw.index??null,sourceDigest:entry.sourceDigest,
         reviewStatus:current&&['mixed','multiplayer'].includes(review.scope)?'reviewed':'needs-review',scope:current?review.scope:'unclassified',
         legacyNotes:candidates.get(entry.key),description:current?review.deferredBehavior:null,
@@ -35,11 +43,25 @@ function build(snapshots,reviews={entries:{}}) {
         trigger:current?review.trigger:null,futureMechanisms:current?review.futureMechanisms:[],singleBehavior:current?review.singleBehavior:null};
       // Q-A60-4004-008 applies only the range field; this precise mixed source retains its independent 14 clause.
       const confirmed4395MixedRange=s.id===4395&&s.source?.provider==='seerapi'&&s.source.revision==='d5578e82'&&s.souls?.length===1&&s.souls[0].id===1613&&s.souls[0].hash==='c6d33591'&&entry.kind==='move'&&entry.raw.id===12440&&entry.raw.provider==='seerapi'&&entry.raw.hash==='999b0a76'&&entry.raw.revision==='seerapi:999b0a76'&&entry.raw.kind==='special'&&entry.raw.power===100&&entry.raw.pp===15&&entry.raw.accuracy===100&&JSON.stringify(entry.raw.effectIds)==='[14]'&&entry.raw.effectInstances?.length===1&&entry.raw.effectInstances[0].id===14&&JSON.stringify(entry.raw.effectInstances[0].args)==='[20]'&&entry.raw.effectInstances[0].description==='命中后20%令对方冻伤'&&s.effects?.find(e=>e.id===14)?.revision==='seerapi:9fce2329'&&review?.userConfirmation==='research/4395-user-confirmed-rules.json';
-      const ignored=current&&review.scope==='single'&&entry.kind==='move'&&(entry.raw.effectIds?.length===0||confirmed4395MixedRange)&&entry.raw.sourceTargetCount>1&&entry.raw.deferredEffects?.length&&entry.raw.deferredEffects.every(x=>x.field==='atk_num')&&review.ignoredSourceFeatures?.some(x=>x.field==='atk_num'&&x.value===entry.raw.sourceTargetCount&&x.sourceHash===entry.raw.hash&&x.confirmation==='research/MULTI-TARGET-USER-SCOPE.json');
-      if(ignored)excluded.push({...row,reviewStatus:'excluded-by-user-confirmation',description:'原始多目标范围字段按用户单挑约定不产生额外词条；当前目标一次普通攻击，其他目标不在项目范围。保留原来源及历史延期记录，不声明多目标已实现。',userConfirmation:'research/MULTI-TARGET-USER-SCOPE.json'});else result.push(row);
+      // Same archived 3004 sources: exclude only atk_num after the separate stat
+      // instance has its own current, executable state evidence. Unknown mixed
+      // sources and missing/stale independent reviews remain visible.
+      const mixed3004={20444:{hash:'95dc4e3e',kind:'status',power:0,pp:20,effect:4,args:[1,100,1],metadata:'seerapi:259ebd64'},10961:{hash:'5866335a',kind:'special',power:100,pp:10,effect:5,args:[3,10,-1],metadata:'seerapi:6392cf41'}}[entry.raw.id];
+      const independent3004=items.find(e=>e.key===`3004:skill:${entry.raw.id}:0`),independentReview3004=reviews.entries?.[independent3004?.key];
+      const confirmed3004MixedRange=s.id===3004&&s.source?.provider==='seerapi'&&s.source.revision==='bc8421ba'&&s.souls?.length===1&&s.souls[0].id===378&&s.souls[0].hash==='9952ed16'&&entry.kind==='move'&&mixed3004&&entry.raw.provider==='seerapi'&&entry.raw.hash===mixed3004.hash&&entry.raw.revision==='seerapi:'+mixed3004.hash&&entry.raw.kind===mixed3004.kind&&entry.raw.power===mixed3004.power&&entry.raw.pp===mixed3004.pp&&entry.raw.accuracy===100&&entry.raw.alwaysHit===false&&entry.raw.sourceTargetCount===3&&JSON.stringify(entry.raw.effectIds)===JSON.stringify([mixed3004.effect])&&entry.raw.effectInstances?.length===1&&entry.raw.effectInstances[0].id===mixed3004.effect&&JSON.stringify(entry.raw.effectInstances[0].args)===JSON.stringify(mixed3004.args)&&independent3004?.raw.metadata?.revision===mixed3004.metadata&&independentReview3004?.scope==='single'&&independentReview3004.sourceDigest===independent3004.sourceDigest&&checkReview(independent3004,independentReview3004,root).length===0;
+      const ignored=current&&review.scope==='single'&&entry.kind==='move'&&(entry.raw.effectIds?.length===0||confirmed4395MixedRange||confirmed3004MixedRange||confirmedHistoricalMixedRange)&&sourceTargetCount>1&&entry.raw.deferredEffects?.length&&entry.raw.deferredEffects.every(x=>x.field==='atk_num')&&review.ignoredSourceFeatures?.some(x=>x.field==='atk_num'&&x.value===sourceTargetCount&&x.sourceHash===entry.raw.hash&&x.confirmation==='research/MULTI-TARGET-USER-SCOPE.json');
+      if(ignored)excluded.push({...row,resolvedSourceTargetCount:sourceTargetCount,reviewStatus:'excluded-by-user-confirmation',description:'原始多目标范围字段按用户单挑约定不产生额外词条；当前目标一次普通攻击，其他目标不在项目范围。保留原来源及历史延期记录，不声明多目标已实现。',userConfirmation:'research/MULTI-TARGET-USER-SCOPE.json'});else result.push(row);
     }
     // Unbound historical annotations remain visible and block review; never silently discard them.
     (s.deferredEffects??[]).forEach((raw,index)=>result.push({key:`${s.id}:unbound:${index}`,speciesId:s.id,kind:'unbound',raw,source:s.source,reviewStatus:'needs-review'}));
+  }
+  const branchReviews = JSON.parse(fs.readFileSync(path.join(__dirname, 'TEAM-STAGE-2/branch-review.json'), 'utf8'));
+  for (const row of result) {
+    const review = branchReviews[row.key];
+    if (!review) continue;
+    row.stageTwo = review.sourceDigest === row.sourceDigest
+      ? review
+      : {status: '来源变化，须重审'};
   }
   return {schemaVersion:1,scope:'multiplayer-deferred',records:result,excludedRecords:excluded};
 }
@@ -54,10 +76,10 @@ function main() {
   for(const [index,raw] of extras.entries())todo.records.push({key:`legacy-extra:${index}`,speciesId:raw.id,kind:'unbound',raw,source:{provider:null,url:null,revision:null,status:'missing',note:'尚未落盘，必须依据真实 SeerAPI/BWIKI 来源核实后才能登记为有效延期'},reviewStatus:'needs-review',scope:'unclassified'});
   const lines=['# 多精灵统一待实现清单','','机器可读原始资料与版本在 `MULTI-PET-TODO.json`；逐词条审核在 `SINGLE-STAGE-REVIEWS.json`。本文件由 `node research/build-multiplayer-todo.cjs` 生成。','','历史延期标记只作为候选，不是语义审核结论。needs-review 条目不能豁免单精灵实现；混合词条必须先验证单精灵部分。重复效果按技能内实例序号分别保留。', '',`共 ${todo.records.length} 个候选/延期记录，其中 ${todo.records.filter(x=>x.reviewStatus==='needs-review').length} 个待语义审核。`,''];
   for(const row of todo.records) {
-    lines.push(`## ${row.key} · ${row.speciesName??''}`,`状态：${row.reviewStatus}；范围：${row.scope??'unclassified'}`,'',`原始记录：见 JSON 的同名 key（完整原文、参数、来源和版本）。`, '',`延期分支：${row.description??'待逐项语义审核，不能按效果 ID 自动延期。'}`,`触发条件：${row.trigger??'待从原文审核'}`,`未来机制：${row.futureMechanisms?.join('；')||'待审核'}`,`历史标记：${row.legacyNotes?.join('；')??JSON.stringify(row.raw)}`,'');
+    lines.push(`## ${row.key} · ${row.speciesName??''}`,`状态：${row.reviewStatus}；范围：${row.scope??'unclassified'}`,'',`原始记录：见 JSON 的同名 key（完整原文、参数、来源和版本）。`, '',`延期分支：${row.description??'待逐项语义审核，不能按效果 ID 自动延期。'}`,...(row.stageTwo ? [`第二阶段：${row.stageTwo.status}。${row.stageTwo.finding ?? ''}`] : []),`触发条件：${row.trigger??'待从原文审核'}`,`未来机制：${row.futureMechanisms?.join('；')||'待审核'}`,`历史标记：${row.legacyNotes?.join('；')??JSON.stringify(row.raw)}`,'');
   }
   lines.push('# 用户明确排除的来源特性（历史保留）','',`以下 ${todo.excludedRecords.length} 条仅忽略多目标范围标记，按一次普通单目标攻击执行；原始字段、版本和历史延期记录完整保存在JSON excludedRecords，不计入待实现。确认见 research/MULTI-TARGET-USER-SCOPE.json。`,'');
-  for(const row of todo.excludedRecords)lines.push(`- ${row.key} · ${row.speciesName}：atk_num=${row.raw.sourceTargetCount}，范围特性按用户确认忽略；来源 ${row.source.url}，版本 ${row.source.revision}。`);
+  for(const row of todo.excludedRecords)lines.push(`- ${row.key} · ${row.speciesName}：atk_num=${row.raw.sourceTargetCount??row.resolvedSourceTargetCount}，范围特性按用户确认忽略；来源 ${row.source.url}，版本 ${row.source.revision}。`);
   fs.writeFileSync(path.join(root,'MULTI-PET-TODO.json'),JSON.stringify(todo,null,2)+'\n');
   fs.writeFileSync(path.join(root,'MULTI-PET-TODO.md'),lines.join('\n'));
   console.log(`Unified multiplayer records: ${todo.records.length}; user-excluded source features: ${todo.excludedRecords.length}; no completion status changed.`);

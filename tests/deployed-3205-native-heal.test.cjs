@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{make,turn}=require('./helpers/3205-native.cjs');
+const red=(s,side)=>(s.damageEvents??[]).filter(e=>e.round===s.round-1&&e.sourceSide===side&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);
+test('3205极月458按新统一答先出手吸完整结算红伤50，过量1HP保留红基数，后手无回复且技能禁疗和满体封顶独立',()=>{
+ for(const soul of[535,548])for(const mode of['overflow','floor','ban','cap','second']){const initial=make(13871,{soul,aHp:mode==='cap'?8999:1000,bHp:mode==='floor'?1:mode==='overflow'||mode==='ban'||mode==='cap'?1:9000,aStats:{spa:1200,spe:mode==='second'?10:1000},enemyMoves:[10086],...(mode==='floor'?{bEffects:{'致命保留':{start:1,end:9,hp:1}}}:{}),...(mode==='ban'?{aEffects:{'技能禁疗':{start:1,end:9}}}:{})}),s=turn(initial,13871,10086),n=red(s,0);assert.ok(n>1);assert.equal(s.turns.at(-1).events.find(e=>e.text.includes('先手：')).text.startsWith(mode==='second'?'B 方':'A 方'),true,mode+' actual order');const loss=(s.damageEvents??[]).filter(e=>e.round===1&&e.targetSide===0).reduce((v,e)=>v+e.hpLoss,0),expected=mode==='second'||mode==='ban'?0:Math.min(9000-initial.fighters[0].hp,Math.floor(n*.5));assert.equal(s.fighters[0].hp,initial.fighters[0].hp-loss+expected,mode);if(mode==='floor')assert.equal(s.fighters[1].hp,1);}
+});

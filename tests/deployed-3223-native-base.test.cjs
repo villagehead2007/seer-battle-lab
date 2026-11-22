@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3223-native.cjs');
+test('3223两魂完整22原招均按原版本有序操作真实用招扣PP，零PP拒绝保持输入',()=>{
+ assert.equal(H.source.source.revision,'d5c86a13');assert.equal(H.source.moves.length,22);for(const soul of H.source.souls)for(const move of H.source.moves){let s=H.make(move.id,{soul:soul.id,aStages:{acc:6}});assert.equal(s.fighters[0].soulHash,soul.hash);const actual=s.moveDefinitions['wiki:'+move.id],compiled=H.E.WIKI.effectsEngine.compileInstances(move.effectInstances,H.source.effects,move);assert.equal(compiled.issue,'');assert.deepEqual(actual.operations.map(o=>[o.effectId,o.index,o.phase,o.params]),compiled.operations.map(o=>[o.effectId,o.index,o.phase,o.params]));s=H.turn(s,move.id);assert.equal(s.fighters[0].pp['wiki:'+move.id],move.pp-1);if(move.kind!=='status'&&move.power>0)assert.ok(H.damage(s,'attack')>0);const q=H.make(move.id,{soul:soul.id});q.fighters[0].pp['wiki:'+move.id]=0;const before=structuredClone(q);assert.throws(()=>H.turn(q,move.id));assert.deepEqual(q,before);}
+});
+test('3223两魂完整22原招初始疲惫未用不扣PP，整招封锁实际用招扣PP但不执行命中载荷',()=>{
+ for(const soul of H.source.souls)for(const move of H.source.moves){let s=H.turn(H.make(move.id,{soul:soul.id,aAilments:{疲惫:2}}),move.id);assert.equal(s.fighters[0].pp['wiki:'+move.id],move.pp);assert.equal(H.damage(s,'attack'),0);assert.equal(s.fighters[1].hp,9000);s=H.turn(H.make(move.id,{soul:soul.id,aEffects:{skillBlock:{start:1,end:1}}}),move.id);assert.equal(s.fighters[0].pp['wiki:'+move.id],move.pp-1);assert.equal(H.damage(s,'attack'),0);assert.equal(s.fighters[1].hp,9000);}
+});
+test('3223两魂所有非必中原招在合法负六命中自然MISS，保留原PP消费且不执行附伤或技能强化',()=>{
+ for(const soul of H.source.souls)for(const move of H.source.moves.filter(m=>!m.alwaysHit)){let missed=false;for(let seed=1;seed<=24&&!missed;seed++){let s=H.make(move.id,{soul:soul.id,seed,aStages:{acc:-6}}),miss=false;const old=H.E.SOULS;H.E.SOULS={...old,run(event,c){old.run(event,c);if(event==='afterUse'&&c.a.side===0)miss=!!c.invalidReason?.miss;}};try{s=H.turn(s,move.id);}finally{H.E.SOULS=old;}if(!miss)continue;missed=true;assert.equal(H.damage(s,'attack'),0);assert.equal(H.damage(s,'fixed'),0);assert.equal(s.fighters[1].hp,9000);assert.equal(s.fighters[0].pp['wiki:'+move.id],move.pp-1);}assert.ok(missed,move.name);}
+});

@@ -1,0 +1,11 @@
+'use strict';
+require('./deployed-3102-native-base.test.cjs');
+require('./deployed-3102-native-soul-known.test.cjs');
+require('./deployed-3102-native-stats.test.cjs');
+require('./deployed-3102-native-timed.test.cjs');
+require('./deployed-3102-native-advanced.test.cjs');
+require('./deployed-3102-user-answers.test.cjs');
+require('./deployed-3102-followup-user-answers.test.cjs');
+require('./deployed-3102-native-next-entry.test.cjs');
+require('./deployed-3102-display.test.cjs');
+require('./deployed-3102-native-boundaries.test.cjs');

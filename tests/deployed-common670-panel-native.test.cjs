@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+test('公共670三冻结来源按面板攻击百分比，负零正能力等级同基数，原两或三轮持续后到期',()=>{
+ for(const[id,move,n,last]of[[3190,24247,300,2],[3301,16579,180,3],[3575,31833,540,3]])for(const stage of[-2,0,2]){const a=store.species(id),b=store.species(2989),stats={maxHp:9000,atk:1200,spa:1200,def:4000,spd:4000,spe:1000};let s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,[move]),loadout(b,[])],seed:'common670',criticals:false,builds:[{overrides:stats},{overrides:{...stats,spe:100}}]});s.fighters[0].hp=4500;s.fighters[0].stages.atk=stage;for(let r=1;r<=last+1;r++){s=E.resolveTurn(s,[r===1?'wiki:'+move:'potion:pp','potion:pp']);const hits=s.turns.at(-1).events.filter(e=>e.damage?.sourceSide===0&&e.damage.type==='percent'&&e.text.includes('持续攻击值粉伤'));assert.deepEqual(hits.map(e=>e.damage.settledDamage),r<=last?[n]:[],id+':'+stage+':'+r);}}
+});

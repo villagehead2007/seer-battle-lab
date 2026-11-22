@@ -1,0 +1,9 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs'),pp='potion:pp';
+function member(id,moves=[],stats={}){const snapshot=store.species(id);return{snapshot,moves:loadout(snapshot,moves),build:{overrides:{maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000,...stats}}};}
+test('铭唤延迟尸体检查按人答不继承不计狩杀种类，活着或已死队友均排除而真实咤克斯仍计一类',()=>{
+ for(const dead of[false,true])for(const valid of[false,true]){let g=T.create([[member(4745),member(4785),...(valid?[member(3665)]:[])],[member(2989)]],[0,0],{seed:14,criticals:false});if(dead){g=T.create([[member(3056),member(4745),member(4785),...(valid?[member(3665)]:[])],[member(2989)]],[0,0],{seed:14,criticals:false});g.slots[0][2].fighter.hp=0;g=T.turn(g,[{switchTo:1},pp]);}const a=g.battle.fighters[0];assert.equal(a.soulId,1948);assert.equal(a.soulState.hunt1948.souls,valid?1:0);assert.ok(a.soulState.hunt1948.inheritedSingleSources.every(p=>p.soulId!==1982));assert.equal(a.soulState.ming1982,undefined);}
+});
+test('真实铭唤先登场建立痴愚危机，切阿尔忒弥斯实际击败后下回合不代做消逝及加威力',()=>{
+ let g=T.create([[member(4745,[37862],{atk:9999,spa:9999}),member(4785)],[member(2989,[],{maxHp:1000,def:1,spd:1}),member(3056)]],[1,0],{seed:14,criticals:false});g=T.turn(g,[pp,pp]);assert.ok(g.battle.fighters[1].soulState.chiyu1982);assert.ok(g.battle.fighters[1].soulState.crisis1982>1);g=T.turn(g,[{switchTo:0},pp]);assert.equal(g.battle.fighters[0].soulState.hunt1948.souls,0);g=T.turn(g,['wiki:37862',pp]);assert.equal(g.phase,'replace');assert.equal(g.slots[1][0].fighter.hp,0);g=T.replace(g,[null,1]);g=T.turn(g,[pp,pp]);assert.notEqual(g.slots[1][0].fighter.soulState.vanished,true);assert.equal(g.battle.fighters[0].soulState.ming1982,undefined);assert.ok(g.battle.fighters[0].soulState.hunt1948.inheritedSingleSources.every(p=>p.soulId!==1982));
+});

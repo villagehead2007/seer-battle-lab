@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/round79-3407-natural-average-native.cjs');
+test('原3407强化第五2487真实击败不平均，原攻击自然九劫3百炼0保持3比0而对手确实归零',()=>{const o=H.make();o.s.fighters[1].hp=10;H.turn(o,10499);H.turn(o,10499);H.turn(o,20196);assert.ok(o.s.fighters[1].hp>0);assert.deepEqual([o.s.fighters[0].soulState.nineScars,o.s.fighters[0].soulState.hundredFires??0],[2,0]);H.turn(o,38409);assert.equal(o.s.fighters[1].hp,0);assert.deepEqual([o.s.fighters[0].soulState.nineScars,o.s.fighters[0].soulState.hundredFires??0],[3,0]);});
+test('原3407强化第五2487自然百炼3平均1比2后差一层再次用第五不移动也不丢层',()=>{const o=H.make('normal',true);for(let i=0;i<3;i++)H.turn(o,'potion:pp');H.turn(o,38409);assert.deepEqual([o.s.fighters[0].soulState.nineScars,o.s.fighters[0].soulState.hundredFires],[1,2]);H.turn(o,38409);const before=o.trace.find(x=>x.round===5&&x.event==='beforeUse'),after=o.trace.find(x=>x.round===5&&x.event==='afterHit');assert.deepEqual([before.nine,before.fire],[1,2]);assert.deepEqual([after.nine,after.fire],[1,2]);});
+test.after(()=>console.log('ROUND79_3407_AVERAGE_KO_BOUNDARY_COUNTS '+JSON.stringify(H.report())));

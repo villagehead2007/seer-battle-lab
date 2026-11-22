@@ -1,0 +1,20 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),T=require('../dist/team-engine.js'),S=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs');
+const versions=E.WIKI.versionSnapshots(S.species(3482)),pp='potion:pp';
+function make(source,mode={}){const other=S.species(2989),member=(snapshot,ids,spe)=>({snapshot,moves:loadout(snapshot,ids),build:{overrides:{maxHp:9000,atk:700,spa:700,def:300,spd:300,spe}}});const g=T.create([[member(source,[31355],100)],[member(other,[10086,19070],1000)]],[0,0],{seed:14,criticals:false});g.battle.fighters[0].hp=mode.hp??5000;g.battle.fighters[1].hp=mode.low?200:9000;Object.assign(g.battle.fighters[0].effects,mode.aEffects??{});Object.assign(g.battle.fighters[1].effects,mode.bEffects??{});if(mode.low)g.battle.fighters[1].effects['致命保留']={start:1,end:1,hp:1};return g;}
+function turn(g,actions=['wiki:31355','wiki:10086']){const old=E.WIKI.effectsEngine,frames=[];E.WIKI.effectsEngine={...old,run(phase,ops,c){if(c.a.side!==0||(c.m.wikiId??c.m.id)!==31355)return old.run(phase,ops,c);const ctx={...c,heal(f,n,label,...rest){const actual=c.heal(f,n,label,...rest);frames.push({kind:'heal',n,actual,label});return actual;},hurt(f,n,label,type,...rest){frames.push({kind:'hurt',n,type,label});return c.hurt(f,n,label,type,...rest);}};return old.run(phase,ops,ctx);}};try{return{g:T.turn(g,actions),frames};}finally{E.WIKI.effectsEngine=old;}}
+test('31355两原技能版本完整原魂反馈本回合红伤二倍真伤，低剩余体力与固粉免疫不压低理论回血',()=>{
+ for(const source of versions)for(const low of[false,true])for(const pink of[false,true]){const x=turn(make(source,{low,bEffects:pink?{'固定百分比免疫':{start:1,end:1}}:{}})),red=x.g.battle.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.targetSide===0&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0),h=x.frames.find(x=>x.kind==='heal'),d=x.frames.find(x=>x.kind==='hurt');assert.ok(red>0);assert.equal(d.type,'true');assert.equal(d.n,red*2);assert.equal(h.n,red*2);assert.equal(h.actual,Math.min(red*2,4000+red));assert.ok(!x.frames.some(x=>x.kind==='hurt'&&x.type==='fixed'));assert.equal(x.g.battle.fighters[0].pp['wiki:31355'],4);}
+});
+test('31355理论反馈回复仍服从自身技能禁疗、回复倍率及溢出上限',()=>{
+ for(const [effects,fraction]of[[{'无法通过自身技能恢复体力':{start:1,end:1}},0],[{'回复效果削减':{start:1,end:1,fraction:.5}},.5]]){const x=turn(make(versions[0],{aEffects:effects})),h=x.frames.find(x=>x.kind==='heal'),d=x.frames.find(x=>x.kind==='hurt');assert.equal(d.type,'true');assert.equal(h.n,d.n);assert.equal(h.actual,Math.floor(h.n*fraction));}
+});
+test('31355当前回合没有红伤不读取旧回合，药剂不触发原技能反馈',()=>{
+ let g=make(versions[0]);g=T.turn(g,[pp,'wiki:10086']);const x=turn(g,['wiki:31355',pp]);assert.ok(x.frames.every(x=>x.n===0),'previous round red excluded');const y=turn(make(versions[0]),[pp,'wiki:10086']);assert.equal(y.frames.length,0);
+});
+
+test('31355原额外固定伤不计入反伤，溢出仅截自身回复且MISS整招无效疲惫不反馈且原必中抗攻击必失',()=>{
+ const x=turn(make(versions[0]),['wiki:31355','wiki:19070']),events=x.g.battle.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.targetSide===0),red=events.filter(e=>e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);assert.ok(events.some(e=>e.type==='fixed'&&e.settledDamage===100));assert.equal(x.frames.find(x=>x.kind==='hurt').n,red*2);
+ const z=turn(make(versions[0],{hp:8990})),h=z.frames.find(x=>x.kind==='heal'),incoming=z.g.battle.damageEvents.filter(e=>e.round===1&&e.sourceSide===1&&e.targetSide===0&&e.type==='attack').reduce((n,e)=>n+e.settledDamage,0);assert.ok(h.n>h.actual);assert.equal(h.actual,10+incoming);
+ for(const mode of ['miss','invalid','fatigue']){const q=make(versions[0]);if(mode==='fatigue')q.battle.fighters[0].ailments['疲惫']=3;else q.battle.fighters[0].effects[mode==='miss'?'攻击必失':'skillBlock']={start:1,end:1};const out=turn(q);if(mode==='miss'){assert.equal(versions[0].moves.find(m=>m.id===31355).alwaysHit,true);assert.ok(out.frames.some(x=>x.kind==='hurt'&&x.type==='true'));}else assert.equal(out.frames.length,0,mode);assert.equal(out.g.battle.fighters[0].pp['wiki:31355'],mode==='fatigue'?5:4);}
+});

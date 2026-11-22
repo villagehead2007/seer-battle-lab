@@ -1,0 +1,6 @@
+'use strict';
+const E=require('../../dist/engine.js'),store=require('../../local-species.cjs'),source=store.species(3211),{loadout}=require('./3001-native.cjs');
+function make(id,o={}){const a=structuredClone(source),b=store.species(o.enemyId??2989);a.selectedSoulId=o.soul??538;const stats={maxHp:9000,atk:180,spa:180,def:4000,spd:4000,spe:1000};const s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,[id,...(o.extraMoves??[])]),loadout(b,o.enemyMoves??[])],seed:o.seed??14,criticals:o.criticals??false,builds:[{overrides:{...stats,...o.aStats},...(o.aGear??{})},{overrides:{...stats,spe:100,...o.bStats},...(o.bGear??{})}]});for(const[side,prefix]of[[0,'a'],[1,'b']]){if(o[prefix+'Hp']!==undefined)s.fighters[side].hp=o[prefix+'Hp'];Object.assign(s.fighters[side].stages,o[prefix+'Stages']??{});Object.assign(s.fighters[side].effects,structuredClone(o[prefix+'Effects']??{}));Object.assign(s.fighters[side].ailments,o[prefix+'Ailments']??{});Object.assign(s.fighters[side].counts,o[prefix+'Counts']??{});}return s;}
+const turn=(s,a,b='potion:pp')=>E.resolveTurn(s,[typeof a==='number'?'wiki:'+a:a,typeof b==='number'?'wiki:'+b:b]);
+const damage=(s,type,side=0)=>(s.damageEvents??[]).filter(e=>e.round===s.round-1&&e.sourceSide===side&&e.type===type).reduce((n,e)=>n+e.settledDamage,0);
+module.exports={E,source,loadout,make,turn,damage};

@@ -1,0 +1,13 @@
+'use strict';
+require('./deployed-3082-native-base.test.cjs');
+require('./deployed-3082-native-stats.test.cjs');
+require('./deployed-3082-native-soul.test.cjs');
+require('./deployed-3082-native-pp.test.cjs');
+require('./deployed-3082-native-drain.test.cjs');
+require('./deployed-3082-native-timed.test.cjs');
+require('./deployed-3082-native-successor.test.cjs');
+require('./deployed-3082-native-advanced.test.cjs');
+require('./deployed-3082-display.test.cjs');
+require('./deployed-3082-user-answers.test.cjs');
+require('./deployed-3082-native-reactive.test.cjs');
+require('./deployed-3082-native-healban.test.cjs');

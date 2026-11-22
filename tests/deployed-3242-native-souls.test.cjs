@@ -1,0 +1,15 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/3242-native.cjs'),{E}=H;
+test('3242两版魂每回合按当时已损失体力30或35回复，满体零缺口及不足一点向下取整，技能禁疗与全禁疗分别处理',()=>{
+ for(const [soul,rate]of [[567,.3],[568,.35]])for(const hp of [1000,8999,9000])for(const ban of ['none','skill','all']){let s=H.make(10710,{soul,aHp:hp,aEffects:ban==='skill'?{技能禁疗:{start:1,end:3}}:ban==='all'?{四杀鬼囹:{start:1,end:3}}:{}});for(let r=1;r<=2;r++){const before=s.fighters[0].hp;s=H.turn(s,'potion:pp');assert.equal(s.fighters[0].hp,before+(ban==='all'?0:Math.floor((9000-before)*rate)));}}
+});
+test('3242两版魂异常回合随机不同两或四项各降一级，无异常不降，失明自然到期后不继续降',()=>{
+ for(const [soul,count]of [[567,2],[568,4]])for(let seed=1;seed<=12;seed++)for(const abnormal of [false,true]){let s=H.make(10710,{soul,seed,aAilments:abnormal?{失明:1}:{}});s=H.turn(s,'potion:pp');const values=Object.values(s.fighters[1].stages);assert.ok(values.every(n=>n===0||n===-1));assert.equal(values.filter(n=>n===-1).length,abnormal?count:0);const previous=structuredClone(s.fighters[1].stages);s=H.turn(s,'potion:pp');assert.deepEqual(s.fighters[1].stages,previous);}
+});
+test('3242两版魂满体不翻威力，低体攻击实际翻倍，中体概率分支均出现且结算红伤对应翻倍威力',()=>{
+ for(const soul of [567,568]){const base=[],doubled=[],outcomes=new Set();for(const hp of [9000,4500,1])for(let seed=1;seed<=12;seed++){const start=H.make(10710,{soul,seed,aHp:hp,aStats:{atk:4000},bStats:{def:1000}}),before=[],old=E.SOULS;E.SOULS={...old,run(event,c){const p=c.power,result=old.run(event,c);if(event==='beforeDamage'&&c.a.side===0)before.push({before:p,after:c.power});return result;}};let s;try{s=H.turn(start,10710);}finally{E.SOULS=old;}assert.equal(before.length,1);const rec=before[0];assert.ok(rec.after===rec.before||rec.after===rec.before*2);if(hp===9000)assert.equal(rec.after,rec.before);if(hp===1)assert.equal(rec.after,rec.before*2);if(hp===4500)outcomes.add(rec.after===rec.before*2);(rec.after===rec.before?base:doubled).push(H.damage(s,'attack'));}assert.deepEqual(outcomes,new Set([false,true]));assert.ok(Math.min(...doubled)>Math.max(...base));}
+});
+test('3242异常魂使对手本回合红伤减少50或60且次回恢复，敌方原425百分比附伤1800独立',()=>{
+ for(const [soul,factor,rate]of [[567,.5,.3],[568,.4,.35]]){let s=H.make(10710,{soul,enemyId:3079,enemyMoves:[16103],aAilments:{失明:1},aStats:{def:1000},bStats:{atk:9999},bStages:{atk:-6,def:-6,spa:-6,spd:-6,spe:-6,acc:-6},bEffects:{攻击必中:{start:1,end:3}}});
+ for(let round=1;round<=2;round++){const hp=s.fighters[0].hp;s=H.turn(s,'potion:pp',16103);const events=s.turns.at(-1).events,red=(s.damageEvents??[]).filter(e=>e.round===round&&e.sourceSide===1&&e.type==='attack');assert.ok(red.length>=2);assert.ok(red.every(e=>e.settledDamage>0));for(const e of events.filter(e=>e.damage?.type==='attack'&&e.damage.sourceSide===1))assert.match(e.detail,new RegExp('增减伤 '+(round===1?factor:1)+' ×'));assert.equal(H.damage(s,'percent',1),1800);const loss=(s.damageEvents??[]).filter(e=>e.round===round&&e.targetSide===0).reduce((n,e)=>n+e.hpLoss,0),beforeHeal=hp-loss;assert.equal(s.fighters[0].hp,beforeHeal+Math.floor((9000-beforeHeal)*rate));}
+ }
+});

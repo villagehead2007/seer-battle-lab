@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),E=require('../dist/engine.js'),store=require('../local-species.cjs'),{loadout}=require('./helpers/3001-native.cjs'),pp='potion:pp';
+function make(id,moves,enemyId,enemyMoves){const a=store.species(id),b=store.species(enemyId),stats={maxHp:9000,atk:1200,spa:1200,def:4000,spd:4000,spe:1000};const s=E.createBattle({wikiSnapshots:[a,b],wikiLoadouts:[loadout(a,moves),loadout(b,enemyMoves)],builds:[{overrides:stats},{overrides:{...stats,atk:180,spa:180,spe:2000}}],seed:14,criticals:false});s.fighters[0].hp=1000;return s;}
+const turn=(s,a,b=pp)=>E.resolveTurn(s,[typeof a==='number'?'wiki:'+a:a,typeof b==='number'?'wiki:'+b:b]);
+test('1198原生4633清真实驰骋回合效果，合法初始免弱与原生刷新使无负级增伤成立而两份固定吸取各300',()=>{
+ let s=make(4633,[37304],3036,[24740]);s.fighters[0].hp=8000;s.fighters[1].effects['免弱']={start:1,end:4};s=turn(s,pp,24740);assert.equal(s.fighters[1].soulId,399);assert.ok(s.fighters[1].effects['免弱']);assert.ok(Object.values(s.fighters[1].stages).every(n=>n>=0));s=turn(s,37304);assert.equal(s.fighters[1].effects['免弱'],undefined);assert.ok(s.turns.at(-1).events.some(e=>e.damage?.type==='attack'&&e.detail.includes('增减伤 1.6 ×')));const fixed=s.turns.at(-1).events.filter(e=>e.damage?.type==='fixed'&&e.damage.sourceSide===0);assert.equal(fixed.length,2);assert.equal(fixed.find(e=>e.text.includes('秽灵魅语清回合吸取')).damage.settledDamage,300);assert.equal(fixed.find(e=>e.text.includes('腐坏幽魔携带威力吸取')).damage.settledDamage,300);assert.equal(s.fighters[0].pp['wiki:37304'],4);
+});
+test('2150原生双方完整魂印和技能：构造II下次红伤减半而37355固定300仍只受对手明确60%固粉减伤为120',()=>{
+ let s=turn(make(4644,[20889,37355],4644,[28725]),20889,28725);assert.ok(s.fighters[0].soulState.constructNextOutput4644);s=turn(s,37355);const fixed=s.damageEvents.filter(e=>e.round===2&&e.type==='fixed'&&e.sourceSide===0);assert.ok(fixed.some(e=>e.settledDamage===120));assert.ok(!fixed.some(e=>e.settledDamage===60));assert.equal(s.fighters[0].soulState.constructNextOutput4644,undefined);assert.equal(s.fighters[0].pp['wiki:37355'],10);assert.ok(s.turns.at(-1).events.some(e=>e.text==='A 方 使用歼灭式·崩解律。'));
+});

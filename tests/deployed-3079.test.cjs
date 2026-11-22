@@ -1,0 +1,11 @@
+'use strict';
+require('./deployed-3079-native-base.test.cjs');
+require('./deployed-3079-native-soul.test.cjs');
+require('./deployed-3079-native-stats.test.cjs');
+require('./deployed-3079-native-timed.test.cjs');
+require('./deployed-3079-native-advanced.test.cjs');
+require('./deployed-3079-native-next-entry.test.cjs');
+require('./deployed-3079-native-absorb.test.cjs');
+require('./deployed-3079-42-user-answer.test.cjs');
+require('./deployed-3079-484-user-answer.test.cjs');
+require('./deployed-3079-display.test.cjs');

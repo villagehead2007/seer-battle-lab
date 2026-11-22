@@ -1,0 +1,5 @@
+'use strict';
+const assert=require('node:assert/strict'),E=require('../../dist/engine.js'),store=require('../../local-species.cjs'),{loadout}=require('./3001-native.cjs'),source=store.species(3308);assert.equal(source.souls.find(x=>x.id===635).hash,'b43568fc');
+function make({seed='3308-independent',fast=false,hp=1000,stages={},effects={},enemyId=2989,enemyMoves=[20889]}={}){const enemy=store.species(enemyId),a=loadout(source,[20276]),b=loadout(enemy,enemyMoves);assert.equal(E.WIKI.assess(source,a).supported,true);assert.equal(E.WIKI.assess(enemy,b).supported,true);const s=E.createBattle({wikiSnapshots:[source,enemy],wikiLoadouts:[a,b],seed,criticals:false,builds:[{overrides:{maxHp:9000,atk:180,spa:180,def:400,spd:600,spe:fast?3000:1}},{overrides:{maxHp:9000,atk:180,spa:180,def:300,spd:300,spe:100}}]});assert.equal(s.fighters[0].soulId,635);s.fighters[0].hp=hp;Object.assign(s.fighters[0].stages,stages);Object.assign(s.fighters[0].effects,structuredClone(effects));return s;}
+const turn=(s,a='wiki:20276',b='wiki:20889')=>E.resolveTurn(s,[a,b]);
+module.exports={E,source,make,turn};

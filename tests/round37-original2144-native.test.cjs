@@ -1,0 +1,15 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),H=require('./helpers/round37-original2144-native.cjs');
+function positive(id){const xs=H.success(id);for(const x of xs){assert.ok(x.locks.every(Boolean));assert.equal(x.selected[1],2);if(x.mode==='defeat')assert.equal(x.actualDefeat,true);else{assert.deepEqual(x.selected,[2,2]);assert.equal(x.rejected,(x.locks[0].end-x.locks[0].start+1)*3);}}return xs;}
+function negative(id){const xs=H.failures(id);for(const x of xs){if(x.independentControl){assert.equal(id,4661);assert.equal(x.locks[0],null);assert.deepEqual(x.locks[1],{start:2,end:2});assert.equal(x.ppAfter,x.maxPP);assert.equal(x.controlIndependentRejected,true);assert.deepEqual(x.selected,[2,2]);}else if(x.nativeException){assert.equal(id,4661);assert.ok(x.locks.every(Boolean));assert.equal(x.nativeZeroAllowed,true);assert.equal(x.ppAfter,x.maxPP);assert.deepEqual(x.cancelled,[0]);assert.equal(x.power,50);}else if(x.mode==='zero'){assert.equal(x.zeroRejected,true);assert.equal(x.unchanged,true);}else{assert.deepEqual(x.locks,[null,null]);assert.deepEqual(x.selected,[2,2]);}}return xs;}
+test('4625原28666技能2144双方次回一轮封换，三类请求拒绝不变、原玄武及自爆真死补位',()=>{const xs=positive(4625);assert.equal(xs[0].locks[0].end,2);assert.equal(xs[2].actualDefeat,true);});
+test('4625原28666技能2144封命中无效受控药剂不封双方，原零PP拒绝完全不变',()=>{const xs=negative(4625);assert.deepEqual(xs[0].locks,[null,null]);assert.equal(xs.at(-1).unchanged,true);});
+test('4661原28779技能2144双方次回两轮封换，三类请求拒绝不变、原玄武及自爆真死补位',()=>{const xs=positive(4661);assert.equal(xs[0].locks[0].end,3);assert.equal(xs[2].actualDefeat,true);});
+test('4661原28779技能2144封命中无效药剂无双方锁，受控未出仅原无为单方封一回及零PP真实反转进阶',()=>{const xs=negative(4661);assert.deepEqual(xs[0].locks,[null,null]);assert.deepEqual(xs[1].locks,[null,null]);assert.equal(xs[2].independentControl,true);assert.equal(xs[2].locks[0],null);assert.equal(xs[2].locks[1].end,2);assert.deepEqual(xs[3].locks,[null,null]);assert.equal(xs.at(-1).nativeZeroAllowed,true);assert.equal(xs.at(-1).power,50);});
+test('4669原28802技能2144双方次回一轮封换，三类请求拒绝不变、原玄武及自爆真死补位',()=>{const xs=positive(4669);assert.equal(xs[0].locks[0].end,2);assert.equal(xs[2].actualDefeat,true);});
+test('4669原28802技能2144封命中无效受控药剂不封双方，原零PP拒绝完全不变',()=>{const xs=negative(4669);assert.deepEqual(xs[0].locks,[null,null]);assert.equal(xs.at(-1).unchanged,true);});
+test('4785原29088技能2144双方次回一轮封换，三类请求拒绝不变、原玄武及自爆真死补位',()=>{const xs=positive(4785);assert.equal(xs[0].locks[0].end,2);assert.equal(xs[2].actualDefeat,true);});
+test('4785原29088技能2144封命中无效受控药剂不封双方，原零PP拒绝完全不变',()=>{const xs=negative(4785);assert.deepEqual(xs[0].locks,[null,null]);assert.equal(xs.at(-1).unchanged,true);});
+test('4921原29390技能2144双方次回两轮封换，三类请求拒绝不变、原玄武及自爆真死补位',()=>{const xs=positive(4921);assert.equal(xs[0].locks[0].end,3);assert.equal(xs[2].actualDefeat,true);});
+test('4921原29390技能2144封命中无效受控药剂不封双方，原零PP拒绝完全不变',()=>{const xs=negative(4921);assert.deepEqual(xs[0].locks,[null,null]);assert.equal(xs.at(-1).unchanged,true);});
+test.after(()=>console.log('ROUND37_ORIGINAL2144_COUNTS '+JSON.stringify(H.report())));

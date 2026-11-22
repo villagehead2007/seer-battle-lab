@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{verifyContinuous}=require('./helpers/global-continuous-attack-heal-native.cjs');
+test("持续吸血原招完整红伤 3012:24685 效果89",()=>{const p=verifyContinuous(3012,24685);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3026:24715 效果89",()=>{const p=verifyContinuous(3026,24715);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3437:25572 效果89",()=>{const p=verifyContinuous(3437,25572);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3512:24184 效果89",()=>{const p=verifyContinuous(3512,24184);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3642:21068 效果116",()=>{const p=verifyContinuous(3642,21068);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3642:32202 效果801",()=>{const p=verifyContinuous(3642,32202);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3870:23257 效果89",()=>{const p=verifyContinuous(3870,23257);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 3979:24899 效果89",()=>{const p=verifyContinuous(3979,24899);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
+test("持续吸血原招完整红伤 4048:24715 效果89",()=>{const p=verifyContinuous(4048,24715);assert.ok(p.complete>3);assert.equal(p.after-p.before,p.expected);});
