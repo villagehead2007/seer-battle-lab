@@ -33,6 +33,10 @@
     const slots=teams.map((members,side)=>members.map((member,index)=>{
       const testPair=pair.slice();testPair[side]=member;
       const base=index===leads[side]?battle.fighters[side]:prepare(testPair,options).fighters[side];
+      if(member.build){
+        member.build.eyeId=base.build.eyeId;
+        member.build.inscriptionPresetIds=base.build.inscriptionPresetIds.slice();
+      }
       base.teamPosition=index;
       base.teamInstantSoulIds=member.snapshot.souls.filter(soul=>soul.description?.includes('秒杀')).map(soul=>soul.id);
       if(member.moves.includes(38455)&&member.snapshot.moves.some(m=>m.id===38455&&m.effectIds.includes(2526)))base.soulState.corpseCount=1;

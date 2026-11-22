@@ -32,7 +32,9 @@
   function renderFighter(i) {
     const f = state.fighters[i];
     const opponent=state.fighters[1-i];
-    const affinityHtml=`<div class="affinity-summary" aria-label="${sideName(i)}属性克制"><span>${escape(f.type)} → ${escape(opponent.type)}</span><strong>×${E.typeEffectiveness(f.type,opponent.type,state.typeChart)}</strong><small>${f.species==='king'?'王·万霆朝宗无视微弱，按 ×1 结算':'本系攻击的属性克制倍率'}</small></div>`;
+    const affinity=window.BattlePresentation.affinity(f,opponent,state);
+    if(f.species==='king')affinity.note+=' 王·万霆朝宗遇微弱时按 ×1 结算。';
+    const affinityHtml=window.BattlePresentation.affinitySummary(affinity,sideName(i)).outerHTML;
     const pct = f.hp / f.stats.maxHp * 100;
     const status = Object.entries(f.stages).filter(([, n]) => n !== 0).map(([s, n]) => `<span class="stage-chip">${E.STAGE_LABELS[s]} ${n > 0 ? '+' : ''}${n}</span>`).join('') || '<span>能力等级正常</span>';
     const soul = window.BattlePresentation.soul(f,state.initial.wikiSnapshots?.[i]);
@@ -122,13 +124,14 @@
   function ailmentSelect(i,slot,value,rate) {
     return `<label>${slot==='third'?'第3槽':rate+'% 免疫'}<select name="${i}-res-${slot}" aria-label="${sideName(i)}${slot==='third'?'第三槽异常抗性':rate+'%异常抗性'}"><option value="">不设置</option>${Object.entries(E.GEAR.AILMENT_GROUPS).map(([category,names])=>`<optgroup label="${category}异常">${names.map(k=>`<option value="${k}" ${value===k?'selected':''}>${k}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
   }
+  const growthEditor=window.BattleGrowthEditor;
   function syncSettings() {
     $('stats-editors').innerHTML = state.fighters.map((f, i) => {
       const b = f.build, data = E.SPECIES[f.species];
       return `<fieldset class="growth-card side-${i ? 'b' : 'a'}"><legend>${sideName(i)} · ${escape(f.name)}</legend>
         <p class="species-meta">${escape(f.type)}系 · 原始种族值 ${Object.values(data.base).reduce((a,b)=>a+b,0)} · 不含特训</p>
         <section class="characteristic-editor"><label>特性<select name="${i}-characteristic" aria-label="${sideName(i)}特性"><option value="0" ${!b.characteristic?.groupId?'selected':''}>无特性</option>${E.CHARACTERISTICS.groups.map(g=>`<option value="${g.id}" ${b.characteristic?.groupId===g.id?'selected':''}>${escape(g.name)}</option>`).join('')}</select></label><label>星级<select name="${i}-characteristic-star" aria-label="${sideName(i)}特性星级">${[0,1,2,3,4,5].map(star=>`<option value="${star}" ${star===(b.characteristic?.star??5)?'selected':''}>${star}星</option>`).join('')}</select></label><p id="characteristic-note-${i}" class="characteristic-note">${escape(E.CHARACTERISTICS.describe(b.characteristic?.groupId,b.characteristic?.star??5))}</p></section>
-        <section class="equipment-editor"><label>套装<select name="${i}-suit" aria-label="${sideName(i)}套装">${Object.entries(E.GEAR.SUITS).map(([id,v])=>`<option value="${id}" ${b.suit===id?'selected':''}>${v.name}</option>`).join('')}</select></label><p id="suit-note-${i}" class="suit-note"></p><details class="suit-passive"><summary>套装战斗被动</summary><p id="suit-passive-${i}"></p></details></section>
+        <section class="equipment-editor"><label>套装<select name="${i}-suit" aria-label="${sideName(i)}套装">${Object.entries(E.GEAR.SUITS).map(([id,v])=>`<option value="${id}" ${b.suit===id?'selected':''}>${v.name}</option>`).join('')}</select></label><p id="suit-note-${i}" class="suit-note"></p><details class="suit-passive"><summary>套装战斗被动</summary><p id="suit-passive-${i}"></p></details>${growthEditor.picker(i,'titles',b.titleId)}${growthEditor.picker(i,'eyes',b.eyeId)}</section>
         <section class="resistance-editor"><div class="ev-heading"><strong>伤害抗性</strong><span>伤害减免 %</span></div><div class="resistance-damage">${Object.entries(E.GEAR.DAMAGE_LABELS).map(([k,v])=>`<label>${v}${numberField(`${i}-res-${k}`,b.resistance[k],0,100,`${sideName(i)}${v}抗性`)}</label>`).join('')}</div><p class="growth-help">实验范围 0–100%；35 表示对应伤害减免 35%。暴击抗性不降低暴击概率。</p><div class="ev-heading"><strong>异常抗性</strong><span>按槽位选择不同异常</span></div><div class="resistance-status">${ailmentSelect(i,'major',b.resistance.major,55)}${ailmentSelect(i,'minor',b.resistance.minor,18)}${ailmentSelect(i,'third',b.resistance.slots?.[2]?.name??'',b.resistance.slots?.[2]?.chance??0)}<label>第三槽抵抗概率 %${numberField(`${i}-res-third-chance`,b.resistance.slots?.[2]?.chance??0,0,100,`${sideName(i)}第三槽抵抗概率`)}</label></div><p class="growth-help">前两槽沿用55%和18%。第三槽为实验配置，请填写所需概率；未选择时不启用。成功抵抗后获得等时长异常免疫。</p></section>
         <div class="growth-top"><label>等级${numberField(`${i}-level`, b.level, 1, 100, `${sideName(i)}等级`)}</label><label>个体值<select name="${i}-iv" aria-label="${sideName(i)}个体值">${Array.from({length:32},(_,n)=>`<option value="${n}" ${n === b.iv ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label class="nature-select">性格<select name="${i}-nature" aria-label="${sideName(i)}性格">${Object.keys(E.NATURES).map(n=>`<option value="${n}" ${n === b.nature ? 'selected' : ''}>${n} · ${natureDescription(n)}</option>`).join('')}</select></label></div>
         <p class="nature-note" id="nature-note-${i}">${natureDescription(b.nature)}；性格不影响体力。</p>
@@ -136,18 +139,19 @@
         <div class="ev-presets"><button type="button" data-preset="speed" data-side="${i}">攻速 255 / 255</button><button type="button" data-preset="hp" data-side="${i}">攻体 255 / 255</button><button type="button" data-preset="clear" data-side="${i}">清空学习力</button></div>
         <div class="growth-table-wrap"><table class="growth-table"><thead><tr><th scope="col">能力 / 种族</th><th scope="col">学习力</th><th scope="col">额外加成</th><th scope="col">套装</th><th scope="col">最终值</th></tr></thead><tbody>${Object.entries(statLabels).map(([key,name])=>`<tr><th scope="row">${name}<small data-base-stat="${i}-${key}">${data.base[key]}</small></th><td>${numberField(`${i}-ev-${key}`,b.evs[key],0,255,`${sideName(i)}${name}学习力`)}</td><td>${numberField(`${i}-bonus-${key}`,b.bonuses[key],0,999,`${sideName(i)}${name}额外加成`)}</td><td class="suit-gain"><output id="suit-gain-${i}-${key}"></output></td><td><output id="preview-${i}-${key}"></output></td></tr>`).join('')}</tbody></table></div>
         <p class="growth-help">个体值作用于全部六项。学习力单项 ≤255、合计 ≤510；额外加成在性格计算后相加，可填写体力上限药剂等其他加成；刻印在下方单独填写。</p>
-        <section class="inscription-editor"><h3>刻印数值 <small>三组合计加入面板</small></h3><p class="growth-help">每组自主填写六项数值，默认 0。已填入刻印的加成无需再填到“额外加成”。</p>${b.inscriptions.map((slot,j)=>`<fieldset class="inscription-slot"><legend>刻印 ${j+1}</legend><div class="inscription-grid">${Object.entries(statLabels).map(([key,name])=>`<label>${name}${numberField(`${i}-inscription-${j}-${key}`,slot[key],0,999,`${sideName(i)}刻印${j+1}${name}`)}</label>`).join('')}</div></fieldset>`).join('')}<p class="inscription-total" id="inscription-total-${i}"></p></section>
+        <section class="inscription-editor"><h3>刻印数值 <small>三组合计加入面板</small></h3><p class="growth-help">预设取非专属全能刻印五级满值，含已激活的隐藏加成。套用后可手动调整。</p>${growthEditor.bundles(i)}${b.inscriptions.map((slot,j)=>`<fieldset class="inscription-slot"><legend>刻印 ${j+1}</legend>${growthEditor.picker(i,'marks',b.inscriptionPresetIds?.[j],j)}<div class="inscription-grid">${Object.entries(statLabels).map(([key,name])=>`<label>${name}${numberField(`${i}-inscription-${j}-${key}`,slot[key],0,999,`${sideName(i)}刻印${j+1}${name}`)}</label>`).join('')}</div><output id="${i}-slot-total-${j}"></output></fieldset>`).join('')}<p class="inscription-total" id="inscription-total-${i}"></p></section>${growthEditor.toggles(i,b)}
         <p id="growth-error-${i}" class="growth-error" role="alert"></p>
         <details class="override"><summary>直接调整最终数值 <span>留空使用养成计算</span></summary><p class="growth-help">填写后覆盖该项含套装与三组刻印的最终值，不再追加加成；橙色最终值表示手动覆盖。</p><div class="editor-grid">${Object.entries(statLabels).map(([key,name])=>`<label>${name}${numberField(`${i}-override-${key}`,b.overrides[key],1,9999,`${sideName(i)}${name}直接数值`,true)}</label>`).join('')}</div><button type="button" data-auto="${i}" class="text-button">清除覆盖，恢复自动计算</button></details>
       </fieldset>`;
     }).join('');
+    $('stats-editors').querySelectorAll('[data-growth-picker]').forEach(growthEditor.fill);
     $('seed').value = state.seed; $('criticals').checked = state.criticals;
     updateGrowthPreview();
   }
   function readBuild(i) {
     const fields = $('settings-form').elements;
     const number = key => { const raw = fields.namedItem(`${i}-${key}`).value; return raw === '' ? NaN : Number(raw); };
-    return { characteristic: {groupId:number('characteristic'),star:number('characteristic-star')}, suit: fields.namedItem(`${i}-suit`).value, resistance: { ...Object.fromEntries(Object.keys(E.GEAR.DAMAGE_LABELS).map(k=>[k,number(`res-${k}`)])), major:fields.namedItem(`${i}-res-major`).value, minor:fields.namedItem(`${i}-res-minor`).value, ...(fields.namedItem(`${i}-res-third`).value||number('res-third-chance')>0?{slots:[{name:fields.namedItem(`${i}-res-major`).value,chance:55},{name:fields.namedItem(`${i}-res-minor`).value,chance:18},{name:fields.namedItem(`${i}-res-third`).value,chance:number('res-third-chance')}]}:{}) }, level: number('level'), iv: number('iv'), nature: fields.namedItem(`${i}-nature`).value,
+    return { ...growthEditor.read(i),characteristic: {groupId:number('characteristic'),star:number('characteristic-star')}, suit: fields.namedItem(`${i}-suit`).value, resistance: { ...Object.fromEntries(Object.keys(E.GEAR.DAMAGE_LABELS).map(k=>[k,number(`res-${k}`)])), major:fields.namedItem(`${i}-res-major`).value, minor:fields.namedItem(`${i}-res-minor`).value, ...(fields.namedItem(`${i}-res-third`).value||number('res-third-chance')>0?{slots:[{name:fields.namedItem(`${i}-res-major`).value,chance:55},{name:fields.namedItem(`${i}-res-minor`).value,chance:18},{name:fields.namedItem(`${i}-res-third`).value,chance:number('res-third-chance')}]}:{}) }, level: number('level'), iv: number('iv'), nature: fields.namedItem(`${i}-nature`).value,
       evs: Object.fromEntries(Object.keys(statLabels).map(key=>[key,number(`ev-${key}`)])),
       inscriptions: Array.from({length:3},(_,j)=>Object.fromEntries(Object.keys(statLabels).map(key=>[key,number(`inscription-${j}-${key}`)]))),
       bonuses: Object.fromEntries(Object.keys(statLabels).map(key=>[key,number(`bonus-${key}`)])),
@@ -157,6 +161,7 @@
   function updateGrowthPreview() {
     let valid = true;
     state.fighters.forEach((f,i)=>{
+      growthEditor.refresh(i);
       const chosenCharacteristic=E.CHARACTERISTICS.get(Number($('settings-form').elements.namedItem(`${i}-characteristic`).value),Number($('settings-form').elements.namedItem(`${i}-characteristic-star`).value));$(`characteristic-note-${i}`).textContent=E.CHARACTERISTICS.describe(chosenCharacteristic?.groupId,chosenCharacteristic?.star??5);
       const b = readBuild(i), sum = Object.values(b.evs).reduce((a,n)=>a+(Number.isFinite(n)?n:0),0);
       $('ev-total-'+i).textContent = `${sum} / 510 · ${sum <= 510 ? `剩余 ${510-sum}` : `超出 ${sum-510}`}`;
@@ -190,7 +195,8 @@
     $('settings-error').textContent = valid ? '' : '请修正养成参数后再应用。';
   }
   window.addEventListener('team-member-preview',updateGrowthPreview);
-  $('stats-editors').addEventListener('input',updateGrowthPreview);
+  growthEditor.bind($('stats-editors'),updateGrowthPreview);
+  $('stats-editors').addEventListener('input',event=>{if(!event.target.hasAttribute('data-growth-picker')&&!event.target.dataset.filter)updateGrowthPreview();});
   $('stats-editors').addEventListener('change',updateGrowthPreview);
   $('stats-editors').addEventListener('click',event=>{
     const preset = event.target.closest('[data-preset]'), auto = event.target.closest('[data-auto]');

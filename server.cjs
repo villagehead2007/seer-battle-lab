@@ -3,18 +3,21 @@ const fs = require('node:fs');
 const path = require('node:path');
 const wiki=require('./wiki.cjs'),seerapi=require('./seerapi.cjs'),local=require('./local-species.cjs');
 const runtimeRevision=require('./runtime-revision.cjs')();
+const serviceIdentity=require('./launcher-service.cjs').identity(__dirname,'trial',process.env.SEER_SERVICE_SCOPE||'direct');
 const root = path.join(__dirname, 'dist');
+const launcherControl=require('./launcher-control.cjs').create(serviceIdentity,()=>require('./lan-server.cjs').hasRoom());
 const reviewJsonCache=new Map();
 function currentReviewJson(file){const resolved=path.join(__dirname,file),stat=fs.statSync(resolved,{bigint:true}),stamp=stat.size+':'+stat.mtimeNs,old=reviewJsonCache.get(file);if(old?.stamp===stamp)return old.value;const value=JSON.parse(fs.readFileSync(resolved,'utf8'));reviewJsonCache.set(file,{stamp,value});return value;}
 
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 async function localHandler(req,res) {
+  if(req.socket.localPort===server.address()?.port&&await launcherControl.handle(req,res,server))return;
   if(req.url.startsWith('/api/lan/'))return require('./lan-server.cjs').manage(req,res,localHandler);
   if(req.method!=='GET'){res.writeHead(405);return res.end();}
   const url=new URL(req.url,'http://localhost');
   if(url.pathname==='/api/launcher/health'){
     res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});
-    return res.end(JSON.stringify({app:'seer-battle-lab',revision:runtimeRevision,pid:process.pid}));
+    return res.end(JSON.stringify({app:'seer-battle-lab',revision:runtimeRevision,pid:process.pid,launcherControl:1,...serviceIdentity}));
   }
   if(url.pathname==='/api/local/team-notes'){
     if(req.headers['sec-fetch-site']==='cross-site'||(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)){res.writeHead(403);return res.end();}
@@ -43,5 +46,6 @@ async function localHandler(req,res) {
 }
 const server=http.createServer(localHandler);
 server.listen(Number(process.env.PORT)||0, '127.0.0.1', () => console.log(`Local: http://127.0.0.1:${server.address().port}`));
+module.exports=server;
 
 module.exports=server;

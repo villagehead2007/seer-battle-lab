@@ -9,6 +9,7 @@
   const typeLibraryVersion = Object.freeze({...TYPES.data.version,stabRule:TYPES.data.rules.stab.id});
   function checkTypeVersion(version){if(version&&JSON.stringify(version)!==JSON.stringify(typeLibraryVersion))throw new Error('属性库版本不匹配，不能重算此对局');}
   const GEAR = typeof module === 'object' && module.exports ? require('./equipment.js') : globalThis.BattleEquipment;
+  const GROWTH = typeof module === 'object' && module.exports ? require('./growth-presets.js') : globalThis.BattleGrowthPresets;
   const CHARACTERISTICS = typeof module === 'object' && module.exports ? require('./characteristic-catalog.js') : globalThis.BattleCharacteristicCatalog;
   let MOVES = Object.freeze({
     thunder: { id: 'thunder', name: '雷神天明闪', type: '电', kind: 'physical', category: '物理', power: 160, accuracy: 100, alwaysHit: true, pp: 3, burst: .1, description: '必中；10% 概率造成 4 倍伤害。' },
@@ -58,6 +59,7 @@
     build.characteristic = CHARACTERISTICS.normalize(input.characteristic);
     if(input.inscriptions!==undefined&&(!Array.isArray(input.inscriptions)||input.inscriptions.length>3))throw new Error('刻印最多填写三组。');
     build.inscriptions=Array.from({length:3},(_,i)=>Object.fromEntries(Object.keys(DEFAULT_STATS).map(key=>{const value=input.inscriptions?.[i]?.[key]??0;integer(value,0,999,`刻印 ${i+1} ${key}`);return [key,value];})));
+    GROWTH.normalize(build,input);
     const nature = NATURES[build.nature], calculated = {}, stats = {}, suitBonuses = {};
     for (const key of Object.keys(DEFAULT_STATS)) {
       const ev = input.evs?.[key] ?? 0, bonus = input.bonuses?.[key] ?? 0;
@@ -70,6 +72,7 @@
       const factor = nature.up === key ? 11 : nature.down === key ? 9 : 10;
       calculated[key] = (key === 'maxHp' ? Math.floor(n / 400) + build.level + 10 : Math.floor((n + 2000) * factor / 4000)) + bonus + build.inscriptions.reduce((sum,slot)=>sum+slot[key],0);
       if(SPECIES[speciesId].speedGrowthToHp&&key==='maxHp')calculated[key]+=build.inscriptions.reduce((sum,slot)=>sum+slot.spe,0);
+      calculated[key] += GROWTH.extra(build,key);
       suitBonuses[key] = GEAR.suitBonus(build.suit, key, calculated[key]);
       calculated[key] += suitBonuses[key];
       if(key==='maxHp')calculated[key]=Math.floor(calculated[key]*(SPECIES[speciesId].maxHpMultiplier??1));

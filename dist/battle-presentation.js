@@ -33,7 +33,26 @@
     }
     return[current,...lines].join('\n\n');
   }
-  function affinity(f,opponent,battle){return{from:f.type,to:opponent.type,multiplier:E.typeEffectiveness(f.type,opponent.type,battle.typeChart),note:'本系攻击的属性克制倍率；技能系别或专属效果可能另行修正，不含增伤、减伤。'};}
+  function affinity(f,opponent,battle){
+    return {from:f.type,to:opponent.type,multiplier:E.typeEffectiveness(f.type,opponent.type,battle.typeChart),
+      incoming:E.typeEffectiveness(opponent.type,f.type,battle.typeChart),
+      note:'本系攻击的属性克制倍率；技能系别或专属效果可能另行修正，不含增伤、减伤。'};
+  }
+  function affinitySummary(model,label,compact=false){
+    const box=document.createElement('div');
+    box.className=compact?'reserve-affinity':'affinity-summary';
+    box.setAttribute('aria-label',label+'属性克制');
+    for(const [direction,from,to,value] of [['进攻',model.from,model.to,model.multiplier],['受击',model.to,model.from,model.incoming]]){
+      if(value==null)continue;
+      const row=document.createElement('span'),rate=document.createElement('strong');
+      row.className='affinity-direction';
+      row.append(direction+' '+from+' → '+to+' ');
+      rate.textContent='×'+value;row.append(rate);box.append(row);
+    }
+    if(compact)box.title=model.note;
+    else{const note=document.createElement('small');note.textContent=model.note;box.append(note);}
+    return box;
+  }
   function spMarsMove(snapshot,id,form){
     const spec=snapshot?.originalSpec;
     const key=Object.keys(E.SpMars.MOVES).find(key=>'wiki:'+E.SpMars.MOVES[key]===id);
@@ -223,5 +242,5 @@
     }
   }
 
-  return Object.freeze({teamHead,bindPreparedDetails,soul,equipment,explain,affinity,spMarsMove,moveDetails,bindMoveDetails,closeMoveDetails});
+  return Object.freeze({teamHead,bindPreparedDetails,soul,equipment,explain,affinity,affinitySummary,spMarsMove,moveDetails,bindMoveDetails,closeMoveDetails});
 });

@@ -6,7 +6,7 @@
     destiny:{name:'胜天之命',flat:{atk:75,spa:75,spe:65},percent:{},statsText:'攻击、特攻各 +75，速度 +65',passive:'用招后回合末获得1层胜天之力，对手未用招则2层，上限10层；每层攻击增伤4%、固伤和百分比减伤2%；攻击不足300时每层吸取对手2%最大体力，否则每层附加本次伤害4%的百分比伤害。'},
     dawn:{name:'晨曦',flat:{maxHp:60,spe:60},percent:{},statsText:'体力、速度各 +60',passive:'无异常时回合开始忽略对手10速度；攻击增伤10%、附加100固伤，高于半血翻倍；受击减伤10%，低于半血翻倍；对手攻击后回血100，回复前低于半血则200。'},
     judgment:{name:'裁决',flat:{atk:60,spa:60,spe:80},percent:{},statsText:'攻击、特攻各 +60，速度 +80',passive:'攻击增伤40%；首回合末每损失10%体力获得50护罩（最多300），按当时每50护罩再增加10%攻击伤害（最多40%，本次在场保留）；回合开始无护罩时固伤、百分比减伤5%，每损失15%体力再加5%，最多25%。'},
-    corrosion:{name:'腐蚀',flat:{},percent:{atk:10,spa:10},statsText:'攻击、特攻各 +10%（换算后加入面板）',passive:'攻击忽略对手15%双防；受击且存活时登记腐蚀，下回合令对手麻痹1回合，未成功则造成对手最大体力1/6的百分比伤害。'}
+    corrosion:{name:'腐蚀者套装',flat:{},percent:{atk:10,spa:10},statsText:'攻击、特攻各 +10%（换算后加入面板）',passive:'攻击忽略对手15%双防；受击且存活时登记腐蚀，下回合令对手麻痹1回合，未成功则造成对手最大体力1/6的百分比伤害。'}
   };
   const AILMENT_GROUPS = Object.freeze(Object.fromEntries(['控制类','弱化类'].map(category =>
     [category, Object.freeze(catalog.records.filter(record => record.category === category).map(record => record.name))])));
