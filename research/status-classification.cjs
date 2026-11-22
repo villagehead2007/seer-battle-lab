@@ -17,7 +17,7 @@ function classify(row,source){
  const values=Object.fromEntries(fields.map(k=>[k,null])),evidence=Object.fromEntries(fields.map(k=>[k,null]));
  function confirm(field,quote,scope='state-definition',condition=null){
   assert.ok(row.description?.includes(quote),row.name+': unsupported classification '+quote);
-  values[field]=true;evidence[field]={source:'wiki-mechanics',statusName:row.name,quote,url:source.url,revision:source.revision,hash:source.hash,scope,condition};
+  values[field]=true;evidence[field]={source:source.key??'wiki-mechanics',statusName:row.name,quote,url:source.url,revision:source.revision,hash:source.hash,scope,condition};
  }
  const prefix=row.description?.match(/^(弱化类|控制类|附属类)异常状态/);
  if(prefix)confirm('isAbnormal',prefix[0]);
@@ -30,7 +30,7 @@ function classify(row,source){
  for(const n of ['中毒','冻伤','烧伤','寄生'])if(row.name===n)confirm('dealsPeriodicDamage','每回合都会扣除等同于最大体力的1/8的体力','each-round');
  if(row.name==='流血')confirm('dealsPeriodicDamage','每回合都会扣除80点体力','each-round');
  if(row.name==='混乱')confirm('dealsPeriodicDamage','每回合都会有5%的概率扣除50点体力','conditional-each-round','5%的概率');
- for(const n of ['烈焰诅咒','沉默'])if(row.name===n)confirm('dealsPeriodicDamage','每回合受到最大体力1/8的百分比伤害','each-round');
+ for(const n of ['烈焰诅咒','沉默'])if(row.name===n)confirm('dealsPeriodicDamage',row.description.includes('每回合结束后')?'每回合结束后受到最大体力1/8的百分比伤害':'每回合受到最大体力1/8的百分比伤害','each-round');
  const statQuotes={感染:'感染结束后会转化为中毒、攻击、特攻等级-1',冰封:'冰封结束后会转化为冻伤、速度等级-1',焚烬:'焚烬结束后会转化为烧伤、命中等级-1'};
  if(statQuotes[row.name])confirm('changesStats',statQuotes[row.name],'on-status-end',row.name+'结束');
  return {classification:values,classificationEvidence:evidence,classificationPending:fields.filter(k=>values[k]===null)};

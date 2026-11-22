@@ -15,7 +15,7 @@ test('分类逐项审核覆盖38个待核实和3个排除项，无重复或遗�
 test('逐状态证据原文与修订哈希可回溯，控制类别标签不替代行为字段',()=>{
  assert.equal(review.databaseSha256,sha(fs.readFileSync(path.join(root,'data/statuses/statuses.json'))));
  const wiki=resolve(catalog.database.sources['wiki-mechanics']);assert.equal(sha(wiki),review.source.hash);
- for(const r of review.records){for(const f of Object.values(r.checks)){for(const e of Array.isArray(f.evidence)?f.evidence:f.evidence?[f.evidence]:[]){assert.equal(e.revision,review.source.revision);assert.equal(e.hash,review.source.hash);assert.ok(r.originalDescription.includes(e.quote));assert.ok(wiki.includes(e.quote));}}
+ for(const r of review.records){for(const f of Object.values(r.checks)){for(const e of Array.isArray(f.evidence)?f.evidence:f.evidence?[f.evidence]:[]){const source=catalog.database.sources[e.source];assert.equal(e.revision,source.revision);assert.equal(e.hash,source.hash);assert.equal(r.revision,e.revision);assert.ok(r.originalDescription.includes(e.quote));assert.ok(resolve(source).includes(e.quote));}}
   assert.equal(r.checks.controlClass.listedCategory,catalog.getById(r.id).category);
   for(const key of ['isAbnormal','restrictsSwitching','controlsAction','dealsPeriodicDamage'])assert.equal(r.checks[key].value,catalog.getById(r.id).classification[key]);
  }

@@ -140,6 +140,7 @@ test('4969 步延星空消回合、两种弱化状态、存活先制及消回合
   assert.equal(s.fighters[1].effects['电系伤害翻倍'],undefined);
   const draws=s.randomStatusEvents.filter(event=>event.type==='draw'&&event.effectId===2061);
   assert.equal(draws.length,2);
+  assert.ok(draws.every(result=>E.STATUS_RULES.isWeakening(result.name)));
   assert.equal(new Set(draws.map(result=>result.name)).size,2);
   assert.ok(Object.values(s.fighters[0].effects).some(e=>e.amount===2&&e.start===2));
   assert.ok(Object.values(s.fighters[1].effects).some(e=>e.start===2));

@@ -92,7 +92,7 @@ test('2074按用户规则排除PVE山神守护，魇昧正常施加为白板异�
 test('2074浏览器目录与数据库一致，浏览器和Node同种子真实结果一致',()=>{
  const dir=path.join(__dirname,'../dist'),html=fs.readFileSync(path.join(dir,'index.html'),'utf8'),scripts=[...html.matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]),browser=vm.createContext({console,structuredClone});
  for(const file of scripts.slice(0,scripts.indexOf('engine.js')+1))vm.runInContext(fs.readFileSync(path.join(dir,file),'utf8'),browser,{filename:file});
- assert.deepEqual(JSON.parse(JSON.stringify(browser.BattleStatusCatalog.records)),db.list().map(({id,name})=>({id,name})));
+ assert.deepEqual(JSON.parse(JSON.stringify(browser.BattleStatusCatalog.records)),db.list().map(({id,name,category})=>({id,name,category})));
  assert.equal(browser.BattleStatusCatalog.databaseHash,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../data/statuses/statuses.json'))).digest('hex'));
  assert.deepEqual(JSON.parse(JSON.stringify(browser.BattleStatusPools.pool())),P.pool());
  const a=game(2),b=browser.BattleEngine.createBattle(a.initial),x=turn(a),y=browser.BattleEngine.resolveTurn(b,[key(0,1),key(1,2)]);assert.deepEqual(JSON.parse(JSON.stringify(y.randomStatusEvents)),x.randomStatusEvents);assert.deepEqual(JSON.parse(JSON.stringify(y.fighters[1].ailments)),x.fighters[1].ailments);assert.equal(y.fighters[1].hp,x.fighters[1].hp);

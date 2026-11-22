@@ -107,14 +107,16 @@
     const species = options.species ?? ['rey', 'gaia'];
     if (!Array.isArray(species) || species.length !== 2) throw new Error('需要两只精灵。');
     const fighters = [0, 1].map(i => {
-      const growth = calculateStats(species[i], { ...options.builds?.[i], overrides: { ...options.builds?.[i]?.overrides, ...options.stats?.[i] } });
+      const input=options.builds?.[i];
+      const build=options.typeLibraryVersion && options.resistanceRevision==null?GEAR.restoreBuild(input):input;
+      const growth = calculateStats(species[i], { ...build, overrides: { ...options.builds?.[i]?.overrides, ...options.stats?.[i] } });
       const stats = growth.stats, data = SPECIES[species[i]];
       validateStats(stats);
       return { side: i, species: species[i], name: data.name, number: data.number, type: data.type, level: growth.build.level, build: growth.build, stats, hp: stats.maxHp, moves: [...data.moves],
         stages: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, acc: 0 }, pp: Object.fromEntries(data.moves.map(id => [id, api.MOVES[id].pp])) };
     });
     return { version: VERSION, typeLibraryVersion, seed, rng: seedNumber(seed), round: 1, winner: null, finished: false,
-      criticals: options.criticals !== false, fighters, turns: [], initial: { typeLibraryVersion, seed, species: [...species], criticals: options.criticals !== false, builds: fighters.map(f => clone(f.build)) } };
+      criticals: options.criticals !== false, fighters, turns: [], initial: { typeLibraryVersion, resistanceRevision:391713, seed, species: [...species], criticals: options.criticals !== false, builds: fighters.map(f => clone(f.build)) } };
   }
   function multiplier(stage) { return stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage); }
   function effective(f, stat) { return Math.max(1, Math.floor(f.stats[stat] * multiplier(f.stages[stat]))); }
@@ -124,6 +126,7 @@
     if (previous.finished) throw new Error('本场对战已结束，请重新开局。');
     if (!Array.isArray(choices) || choices.length !== 2 || choices.some((id, i) => !availableMoves(previous.fighters[i]).includes(id))) throw new Error('请为双方选择有 PP 的技能。');
     const state = clone(previous);
+    GEAR.restoreBattleBuilds(state);
     const events = [];
     const label = i => i === 0 ? 'A 方' : 'B 方';
     const emit = (text, kind = 'info', detail = '') => events.push({ text, kind, detail });

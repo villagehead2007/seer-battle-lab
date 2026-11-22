@@ -52,4 +52,5 @@ const database={schemaVersion:1,kind:'seer-web-status-reference-data',runtimeEna
 database.classificationSchemaVersion=1;
 database.classificationSemantics=classification.semantics;
 for(const record of records)Object.assign(record,classification.classify(record,wikiSource));
+require('./apply-curse-classification.cjs')(database);
 fs.writeFileSync('data/statuses/statuses.json',JSON.stringify(database,null,2)+'\n');console.log(database.summary);

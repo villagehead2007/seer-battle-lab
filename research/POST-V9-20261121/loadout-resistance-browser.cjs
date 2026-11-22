@@ -19,6 +19,8 @@ async function run(){
           const field=select(side,slot);
           const actual=await field.evaluate(el=>Array.from(el.children,c=>c.tagName==='OPTION'?c.textContent:[c.label,Array.from(c.children,o=>o.value)]));
           assert.deepEqual(actual,['不设置',...['控制类','弱化类'].map(c=>[c+'异常',records.filter(r=>r.category===c).map(r=>r.name)])]);
+          for(const curse of ['烈焰诅咒','致命诅咒','虚弱诅咒'])assert.equal(await field.locator('option[value="'+curse+'"]').count(),0);
+          assert.equal(await field.locator('optgroup[label="控制类异常"] option[value="诅咒"]').count(),1);
           await field.selectOption(names[i]);
         }
         await page.locator('[name="'+side+'-res-third-chance"]').fill('73');

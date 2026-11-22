@@ -231,6 +231,8 @@ test('同一补救动作在另一种合法应对下能胜，首轮试算全负�
 test('困难档第 50 回合用剩余预算排除会被反击致死的表面平局',()=>{
   const teams=[[3586],[3414]].map(ids=>ids.map(id=>{
     const m=member(id);
+    // The opening drains a slot's PP. Keep 30994 available for round three.
+    if(id===3414)m.moves=[25604,25605,30993,30994,30995];
     m.build.overrides.maxHp=850;
     return m;
   }));
@@ -245,6 +247,7 @@ test('困难档第 50 回合用剩余预算排除会被反击致死的表面平�
   const choice=run(g,'hard',{now:()=>elapsed},{seed:1803366634,team}).action;
   for(const rng of [7,31,1729]){
     const state={...g,battle:{...g.battle,rng,seed:String(rng)}};
+    assert.equal(T.turn(state,['wiki:26057','wiki:25604']).battle.winner,0);
     for(const reply of T.choicesFor(state,0,null)){
       const outcome=T.turn(state,[reply.key,keyToChoice(choice.key)]);
       assert.equal(outcome.battle.winner,'draw');
@@ -349,7 +352,10 @@ function standardReplacement(game,seed){
 }
 
 test('标准档最后一只雷伊补位时用先制反转挡住已强化的攻击',()=>{
-  let game=T.create([naturalRoster([4275,4216,4822]),naturalRoster([4755,4765,3141])],[0,0],
+  const defenders=naturalRoster([4755,4765,3141]);
+  // Keep the lead's 29038 out of the slot depleted by the opening strike.
+  defenders[0].moves=[29038,37898,29037,37897,37899];
+  let game=T.create([naturalRoster([4275,4216,4822]),defenders],[0,0],
     {seed:'duel-17003',challengedSide:0,criticals:true});
   const strike='wiki:35378';
   game=T.turn(game,[strike,'wiki:29038']);
@@ -383,6 +389,8 @@ test('标准档最后一对一补位保留原有属性招或药剂回应',()=>{
   game=T.turnWithReplacement(game,[2,null],['wiki:37788','wiki:35376'],{blind:true});
   game=T.turn(game,['wiki:37790','wiki:35378']);
   assert.deepEqual(game.slots.map(t=>t.filter(z=>z.fighter.hp>0).length),[1,1]);
+  const reckless=T.turnWithReplacement(game,[null,2],['wiki:37789','wiki:37789'],{blind:true});
+  assert.equal(reckless.battle.winner,0);
   for(const seed of [1529703215,1821333058]){
     const counter=standardReplacement(game,seed).action;
     assert.equal(counter.key,'wiki:37788');

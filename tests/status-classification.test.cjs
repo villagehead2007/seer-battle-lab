@@ -3,12 +3,14 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const catalog=require('../status-database.cjs'),query=require('../status-pool-candidates.cjs');
 const {fields,classify}=require('../research/status-classification.cjs');
 const root=path.join(__dirname,'..'),db=catalog.database,source=db.sources['wiki-mechanics'];
-function rawWiki(){const file=JSON.parse(fs.readFileSync(path.join(root,source.file)));return source.pointer.split('/').slice(1).reduce((v,k)=>v[k],file);}
+function rawWiki(source=db.sources['wiki-mechanics']){const file=JSON.parse(fs.readFileSync(path.join(root,source.file)));return source.pointer.split('/').slice(1).reduce((v,k)=>v[k],file);}
 const namesFor=field=>catalog.list().filter(r=>r.classification[field]===true).map(r=>r.name);
 
 test('全部41种状态具有完整三值分类字段，已知值逐字段绑定真实来源',()=>{
  const raw=rawWiki();assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),source.hash);assert.equal(catalog.list().length,41);
  for(const row of catalog.list()){
+  const source=db.sources[row.descriptionEvidence?.source??'wiki-mechanics'],raw=rawWiki(source);
+  assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),source.hash);
   assert.deepEqual(Object.keys(row.classification),fields);
   for(const field of fields){const value=row.classification[field],e=row.classificationEvidence[field];
    assert.ok(value===true||value===false||value===null);if(value===null){assert.equal(e,null);assert.ok(row.classificationPending.includes(field));}

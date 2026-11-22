@@ -1,8 +1,22 @@
 'use strict';
 // Runs in its own engine realm. The only input is the public position at turn start.
-function actions(game, side) {
+function actions(game, side, seededRoot=false) {
   const targets = game.pending.includes(side) ? TeamBattle.candidates(game,side,true) : [null];
-  return targets.flatMap(target => TeamBattle.choicesFor(game,side,target).map(({key}) => ({target,key})));
+  return targets.flatMap(target => {
+    const options=TeamBattle.choicesFor(game,side,target).map(({key}) => ({target,key}));
+    if(!seededRoot)return options;
+    // Restore the historical fifth-first search order, including when a default
+    // skill is equipped in a different slot. PP and effects still use real slots.
+    const slot=game.slots[side][target??game.active[side]];
+    const defaults=BattleEngine.WIKI.defaultMoves(slot.config.snapshot).map(id=>'wiki:'+id);
+    const rank=option=>{
+      if(moveFor(game,side,option)?.fifth)return -1;
+      const index=defaults.indexOf(option.key);
+      return index<0?defaults.length:index;
+    };
+    return options.map(option=>({option,rank:rank(option)}))
+      .sort((a,b)=>a.rank-b.rank).map(entry=>entry.option);
+  });
 }
 function engineChoice(key) {
   return key.startsWith('switch/') ? {switchTo:Number(key.slice(7))} : key;
@@ -140,7 +154,7 @@ function decide(game,seed,difficulty,emit,audit) {
     for(let i=items.length-1;i>0;i--){const j=random()%(i+1);[items[i],items[j]]=[items[j],items[i]];}
     return items;
   }
-  const ours=shuffle(actions(game,1)),opponents=shuffle(actions(game,0));
+  const ours=shuffle(actions(game,1,true)),opponents=shuffle(actions(game,0,true));
   const enemy=game.battle.fighters[0];
   const holder=game.battle.fighters[1];
   const publicPP=BattleEngine.SpMars.projectedBody(holder,game.battle.round)?.pp??holder.pp;

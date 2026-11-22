@@ -7821,9 +7821,7 @@ novemberAilmentEffect(1400,29522,'ce55f878',1,[3,100,8],(c,p)=>{
 metadata[1045]={info:'未击败对手则附加自身最大体力1/{0}的百分比伤害',args_num:1};
 add(1045,'afterAttack',(c,p)=>{if(c.t.hp>0)c.hurt(c.t,c.a.stats.maxHp/p[0],c.m.name+'未击败附伤','percent');},[[1,9999]]);
 metadata[2061]={info:'随机附加{0}种弱化类异常状态',args_num:1};
-add(2061,'afterHit',(c,p)=>c.randomAilmentsFrom(p[0],[
- '中毒','烧伤','寄生','冻伤','混乱','衰弱','易燃','流血','失明','烈焰诅咒','致命诅咒','虚弱诅咒','束缚','失神','沉默','臣服','凝滞','沸涌','魇昧',
-],2061),[[1,19]]);
+add(2061,'afterHit',(c,p)=>c.randomAilmentsFrom(p[0],conditionStatusRules.weakening,2061),[[1,conditionStatusRules.weakening.length]]);
 for(const [id,index,category,template,key,sign] of [
  [2622,2,3,'{0}回合内自身使用{1}技能时令对手全属性-{2}','夜暝用攻弱化',-1],
  [2623,3,4,'{0}回合内自身使用{1}技能时使自身全属性+{2}','夜暝用属强化',1],
