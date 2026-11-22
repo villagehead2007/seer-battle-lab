@@ -1,11 +1,9 @@
 'use strict';
 // Run with Playwright available on NODE_PATH. Uses two isolated Edge contexts.
 const assert=require('node:assert/strict');
-const {spawn}=require('node:child_process');
-const {once}=require('node:events');
+const withTestServer=require('./helpers/owned-server.cjs');
 const {chromium}=require('playwright');
 const path=require('node:path');
-const local=spawn(process.execPath,['server.cjs'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const state=page=>page.evaluate(()=>fetch('/state').then(r=>r.json()));
 const retry=async(page,key,target=null,epoch)=>{
   const {matchId}=await state(page);
@@ -17,10 +15,9 @@ async function lock(page,key){
   await page.locator('[data-team-choice="'+key+'"]:enabled').click();
   await page.getByRole('button',{name:'锁定本回合行动'}).click();
 }
-(async()=>{
+withTestServer(async base=>{
  let browser;
  try{
-  const [line]=await once(local.stdout,'data'),base=line.toString().trim().split(' ').at(-1);
   browser=await chromium.launch({channel:'msedge',headless:true});
   const ctxA=await browser.newContext(),ctxB=await browser.newContext();
   const modes=await ctxA.newPage();await modes.goto(base+'/modes.html');
@@ -69,6 +66,12 @@ async function lock(page,key){
     const move=p.locator('.team-fighter').nth(own).locator('.team-move[data-move-detail]').first();
     await move.hover();await p.getByRole('tooltip').waitFor();
   }
+  for(const p of [a,b]){
+    assert.deepEqual(await p.locator('.team-fighter').nth(0).locator('.affinity-summary strong').allTextContents(),['×2','×1']);
+    assert.deepEqual(await p.locator('.team-fighter').nth(1).locator('.affinity-summary strong').allTextContents(),['×1','×2']);
+  }
+  assert.equal(await a.locator('.reserve-affinity').count(),0);
+  assert.deepEqual(await b.locator('.team-hp + .reserve-affinity strong').allTextContents(),['×2','×1']);
   await lock(b,'potion:pp');await lock(a,'wiki:37809');
   await b.getByRole('heading',{name:'选择补位成员和本回合行动'}).waitFor();
   for(const p of [solo,a,b]){
@@ -88,7 +91,11 @@ async function lock(page,key){
     assert.ok(second.y>=first.y+first.height-1);
   }
   const before=await state(a),pending=await state(b);
-  await b.getByRole('button',{name:/^补位 /}).click();
+  const replaceButton=b.getByRole('button',{name:/^补位 /});
+  assert.deepEqual(await replaceButton.locator('.team-hp + .reserve-affinity strong').allTextContents(),['×2','×1']);
+  await replaceButton.click();
+  assert.deepEqual(await b.locator('.team-fighter').nth(0).locator('.affinity-summary strong').allTextContents(),['×1','×2']);
+  assert.deepEqual(await a.locator('.team-fighter').nth(0).locator('.affinity-summary strong').allTextContents(),['×2','×1']);
   await lock(b,pending.options[0].actions.find(x=>x.key.startsWith('wiki:')).key);
   await b.getByText('已私下锁定，等待对手。').waitFor();
   const after=await state(a);
@@ -106,5 +113,5 @@ async function lock(page,key){
   await host.waitFor({state:'detached'});await assert.rejects(()=>b.request.get(new URL('/state',join).href));
   assert.equal((await modes.request.get(base+'/api/launcher/health')).status(),200);
   console.log('Passed roster, KO blind lock, private response, refresh, duplicate lock, stale retry, synchronized victory and local entries.');
- }finally{await browser?.close();local.kill();}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+ }finally{await browser?.close();}
+}).catch(error=>{console.error(error);process.exitCode=1;});

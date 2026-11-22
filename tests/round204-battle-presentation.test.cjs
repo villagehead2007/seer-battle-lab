@@ -12,7 +12,7 @@ test('595原术语提供状态通用解释与当前值，亮节咒怨和神圣�
  for(const [name,value,expected]of[['亮节','余 3 回合','50%'],['魔王咒怨','2 层','10层'],['神圣之霆','1 / 6 道','神圣之霆']]){const text=P.explain({name,value},null,null);assert.ok(text.includes(value));assert.ok(text.includes(expected));}const text=P.explain({name:'魔王咒怨',value:'2 层'},null,null);assert.ok(!text.includes('上限10'));assert.match(text,/达到10层/);
 });
 test('双向属性展示各自使用实际在场属性及本局克制表，仅读基础属性倍率',()=>{
- const g=T.create([[member(4762)],[member(4800)]],[0,0],{seed:14}),before=structuredClone(g);for(const side of[0,1]){const f=g.battle.fighters[side],t=g.battle.fighters[1-side],a=P.affinity(f,t,g.battle);assert.equal(a.from,f.type);assert.equal(a.to,t.type);assert.equal(a.multiplier,E.typeEffectiveness(f.type,t.type,g.battle.typeChart));assert.match(a.note,/不含增伤、减伤/);}assert.deepEqual(g,before);
+ const g=T.create([[member(4762)],[member(4800)]],[0,0],{seed:14}),before=structuredClone(g);for(const side of[0,1]){const f=g.battle.fighters[side],t=g.battle.fighters[1-side],a=P.affinity(f,t,g.battle);assert.equal(a.from,f.type);assert.equal(a.to,t.type);assert.equal(a.multiplier,E.typeEffectiveness(f.type,t.type,g.battle.typeChart));assert.equal(a.incoming,E.typeEffectiveness(t.type,f.type,g.battle.typeChart));assert.match(a.note,/不含增伤、减伤/);}assert.deepEqual(g,before);
 });
 test('默认单宠入口也使用原魂完整正文与准确hash，内部效果标签不误认成同名术语',()=>{
  const g=E.createBattle();for(const [side,id]of[[0,3291],[1,3142]]){const f=g.fighters[side],source=S.species(id).souls.find(s=>s.id===f.soulId),out=P.soul(f);assert.equal(out.hash,source.hash);assert.equal(out.text,source.description);}assert.equal(P.explain('湮灭实际用招低体吸取 · 余 3 回合',null,null),'湮灭实际用招低体吸取 · 余 3 回合');

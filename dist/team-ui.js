@@ -29,6 +29,11 @@
     return box;
   }
 
+  function reserveHealth(f,affinity){
+    const parts=[health(f,true)];
+    if(affinity)parts.push(window.BattlePresentation.affinitySummary(affinity,f.name,true));
+    return parts;
+  }
   function fighterHead(side,{f,status,affinity,soul,gear,display,teamItems,descriptions},expandedResources){
     const card=node('article','fighter team-fighter '+(side?'side-b':'side-a'));
     card.setAttribute('aria-label',sideName(side)+' '+f.name);
@@ -36,9 +41,7 @@
     line.append(el('span',sideName(side)+' · '+(status)),node('span','type-pill',f.type));
     const names=node('div','name-row');names.append(el('h2',f.name),node('span','level','Lv.'+f.level));
     head.append(line,names);
-    const typeBox=node('div','affinity-summary');
-    typeBox.setAttribute('aria-label',sideName(side)+'属性克制');
-    typeBox.append(el('span',affinity.from+' → '+affinity.to),el('strong','×'+affinity.multiplier),el('small',affinity.note));head.append(typeBox);
+    head.append(window.BattlePresentation.affinitySummary(affinity,sideName(side)));
     const soulBox=node('details','soul-card');
     soulBox.append(el('summary','魂印 · '+soul.name));if(soul.id)soulBox.append(el('small','版本 '+soul.id+' · '+soul.hash),el('p',soul.text));head.append(soulBox);
     const gearBox=node('details','equipment-summary');
@@ -148,7 +151,7 @@
     }
     return [...new Set(notes)];
   }
-  window.TeamComponents={memberNotes,el,node,health,fighterHead,skillButton,potionButton,rosterEntry,journal};
+  window.TeamComponents={memberNotes,el,node,health,reserveHealth,fighterHead,skillButton,potionButton,rosterEntry,journal};
 })();
 (()=>{
   if(location.search!=='?mode=team'||location.pathname==='/room')return;
@@ -351,6 +354,8 @@
             choices[opponent]=null;
           render();
         });
+        b.setAttribute('aria-label','补位 '+reserve.name);
+        b.append(...C.reserveHealth(reserve,P.affinity(reserve,view.battle.fighters[1-side],view.battle)));
         b.dataset.replacementMember=String(index);b.dataset.side=String(side);
         b.setAttribute('aria-pressed',String(replacement[side]===index));bench.append(b);
       }
@@ -401,7 +406,7 @@
       const reason=reserve.soulState.vanished?'已消逝':allowed.includes(i)?'':reserve.hp<=0?'已阵亡':phase==='finished'?'对战结束':'无法主动切换';
       const b=choice(side,'switch/'+i,'team-reserve', '换入 '+m.snapshot.name, reason);
       if(driven&&allowed.includes(i))b.append(node('small','bench-state','主动更换视为驱逐，可指定此队友')); 
-      b.append(el('strong',m.snapshot.name),health(reserve,true));
+      b.append(el('strong',m.snapshot.name),...C.reserveHealth(reserve,P.affinity(reserve,view.battle.fighters[1-side],view.battle)));
       if(reason)b.append(node('small','bench-state',reason));
       bench.append(b);
     });

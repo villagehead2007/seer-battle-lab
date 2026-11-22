@@ -1,8 +1,12 @@
 @echo off
-cd /d "%~dp0"
+setlocal
+chcp 65001 >nul
+cd /d "%~dp0" || exit /b 1
 if exist "C:\Program Files\nodejs\node.exe" (
-  "C:\Program Files\nodejs\node.exe" start.cjs
+  "C:\Program Files\nodejs\node.exe" "%~dp0start.cjs" %*
 ) else (
-  node start.cjs
+  node "%~dp0start.cjs" %*
 )
-if errorlevel 1 pause
+set "seer_exit=%errorlevel%"
+if not "%seer_exit%"=="0" pause
+exit /b %seer_exit%

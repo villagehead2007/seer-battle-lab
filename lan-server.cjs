@@ -68,4 +68,4 @@ async function manage(req,res,localHandler){
     json(res,200,{host:link('127.0.0.1',0),join:ips.map(ip=>link(ip,1)),networks:adapters,localJoin:link('127.0.0.1',1)});
   }catch(error){if(active===instance)active=null;json(res,500,{error:'房间启动失败：'+error.message});}
 }
-module.exports={manage};
+module.exports={manage,hasRoom:()=>Boolean(active)};

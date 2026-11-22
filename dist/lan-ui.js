@@ -103,7 +103,12 @@
     for(const side of [0,1]){
       const own=side===mine;
       const model=(own&&s.previews[projected])||s.panels[side];
-      const card=C.fighterHead(side,model.head,expanded);cards.append(card);
+      let head=model.head;
+      const preview=s.previews[projected]?.head.affinity;
+      if(!own&&preview?.incoming!=null){
+        head={...head,affinity:{...preview,from:preview.to,to:preview.from,multiplier:preview.incoming,incoming:preview.multiplier}};
+      }
+      const card=C.fighterHead(side,head,expanded);cards.append(card);
       const area=node('div','move-area'),heading=node('div','move-heading');
       card.append(area);area.append(heading);
       const label=done?'已结束':own?(s.ownLock??selectedAction?.name??'待选择'):s.locked[side]?'已锁定':'待选择';
@@ -114,6 +119,9 @@
         const bench=node('div','team-bench');
         for(const row of s.options){
           const b=button('补位 '+row.name,()=>{target=row.target;selected=null;render();});
+          const reserve=s.bench.find(f=>f.index===row.target);
+          b.setAttribute('aria-label','补位 '+row.name);
+          if(reserve)b.append(...C.reserveHealth({...reserve,stats:{maxHp:reserve.maxHp}},reserve.affinity));
           b.setAttribute('aria-pressed',String(target===row.target));bench.append(b);
         }
         area.append(bench);
@@ -146,7 +154,7 @@
       const bench=node('div','team-bench');area.append(bench);
       for(const f of s.bench.filter(f=>f.index!==projected)){
         const b=choice(side,'switch/'+f.index,'team-reserve','换入 '+f.name,'');
-        b.replaceChildren(el('strong',f.name),C.health({name:f.name,hp:f.hp,stats:{maxHp:f.maxHp}},true));bench.append(b);
+        b.replaceChildren(el('strong',f.name),...C.reserveHealth({...f,stats:{maxHp:f.maxHp}},f.affinity));bench.append(b);
       }
       if(!bench.childElementCount)bench.append(node('span','effect-empty','无场下成员'));
       window.BattlePresentation.bindPreparedDetails(card,(key,form)=>{

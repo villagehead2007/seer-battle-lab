@@ -70,7 +70,7 @@ function createRoom(){
     const battle=game.battle;
     return {...base,...presentation(side),ownTarget:locks[side]?.target??null,phase:game.phase,round:battle.round,challengedSide:battle.challengedSide,winner:battle.winner,finishReason:game.finishReason??null,history:game.history,
       ownLock:locks[side]?.label??null,
-      bench:game.slots[side].flatMap(({fighter:f},index)=>index===game.active[side]?[]:[{index,name:f.name,hp:f.hp,maxHp:f.stats.maxHp}]),
+      bench:game.slots[side].flatMap(({fighter:f},index)=>index===game.active[side]?[]:[{index,name:f.name,hp:f.hp,maxHp:f.stats.maxHp,affinity:P.affinity(f,battle.fighters[1-side],battle)}]),
       fighters:battle.fighters.map((f,i)=>{
         const display=D.fighter(f,battle.round,battle.moveDefinitions,battle);
         return {name:f.name,hp:f.hp,maxHp:f.stats.maxHp,stages:f.stages,effects:E.describeEffects(f,battle.round),

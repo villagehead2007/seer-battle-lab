@@ -1,30 +1,32 @@
 'use strict';
-const http=require('node:http'),path=require('node:path'),fs=require('node:fs'),{spawn}=require('node:child_process');
-const revision=require('./runtime-revision.cjs')();
-const host='127.0.0.1';
+const fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:child_process');
+const {identity,preferredPort,inspect,select}=require('./launcher-service.cjs');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-function inspect(port){return new Promise(resolve=>{
-  const req=http.get(`http://${host}:${port}/api/launcher/health`,res=>{let body='';res.on('data',chunk=>body+=chunk);res.on('end',()=>{try{const data=JSON.parse(body);resolve(data.app==='seer-battle-lab'&&Number.isInteger(data.pid)?{state:'ours',...data}:{state:'occupied'});}catch{resolve({state:'occupied'});}});});
-  req.setTimeout(1200,()=>req.destroy());
-  req.on('error',error=>resolve({state:error.code==='ECONNREFUSED'?'free':'occupied'}));
-});}
-async function launch(port){
+async function launch(port,wanted,owner){
   const log=fs.openSync(path.join(__dirname,'launcher-server.log'),'a');
-  const child=spawn(process.execPath,[path.join(__dirname,'server.cjs')],{cwd:__dirname,env:{...process.env,PORT:String(port)},detached:true,windowsHide:true,stdio:['ignore',log,log]});
-  child.on('error',error=>console.error(error.message));child.unref();fs.closeSync(log);
-  for(let i=0;i<24;i++){await sleep(500);const info=await inspect(port);if(info.state==='ours'&&info.revision===revision)return true;}
-  return false;
+  let child;
+  try{
+    child=spawn(process.execPath,[path.join(__dirname,'server.cjs')],{cwd:__dirname,
+      env:{...process.env,PORT:String(port),SEER_SERVICE_SCOPE:wanted.scope,SEER_LAUNCH_OWNER:owner},
+      detached:true,windowsHide:true,stdio:['ignore',log,log]});
+  }finally{fs.closeSync(log);}
+  let failed=false;
+  child.once('error',()=>{failed=true;});child.unref();
+  for(let i=0;i<24;i++){
+    await sleep(500);
+    if(await inspect(port,wanted)==='match')return true;
+    if(failed||child.exitCode!==null||child.signalCode!==null)return false;
+  }
+  // Only this launch attempt's own child can be abandoned on timeout.
+  child.kill();return false;
 }
 (async()=>{
-  let port=null;
-  const preferred=Number(process.env.SEER_LAUNCH_PORT);
-  for(let candidate=preferred||61648;candidate<=(preferred||61655);candidate++){
-    let info=await inspect(candidate);
-    if(info.state==='ours'&&info.revision===revision){port=candidate;break;}
-    if(info.state==='free'&&await launch(candidate)){port=candidate;break;}
-  }
-  if(port===null)throw Error('本地服务未启动。请查看 launcher-server.log，确认端口 61648–61655 可用。');
-  const url=`http://${host}:${port}/modes.html`;
+  const preferred=preferredPort(process.env.SEER_LAUNCH_PORT);
+  const ports=preferred?[preferred]:Array.from({length:8},(_,i)=>61648+i);
+  const wanted={...identity(__dirname,'development',preferred?'port-'+preferred:'normal'),revision:require('./runtime-revision.cjs')()};
+  const owner=require('node:crypto').randomUUID();
+  const port=await select(ports,wanted,p=>launch(p,wanted,owner));
+  const url='http://127.0.0.1:'+port+'/modes.html';
   console.log('对战实验台已就绪：'+url);
-  if(!process.argv.includes('--no-open') && !process.env.SEER_NO_OPEN){const browser=spawn('explorer.exe',[url],{windowsHide:true,detached:true,stdio:'ignore'});browser.on('error',()=>console.log('请手动打开上述地址。'));browser.unref();}
+  if(!process.argv.includes('--no-open')&&!(preferred&&process.env.SEER_NO_OPEN==='1'))await require('./launcher-browser.cjs')(port,owner);
 })().catch(error=>{console.error(error.message);process.exitCode=1;});
