@@ -3,7 +3,9 @@ $('wiki-sides').innerHTML=sides.map((_,i)=>`<section class="wiki-side"><h3>${i?'
 if(typeof location!=='undefined' && location.search==='?mode=team')window.teamReadMember=i=>{
   const s=sides[i];
   if(s.busy||!s.data||!E.WIKI.assess(s.data,s.selected).supported)throw Error('请先加载本地精灵并完成合法配招');
-  return structuredClone({snapshot:s.data,moves:s.selected,build:window.teamReadBuild(i)});
+  const build=window.teamReadBuild(i);
+  E.GEAR.normalizeResistance(build.resistance);
+  return structuredClone({snapshot:s.data,moves:s.selected,build});
 };
 function request(route,params){return window.BattleDataRequest($('data-provider').value,route,params);}
 function pair(){const ready=sides.every(s=>s.data&&!s.busy&&E.WIKI.assess(s.data,s.selected).supported);$('wiki-start').disabled=!ready;$('wiki-pair-status').textContent=ready?'双方配置已适配，可按实验规则开战。':'请完成双方加载；仅所选技能与魂印均有适配规则时可开战。';}

@@ -7,8 +7,8 @@
   // State clauses retain Wiki evidence. 2074 separately uses an explicit project rule.
   const ids=Object.freeze({麻痹:0,中毒:1,烧伤:2,冻伤:5,害怕:6,疲惫:7,睡眠:8,石化:9,混乱:10,冰封:15});
   // Weakening taxonomy: data/statuses/statuses.json, Wiki mechanics rev388558; not ability-level weakening.
-  const auxiliary=Object.freeze(["狂暴","星赐","星哲","超频","砥砺","星赎","雷解","渐冻"]);
-  const weakening=Object.freeze(["中毒","烧伤","寄生","冻伤","混乱","衰弱","易燃","流血","失明","烈焰诅咒","致命诅咒","虚弱诅咒","束缚","失神","沉默","臣服","凝滞","沸涌","魇昧"]);
+  const auxiliary=Object.freeze(catalog.records.filter(row=>row.category==='附属类').map(row=>row.name));
+  const weakening=Object.freeze(catalog.records.filter(row=>row.category==='弱化类').map(row=>row.name));
   const isWeakening=name=>weakening.includes(name),isAuxiliary=name=>auxiliary.includes(name);
   const controls=Object.freeze(['麻痹','害怕','疲惫','睡眠','石化','冰封','空定','瘫痪','焚烬','诅咒','感染','神游']);
   const virtualBurnResolvers2062=new WeakMap();
@@ -167,5 +167,5 @@
   const timedPresent=(e,r)=>!!e&&(e.untilSwitch===true||e.end>=r);
   const timedActive=(e,r)=>!!e&&e.start<=r&&timedPresent(e,r);
   const timedExpired=(e,r)=>!!e&&e.untilSwitch!==true&&e.end<=r;
-  return Object.freeze({bindMarkOpponent,behaviorActive,convertMarksAtEnd,bindVirtualBurn2062,isAuxiliary:name=>auxiliary.includes(name),isWeakening:name=>weakening.includes(name),timedPresent,timedActive,timedExpired,isControl:name=>controls.includes(name),ids,sourceRevision:388558,conditionPresent,vanish,active,apply,attempt,effect2074,randomAilments,behaviorCoverage,behaviorGaps,durationPolicy,clear,clearAll,expire,blocksAction,powerMultiplier,accuracyMultiplier,attackHit,damageOverTime,confusionDamage,iceExpired,priority,skillInvalid,actionStart,preventsDamage,attackMultiplier,incomingMultiplier,healingMultiplier,minimumAttackDamage,attackDealt,removed,convert,convertExisting,fireHit,roundEnd,markExecution,trueDamageTaken,view});
+  return Object.freeze({bindMarkOpponent,behaviorActive,convertMarksAtEnd,bindVirtualBurn2062,auxiliary,weakening,isAuxiliary,isWeakening,timedPresent,timedActive,timedExpired,isControl:name=>controls.includes(name),ids,sourceRevision:388558,conditionPresent,vanish,active,apply,attempt,effect2074,randomAilments,behaviorCoverage,behaviorGaps,durationPolicy,clear,clearAll,expire,blocksAction,powerMultiplier,accuracyMultiplier,attackHit,damageOverTime,confusionDamage,iceExpired,priority,skillInvalid,actionStart,preventsDamage,attackMultiplier,incomingMultiplier,healingMultiplier,minimumAttackDamage,attackDealt,removed,convert,convertExisting,fireHit,roundEnd,markExecution,trueDamageTaken,view});
 });

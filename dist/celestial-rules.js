@@ -1,7 +1,7 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.BattleCelestialRules=factory();})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
  const names=['寒月','血月','没夜之月'];
- const auxiliary=['狂暴','星赐','星哲','超频','砥砺','星赎','雷解','渐冻'];
+ const auxiliary=(typeof module==='object'&&module.exports?require('./status-rules.js'):globalThis.BattleStatusRules).auxiliary;
  const restricted=['瘫痪','凝滞','魇昧'];
  function list(s){return s.celestials??=[];}
  function active(s,name,side,r){return (s.celestials??[]).find(x=>x.name===name&&x.side===side&&x.start<=r&&x.end>=r);}

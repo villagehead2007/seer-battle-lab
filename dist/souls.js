@@ -793,6 +793,7 @@ function cityActive2119(fighters,name){return fighters.some(f=>E.SOULS.registry[
     if(!entryOnly&&(!Array.isArray(choices)||choices.length!==2||choices.some((id,i)=>!mehAutomatic2038[i]&&!(previous.teamMode&&(id==='team:switch'||id==='team:unavailable-action'&&previous.moveDefinitions[id]))&&!E.availableMoves(previous.fighters[i],previous.round).includes(id)))) throw new Error('请为双方选择有 PP 的技能。');
     if(mehAutomatic2038.some(Boolean))choices=choices.map((id,side)=>mehAutomatic2038[side]?previous.fighters[side].soulState.mehSwitchIn2038.move:id);
     const s=copy(previous),r=s.round,events=[],fs=s.fighters;
+    E.GEAR.restoreBattleBuilds(s);
     for(const side of [0,1])for(const member of [fs[side],...teamReserves(s,side)])bindXuanGuard2144(member);
     E.refreshKnightStates4911(s);E.bindVesselTeam2162(s);E.bindMirageTeam2119(s);E.bindXinTeam1061(s);
     E.captureTeamLaw2146(s);for(const side of [0,1])if(s.teamLaw2146?.[side])E.SOULS.registry[2146].abilities.bindTeamLaw(fs[side],s.teamLaw2146[side]);

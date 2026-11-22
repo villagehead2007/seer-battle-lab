@@ -20,6 +20,7 @@
       if(!Array.isArray(members)||members.length<1||members.length>6)throw Error('每方需要 1～6 只精灵');
       for(const member of members){
         if(!Array.isArray(member.moves))throw Error('队员缺少配招，请选择当前版本的技能');
+        if(member.build)member.build=E.GEAR.restoreBuild(member.build);
         member.moves=E.WIKI.restoreLoadout(member.snapshot,member.moves);
       }
       if(new Set(members.map(m=>Number(m.snapshot.id))).size!==members.length)throw Error('同一方不能重复精灵编号');
@@ -514,9 +515,19 @@
     }else {game.phase=game.pending.length?'replace':'action';if(game.phase==='action'){E.prepareTeamExile(s);E.prepareWindDue2058(s);}}
   }
   const unavailableAction='team:unavailable-action';
+  function copySavedGame(previous){
+    const game=copy(previous);
+    if(game.battle.initial?.resistanceRevision==null){
+      E.GEAR.restoreBattleBuilds(game.battle);
+      for(const slot of game.slots.flat())for(const member of [slot.config,slot.base,slot.fighter]){
+        if(member.build)member.build=E.GEAR.restoreBuild(member.build);
+      }
+    }
+    return game;
+  }
   function turn(previous,choices,afterReplacement=false){
     if(previous.phase!=='action'||!Array.isArray(choices)||choices.length!==2)throw Error('当前不能提交回合');
-    const game=copy(previous),s=game.battle;
+    const game=copySavedGame(previous),s=game.battle;
     const drivenAction=sides.map(side=>s.teamDrivenAction1061?.[side]?.round===s.round);
     const requested=choices.map((choice,side)=>!drivenAction[side]&&typeof choice==='object'&&choice!==null?choice.switchTo:null),departures=sides.map(side=>switchMode(game,side));
     for(const side of sides)if(requested[side]!=null&&!candidates(game,side).includes(requested[side]))throw Error('不可换入该成员');
@@ -687,7 +698,7 @@
   }
   function replace(previous,targets){
     if(previous.phase!=='replace'||!Array.isArray(targets)||targets.length!==2||sides.some(i=>previous.pending.includes(i)!==(targets[i]!=null)))throw Error('请选择阵亡方的替补');
-    const game=copy(previous);
+    const game=copySavedGame(previous);
     delete game.battle.teamKnockout;
     swap(game,targets,true);adjudicate(game);
     return game;
